@@ -467,6 +467,64 @@
   margin-bottom:12px;
 }
 
+
+/* INGREDIENTS RESPONSIVE FIX */
+.ingredients-table-wrapper{
+  width:100%;
+  overflow-x:auto;
+}
+
+.ingredients-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;
+}
+
+@media (max-width: 900px){
+
+  .ingredients-header,
+  .ingredients-actions,
+  .form-row{
+    flex-direction:column !important;
+    display:flex !important;
+    gap:12px;
+  }
+
+  .modal{
+    width:95vw !important;
+    max-height:90vh !important;
+    overflow-y:auto !important;
+  }
+
+  table{
+    min-width:700px;
+  }
+
+  .view{
+    overflow:auto !important;
+  }
+
+}
+
+@media (max-width: 768px){
+
+  header{
+    flex-wrap:wrap;
+    gap:10px;
+    padding:12px;
+  }
+
+  nav{
+    overflow-x:auto;
+    width:100%;
+  }
+
+  nav button{
+    white-space:nowrap;
+  }
+
+}
+
 </style>
 </head>
 <body>
@@ -538,7 +596,7 @@
       <table id="topProductsTable">
         <thead><tr><th>Product</th><th>Qty Sold</th><th>Revenue</th><th>Profit</th></tr></thead>
         <tbody></tbody>
-      </table>
+      </table></div>
       <div class="section-title">Low Stock Alerts</div>
       <table id="lowStockTable">
         <thead><tr><th>Product</th><th>Stock</th><th>Reorder Level</th><th>Status</th></tr></thead>
