@@ -6,7 +6,9 @@
     <title>Caflat.Co POS</title>
     
 
-  </head>
+  
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
     
   <body>
 
@@ -467,6 +469,7 @@
     <button data-view="inventory">Inventory</button>
     <button data-view="ingredients">Ingredients</button>
     <button data-view="sales">Sales</button>
+    <button data-view="reports">Reports</button>
     <button data-view="settings">Settings</button>
   </nav>
 </header>
@@ -512,7 +515,15 @@
     <div class="panel">
       <div class="panel-header"><h2>Dashboard</h2></div>
       <div class="stats-grid" id="statsGrid"></div>
-      <div class="section-title">Top Selling Products</div>
+      
+
+<div class="section-title">Quick Performance</div>
+
+<div style="border:1px solid #000;padding:16px;background:#fff;margin-bottom:24px;">
+  <canvas id="salesChart"></canvas>
+</div>
+
+<div class="section-title">Top Selling Products</div>
       <table id="topProductsTable">
         <thead><tr><th>Product</th><th>Qty Sold</th><th>Revenue</th><th>Profit</th></tr></thead>
         <tbody></tbody>
@@ -618,6 +629,84 @@
       </table>
     </div>
   </section>
+
+  
+  <!-- REPORTS -->
+  <section class="view" id="view-reports">
+    <div class="panel">
+
+      <div class="panel-header">
+        <h2>Reports & Analytics</h2>
+      </div>
+
+      <div class="filter-bar">
+        <input type="date" id="reportFromDate" onchange="renderReports()" />
+        <input type="date" id="reportToDate" onchange="renderReports()" />
+
+        <button class="btn btn-secondary"
+          onclick="renderReports()">
+          Apply Filter
+        </button>
+      </div>
+
+      <div class="stats-grid" id="reportStatsGrid"></div>
+
+      <div class="section-title">
+        Revenue Trend
+      </div>
+
+      <div style="border:1px solid #000;padding:16px;background:#fff;margin-bottom:24px;">
+        <canvas id="reportRevenueChart"></canvas>
+      </div>
+
+      <div class="section-title">
+        Product Performance
+      </div>
+
+      <table id="reportProductsTable">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Qty Sold</th>
+            <th>Revenue</th>
+            <th>Profit</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="section-title">
+        Ingredient Usage
+      </div>
+
+      <table id="ingredientUsageTable">
+        <thead>
+          <tr>
+            <th>Ingredient</th>
+            <th>Estimated Usage</th>
+            <th>Remaining Stock</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="section-title">
+        Operational Insights
+      </div>
+
+      <table id="reportInsightsTable">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+    </div>
+  </section>
+
 
   <!-- SETTINGS -->
   <section class="view" id="view-settings">
@@ -895,6 +984,7 @@ document.querySelectorAll('nav button').forEach(btn => {
     if (view === 'inventory') renderInventoryTable();
     if (view === 'ingredients') renderIngredientsTable();
     if (view === 'sales') renderSalesTable();
+    if (view === 'reports') renderReports();
     if (view === 'settings') renderSettings();
   });
 });
@@ -1637,6 +1727,7 @@ function exportSalesCSV() {
 }
 
 /* ============ DASHBOARD ============ */
+
 function renderDashboard() {
   const today = todayISO();
   const todaySales = db.sales.filter(s => s.at.slice(0, 10) === today);
@@ -1647,9 +1738,83 @@ function renderDashboard() {
   const todayProfit = todaySales.reduce((s, x) => s + x.profit, 0);
   const monthRevenue = monthSales.reduce((s, x) => s + x.total, 0);
   const monthProfit = monthSales.reduce((s, x) => s + x.profit, 0);
+
   const totalProducts = db.products.length;
   const lowStock = db.products.filter(p => p.stock <= p.reorder).length;
-  const inventoryValue = db.products.reduce((s, p) => s + p.cost * p.stock, 0);
+
+  const inventoryValue =
+    db.products.reduce((s, p) => s + p.cost * p.stock, 0);
+
+  const ingredientValue =
+    db.ingredients.reduce((s, i) =>
+      s + (i.costPerUnit * i.stock), 0);
+
+  const pendingSales =
+    db.sales.filter(s => s.status === 'pending');
+
+  const pendingRevenue =
+    pendingSales.reduce((s, x) => s + x.total, 0);
+
+  const avgOrder =
+    db.sales.length
+      ? db.sales.reduce((s, x) => s + x.total, 0) / db.sales.length
+      : 0;
+
+  // hourly analysis
+  const hourlyMap = {};
+
+  db.sales.forEach(s => {
+
+    const hour =
+      new Date(s.at).getHours();
+
+    hourlyMap[hour] =
+      (hourlyMap[hour] || 0) + s.total;
+
+  });
+
+  let peakHour = '-';
+  let peakValue = 0;
+
+  Object.entries(hourlyMap).forEach(([hour, value]) => {
+
+    if (value > peakValue) {
+
+      peakValue = value;
+
+      peakHour =
+        hour + ':00';
+
+    }
+
+  });
+
+  // ingredient usage
+  let ingredientUsage = 0;
+
+  db.sales.forEach(s => {
+
+    s.items.forEach(item => {
+
+      const product =
+        db.products.find(
+          p => p.id === item.productId
+        );
+
+      if (product && product.recipe) {
+
+        product.recipe.forEach(r => {
+
+          ingredientUsage +=
+            r.qty * item.qty;
+
+        });
+
+      }
+
+    });
+
+  });
 
   document.getElementById('statsGrid').innerHTML = `
     <div class="stat-card dark">
@@ -1657,54 +1822,489 @@ function renderDashboard() {
       <div class="value">${fmt(todayRevenue)}</div>
       <div class="sub">${todaySales.length} orders</div>
     </div>
+
     <div class="stat-card">
       <div class="label">Today's Profit</div>
       <div class="value">${fmt(todayProfit)}</div>
       <div class="sub">After cost of goods</div>
     </div>
+
     <div class="stat-card">
-      <div class="label">This Month Revenue</div>
+      <div class="label">Monthly Revenue</div>
       <div class="value">${fmt(monthRevenue)}</div>
       <div class="sub">${monthSales.length} orders</div>
     </div>
+
     <div class="stat-card">
-      <div class="label">This Month Profit</div>
+      <div class="label">Monthly Profit</div>
       <div class="value">${fmt(monthProfit)}</div>
     </div>
-    <div class="stat-card">
-      <div class="label">Total Products</div>
-      <div class="value">${totalProducts}</div>
-      <div class="sub">${lowStock} low stock</div>
-    </div>
+
     <div class="stat-card">
       <div class="label">Inventory Value</div>
       <div class="value">${fmt(inventoryValue)}</div>
-      <div class="sub">At cost</div>
+      <div class="sub">Finished products</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="label">Ingredient Value</div>
+      <div class="value">${fmt(ingredientValue)}</div>
+      <div class="sub">Raw ingredients</div>
     </div>
   `;
 
+  // advanced metrics
+  const advBody =
+    document.querySelector(
+      '#advancedAnalyticsTable tbody'
+    );
+
+  advBody.innerHTML = `
+    <tr>
+      <td>Average Order Value</td>
+      <td>${fmt(avgOrder)}</td>
+    </tr>
+
+    <tr>
+      <td>Peak Sales Hour</td>
+      <td>${peakHour}</td>
+    </tr>
+
+    <tr>
+      <td>Pending Revenue</td>
+      <td>${fmt(pendingRevenue)}</td>
+    </tr>
+
+    <tr>
+      <td>Low Stock Products</td>
+      <td>${lowStock}</td>
+    </tr>
+
+    <tr>
+      <td>Total Ingredient Usage</td>
+      <td>${ingredientUsage.toFixed(2)}</td>
+    </tr>
+
+    <tr>
+      <td>Total Sales Transactions</td>
+      <td>${db.sales.length}</td>
+    </tr>
+  `;
+
+  // charts
+  const last7 = [];
+  const salesData = [];
+  const profitData = [];
+
+  for (let i = 6; i >= 0; i--) {
+
+    const d = new Date();
+
+    d.setDate(d.getDate() - i);
+
+    const key =
+      d.toISOString().slice(0,10);
+
+    last7.push(
+      key.slice(5)
+    );
+
+    const sales =
+      db.sales.filter(
+        s => s.at.slice(0,10) === key
+      );
+
+    salesData.push(
+      sales.reduce((s,x)=>s+x.total,0)
+    );
+
+    profitData.push(
+      sales.reduce((s,x)=>s+x.profit,0)
+    );
+
+  }
+
+  if (window.salesChartObj)
+    window.salesChartObj.destroy();
+
+  if (window.profitChartObj)
+    window.profitChartObj.destroy();
+
+  window.salesChartObj =
+    new Chart(
+      document.getElementById('salesChart'),
+      {
+        type: 'line',
+        data: {
+          labels: last7,
+          datasets: [{
+            label: 'Revenue',
+            data: salesData
+          }]
+        }
+      }
+    );
+
+  window.profitChartObj =
+    new Chart(
+      document.getElementById('profitChart'),
+      {
+        type: 'bar',
+        data: {
+          labels: last7,
+          datasets: [{
+            label: 'Profit',
+            data: profitData
+          }]
+        }
+      }
+    );
+
   // top products
   const map = {};
-  db.sales.forEach(s => s.items.forEach(i => {
-    if (!map[i.productId]) map[i.productId] = { name: i.name, qty: 0, revenue: 0, profit: 0 };
-    map[i.productId].qty += i.qty;
-    map[i.productId].revenue += i.price * i.qty;
-    map[i.productId].profit += (i.price - (i.cost || 0)) * i.qty;
-  }));
-  const top = Object.values(map).sort((a, b) => b.qty - a.qty).slice(0, 10);
-  const topBody = document.querySelector('#topProductsTable tbody');
-  topBody.innerHTML = top.length
-    ? top.map(t => `<tr><td>${t.name}</td><td>${t.qty}</td><td>${fmt(t.revenue)}</td><td>${fmt(t.profit)}</td></tr>`).join('')
-    : '<tr><td colspan="4" style="text-align:center;padding:20px;color:#888;">No sales yet.</td></tr>';
+
+  db.sales.forEach(s =>
+    s.items.forEach(i => {
+
+      if (!map[i.productId]) {
+
+        map[i.productId] = {
+          name: i.name,
+          qty: 0,
+          revenue: 0,
+          profit: 0
+        };
+
+      }
+
+      map[i.productId].qty += i.qty;
+      map[i.productId].revenue += i.price * i.qty;
+      map[i.productId].profit +=
+        (i.price - (i.cost || 0)) * i.qty;
+
+    })
+  );
+
+  const top =
+    Object.values(map)
+      .sort((a,b)=>b.qty-a.qty)
+      .slice(0,10);
+
+  const topBody =
+    document.querySelector(
+      '#topProductsTable tbody'
+    );
+
+  topBody.innerHTML =
+    top.length
+      ? top.map(t => `
+        <tr>
+          <td>${t.name}</td>
+          <td>${t.qty}</td>
+          <td>${fmt(t.revenue)}</td>
+          <td>${fmt(t.profit)}</td>
+        </tr>
+      `).join('')
+      : '<tr><td colspan="4" style="text-align:center;padding:20px;color:#888;">No sales yet.</td></tr>';
 
   // low stock
-  const lows = db.products.filter(p => p.stock <= p.reorder);
-  const lowBody = document.querySelector('#lowStockTable tbody');
-  lowBody.innerHTML = lows.length
-    ? lows.map(p => `<tr><td>${p.name}</td><td>${p.stock}</td><td>${p.reorder}</td>
-        <td><span class="badge dark">${p.stock === 0 ? 'OUT OF STOCK' : 'REORDER'}</span></td></tr>`).join('')
-    : '<tr><td colspan="4" style="text-align:center;padding:20px;color:#888;">All products well stocked.</td></tr>';
+  const lows =
+    db.products.filter(
+      p => p.stock <= p.reorder
+    );
+
+  const lowBody =
+    document.querySelector(
+      '#lowStockTable tbody'
+    );
+
+  lowBody.innerHTML =
+    lows.length
+      ? lows.map(p => `
+        <tr>
+          <td>${p.name}</td>
+          <td>${p.stock}</td>
+          <td>${p.reorder}</td>
+          <td>
+            <span class="badge dark">
+              ${p.stock === 0 ? 'OUT OF STOCK' : 'REORDER'}
+            </span>
+          </td>
+        </tr>
+      `).join('')
+      : '<tr><td colspan="4" style="text-align:center;padding:20px;color:#888;">All products well stocked.</td></tr>';
 }
+
+
+
+/* ============ REPORTS ============ */
+
+function renderReports() {
+
+  const from =
+    document.getElementById('reportFromDate').value;
+
+  const to =
+    document.getElementById('reportToDate').value;
+
+  let sales = [...db.sales];
+
+  if (from) {
+    sales = sales.filter(
+      s => s.at.slice(0,10) >= from
+    );
+  }
+
+  if (to) {
+    sales = sales.filter(
+      s => s.at.slice(0,10) <= to
+    );
+  }
+
+  const revenue =
+    sales.reduce((s,x)=>s+x.total,0);
+
+  const profit =
+    sales.reduce((s,x)=>s+x.profit,0);
+
+  const transactions =
+    sales.length;
+
+  const avgOrder =
+    transactions
+      ? revenue / transactions
+      : 0;
+
+  const pendingRevenue =
+    sales
+      .filter(s => s.status === 'pending')
+      .reduce((s,x)=>s+x.total,0);
+
+  document.getElementById(
+    'reportStatsGrid'
+  ).innerHTML = `
+
+    <div class="stat-card dark">
+      <div class="label">Revenue</div>
+      <div class="value">${fmt(revenue)}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="label">Profit</div>
+      <div class="value">${fmt(profit)}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="label">Transactions</div>
+      <div class="value">${transactions}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="label">Average Order</div>
+      <div class="value">${fmt(avgOrder)}</div>
+    </div>
+
+  `;
+
+  // revenue chart
+  const labels = [];
+  const values = [];
+
+  for (let i = 6; i >= 0; i--) {
+
+    const d = new Date();
+
+    d.setDate(d.getDate() - i);
+
+    const key =
+      d.toISOString().slice(0,10);
+
+    labels.push(key.slice(5));
+
+    const daySales =
+      sales.filter(
+        s => s.at.slice(0,10) === key
+      );
+
+    values.push(
+      daySales.reduce((s,x)=>s+x.total,0)
+    );
+
+  }
+
+  if (window.reportRevenueChartObj)
+    window.reportRevenueChartObj.destroy();
+
+  window.reportRevenueChartObj =
+    new Chart(
+      document.getElementById(
+        'reportRevenueChart'
+      ),
+      {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Revenue',
+            data: values
+          }]
+        }
+      }
+    );
+
+  // product performance
+  const productMap = {};
+
+  sales.forEach(s =>
+    s.items.forEach(i => {
+
+      if (!productMap[i.productId]) {
+
+        productMap[i.productId] = {
+          name: i.name,
+          qty: 0,
+          revenue: 0,
+          profit: 0
+        };
+
+      }
+
+      productMap[i.productId].qty += i.qty;
+
+      productMap[i.productId].revenue +=
+        i.price * i.qty;
+
+      productMap[i.productId].profit +=
+        (i.price - (i.cost || 0)) * i.qty;
+
+    })
+  );
+
+  const productRows =
+    Object.values(productMap)
+      .sort((a,b)=>b.revenue-a.revenue);
+
+  document.querySelector(
+    '#reportProductsTable tbody'
+  ).innerHTML = productRows.length
+    ? productRows.map(p => `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.qty}</td>
+        <td>${fmt(p.revenue)}</td>
+        <td>${fmt(p.profit)}</td>
+      </tr>
+    `).join('')
+    : '<tr><td colspan="4" style="text-align:center;padding:20px;">No data.</td></tr>';
+
+  // ingredient usage
+  const usageMap = {};
+
+  sales.forEach(s => {
+
+    s.items.forEach(item => {
+
+      const product =
+        db.products.find(
+          p => p.id === item.productId
+        );
+
+      if (product && product.recipe) {
+
+        product.recipe.forEach(r => {
+
+          if (!usageMap[r.ingredientId]) {
+            usageMap[r.ingredientId] = 0;
+          }
+
+          usageMap[r.ingredientId] +=
+            r.qty * item.qty;
+
+        });
+
+      }
+
+    });
+
+  });
+
+  document.querySelector(
+    '#ingredientUsageTable tbody'
+  ).innerHTML = db.ingredients.map(i => `
+
+    <tr>
+      <td>${i.name}</td>
+      <td>${(usageMap[i.id] || 0).toFixed(2)} ${i.unit}</td>
+      <td>${i.stock} ${i.unit}</td>
+    </tr>
+
+  `).join('');
+
+  // insights
+  const hourlyMap = {};
+
+  sales.forEach(s => {
+
+    const hour =
+      new Date(s.at).getHours();
+
+    hourlyMap[hour] =
+      (hourlyMap[hour] || 0) + s.total;
+
+  });
+
+  let peakHour = '-';
+  let peakValue = 0;
+
+  Object.entries(hourlyMap).forEach(([hour,val]) => {
+
+    if (val > peakValue) {
+
+      peakValue = val;
+
+      peakHour = hour + ':00';
+
+    }
+
+  });
+
+  document.querySelector(
+    '#reportInsightsTable tbody'
+  ).innerHTML = `
+
+    <tr>
+      <td>Peak Sales Hour</td>
+      <td>${peakHour}</td>
+    </tr>
+
+    <tr>
+      <td>Pending Revenue</td>
+      <td>${fmt(pendingRevenue)}</td>
+    </tr>
+
+    <tr>
+      <td>Low Stock Products</td>
+      <td>${
+        db.products.filter(
+          p => p.stock <= p.reorder
+        ).length
+      }</td>
+    </tr>
+
+    <tr>
+      <td>Ingredient Inventory Value</td>
+      <td>${fmt(
+        db.ingredients.reduce(
+          (s,i)=>s+(i.stock*i.costPerUnit),
+          0
+        )
+      )}</td>
+    </tr>
+
+  `;
+
+}
+
 
 /* ============ SETTINGS ============ */
 function renderSettings() {
