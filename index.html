@@ -602,7 +602,7 @@
       <table id="ingredientsTable">
         <thead>
           <tr>
-            <th>Name</th><th>Unit</th><th>Cost / Unit</th>
+            <th>Name</th><th>Base Unit</th><th>Purchase Cost</th>
             <th>Stock</th><th>Reorder Level</th><th>Actions</th>
           </tr>
         </thead>
@@ -1046,6 +1046,31 @@ function saveDB() { localStorage.setItem(STORE_KEY, JSON.stringify(db)); }
 const fmt = n => db.settings.currency + Number(n).toFixed(2);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const todayISO = () => new Date().toISOString().slice(0, 10);
+
+
+
+const conversionMap = {
+  kg: 1000,
+  g: 1,
+  L: 1000,
+  ml: 1,
+  pc: 1
+};
+
+function getCostPerBaseUnit(ingredient) {
+
+  const purchaseUnit =
+    ingredient.purchaseUnit || "g";
+
+  const purchaseCost =
+    parseFloat(ingredient.purchaseCost || 0);
+
+  const divisor =
+    conversionMap[purchaseUnit] || 1;
+
+  return purchaseCost / divisor;
+
+}
 
 function getBaseCost(cost, unit) {
 
@@ -1785,7 +1810,9 @@ function saveIngredient() {
     unit: document.getElementById('ingredientUnit').value.trim(),
     purchaseUnit,
     purchaseCost,
-    costPerUnit: getBaseCost(purchaseCost, purchaseUnit),
+    costPerUnit:
+      purchaseCost /
+      (conversionMap[purchaseUnit] || 1),
     stock: parseFloat(document.getElementById('ingredientStock').value) || 0,
     reorder: parseFloat(document.getElementById('ingredientReorder').value) || 0
   };
@@ -1812,7 +1839,7 @@ function renderIngredientsTable() {
   }
   tbody.innerHTML = db.ingredients.map(i => `
     <tr>
-      <td>${i.name}</td><td>${i.unit}</td><td>${fmt(i.purchaseCost || i.costPerUnit)} / ${i.purchaseUnit || i.unit}</td>
+      <td>${i.name}</td><td>${i.unit}</td><td>${fmt(i.purchaseCost || 0)} / ${i.purchaseUnit || 'g'}</td>
       <td>${i.stock}${i.stock <= i.reorder ? ' <span class="badge dark">LOW</span>' : ''}</td>
       <td>${i.reorder}</td>
       <td class="actions">
@@ -2026,8 +2053,16 @@ function renderDashboard() {
     db.products.reduce((s, p) => s + p.cost * p.stock, 0);
 
   const ingredientValue =
-    db.ingredients.reduce((s, i) =>
-      s + ((i.costPerUnit || 0) * i.stock), 0);
+    db.ingredients.reduce((s, i) => {
+
+      const costPerUnit =
+        getCostPerBaseUnit(i);
+
+      return s + (
+        costPerUnit * (i.stock || 0)
+      );
+
+    }, 0);
 
   const pendingSales =
     db.sales.filter(s => s.status === 'pending');
@@ -2574,10 +2609,16 @@ function renderReports() {
     <tr>
       <td>Ingredient Inventory Value</td>
       <td>${fmt(
-        db.ingredients.reduce(
-          (s,i)=>s+(i.stock*i.costPerUnit),
-          0
-        )
+        db.ingredients.reduce((s,i)=>{
+
+        const costPerUnit =
+          getCostPerBaseUnit(i);
+
+        return s + (
+          (i.stock || 0) * costPerUnit
+        );
+
+      },0)
       )}</td>
     </tr>
 
