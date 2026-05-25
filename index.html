@@ -842,8 +842,35 @@
     <input type="hidden" id="ingredientId" />
     <div class="form-group"><label>Ingredient Name</label><input type="text" id="ingredientName" /></div>
     <div class="form-row">
-      <div class="form-group"><label>Unit (g, ml, pc)</label><input type="text" id="ingredientUnit" /></div>
-      <div class="form-group"><label>Cost per Unit</label><input type="number" id="ingredientCost" step="0.0001" min="0" /></div>
+
+      <div class="form-group">
+        <label>Base Unit (g, ml, pc)</label>
+        <input type="text" id="ingredientUnit" />
+      </div>
+
+      <div class="form-group">
+        <label>Purchase Unit</label>
+
+        <select id="ingredientPurchaseUnit">
+          <option value="kg">Kilogram (kg)</option>
+          <option value="g">Gram (g)</option>
+          <option value="L">Liter (L)</option>
+          <option value="ml">Milliliter (ml)</option>
+          <option value="pc">Piece</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="form-group">
+      <label>Purchase Cost</label>
+
+      <input
+        type="number"
+        id="ingredientPurchaseCost"
+        step="0.01"
+        min="0"
+      />
     </div>
     <div class="form-row">
       <div class="form-group"><label>Stock</label><input type="number" id="ingredientStock" step="0.01" min="0" /></div>
@@ -970,6 +997,27 @@ function saveDB() { localStorage.setItem(STORE_KEY, JSON.stringify(db)); }
 const fmt = n => db.settings.currency + Number(n).toFixed(2);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const todayISO = () => new Date().toISOString().slice(0, 10);
+
+function getBaseCost(cost, unit) {
+
+  switch(unit) {
+
+    case 'kg':
+      return cost / 1000;
+
+    case 'L':
+      return cost / 1000;
+
+    case 'g':
+    case 'ml':
+    case 'pc':
+    default:
+      return cost;
+
+  }
+
+}
+
 
 /* ============ NAVIGATION ============ */
 document.querySelectorAll('nav button').forEach(btn => {
@@ -1490,11 +1538,12 @@ function openIngredientModal(id) {
     document.getElementById('ingredientId').value = i.id;
     document.getElementById('ingredientName').value = i.name;
     document.getElementById('ingredientUnit').value = i.unit;
-    document.getElementById('ingredientCost').value = i.costPerUnit;
+    document.getElementById('ingredientPurchaseCost').value = i.purchaseCost || i.costPerUnit;
+    document.getElementById('ingredientPurchaseUnit').value = i.purchaseUnit || 'g';
     document.getElementById('ingredientStock').value = i.stock;
     document.getElementById('ingredientReorder').value = i.reorder;
   } else {
-    ['ingredientId','ingredientName','ingredientUnit','ingredientCost','ingredientStock','ingredientReorder']
+    ['ingredientId','ingredientName','ingredientUnit','ingredientPurchaseCost','ingredientStock','ingredientReorder']
       .forEach(x => document.getElementById(x).value = '');
   }
   document.getElementById('ingredientModal').classList.add('active');
@@ -1502,10 +1551,20 @@ function openIngredientModal(id) {
 
 function saveIngredient() {
   const id = document.getElementById('ingredientId').value;
+  const purchaseCost =
+    parseFloat(
+      document.getElementById('ingredientPurchaseCost').value
+    ) || 0;
+
+  const purchaseUnit =
+    document.getElementById('ingredientPurchaseUnit').value;
+
   const data = {
     name: document.getElementById('ingredientName').value.trim(),
     unit: document.getElementById('ingredientUnit').value.trim(),
-    costPerUnit: parseFloat(document.getElementById('ingredientCost').value) || 0,
+    purchaseUnit,
+    purchaseCost,
+    costPerUnit: getBaseCost(purchaseCost, purchaseUnit),
     stock: parseFloat(document.getElementById('ingredientStock').value) || 0,
     reorder: parseFloat(document.getElementById('ingredientReorder').value) || 0
   };
@@ -1532,7 +1591,7 @@ function renderIngredientsTable() {
   }
   tbody.innerHTML = db.ingredients.map(i => `
     <tr>
-      <td>${i.name}</td><td>${i.unit}</td><td>${fmt(i.costPerUnit)}</td>
+      <td>${i.name}</td><td>${i.unit}</td><td>${fmt(i.purchaseCost || i.costPerUnit)} / ${i.purchaseUnit || i.unit}</td>
       <td>${i.stock}${i.stock <= i.reorder ? ' <span class="badge dark">LOW</span>' : ''}</td>
       <td>${i.reorder}</td>
       <td class="actions">
@@ -1747,7 +1806,7 @@ function renderDashboard() {
 
   const ingredientValue =
     db.ingredients.reduce((s, i) =>
-      s + (i.costPerUnit * i.stock), 0);
+      s + ((i.costPerUnit || 0) * i.stock), 0);
 
   const pendingSales =
     db.sales.filter(s => s.status === 'pending');
