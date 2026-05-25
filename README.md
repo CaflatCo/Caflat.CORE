@@ -572,6 +572,58 @@
       <label>Description (optional)</label>
       <textarea id="productDescription" rows="2"></textarea>
     </div>
+    <div class="section-title">
+  Recipe Configuration
+</div>
+
+<div class="form-group">
+  <label>Recipe Mode</label>
+
+  <select id="recipeMode"
+    onchange="toggleRecipeMode()">
+
+    <option value="unit">
+      Per Product
+    </option>
+
+    <option value="batch">
+      Per Batch
+    </option>
+
+  </select>
+</div>
+
+<div class="form-group"
+  id="batchYieldWrap"
+  style="display:none;">
+
+  <label>
+    Batch Yield
+  </label>
+
+  <input
+    type="number"
+    id="batchYield"
+    placeholder="How many products per batch?"
+    min="1"
+    value="1"
+  />
+</div>
+
+<div class="section-title">
+  Recipe Ingredients
+</div>
+
+<div id="recipeBuilder"></div>
+
+<button
+  type="button"
+  class="btn btn-secondary"
+  onclick="addRecipeRow()">
+
+  + Add Ingredient
+
+</button>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('productModal')">Cancel</button>
       <button class="btn" onclick="saveProduct()">Save Product</button>
@@ -687,12 +739,8 @@
 
 <script>
 /* ============ DATA LAYER ============ */
-<script src="[cdn.jsdelivr.net](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
-<script>
-const SUPABASE_URL = '[iivshixyystcwhvdyrfn.supabase.co](https://iivshixyystcwhvdyrfn.supabase.co)';
-const SUPABASE_KEY = 'paste-your-anon-key-here';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+const STORE_KEY = 'pos_data_v1';
+let db = loadDB();
 
 function loadDB() {
   const raw = localStorage.getItem(STORE_KEY);
@@ -888,38 +936,96 @@ function completeSale(status = 'paid') {
   const tax = taxable * (db.settings.taxRate / 100);
   const total = taxable + tax;
   const totalCost = cart.reduce((s, i) => s + (i.cost || 0) * i.qty, 0);
-  const profit = (taxable) - totalCost;
+  const profit = taxable - totalCost;
   const tendered = parseFloat(document.getElementById('checkoutTendered').value) || 0;
-  if (tendered < total) { alert('Insufficient amount tendered.'); return; }
+
+  if (tendered < total) {
+    alert('Insufficient amount tendered.');
+    return;
+  }
+
   const sale = {
     id: uid(),
     receiptNo: 'R' + Date.now().toString().slice(-8),
     at: new Date().toISOString(),
     items: cart.map(i => ({ ...i })),
-    subtotal, discount, tax, total, totalCost, profit,
+    subtotal,
+    discount,
+    tax,
+    total,
+    totalCost,
+    profit,
     payment: document.getElementById('checkoutPayment').value,
     tendered,
     change: tendered - total,
     customer: document.getElementById('checkoutCustomer').value || '',
-status
+    status
   };
+
   // deduct stock
   cart.forEach(i => {
+
     const p = db.products.find(x => x.id === i.productId);
+
     if (p) {
+
+      // deduct finished product stock
       p.stock -= i.qty;
+
+      // ingredient deduction
+      if (p.recipe && p.recipe.length) {
+
+        p.recipe.forEach(r => {
+
+          const ingredient = db.ingredients.find(
+            x => x.id === r.ingredientId
+          );
+
+          if (!ingredient) return;
+
+          let deductQty = r.qty;
+
+          // batch mode
+          if (p.recipeMode === 'batch') {
+            deductQty = r.qty / (p.batchYield || 1);
+          }
+
+          ingredient.stock -= deductQty * i.qty;
+
+          if (ingredient.stock < 0) {
+            ingredient.stock = 0;
+          }
+
+        });
+
+      }
+
+      // inventory movement log
       db.inventory.push({
-        id: uid(), at: sale.at, productId: p.id, productName: p.name,
-        type: 'sale', qty: -i.qty, reason: 'Sale ' + sale.receiptNo, balance: p.stock
+        id: uid(),
+        at: sale.at,
+        productId: p.id,
+        productName: p.name,
+        type: 'sale',
+        qty: -i.qty,
+        reason: 'Sale ' + sale.receiptNo,
+        balance: p.stock
       });
+
     }
+
   });
+
   db.sales.push(sale);
   saveDB();
   closeModal('checkoutModal');
   showReceipt(sale);
-  cart = []; cartDiscount = { type: 'percent', value: 0 };
+
+  cart = [];
+  cartDiscount = { type: 'percent', value: 0 };
+
   document.getElementById('discountValue').value = '';
+
   renderCart();
   renderProductGrid();
 }
@@ -954,8 +1060,13 @@ function showReceipt(sale) {
 function openProductModal(id) {
   const sel = document.getElementById('productCategory');
   sel.innerHTML = db.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  document.getElementById('recipeBuilder').innerHTML = '';
+
   if (id) {
+
     const p = db.products.find(x => x.id === id);
+
     document.getElementById('productModalTitle').textContent = 'Edit Product';
     document.getElementById('productId').value = p.id;
     document.getElementById('productSKU').value = p.sku;
@@ -966,17 +1077,56 @@ function openProductModal(id) {
     document.getElementById('productStock').value = p.stock;
     document.getElementById('productReorder').value = p.reorder;
     document.getElementById('productDescription').value = p.description || '';
+
+    document.getElementById('recipeMode').value = p.recipeMode || 'unit';
+    document.getElementById('batchYield').value = p.batchYield || 1;
+
+    toggleRecipeMode();
+
+    (p.recipe || []).forEach(r => {
+      addRecipeRow(r.ingredientId, r.qty);
+    });
+
   } else {
+
     document.getElementById('productModalTitle').textContent = 'Add Product';
+
     ['productId','productSKU','productNameInput','productCost','productPrice','productStock','productReorder','productDescription']
       .forEach(i => document.getElementById(i).value = '');
+
     document.getElementById('productReorder').value = '5';
+    document.getElementById('recipeMode').value = 'unit';
+    document.getElementById('batchYield').value = 1;
+
+    toggleRecipeMode();
+    addRecipeRow();
   }
+
   document.getElementById('productModal').classList.add('active');
 }
 
 function saveProduct() {
   const id = document.getElementById('productId').value;
+
+  const recipe = [];
+
+  document.querySelectorAll('.recipe-row').forEach(row => {
+
+    const ingredientId = row.querySelector('.recipe-ingredient').value;
+
+    const qty = parseFloat(
+      row.querySelector('.recipe-qty').value
+    ) || 0;
+
+    if (ingredientId && qty > 0) {
+      recipe.push({
+        ingredientId,
+        qty
+      });
+    }
+
+  });
+
   const data = {
     sku: document.getElementById('productSKU').value.trim() || 'SKU' + uid().slice(-5).toUpperCase(),
     name: document.getElementById('productNameInput').value.trim(),
@@ -985,15 +1135,24 @@ function saveProduct() {
     price: parseFloat(document.getElementById('productPrice').value) || 0,
     stock: parseInt(document.getElementById('productStock').value) || 0,
     reorder: parseInt(document.getElementById('productReorder').value) || 0,
-    description: document.getElementById('productDescription').value.trim()
+    description: document.getElementById('productDescription').value.trim(),
+    recipeMode: document.getElementById('recipeMode').value,
+    batchYield: parseFloat(document.getElementById('batchYield').value) || 1,
+    recipe
   };
-  if (!data.name) { alert('Name is required.'); return; }
+
+  if (!data.name) {
+    alert('Name is required.');
+    return;
+  }
+
   if (id) {
     const p = db.products.find(x => x.id === id);
     Object.assign(p, data);
   } else {
     db.products.push({ id: uid(), ...data });
   }
+
   saveDB();
   closeModal('productModal');
   renderProductsTable();
@@ -1044,7 +1203,81 @@ function renderProductsTable() {
     </tr>`;
   }).join('');
 }
+function toggleRecipeMode() {
 
+  const mode =
+    document.getElementById('recipeMode').value;
+
+  document.getElementById(
+    'batchYieldWrap'
+  ).style.display =
+    mode === 'batch'
+      ? 'block'
+      : 'none';
+}
+
+function addRecipeRow(
+  ingredientId = '',
+  qty = ''
+) {
+
+  const wrap =
+    document.getElementById('recipeBuilder');
+
+  const row =
+    document.createElement('div');
+
+  row.className = 'recipe-row';
+
+  row.style.display = 'flex';
+  row.style.gap = '8px';
+  row.style.marginBottom = '8px';
+
+  row.innerHTML = `
+
+    <select
+      class="recipe-ingredient"
+      style="flex:1;padding:8px;">
+
+      <option value="">
+        Select Ingredient
+      </option>
+
+      ${db.ingredients.map(i => `
+
+        <option
+          value="${i.id}"
+          ${i.id === ingredientId ? 'selected' : ''}>
+
+          ${i.name}
+
+        </option>
+
+      `).join('')}
+
+    </select>
+
+    <input
+      type="number"
+      class="recipe-qty"
+      placeholder="Qty"
+      value="${qty}"
+      step="0.01"
+      style="width:120px;padding:8px;"
+    />
+
+    <button
+      type="button"
+      class="btn btn-sm"
+      onclick="this.parentElement.remove()">
+
+      X
+
+    </button>
+  `;
+
+  wrap.appendChild(row);
+}
 /* ============ INGREDIENTS ============ */
 function openIngredientModal(id) {
   if (id) {
