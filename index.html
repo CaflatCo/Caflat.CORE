@@ -9,6 +9,39 @@
   </head>
     
   <body>
+
+<div class="login-screen" id="loginScreen">
+
+  <div class="login-card">
+
+    <h2>Caflat.Co POS</h2>
+
+    <input
+      type="text"
+      id="loginUsername"
+      placeholder="Username"
+    />
+
+    <input
+      type="password"
+      id="loginPassword"
+      placeholder="Password"
+    />
+
+    <button onclick="login()">
+      Login
+    </button>
+
+    <div style="margin-top:16px;font-size:12px;color:#666;">
+      Staff Login:<br>
+      username: <strong>staff</strong><br>
+      password: <strong>staff123</strong>
+    </div>
+
+  </div>
+
+</div>
+
   <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -355,12 +388,71 @@
     header, nav, .modal-actions, .pos-products, .panel-header { display: none !important; }
     body { height: auto; }
   }
+
+  /* LOGIN SYSTEM */
+  .login-screen {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    z-index: 99999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .login-card {
+    width: 400px;
+    border: 2px solid #000;
+    padding: 32px;
+    background: #fff;
+  }
+
+  .login-card h2 {
+    font-size: 22px;
+    margin-bottom: 24px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .login-card input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #000;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+
+  .login-card button {
+    width: 100%;
+    padding: 12px;
+    background: #000;
+    color: #fff;
+    border: 1px solid #000;
+    cursor: pointer;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .login-card button:hover {
+    background: #fff;
+    color: #000;
+  }
+
+  .role-badge {
+    padding: 6px 10px;
+    border: 1px solid #fff;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
 </style>
 </head>
 <body>
 
 <header>
-  <h1 id="brandName">POS SYSTEM</h1>
+  <div style="display:flex;align-items:center;gap:12px;"><h1 id="brandName">POS SYSTEM</h1><div class="role-badge" id="roleBadge">ADMIN</div></div>
   <nav>
     <button data-view="pos" class="active">Point of Sale</button>
     <button data-view="dashboard">Dashboard</button>
@@ -1718,6 +1810,95 @@ function closeModal(id) { document.getElementById(id).classList.remove('active')
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) o.classList.remove('active'); });
 });
+
+
+/* ============ AUTH SYSTEM ============ */
+
+const ADMIN_USERNAME = 'Caflat.Co';
+const ADMIN_PASSWORD = 'Ry9@qm408me';
+
+const STAFF_USERNAME = 'staff';
+const STAFF_PASSWORD = 'staff123';
+
+let currentRole = 'admin';
+
+function login() {
+
+  const username =
+    document.getElementById('loginUsername').value;
+
+  const password =
+    document.getElementById('loginPassword').value;
+
+  // admin login
+  if (
+    username === ADMIN_USERNAME &&
+    password === ADMIN_PASSWORD
+  ) {
+
+    currentRole = 'admin';
+
+    document.getElementById('roleBadge').textContent =
+      'ADMIN';
+
+    document.getElementById('loginScreen').style.display =
+      'none';
+
+    unlockAdmin();
+
+    return;
+  }
+
+  // staff login
+  if (
+    username === STAFF_USERNAME &&
+    password === STAFF_PASSWORD
+  ) {
+
+    currentRole = 'staff';
+
+    document.getElementById('roleBadge').textContent =
+      'STAFF';
+
+    document.getElementById('loginScreen').style.display =
+      'none';
+
+    lockStaffPermissions();
+
+    return;
+  }
+
+  alert('Invalid username or password');
+
+}
+
+function lockStaffPermissions() {
+
+  // hide restricted tabs
+  document.querySelectorAll('nav button').forEach(btn => {
+
+    const view = btn.dataset.view;
+
+    if (
+      view === 'settings' ||
+      view === 'inventory' ||
+      view === 'ingredients'
+    ) {
+      btn.style.display = 'none';
+    }
+
+  });
+
+}
+
+function unlockAdmin() {
+
+  document.querySelectorAll('nav button').forEach(btn => {
+    btn.style.display = '';
+  });
+
+}
+
 
 /* ============ INIT ============ */
 document.getElementById('brandName').textContent = db.settings.brandName.toUpperCase();
