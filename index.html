@@ -848,32 +848,95 @@
   </div>
 </div>
 
+
 <!-- INGREDIENT MODAL -->
 <div class="modal-overlay" id="ingredientModal">
   <div class="modal">
     <h3>Add Ingredient</h3>
-    <input type="hidden" id="ingredientId" />
-    <div class="form-group"><label>Ingredient Name</label><input type="text" id="ingredientName" /></div>
-    <div class="form-row">
 
-      <div class="form-group">
-        <label>Base Unit (g, ml, pc)</label>
-        <input type="text" id="ingredientUnit" />
-      </div>
+    <input type="hidden" id="ingredientId" />
+
+    <div class="form-group">
+      <label>Ingredient Name</label>
+      <input type="text" id="ingredientName" />
+    </div>
+
+    <div class="form-row">
 
       <div class="form-group">
         <label>Purchase Unit</label>
 
         <select id="ingredientPurchaseUnit">
+
           <option value="kg">Kilogram (kg)</option>
           <option value="g">Gram (g)</option>
+
           <option value="L">Liter (L)</option>
           <option value="ml">Milliliter (ml)</option>
-          <option value="pc">Piece</option>
+
+          <option value="pc">Piece (pc)</option>
+
         </select>
       </div>
 
+      <div class="form-group">
+        <label>Purchase Cost</label>
+
+        <input
+          type="number"
+          id="ingredientPurchaseCost"
+          step="0.01"
+          min="0"
+        />
+      </div>
+
     </div>
+
+    <div class="form-row">
+
+      <div class="form-group">
+        <label>Stock Purchased</label>
+
+        <input
+          type="number"
+          id="ingredientStock"
+          step="0.01"
+          min="0"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Reorder Level</label>
+
+        <input
+          type="number"
+          id="ingredientReorder"
+          step="0.01"
+          min="0"
+        />
+      </div>
+
+    </div>
+
+    <div class="modal-actions">
+      <button
+        class="btn btn-secondary"
+        onclick="closeModal('ingredientModal')"
+      >
+        Cancel
+      </button>
+
+      <button
+        class="btn"
+        onclick="saveIngredient()"
+      >
+        Save
+      </button>
+    </div>
+
+  </div>
+</div>
+
 
     <div class="form-group">
       <label>Purchase Cost</label>
@@ -1795,34 +1858,74 @@ function openIngredientModal(id) {
   document.getElementById('ingredientModal').classList.add('active');
 }
 
+
 function saveIngredient() {
-  const id = document.getElementById('ingredientId').value;
-  const purchaseCost =
-    parseFloat(
-      document.getElementById('ingredientPurchaseCost').value
-    ) || 0;
 
   const purchaseUnit =
     document.getElementById('ingredientPurchaseUnit').value;
 
-  const data = {
-    name: document.getElementById('ingredientName').value.trim(),
-    unit: document.getElementById('ingredientUnit').value.trim(),
+  let baseUnit = purchaseUnit;
+
+  let conversion = 1;
+
+  if (purchaseUnit === 'kg') {
+    baseUnit = 'g';
+    conversion = 1000;
+  }
+
+  if (purchaseUnit === 'L') {
+    baseUnit = 'ml';
+    conversion = 1000;
+  }
+
+  const ingredient = {
+
+    id:
+      document.getElementById('ingredientId').value ||
+      Date.now().toString(),
+
+    name:
+      document.getElementById('ingredientName').value,
+
+    unit: baseUnit,
+
     purchaseUnit,
-    purchaseCost,
-    costPerUnit:
-      purchaseCost /
-      (conversionMap[purchaseUnit] || 1),
-    stock: parseFloat(document.getElementById('ingredientStock').value) || 0,
-    reorder: parseFloat(document.getElementById('ingredientReorder').value) || 0
+
+    purchaseCost:
+      parseFloat(
+        document.getElementById('ingredientPurchaseCost').value
+      ) || 0,
+
+    stock:
+      (
+        parseFloat(
+          document.getElementById('ingredientStock').value
+        ) || 0
+      ) * conversion,
+
+    reorderLevel:
+      parseFloat(
+        document.getElementById('ingredientReorder').value
+      ) || 0
+
   };
-  if (!data.name) { alert('Name required.'); return; }
-  if (id) Object.assign(db.ingredients.find(x => x.id === id), data);
-  else db.ingredients.push({ id: uid(), ...data });
+
+  const existingIndex =
+    db.ingredients.findIndex(i => i.id === ingredient.id);
+
+  if (existingIndex >= 0) {
+    db.ingredients[existingIndex] = ingredient;
+  } else {
+    db.ingredients.push(ingredient);
+  }
+
   saveDB();
+
+  renderIngredients();
+
   closeModal('ingredientModal');
-  renderIngredientsTable();
 }
+
 
 function deleteIngredient(id) {
   if (!confirm('Delete this ingredient?')) return;
