@@ -851,7 +851,9 @@
 
 <!-- INGREDIENT MODAL -->
 <div class="modal-overlay" id="ingredientModal">
+
   <div class="modal">
+
     <h3>Add Ingredient</h3>
 
     <input type="hidden" id="ingredientId" />
@@ -919,6 +921,7 @@
     </div>
 
     <div class="modal-actions">
+
       <button
         class="btn btn-secondary"
         onclick="closeModal('ingredientModal')"
@@ -932,31 +935,11 @@
       >
         Save
       </button>
+
     </div>
 
   </div>
-</div>
 
-
-    <div class="form-group">
-      <label>Purchase Cost</label>
-
-      <input
-        type="number"
-        id="ingredientPurchaseCost"
-        step="0.01"
-        min="0"
-      />
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>Stock</label><input type="number" id="ingredientStock" step="0.01" min="0" /></div>
-      <div class="form-group"><label>Reorder Level</label><input type="number" id="ingredientReorder" step="0.01" min="0" /></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('ingredientModal')">Cancel</button>
-      <button class="btn" onclick="saveIngredient()">Save</button>
-    </div>
-  </div>
 </div>
 
 <!-- INVENTORY MODAL -->
@@ -1862,30 +1845,42 @@ function openIngredientModal(id) {
 function saveIngredient() {
 
   const purchaseUnit =
-    document.getElementById('ingredientPurchaseUnit').value;
+    document.getElementById(
+      'ingredientPurchaseUnit'
+    ).value;
 
-  let baseUnit = purchaseUnit;
+  let baseUnit =
+    purchaseUnit;
 
   let conversion = 1;
 
   if (purchaseUnit === 'kg') {
+
     baseUnit = 'g';
+
     conversion = 1000;
+
   }
 
   if (purchaseUnit === 'L') {
+
     baseUnit = 'ml';
+
     conversion = 1000;
+
   }
 
   const ingredient = {
 
     id:
-      document.getElementById('ingredientId').value ||
-      Date.now().toString(),
+      document.getElementById(
+        'ingredientId'
+      ).value || Date.now().toString(),
 
     name:
-      document.getElementById('ingredientName').value,
+      document.getElementById(
+        'ingredientName'
+      ).value,
 
     unit: baseUnit,
 
@@ -1893,37 +1888,56 @@ function saveIngredient() {
 
     purchaseCost:
       parseFloat(
-        document.getElementById('ingredientPurchaseCost').value
+        document.getElementById(
+          'ingredientPurchaseCost'
+        ).value
       ) || 0,
 
     stock:
       (
         parseFloat(
-          document.getElementById('ingredientStock').value
+          document.getElementById(
+            'ingredientStock'
+          ).value
         ) || 0
       ) * conversion,
 
-    reorderLevel:
+    reorder:
       parseFloat(
-        document.getElementById('ingredientReorder').value
+        document.getElementById(
+          'ingredientReorder'
+        ).value
       ) || 0
 
   };
 
   const existingIndex =
-    db.ingredients.findIndex(i => i.id === ingredient.id);
+    db.ingredients.findIndex(
+      i => i.id === ingredient.id
+    );
 
   if (existingIndex >= 0) {
-    db.ingredients[existingIndex] = ingredient;
+
+    db.ingredients[
+      existingIndex
+    ] = ingredient;
+
   } else {
-    db.ingredients.push(ingredient);
+
+    db.ingredients.push(
+      ingredient
+    );
+
   }
 
   saveDB();
 
   renderIngredients();
 
-  closeModal('ingredientModal');
+  closeModal(
+    'ingredientModal'
+  );
+
 }
 
 
