@@ -706,6 +706,55 @@ main{
 
 }
 
+
+/* FINAL DASHBOARD FIX */
+
+#view-dashboard .panel{
+  width:100%;
+  overflow-x:hidden;
+}
+
+#view-dashboard table{
+  width:100%;
+}
+
+#view-dashboard .table-wrapper{
+  width:100%;
+  overflow-x:auto;
+  margin-bottom:24px;
+}
+
+#view-dashboard canvas{
+  width:100% !important;
+  max-width:100%;
+}
+
+#view-dashboard .stats-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:18px;
+  margin-bottom:28px;
+}
+
+#view-dashboard .section-title{
+  margin:20px 0 12px;
+  font-size:14px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+}
+
+@media (max-width:768px){
+
+  #view-dashboard .panel{
+    padding:14px;
+  }
+
+  #view-dashboard .stats-grid{
+    grid-template-columns:1fr;
+  }
+
+}
+
 </style>
 </head>
 <body>
@@ -760,31 +809,87 @@ main{
     </div>
   </section>
 
-  <!-- DASHBOARD -->
-  <section class="view" id="view-dashboard">
-    <div class="panel">
-      <div class="panel-header"><h2>Dashboard</h2></div>
-      <div class="stats-grid" id="statsGrid"></div>
-      
+  
+<!-- DASHBOARD -->
+<section class="view" id="view-dashboard">
 
-<div class="section-title">Quick Performance</div>
+  <div class="panel">
 
-<div style="border:1px solid #000;padding:16px;background:#fff;margin-bottom:24px;">
-  <canvas id="salesChart"></canvas>
-</div>
-
-<div class="section-title">Top Selling Products</div>
-      <table id="topProductsTable">
-        <thead><tr><th>Product</th><th>Qty Sold</th><th>Revenue</th><th>Profit</th></tr></thead>
-        <tbody></tbody>
-      </table></div></div></div></div></div>
-      <div class="section-title">Low Stock Alerts</div>
-      <table id="lowStockTable">
-        <thead><tr><th>Product</th><th>Stock</th><th>Reorder Level</th><th>Status</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div class="panel-header">
+      <h2>Dashboard</h2>
     </div>
-  </section>
+
+    <!-- STATS -->
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <!-- QUICK PERFORMANCE -->
+    <div class="section-title">
+      Quick Performance
+    </div>
+
+    <div style="
+      border:1px solid #000;
+      padding:16px;
+      background:#fff;
+      margin-bottom:24px;
+      width:100%;
+      overflow:hidden;
+    ">
+      <canvas id="salesChart"></canvas>
+    </div>
+
+    <!-- TOP PRODUCTS -->
+    <div class="section-title">
+      Top Selling Products
+    </div>
+
+    <div class="table-wrapper">
+
+      <table id="topProductsTable">
+
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Qty Sold</th>
+            <th>Revenue</th>
+            <th>Profit</th>
+          </tr>
+        </thead>
+
+        <tbody></tbody>
+
+      </table>
+
+    </div>
+
+    <!-- LOW STOCK -->
+    <div class="section-title">
+      Low Stock Alerts
+    </div>
+
+    <div class="table-wrapper">
+
+      <table id="lowStockTable">
+
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Stock</th>
+            <th>Reorder Level</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</section>
+
 
   <!-- PRODUCTS -->
   <section class="view" id="view-products">
