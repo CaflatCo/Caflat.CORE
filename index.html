@@ -740,12 +740,14 @@ main{
   z-index:100000;
 }
 
+
 .login-screen.hidden{
   display:none !important;
   visibility:hidden !important;
-  pointer-events:none !important;
   opacity:0 !important;
+  pointer-events:none !important;
 }
+
 
 </style>
 </head>
@@ -796,7 +798,7 @@ main{
 <header>
   <div style="display:flex;align-items:center;gap:12px;"><h1 id="brandName">Caflat.Co</h1><div class="role-badge" id="roleBadge">ADMIN</div></div>
   <nav>
-    <button data-view="pos" onclick="switchView(\'pos\')" class="active" onclick="switchView('pos')">Point of Sale</button>
+    <button data-view="pos" class="active">Point of Sale</button>
     <button data-view="dashboard" onclick="switchView(\'dashboard\')">Dashboard</button>
     <button data-view="products" onclick="switchView(\'products\')">Products</button>
     <button data-view="inventory" onclick="switchView(\'inventory\')">Inventory</button>
@@ -1238,7 +1240,7 @@ main{
 
 </button>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('productModal')">Cancel</button>
+      <button class="btn btn-secondary" data-close="productModal">Cancel</button>
       <button class="btn" onclick="saveProduct()">Save Product</button>
     </div>
   </div>
@@ -1327,7 +1329,7 @@ main{
 
       <button
         class="btn btn-secondary"
-        onclick="closeModal('ingredientModal')"
+        data-close="ingredientModal"
       >
         Cancel
       </button>
@@ -1365,7 +1367,7 @@ main{
     </div>
     <div class="form-group"><label>Reason / Note</label><input type="text" id="invReason" placeholder="e.g. Restock, Wastage, Sample" /></div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('inventoryModal')">Cancel</button>
+      <button class="btn btn-secondary" data-close="inventoryModal">Cancel</button>
       <button class="btn" onclick="saveInventoryMovement()">Save</button>
     </div>
   </div>
@@ -1913,21 +1915,13 @@ function togglePaymentFields() {
 }
 
 /* ============ CHECKOUT ============ */
-function openCheckout() {
-  if (!cart.length) return;
-  const total = parseFloat(document.getElementById('cartTotal').textContent.replace(db.settings.currency, ''));
-  document.getElementById('checkoutTotal').value = fmt(total);
-  document.getElementById('checkoutTendered').value = total.toFixed(2);
-  document.getElementById('checkoutChange').value = fmt(0);
-  document.getElementById('checkoutCustomer').value = '';
-  document.getElementById('paymentReference').value = '';
-  document.getElementById('checkoutPayment').value = 'cash';
 
-  document.getElementById('checkoutModal')
-    .classList.add('active');
+function openCheckout(){
 
-  togglePaymentFields();
+  openModal('checkoutModal');
+
 }
+
 
 function calculateChange() {
   const total = parseFloat(document.getElementById('checkoutTotal').value.replace(db.settings.currency, ''));
@@ -2097,6 +2091,30 @@ function showReceipt(sale) {
 }
 
 /* ============ PRODUCTS ============ */
+
+
+function openModal(id){
+
+  const modal =
+    document.getElementById(id);
+
+  if(!modal) return;
+
+  modal.classList.add('active');
+
+}
+
+function closeModal(id){
+
+  const modal =
+    document.getElementById(id);
+
+  if(!modal) return;
+
+  modal.classList.remove('active');
+
+}
+
 function openProductModal(id) {
   const sel = document.getElementById('productCategory');
   sel.innerHTML = db.categories.map(c => `<option value="${c}">${c}</option>`).join('');
@@ -2471,13 +2489,13 @@ function openVariantSelector(product){
 
 }
 
+
 function openIngredientModal(){
 
-  document
-    .getElementById('ingredientModal')
-    .classList.add('active');
+  openModal('ingredientModal');
 
 }
+
 
 function login(){
 
@@ -2558,6 +2576,44 @@ window.addEventListener('DOMContentLoaded', () => {
     if(screen){
       screen.style.display = 'none';
     }
+
+  }
+
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  document
+    .querySelectorAll('nav button[data-view]')
+    .forEach(button => {
+
+      button.addEventListener('click', (event) => {
+
+        event.preventDefault();
+
+        const view =
+          button.dataset.view;
+
+        if(typeof switchView === 'function'){
+          switchView(view);
+        }
+
+      });
+
+    });
+
+});
+
+
+
+document.addEventListener('click', (event) => {
+
+  const closeTarget =
+    event.target.dataset.close;
+
+  if(closeTarget){
+
+    closeModal(closeTarget);
 
   }
 
