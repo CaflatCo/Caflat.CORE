@@ -1954,6 +1954,9 @@ function calculateChange() {
 }
 
 function completeSale(status = 'paid') {
+
+  try {
+
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   let discount = cartDiscount.type === 'percent' ? subtotal * (cartDiscount.value / 100) : cartDiscount.value;
   discount = Math.min(discount, subtotal);
