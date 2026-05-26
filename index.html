@@ -1582,23 +1582,41 @@ function renderProductGrid() {
     card.className = 'product-card';
     if (p.stock <= 0) card.classList.add('out-of-stock');
     else if (p.stock <= p.reorder) card.classList.add('low-stock');
-    card.innerHTML = `<div class="name">${p.name}</div><div class="price">${fmt(p.price)}</div><div style="font-size:10px;color:#666;margin-top:4px;">Stock: ${p.stock}</div>`;
-    card.onclick = () => {
+    card.innerHTML = `
+<div class="name">${p.name}</div>
+<div class="price">${fmt(p.price)}</div>
+<div style="font-size:10px;color:#666;margin-top:4px;">
+Stock: ${p.stock}
+</div>
 
-      if(
-        p.variants &&
-        p.variants.length
-      ){
+<div style="display:flex;gap:6px;margin-top:10px;">
 
-        openVariantSelector(p);
+<button
+class="btn"
+style="flex:1;padding:8px;font-size:11px;"
+onclick="event.stopPropagation();addToCart('${p.id}')">
+ADD
+</button>
 
-      } else {
+${
+p.variants && p.variants.length
+?
+`
+<button
+class="btn secondary"
+style="flex:1;padding:8px;font-size:11px;"
+onclick="event.stopPropagation();openVariantSelectorById('${p.id}')">
+BOXES
+</button>
+`
+:
+''
+}
 
-        addToCart(p.id);
+</div>
+`;
 
-      }
-
-    };
+card.onclick = () => addToCart(p.id);
     grid.appendChild(card);
   });
 }
@@ -3686,6 +3704,20 @@ function collectVariants(){
 
 }
 
+
+function openVariantSelectorById(productId){
+
+const product =
+db.products.find(
+p => p.id === productId
+);
+
+if(!product) return;
+
+openVariantSelector(product);
+
+}
+
 function openVariantSelector(product){
 
   if(
@@ -3896,6 +3928,20 @@ function collectVariants(){
 
 }
 
+
+function openVariantSelectorById(productId){
+
+const product =
+db.products.find(
+p => p.id === productId
+);
+
+if(!product) return;
+
+openVariantSelector(product);
+
+}
+
 function openVariantSelector(product){
 
   if(
@@ -4082,6 +4128,20 @@ function collectVariants(){
       row.querySelector('.variant-pricing')?.value || 'dynamic'
 
   }));
+
+}
+
+
+function openVariantSelectorById(productId){
+
+const product =
+db.products.find(
+p => p.id === productId
+);
+
+if(!product) return;
+
+openVariantSelector(product);
 
 }
 
