@@ -740,14 +740,12 @@ main{
   z-index:100000;
 }
 
-
 .login-screen.hidden{
   display:none !important;
   visibility:hidden !important;
   opacity:0 !important;
   pointer-events:none !important;
 }
-
 
 </style>
 </head>
@@ -778,7 +776,7 @@ main{
       placeholder="Password"
     />
 
-    <button type="button" onclick="login(); return false;">
+    <button type="button" data-action="login">
       Login
     </button>
 
@@ -799,13 +797,13 @@ main{
   <div style="display:flex;align-items:center;gap:12px;"><h1 id="brandName">Caflat.Co</h1><div class="role-badge" id="roleBadge">ADMIN</div></div>
   <nav>
     <button data-view="pos" class="active">Point of Sale</button>
-    <button data-view="dashboard" onclick="switchView(\'dashboard\')">Dashboard</button>
-    <button data-view="products" onclick="switchView(\'products\')">Products</button>
-    <button data-view="inventory" onclick="switchView(\'inventory\')">Inventory</button>
-    <button data-view="ingredients" onclick="switchView(\'ingredients\')">Ingredients</button>
-    <button data-view="sales" onclick="switchView(\'sales\')">Sales</button>
-    <button data-view="reports" onclick="switchView(\'reports\')">Reports</button>
-    <button data-view="settings" onclick="switchView(\'settings\')">Settings</button>
+    <button data-view="dashboard">Dashboard</button>
+    <button data-view="products">Products</button>
+    <button data-view="inventory">Inventory</button>
+    <button data-view="ingredients">Ingredients</button>
+    <button data-view="sales">Sales</button>
+    <button data-view="reports">Reports</button>
+    <button data-view="settings">Settings</button>
   </nav>
 </header>
 
@@ -833,13 +831,13 @@ main{
             <option value="percent">%</option>
             <option value="amount">Amt</option>
           </select>
-          <button class="btn btn-sm" onclick="applyDiscount()">Apply</button>
+          <button class="btn btn-sm" data-action="apply-discount">Apply</button>
         </div>
 
         <div class="cart-actions">
-          <button onclick="clearCart()">Clear</button>
-          <button onclick="holdOrder()">Hold</button>
-          <button class="checkout-btn" id="checkoutBtn" onclick="openCheckout()">Checkout</button>
+          <button data-action="clear-cart">Clear</button>
+          <button data-action="hold-order">Hold</button>
+          <button class="checkout-btn" id="checkoutBtn" data-action="checkout">Checkout</button>
         </div>
       </div>
     </div>
@@ -930,11 +928,11 @@ main{
     <div class="panel">
       <div class="panel-header">
         <h2>Products</h2>
-        <button class="btn" onclick="openProductModal()">+ Add Product</button>
+        <button class="btn" data-action="open-product-modal">+ Add Product</button>
       </div>
       <div class="filter-bar">
-        <input type="text" id="productSearch" placeholder="Search..." oninput="renderProductsTable()" />
-        <select id="productCategoryFilter" onchange="renderProductsTable()">
+        <input type="text" id="productSearch" placeholder="Search..." />
+        <select id="productCategoryFilter">
           <option value="">All Categories</option>
         </select>
       </div>
@@ -955,7 +953,7 @@ main{
     <div class="panel">
       <div class="panel-header">
         <h2>Inventory Movements</h2>
-        <button class="btn" onclick="openInventoryModal()">+ Stock Adjustment</button>
+        <button class="btn" data-action="open-inventory-modal">+ Stock Adjustment</button>
       </div>
       <div class="table-wrapper"><table id="inventoryTable">
         <thead>
@@ -974,7 +972,7 @@ main{
     <div class="panel">
       <div class="panel-header">
         <h2>Ingredients & Recipes</h2>
-        <button class="btn" onclick="openIngredientModal()">+ Add Ingredient</button>
+        <button class="btn" data-action="open-ingredient-modal">+ Add Ingredient</button>
       </div>
       <div class="section-title">Raw Ingredients</div>
       <div class="table-wrapper"><table id="ingredientsTable">
@@ -994,12 +992,12 @@ main{
     <div class="panel">
       <div class="panel-header">
         <h2>Sales History</h2>
-        <button class="btn btn-secondary" onclick="exportSalesCSV()">Export CSV</button>
+        <button class="btn btn-secondary" data-action="export-sales">Export CSV</button>
       </div>
       <div class="filter-bar">
-        <input type="date" id="salesFromDate" onchange="renderSalesTable()" />
-        <input type="date" id="salesToDate" onchange="renderSalesTable()" />
-        <select id="salesPaymentFilter" onchange="renderSalesTable()">
+        <input type="date" id="salesFromDate" />
+        <input type="date" id="salesToDate" />
+        <select id="salesPaymentFilter">
           <option value="">All Payments</option>
           <option value="cash">Cash</option>
           <option value="gcash">GCash</option>
@@ -1030,11 +1028,11 @@ main{
       </div>
 
       <div class="filter-bar">
-        <input type="date" id="reportFromDate" onchange="renderReports()" />
-        <input type="date" id="reportToDate" onchange="renderReports()" />
+        <input type="date" id="reportFromDate" />
+        <input type="date" id="reportToDate" />
 
         <button class="btn btn-secondary"
-          onclick="renderReports()">
+          data-action="apply-report-filter">
           Apply Filter
         </button>
       </div>
@@ -1119,22 +1117,22 @@ main{
         <label>Receipt Footer</label>
         <textarea id="setReceiptFooter" rows="2"></textarea>
       </div>
-      <button class="btn" onclick="saveSettings()">Save Settings</button>
+      <button class="btn" data-action="save-settings">Save Settings</button>
 
       <div class="section-title">Categories</div>
       <div id="categoryList"></div>
       <div class="form-row" style="margin-top:10px;">
         <input type="text" id="newCategory" placeholder="New category name" style="padding:9px; border:1px solid #000;" />
-        <button class="btn btn-secondary" onclick="addCategory()">Add Category</button>
+        <button class="btn btn-secondary" data-action="add-category">Add Category</button>
       </div>
 
       <div class="section-title">Data Management</div>
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="btn btn-secondary" onclick="exportData()">Export All Data</button>
-        <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Import Data</button>
-        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)" />
-        <button class="btn btn-secondary" onclick="loadDemoData()">Load Demo Data</button>
-        <button class="btn btn-secondary" onclick="resetData()" style="border-color:#000;">Reset All Data</button>
+        <button class="btn btn-secondary" data-action="export-data">Export All Data</button>
+        <button class="btn btn-secondary" data-action="open-import">Import Data</button>
+        <input type="file" id="importFile" accept=".json" style="display:none"  />
+        <button class="btn btn-secondary" data-action="load-demo">Load Demo Data</button>
+        <button class="btn btn-secondary" data-action="reset-data" style="border-color:#000;">Reset All Data</button>
       </div>
     </div>
   </section>
@@ -1183,7 +1181,7 @@ main{
 <button
   type="button"
   class="btn btn-secondary"
-  onclick="addVariantRow()">
+  data-action="add-variant">
   + Add Variant
 </button>
 
@@ -1195,7 +1193,7 @@ main{
   <label>Recipe Mode</label>
 
   <select id="recipeMode"
-    onchange="toggleRecipeMode()">
+    >
 
     <option value="unit">
       Per Product
@@ -1234,14 +1232,14 @@ main{
 <button
   type="button"
   class="btn btn-secondary"
-  onclick="addRecipeRow()">
+  data-action="add-recipe">
 
   + Add Ingredient
 
 </button>
     <div class="modal-actions">
       <button class="btn btn-secondary" data-close="productModal">Cancel</button>
-      <button class="btn" onclick="saveProduct()">Save Product</button>
+      <button class="btn" data-action="save-product">Save Product</button>
     </div>
   </div>
 </div>
@@ -1336,7 +1334,7 @@ main{
 
       <button
         class="btn"
-        onclick="saveIngredient()"
+        data-action="save-ingredient"
       >
         Save
       </button>
@@ -1368,7 +1366,7 @@ main{
     <div class="form-group"><label>Reason / Note</label><input type="text" id="invReason" placeholder="e.g. Restock, Wastage, Sample" /></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" data-close="inventoryModal">Cancel</button>
-      <button class="btn" onclick="saveInventoryMovement()">Save</button>
+      <button class="btn" data-action="save-inventory">Save</button>
     </div>
   </div>
 </div>
@@ -1383,7 +1381,7 @@ main{
     </div>
     <div class="form-group">
       <label>Payment Method</label>
-      <select id="checkoutPayment" onchange="togglePaymentFields()">
+      <select id="checkoutPayment" >
         <option value="cash">Cash</option>
         <option value="gcash">GCash</option>
         <option value="maya">Maya</option>
@@ -1556,8 +1554,6 @@ function getBaseCost(cost, unit) {
   }
 
 }
-
-
 
 function validateNumber(value, fallback = 0){
 
@@ -1961,7 +1957,6 @@ function openCheckout(){
 
 }
 
-
 function calculateChange() {
   const total = parseFloat(document.getElementById('checkoutTotal').value.replace(db.settings.currency, ''));
   const tendered = parseFloat(document.getElementById('checkoutTendered').value) || 0;
@@ -2131,7 +2126,6 @@ function showReceipt(sale) {
 
 /* ============ PRODUCTS ============ */
 
-
 function openModal(id){
 
   const modal =
@@ -2204,8 +2198,6 @@ function openProductModal(id) {
 
   document.getElementById('productModal').classList.add('active');
 }
-
-
 
 function saveProductSafe(product){
 
@@ -2567,13 +2559,11 @@ function openVariantSelector(product){
 
 }
 
-
 function openIngredientModal(){
 
   openModal('ingredientModal');
 
 }
-
 
 function login(){
 
@@ -2682,8 +2672,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-
-
 document.addEventListener('click', (event) => {
 
   const closeTarget =
@@ -2692,6 +2680,226 @@ document.addEventListener('click', (event) => {
   if(closeTarget){
 
     closeModal(closeTarget);
+
+  }
+
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  // NAVIGATION
+  const nav = document.querySelector('nav');
+
+  if(nav){
+
+    nav.addEventListener('click', (e) => {
+
+      const btn =
+        e.target.closest('[data-view]');
+
+      if(!btn) return;
+
+      switchView(btn.dataset.view);
+
+    });
+
+  }
+
+  // FILTERS
+  const productSearch =
+    document.getElementById('productSearch');
+
+  if(productSearch){
+    productSearch.addEventListener(
+      'input',
+      renderProductsTable
+    );
+  }
+
+  const productCategoryFilter =
+    document.getElementById('productCategoryFilter');
+
+  if(productCategoryFilter){
+    productCategoryFilter.addEventListener(
+      'change',
+      renderProductsTable
+    );
+  }
+
+  [
+    'salesFromDate',
+    'salesToDate',
+    'salesPaymentFilter'
+  ].forEach(id => {
+
+    const el =
+      document.getElementById(id);
+
+    if(el){
+      el.addEventListener(
+        'change',
+        renderSalesTable
+      );
+    }
+
+  });
+
+  [
+    'reportFromDate',
+    'reportToDate'
+  ].forEach(id => {
+
+    const el =
+      document.getElementById(id);
+
+    if(el){
+      el.addEventListener(
+        'change',
+        renderReports
+      );
+    }
+
+  });
+
+});
+
+// GLOBAL ACTION SYSTEM
+document.addEventListener('click', (e) => {
+
+  const action =
+    e.target.dataset.action;
+
+  if(!action) return;
+
+  switch(action){
+
+    case 'apply-discount':
+      applyDiscount();
+      break;
+
+    case 'clear-cart':
+      clearCart();
+      break;
+
+    case 'hold-order':
+      holdOrder();
+      break;
+
+    case 'checkout':
+      openCheckout();
+      break;
+
+    case 'open-product-modal':
+      openProductModal();
+      break;
+
+    case 'open-inventory-modal':
+      openInventoryModal();
+      break;
+
+    case 'open-ingredient-modal':
+      openIngredientModal();
+      break;
+
+    case 'save-product':
+      saveProduct();
+      break;
+
+    case 'save-ingredient':
+      saveIngredient();
+      break;
+
+    case 'save-inventory':
+      saveInventoryMovement();
+      break;
+
+    case 'add-variant':
+      addVariantRow();
+      break;
+
+    case 'add-recipe':
+      addRecipeRow();
+      break;
+
+    case 'save-settings':
+      saveSettings();
+      break;
+
+    case 'add-category':
+      addCategory();
+      break;
+
+    case 'export-data':
+      exportData();
+      break;
+
+    case 'load-demo':
+      loadDemoData();
+      break;
+
+    case 'reset-data':
+      resetData();
+      break;
+
+    case 'export-sales':
+      exportSalesCSV();
+      break;
+
+    case 'login':
+      login();
+      break;
+
+    case 'apply-report-filter':
+      renderReports();
+      break;
+
+    case 'open-import':
+      document
+        .getElementById('importFile')
+        .click();
+      break;
+
+  }
+
+});
+
+</script>
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  const recipeMode =
+    document.getElementById('recipeMode');
+
+  if(recipeMode){
+
+    recipeMode.addEventListener(
+      'change',
+      toggleRecipeMode
+    );
+
+  }
+
+  const checkoutPayment =
+    document.getElementById('checkoutPayment');
+
+  if(checkoutPayment){
+
+    checkoutPayment.addEventListener(
+      'change',
+      togglePaymentFields
+    );
+
+  }
+
+  const importFile =
+    document.getElementById('importFile');
+
+  if(importFile){
+
+    importFile.addEventListener(
+      'change',
+      importData
+    );
 
   }
 
