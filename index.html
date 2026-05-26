@@ -405,7 +405,6 @@
     text-transform: uppercase;
   }
 
-
 .payment-badge {
   display:inline-block;
   padding:6px 10px;
@@ -415,7 +414,6 @@
   text-transform:uppercase;
   margin-bottom:12px;
 }
-
 
 /* INGREDIENTS RESPONSIVE FIX */
 .ingredients-table-wrapper{
@@ -473,7 +471,6 @@
   }
 
 }
-
 
 /* FULL RESPONSIVE REBUILD */
 
@@ -664,7 +661,6 @@ main{
 
 }
 
-
 /* FINAL DASHBOARD FIX */
 
 #view-dashboard .panel{
@@ -713,7 +709,6 @@ main{
 
 }
 
-
 /* VARIANT SYSTEM FIX */
 
 #variantBuilder{
@@ -736,7 +731,6 @@ main{
 
 }
 
-
 .modal-overlay{
   pointer-events:auto;
 }
@@ -756,7 +750,6 @@ main{
 </style>
 </head>
 <body>
-
 
 <div class="login-screen" id="loginScreen">
 
@@ -804,13 +797,13 @@ main{
   <div style="display:flex;align-items:center;gap:12px;"><h1 id="brandName">Caflat.Co</h1><div class="role-badge" id="roleBadge">ADMIN</div></div>
   <nav>
     <button data-view="pos" onclick="switchView(\'pos\')" class="active" onclick="switchView('pos')">Point of Sale</button>
-    <button data-view="dashboard" onclick="switchView(\'dashboard\')" onclick="switchView('dashboard')">Dashboard</button>
-    <button data-view="products" onclick="switchView(\'products\')" onclick="switchView('products')">Products</button>
-    <button data-view="inventory" onclick="switchView(\'inventory\')" onclick="switchView('inventory')">Inventory</button>
-    <button data-view="ingredients" onclick="switchView(\'ingredients\')" onclick="switchView('ingredients')">Ingredients</button>
-    <button data-view="sales" onclick="switchView(\'sales\')" onclick="switchView('sales')">Sales</button>
-    <button data-view="reports" onclick="switchView(\'reports\')" onclick="switchView('reports')">Reports</button>
-    <button data-view="settings" onclick="switchView(\'settings\')" onclick="switchView('settings')">Settings</button>
+    <button data-view="dashboard" onclick="switchView(\'dashboard\')">Dashboard</button>
+    <button data-view="products" onclick="switchView(\'products\')">Products</button>
+    <button data-view="inventory" onclick="switchView(\'inventory\')">Inventory</button>
+    <button data-view="ingredients" onclick="switchView(\'ingredients\')">Ingredients</button>
+    <button data-view="sales" onclick="switchView(\'sales\')">Sales</button>
+    <button data-view="reports" onclick="switchView(\'reports\')">Reports</button>
+    <button data-view="settings" onclick="switchView(\'settings\')">Settings</button>
   </nav>
 </header>
 
@@ -849,7 +842,6 @@ main{
       </div>
     </div>
   </section>
-
 
 <!-- DASHBOARD -->
 <section class="view" id="view-dashboard">
@@ -930,7 +922,6 @@ main{
   </div>
 
 </section>
-
 
   <!-- PRODUCTS -->
   <section class="view" id="view-products">
@@ -1028,7 +1019,6 @@ main{
     </div>
   </section>
 
-
   <!-- REPORTS -->
   <section class="view" id="view-reports">
     <div class="panel">
@@ -1104,7 +1094,6 @@ main{
 
     </div>
   </section>
-
 
   <!-- SETTINGS -->
   <section class="view" id="view-settings">
@@ -1196,7 +1185,6 @@ main{
   + Add Variant
 </button>
 
-
 <div class="section-title">
   Recipe Configuration
 </div>
@@ -1274,7 +1262,6 @@ main{
 
       <div class="form-group">
         <label>Package Unit</label>
-
 
 <select id="ingredientPurchaseUnit">
   <option value="g">Gram (g)</option>
@@ -1358,7 +1345,6 @@ main{
 
 </div>
 
-
 <!-- INVENTORY MODAL -->
 <div class="modal-overlay" id="inventoryModal">
   <div class="modal">
@@ -1412,7 +1398,6 @@ main{
       >
         QR PAYMENT
       </div>
-
 
       <img
         id="paymentQRImage"
@@ -1489,7 +1474,6 @@ window.db =
 /* ============ DATA LAYER ============ */
 const STORE_KEY = 'pos_data_v1';
 
-
 const UNIT_CONVERSIONS = {
 
   g: 1,
@@ -1522,7 +1506,6 @@ function loadDB() {
     heldOrders: []
   };
 }
-
 
 /* ============ HELPERS ============ */
 const fmt = n => db.settings.currency + Number(n).toFixed(2);
@@ -1567,145 +1550,6 @@ function getBaseCost(cost, unit) {
     case 'pc':
     default:
       return cost;
-
-  }
-
-}
-
-
-
-
-function switchView(view){
-
-  try{
-
-    document
-      .querySelectorAll('nav button')
-      .forEach(btn => {
-
-        btn.classList.remove('active');
-
-        if(btn.dataset.view === view){
-          btn.classList.add('active');
-        }
-
-      });
-
-    document
-      .querySelectorAll('.view')
-      .forEach(v => v.classList.remove('active'));
-
-    const target =
-      document.getElementById('view-' + view);
-
-    if(target){
-      target.classList.add('active');
-    }
-
-    if(view === 'dashboard' && typeof renderDashboard === 'function'){
-      renderDashboard();
-    }
-
-    if(view === 'products' && typeof renderProductsTable === 'function'){
-      renderProductsTable();
-    }
-
-    if(view === 'inventory' && typeof renderInventoryTable === 'function'){
-      renderInventoryTable();
-    }
-
-    if(view === 'ingredients'){
-
-      if(typeof migrateIngredients === 'function'){
-        migrateIngredients();
-      }
-
-      if(typeof renderIngredientsTable === 'function'){
-        renderIngredientsTable();
-      }
-
-    }
-
-    if(view === 'sales' && typeof renderSalesTable === 'function'){
-      renderSalesTable();
-    }
-
-    if(view === 'reports' && typeof renderReports === 'function'){
-      renderReports();
-    }
-
-    if(view === 'settings' && typeof renderSettings === 'function'){
-      renderSettings();
-    }
-
-  } catch(err){
-
-    console.error(
-      'Navigation failed:',
-      err
-    );
-
-  }
-
-}
-
-
-/* ============ NAVIGATION ============ */
-
-function switchView(view){
-
-  try{
-
-    document
-      .querySelectorAll('nav button')
-      .forEach(btn => {
-
-        btn.classList.remove('active');
-
-        if(btn.dataset.view === view){
-          btn.classList.add('active');
-        }
-
-      });
-
-    document
-      .querySelectorAll('.view')
-      .forEach(v => v.classList.remove('active'));
-
-    const target =
-      document.getElementById('view-' + view);
-
-    if(target){
-      target.classList.add('active');
-    }
-
-    const renderMap = {
-
-      dashboard: 'renderDashboard',
-      products: 'renderProductsTable',
-      inventory: 'renderInventoryTable',
-      ingredients: 'renderIngredientsTable',
-      sales: 'renderSalesTable',
-      reports: 'renderReports',
-      settings: 'renderSettings'
-
-    };
-
-    const fnName = renderMap[view];
-
-    if(
-      fnName &&
-      typeof window[fnName] === 'function'
-    ){
-      window[fnName]();
-    }
-
-  } catch(err){
-
-    console.error(
-      'Navigation Error:',
-      err
-    );
 
   }
 
@@ -2370,8 +2214,6 @@ function deleteProduct(id) {
   renderProductGrid();
 }
 
-
-
 function calculateVariantPrice(product, variant){
 
   if(!variant){
@@ -2502,7 +2344,6 @@ function addRecipeRow(
   wrap.appendChild(row);
 
 }
-
 
 function addVariantRow(data = {}) {
 
@@ -2637,8 +2478,6 @@ function openIngredientModal(){
     .classList.add('active');
 
 }
-
-
 
 function login(){
 
