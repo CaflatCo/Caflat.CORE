@@ -776,7 +776,8 @@ main{
       placeholder="Password"
     />
 
-    <button id="loginBtn" type="button">LOGIN</button></button>
+    <button id="loginBtn" type="button" class="login-btn">LOGIN</button>
+</button>
 
     <div style="margin-top:16px;font-size:12px;color:#666;">
       <br><br>
@@ -3090,108 +3091,59 @@ window.addEventListener('load', () => {
 
 <script>
 
-(function(){
+window.addEventListener('load', () => {
 
-  function hardLogin(){
+  const loginBtn =
+    document.getElementById('loginBtn');
 
-    try{
+  if(!loginBtn) return;
 
-      const username =
-        document.getElementById('username')
-        ?.value
-        ?.trim();
+  loginBtn.addEventListener('click', () => {
 
-      const password =
-        document.getElementById('password')
-        ?.value;
+    const username =
+      document.getElementById('username')
+      ?.value
+      ?.trim();
 
-      if(
-        (username === 'admin' && password === 'Ry9@qm408me') ||
-        (username === 'staff' && password === 'staff123')
-      ){
+    const password =
+      document.getElementById('password')
+      ?.value;
 
-        const loginScreen =
-          document.querySelector('.login-screen');
+    const valid =
+      (
+        username === 'admin' &&
+        password === 'Ry9@qm408me'
+      ) ||
+      (
+        username === 'staff' &&
+        password === 'staff123'
+      );
 
-        if(loginScreen){
-          loginScreen.style.display = 'none';
-        }
-
-        document.body.style.overflow = 'auto';
-
-        const posView =
-          document.getElementById('view-pos');
-
-        if(posView){
-          posView.classList.add('active');
-        }
-
-        return;
-
-      }
+    if(!valid){
 
       alert('Invalid username or password');
-
-    } catch(err){
-
-      console.error(err);
-      alert('Login runtime error.');
+      return;
 
     }
 
-  }
+    const loginScreen =
+      document.querySelector('.login-screen');
 
-  window.hardLogin = hardLogin;
-
-  window.addEventListener('load', () => {
-
-    const btn =
-      document.getElementById('loginBtn');
-
-    if(btn){
-
-      btn.onclick = hardLogin;
-
+    if(loginScreen){
+      loginScreen.style.display = 'none';
+      loginScreen.classList.add('hidden');
     }
 
-    const passwordInput =
-      document.getElementById('password');
+    const posView =
+      document.getElementById('view-pos');
 
-    if(passwordInput){
-
-      passwordInput.addEventListener('keydown', (e) => {
-
-        if(e.key === 'Enter'){
-
-          hardLogin();
-
-        }
-
-      });
-
+    if(posView){
+      posView.classList.add('active');
     }
 
   });
 
-})();
-
-</script>
-
-<script>
-
-window.POS_USERS = {
-
-  admin: {
-    username: 'admin',
-    password: 'Ry9@qm408me'
-  },
-
-  staff: {
-    username: 'staff',
-    password: 'staff123'
-  }
-
-};
+});
 
 </script>
 
