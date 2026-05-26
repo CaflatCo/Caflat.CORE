@@ -30,7 +30,7 @@
     align-items: center;
     border-bottom: 2px solid #000;
   }
-  header h1 { font-size: 18px; letter-spacing: 3px; font-weight: 800; }
+  header h1 { font-size: 18px; letter-spacing: 3px; font-weight: 300; }
   nav { display: flex; gap: 4px; }
   nav button {
     background: transparent;
@@ -734,22 +734,6 @@ main{
   }
 
 }
-
-
-  .login-screen {
-    pointer-events: auto !important;
-  }
-
-  .login-card {
-    position: relative;
-    z-index: 100000;
-    pointer-events: auto !important;
-  }
-
-  .login-card button,
-  .login-card input {
-    pointer-events: auto !important;
-  }
 
 </style>
 </head>
@@ -1954,9 +1938,6 @@ function calculateChange() {
 }
 
 function completeSale(status = 'paid') {
-
-  try {
-
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   let discount = cartDiscount.type === 'percent' ? subtotal * (cartDiscount.value / 100) : cartDiscount.value;
   discount = Math.min(discount, subtotal);
