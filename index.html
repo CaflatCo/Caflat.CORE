@@ -3838,6 +3838,77 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 });
 
+
+function editIngredient(id){
+
+  try{
+
+    const ingredient =
+      db.ingredients.find(i => i.id === id);
+
+    if(!ingredient){
+      alert('Ingredient not found');
+      return;
+    }
+
+    document.getElementById('ingredientId').value =
+      ingredient.id || '';
+
+    document.getElementById('ingredientName').value =
+      ingredient.name || '';
+
+    document.getElementById('ingredientPurchaseUnit').value =
+      ingredient.purchaseUnit || 'g';
+
+    document.getElementById('ingredientPackageQty').value =
+      ingredient.packageQty || 0;
+
+    document.getElementById('ingredientPurchaseCost').value =
+      ingredient.packageCost || 0;
+
+    document.getElementById('ingredientStock').value =
+      ingredient.stock || 0;
+
+    document.getElementById('ingredientReorder').value =
+      ingredient.reorderLevel || 0;
+
+    openModal('ingredientModal');
+
+  } catch(err){
+
+    console.error(err);
+    alert('Edit ingredient failed: ' + err.message);
+
+  }
+
+}
+
+
+function deleteIngredient(id){
+
+  try{
+
+    const confirmed =
+      confirm('Delete this ingredient?');
+
+    if(!confirmed) return;
+
+    db.ingredients =
+      db.ingredients.filter(i => i.id !== id);
+
+    saveDB();
+
+    renderIngredientsTable();
+
+  } catch(err){
+
+    console.error(err);
+    alert('Delete ingredient failed: ' + err.message);
+
+  }
+
+}
+
 </script>
 
 
