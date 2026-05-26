@@ -2790,8 +2790,9 @@ function renderDashboard() {
   const totalProducts = db.products.length;
   const lowStock = db.products.filter(p => p.stock <= p.reorder).length;
 
-  const inventoryValue =
-    db.products.reduce((s, p) => s + p.cost * p.stock, 0);
+  const inventoryValue = db.products.reduce((a,p)=>{
+      return a + calculateProductInventoryValue(p);
+    },0);
 
   const ingredientValue =
     db.ingredients.reduce((s, i) => {
@@ -3472,14 +3473,35 @@ function importData(e) {
   reader.readAsText(file);
 }
 
-function resetData() {
-  if (!confirm('This will erase ALL data. Continue?')) return;
-  if (!confirm('Are you absolutely sure?')) return;
-  localStorage.removeItem(DB_STORAGE_KEY);
-  localStorage.removeItem(BACKUP_STORAGE_KEY);
-  localStorage.removeItem('caflat_pos_db');
+
+function resetData(){
+
+  const confirmed = confirm(
+    'Delete ALL POS data? This cannot be undone.'
+  );
+
+  if(!confirmed) return;
+
+  try{
+
+    localStorage.clear();
+
+    sessionStorage.clear();
+
+    indexedDB.databases?.().then(dbs=>{
+      dbs.forEach(db=>{
+        indexedDB.deleteDatabase(db.name);
+      });
+    });
+
+  }catch(err){
+    console.error(err);
+  }
+
   location.reload();
+
 }
+
 
 function loadDemoData() {
   if (db.products.length && !confirm('This will add demo products. Continue?')) return;
@@ -3951,6 +3973,16 @@ function migrateIngredients(){
 // ===== PHASE 2 RECIPE ENGINE =====
 
 
+
+
+
+function safeNumber(value){
+
+  const n = Number(value);
+
+  return isNaN(n) ? 0 : n;
+
+}
 
 function moneyRound(value){
 
