@@ -776,7 +776,7 @@ main{
       placeholder="Password"
     />
 
-    <button type="button" data-action="login">
+    <button type="button" data-action="login" onclick="login()">
       Login
     </button>
 
@@ -2645,71 +2645,84 @@ function renderView(view){
 
 }
 
+
+
 function login(){
 
   try{
 
     const username =
-      document.getElementById('loginUsername').value.trim();
+      document.getElementById('username')
+      ?.value
+      ?.trim();
 
     const password =
-      document.getElementById('loginPassword').value.trim();
+      document.getElementById('password')
+      ?.value;
 
     if(
-      (
-        username === 'admin' &&
-        password === 'Ry9@qm408me'
-      ) ||
-      (
-        username === 'staff' &&
-        password === 'staff123'
-      )
+      username === 'admin' &&
+      password === 'Ry9@qm408me'
     ){
 
-      localStorage.setItem(
-        'caflat_logged_in',
-        'true'
-      );
-
       const loginScreen =
-        document.getElementById('loginScreen');
+        document.querySelector('.login-screen');
 
       if(loginScreen){
-
         loginScreen.style.display = 'none';
-        loginScreen.style.visibility = 'hidden';
-        loginScreen.style.pointerEvents = 'none';
-        loginScreen.style.opacity = '0';
         loginScreen.classList.add('hidden');
-
       }
 
-      const badge =
-        document.getElementById('roleBadge');
-
-      if(badge){
-
-        badge.textContent =
-          username === 'admin'
-          ? 'ADMIN'
-          : 'STAFF';
-
+      if(typeof switchView === 'function'){
+        switchView('pos');
       }
 
-      return;
+      return true;
 
     }
 
-    alert('Invalid credentials');
+    if(
+      username === 'staff' &&
+      password === 'staff123'
+    ){
+
+      const loginScreen =
+        document.querySelector('.login-screen');
+
+      if(loginScreen){
+        loginScreen.style.display = 'none';
+        loginScreen.classList.add('hidden');
+      }
+
+      if(typeof switchView === 'function'){
+        switchView('pos');
+      }
+
+      return true;
+
+    }
+
+    alert('Invalid username or password');
+    return false;
 
   } catch(err){
 
-    console.error(err);
-    alert('Login failed');
+    console.error(
+      'LOGIN FAILURE:',
+      err
+    );
+
+    alert(
+      'Login system error. Check console.'
+    );
+
+    return false;
 
   }
 
 }
+
+
 
 window.addEventListener('DOMContentLoaded', () => {
 
