@@ -3570,6 +3570,15 @@ function addVariantRow(data = {}) {
         <option value="fixed">Fixed</option>
       </select>
     </div>
+
+    <div class="form-group">
+      <label>&nbsp;</label>
+      <button
+        type="button"
+        class="btn btn-secondary remove-variant-btn">
+        Remove
+      </button>
+    </div>
   `;
 
   wrap.appendChild(row);
@@ -3628,9 +3637,11 @@ function openVariantSelector(product){
   const choice =
     prompt(message);
 
+  if(choice === null) return;
+
   const selected =
     product.variants[
-      Number(choice) - 1
+      parseInt(choice) - 1
     ];
 
   if(!selected) return;
@@ -3673,6 +3684,27 @@ document.addEventListener('DOMContentLoaded',()=>{
       price:0,
       pricingType:'dynamic'
     });
+
+  }
+
+});
+
+
+
+document.addEventListener('click', (e) => {
+
+  if(
+    e.target.classList.contains(
+      'remove-variant-btn'
+    )
+  ){
+
+    const row =
+      e.target.closest('.form-row');
+
+    if(row){
+      row.remove();
+    }
 
   }
 
@@ -3753,6 +3785,15 @@ function addVariantRow(data = {}) {
         <option value="fixed">Fixed</option>
       </select>
     </div>
+
+    <div class="form-group">
+      <label>&nbsp;</label>
+      <button
+        type="button"
+        class="btn btn-secondary remove-variant-btn">
+        Remove
+      </button>
+    </div>
   `;
 
   wrap.appendChild(row);
@@ -3811,9 +3852,11 @@ function openVariantSelector(product){
   const choice =
     prompt(message);
 
+  if(choice === null) return;
+
   const selected =
     product.variants[
-      Number(choice) - 1
+      parseInt(choice) - 1
     ];
 
   if(!selected) return;
@@ -3836,6 +3879,27 @@ function openVariantSelector(product){
   addToCart(cartProduct);
 
 }
+
+
+
+document.addEventListener('click', (e) => {
+
+  if(
+    e.target.classList.contains(
+      'remove-variant-btn'
+    )
+  ){
+
+    const row =
+      e.target.closest('.form-row');
+
+    if(row){
+      row.remove();
+    }
+
+  }
+
+});
 
 </script>
 
@@ -3915,6 +3979,15 @@ function addVariantRow(data = {}) {
         <option value="fixed">Fixed</option>
       </select>
     </div>
+
+    <div class="form-group">
+      <label>&nbsp;</label>
+      <button
+        type="button"
+        class="btn btn-secondary remove-variant-btn">
+        Remove
+      </button>
+    </div>
   `;
 
   wrap.appendChild(row);
@@ -3973,9 +4046,11 @@ function openVariantSelector(product){
   const choice =
     prompt(message);
 
+  if(choice === null) return;
+
   const selected =
     product.variants[
-      Number(choice) - 1
+      parseInt(choice) - 1
     ];
 
   if(!selected) return;
@@ -3998,6 +4073,27 @@ function openVariantSelector(product){
   addToCart(cartProduct);
 
 }
+
+
+
+document.addEventListener('click', (e) => {
+
+  if(
+    e.target.classList.contains(
+      'remove-variant-btn'
+    )
+  ){
+
+    const row =
+      e.target.closest('.form-row');
+
+    if(row){
+      row.remove();
+    }
+
+  }
+
+});
 
 </script>
 
