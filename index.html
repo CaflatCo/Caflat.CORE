@@ -776,17 +776,11 @@ main{
       placeholder="Password"
     />
 
-    <button type="button" data-action="login" onclick="login()">
-      Login
-    </button>
+    <button id="loginBtn" type="button">LOGIN</button></button>
 
     <div style="margin-top:16px;font-size:12px;color:#666;">
-      Admin Login:<br>
-      username: <strong>admin</strong><br>
-      password: <strong>Ry9@qm408me</strong><br><br>
-      Staff Login:<br>
-      username: <strong>staff</strong><br>
-      password: <strong>staff123</strong>
+      <br><br>
+      
     </div>
 
   </div>
@@ -2645,8 +2639,6 @@ function renderView(view){
 
 }
 
-
-
 function login(){
 
   try{
@@ -2721,8 +2713,6 @@ function login(){
   }
 
 }
-
-
 
 window.addEventListener('DOMContentLoaded', () => {
 
@@ -3095,6 +3085,113 @@ window.addEventListener('load', () => {
   }
 
 });
+
+</script>
+
+<script>
+
+(function(){
+
+  function hardLogin(){
+
+    try{
+
+      const username =
+        document.getElementById('username')
+        ?.value
+        ?.trim();
+
+      const password =
+        document.getElementById('password')
+        ?.value;
+
+      if(
+        (username === 'admin' && password === 'Ry9@qm408me') ||
+        (username === 'staff' && password === 'staff123')
+      ){
+
+        const loginScreen =
+          document.querySelector('.login-screen');
+
+        if(loginScreen){
+          loginScreen.style.display = 'none';
+        }
+
+        document.body.style.overflow = 'auto';
+
+        const posView =
+          document.getElementById('view-pos');
+
+        if(posView){
+          posView.classList.add('active');
+        }
+
+        return;
+
+      }
+
+      alert('Invalid username or password');
+
+    } catch(err){
+
+      console.error(err);
+      alert('Login runtime error.');
+
+    }
+
+  }
+
+  window.hardLogin = hardLogin;
+
+  window.addEventListener('load', () => {
+
+    const btn =
+      document.getElementById('loginBtn');
+
+    if(btn){
+
+      btn.onclick = hardLogin;
+
+    }
+
+    const passwordInput =
+      document.getElementById('password');
+
+    if(passwordInput){
+
+      passwordInput.addEventListener('keydown', (e) => {
+
+        if(e.key === 'Enter'){
+
+          hardLogin();
+
+        }
+
+      });
+
+    }
+
+  });
+
+})();
+
+</script>
+
+<script>
+
+window.POS_USERS = {
+
+  admin: {
+    username: 'admin',
+    password: 'Ry9@qm408me'
+  },
+
+  staff: {
+    username: 'staff',
+    password: 'staff123'
+  }
+
+};
 
 </script>
 
