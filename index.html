@@ -766,23 +766,19 @@ main{
 
     <input
       type="text"
-      id="loginUsername"
+      id="username"
       placeholder="Username"
     />
 
     <input
       type="password"
-      id="loginPassword"
+      id="password"
       placeholder="Password"
     />
 
     <button id="loginBtn" type="button" class="login-btn">LOGIN</button>
-</button>
 
-    <div style="margin-top:16px;font-size:12px;color:#666;">
-      <br><br>
-      
-    </div>
+    
 
   </div>
 
@@ -3091,10 +3087,9 @@ window.addEventListener('load', () => {
 
 <script>
 
-window.addEventListener('load', () => {
+window.addEventListener('DOMContentLoaded', () => {
 
-  const loginBtn =
-    document.getElementById('loginBtn');
+  const loginBtn = document.getElementById('loginBtn');
 
   if(!loginBtn) return;
 
@@ -3127,18 +3122,12 @@ window.addEventListener('load', () => {
     }
 
     const loginScreen =
-      document.querySelector('.login-screen');
+      document.getElementById('loginScreen');
 
     if(loginScreen){
-      loginScreen.style.display = 'none';
+
       loginScreen.classList.add('hidden');
-    }
 
-    const posView =
-      document.getElementById('view-pos');
-
-    if(posView){
-      posView.classList.add('active');
     }
 
   });
