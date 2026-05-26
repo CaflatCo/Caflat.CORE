@@ -1557,6 +1557,45 @@ function getBaseCost(cost, unit) {
 
 }
 
+
+
+function validateNumber(value, fallback = 0){
+
+  const parsed =
+    parseFloat(value);
+
+  if(
+    isNaN(parsed) ||
+    !isFinite(parsed)
+  ){
+    return fallback;
+  }
+
+  return parsed;
+
+}
+
+function validateRequired(value){
+
+  return (
+    value !== undefined &&
+    value !== null &&
+    String(value).trim() !== ''
+  );
+
+}
+
+function showToast(message, type = 'info'){
+
+  console.log(
+    `[${type.toUpperCase()}]`,
+    message
+  );
+
+  alert(message);
+
+}
+
 /* ============ POS / CART ============ */
 
 let cart = [];
@@ -2164,6 +2203,45 @@ function openProductModal(id) {
   }
 
   document.getElementById('productModal').classList.add('active');
+}
+
+
+
+function saveProductSafe(product){
+
+  if(!validateRequired(product.name)){
+
+    showToast(
+      'Product name is required',
+      'error'
+    );
+
+    return false;
+
+  }
+
+  product.cost =
+    validateNumber(product.cost);
+
+  product.price =
+    validateNumber(product.price);
+
+  product.stock =
+    validateNumber(product.stock);
+
+  product.reorderLevel =
+    validateNumber(product.reorderLevel);
+
+  if(product.price < 0){
+    product.price = 0;
+  }
+
+  if(product.stock < 0){
+    product.stock = 0;
+  }
+
+  return true;
+
 }
 
 function saveProduct() {
