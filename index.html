@@ -1261,11 +1261,15 @@ main{
       <div class="form-group">
         <label>Package Unit</label>
 
-        <select id="ingredientPurchaseUnit">
-          <option value="g">Gram (g)</option>
-          <option value="ml">Milliliter (ml)</option>
-          <option value="pc">Piece (pc)</option>
-        </select>
+        
+<select id="ingredientPurchaseUnit">
+  <option value="g">Gram (g)</option>
+  <option value="kg">Kilogram (kg)</option>
+  <option value="ml">Milliliter (ml)</option>
+  <option value="L">Liter (L)</option>
+  <option value="pc">Piece (pc)</option>
+</select>
+
       </div>
 
       <div class="form-group">
@@ -2329,6 +2333,10 @@ function openIngredientModal(id) {
 
 
 
+
+// MANUAL UNIT SYSTEM
+// No automatic unit conversion.
+// Package costing uses selected unit directly.
 
 function saveIngredient() {
 
