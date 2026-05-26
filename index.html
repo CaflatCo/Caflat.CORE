@@ -2565,6 +2565,86 @@ function openIngredientModal(){
 
 }
 
+function switchView(view){
+
+  try{
+
+    document
+      .querySelectorAll('.view')
+      .forEach(section => {
+        section.classList.remove('active');
+      });
+
+    const target =
+      document.getElementById(
+        'view-' + view
+      );
+
+    if(target){
+      target.classList.add('active');
+    }
+
+    document
+      .querySelectorAll('nav button[data-view]')
+      .forEach(btn => {
+
+        btn.classList.remove('active');
+
+        if(btn.dataset.view === view){
+          btn.classList.add('active');
+        }
+
+      });
+
+    renderView(view);
+
+  } catch(err){
+
+    console.error(
+      'switchView Error:',
+      err
+    );
+
+  }
+
+}
+
+function renderView(view){
+
+  const renderMap = {
+
+    dashboard: renderDashboard,
+    products: renderProductsTable,
+    inventory: renderInventoryTable,
+    ingredients: renderIngredientsTable,
+    sales: renderSalesTable,
+    reports: renderReports,
+    settings: renderSettings
+
+  };
+
+  const renderFn =
+    renderMap[view];
+
+  if(typeof renderFn === 'function'){
+
+    try{
+
+      renderFn();
+
+    } catch(err){
+
+      console.error(
+        'RenderView Error:',
+        err
+      );
+
+    }
+
+  }
+
+}
+
 function login(){
 
   try{
@@ -2649,25 +2729,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-
-  document
-    .querySelectorAll('nav button[data-view]')
-    .forEach(button => {
-
-      button.addEventListener('click', (event) => {
-
-        event.preventDefault();
-
-        const view =
-          button.dataset.view;
-
-        if(typeof switchView === 'function'){
-          switchView(view);
-        }
-
-      });
-
     });
 
 });
@@ -2684,24 +2745,6 @@ document.addEventListener('click', (event) => {
   }
 
 });
-
-document.addEventListener('DOMContentLoaded', () => {
-
-  // NAVIGATION
-  const nav = document.querySelector('nav');
-
-  if(nav){
-
-    nav.addEventListener('click', (e) => {
-
-      const btn =
-        e.target.closest('[data-view]');
-
-      if(!btn) return;
-
-      switchView(btn.dataset.view);
-
-    });
 
   }
 
@@ -2865,8 +2908,131 @@ document.addEventListener('click', (e) => {
 
 </script>
 
+  }
+
+});
+
 document.addEventListener('DOMContentLoaded', () => {
 
+  // LOGIN BUTTON
+  const loginBtn =
+    document.querySelector('[data-action="login"]');
+
+  if(loginBtn){
+
+    loginBtn.addEventListener('click', (e) => {
+
+      e.preventDefault();
+
+      if(typeof login === 'function'){
+        login();
+      }
+
+    });
+
+  }
+
+  // NAVIGATION
+  const nav =
+    document.querySelector('nav');
+
+  if(nav){
+
+    nav.addEventListener('click', (e) => {
+
+      const btn =
+        e.target.closest('[data-view]');
+
+      if(!btn) return;
+
+      switchView(btn.dataset.view);
+
+    });
+
+  }
+
+  // PRODUCT FILTERS
+  const productSearch =
+    document.getElementById('productSearch');
+
+  if(productSearch){
+
+    productSearch.addEventListener(
+      'input',
+      renderProductsTable
+    );
+
+  }
+
+  const productCategoryFilter =
+    document.getElementById(
+      'productCategoryFilter'
+    );
+
+  if(productCategoryFilter){
+
+    productCategoryFilter.addEventListener(
+      'change',
+      renderProductsTable
+    );
+
+  }
+
+  // SALES FILTERS
+  [
+    'salesFromDate',
+    'salesToDate',
+    'salesPaymentFilter'
+  ].forEach(id => {
+
+    const el =
+      document.getElementById(id);
+
+    if(el){
+
+      el.addEventListener(
+        'change',
+        renderSalesTable
+      );
+
+    }
+
+  });
+
+  // REPORT FILTERS
+  [
+    'reportFromDate',
+    'reportToDate'
+  ].forEach(id => {
+
+    const el =
+      document.getElementById(id);
+
+    if(el){
+
+      el.addEventListener(
+        'change',
+        renderReports
+      );
+
+    }
+
+  });
+
+  // IMPORT
+  const importFile =
+    document.getElementById('importFile');
+
+  if(importFile){
+
+    importFile.addEventListener(
+      'change',
+      importData
+    );
+
+  }
+
+  // RECIPE MODE
   const recipeMode =
     document.getElementById('recipeMode');
 
@@ -2879,8 +3045,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   }
 
+  // PAYMENT FIELDS
   const checkoutPayment =
-    document.getElementById('checkoutPayment');
+    document.getElementById(
+      'checkoutPayment'
+    );
 
   if(checkoutPayment){
 
@@ -2891,14 +3060,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   }
 
-  const importFile =
-    document.getElementById('importFile');
+});
 
-  if(importFile){
+window.addEventListener('load', () => {
 
-    importFile.addEventListener(
-      'change',
-      importData
+  try{
+
+    if(typeof switchView === 'function'){
+
+      switchView('pos');
+
+    }
+
+  } catch(err){
+
+    console.error(
+      'Startup Error:',
+      err
     );
 
   }
