@@ -780,7 +780,7 @@ main{
 </div>
 
 <header>
-  <div style="display:flex;align-items:center;gap:12px;"><h1 id="brandName">Caflat.Co POS</h1><div class="role-badge" id="roleBadge">ADMIN</div></div>
+  <div style="display:flex;align-items:center;gap:12px;"><h1 id="brandName">Caflat.Co</h1><div class="role-badge" id="roleBadge">ADMIN</div></div>
   <nav>
     <button data-view="pos" class="active">Point of Sale</button>
     <button data-view="dashboard">Dashboard</button>
@@ -1171,7 +1171,7 @@ main{
 <button
   type="button"
   class="btn btn-secondary"
-  onclick="addVariantRow()" type="button">
+  onclick="addVariantRow()">
   + Add Variant
 </button>
 
@@ -1467,6 +1467,20 @@ window.db =
 
 /* ============ DATA LAYER ============ */
 const STORE_KEY = 'pos_data_v1';
+
+
+const UNIT_CONVERSIONS = {
+
+  g: 1,
+  kg: 1000,
+
+  ml: 1,
+  L: 1000,
+
+  pc: 1
+
+};
+
 let db = loadDB();
 
 function loadDB() {
@@ -2427,6 +2441,16 @@ function openVariantSelector(product){
   addToCart(cartProduct);
 
 }
+
+}
+
+
+
+function openIngredientModal(){
+
+  document
+    .getElementById('ingredientModal')
+    .classList.add('active');
 
 }
 
