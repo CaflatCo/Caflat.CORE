@@ -2908,55 +2908,39 @@ document.addEventListener('click', (e) => {
 
 
 
-<script>
 
-window.addEventListener('DOMContentLoaded', () => {
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
 
   const loginBtn = document.getElementById('loginBtn');
 
   if(!loginBtn) return;
 
-  loginBtn.addEventListener('click', () => {
+  loginBtn.onclick = function(){
 
-    const username =
-      document.getElementById('username')
-      ?.value
-      ?.trim();
-
-    const password =
-      document.getElementById('password')
-      ?.value;
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
 
     const valid =
-      (
-        username === 'admin' &&
-        password === 'Ry9@qm408me'
-      ) ||
-      (
-        username === 'staff' &&
-        password === 'staff123'
-      );
+      (username === 'admin' && password === 'Ry9@qm408me') ||
+      (username === 'staff' && password === 'staff123');
 
     if(!valid){
-
       alert('Invalid username or password');
       return;
-
     }
 
-    const loginScreen =
-      document.getElementById('loginScreen');
+    const loginScreen = document.getElementById('loginScreen');
 
     if(loginScreen){
-
       loginScreen.classList.add('hidden');
-
     }
 
-  });
+  };
 
 });
-
 </script>
 
 </body>
