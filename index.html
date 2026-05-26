@@ -1603,16 +1603,65 @@ function renderProductGrid() {
   });
 }
 
-function addToCart(productId) {
-  const p = db.products.find(x => x.id === productId);
-  if (!p || p.stock <= 0) return;
-  const existing = cart.find(i => i.productId === productId);
-  if (existing) {
-    if (existing.qty < p.stock) existing.qty++;
+function addToCart(productInput) {
+
+  let p;
+  let variant = null;
+
+  if(typeof productInput === 'object'){
+    p = productInput;
+    variant = productInput;
   } else {
-    cart.push({ productId, qty: 1, name: p.name, price: p.price, cost: p.cost });
+    p = db.products.find(x => x.id === productInput);
   }
+
+  if (!p || p.stock <= 0) return;
+
+  const cartKey =
+    variant ?
+    `${p.id}_${variant.variantLabel}` :
+    p.id;
+
+  const existing =
+    cart.find(i => i.cartKey === cartKey);
+
+  if (existing) {
+
+    if (existing.qty < p.stock)
+      existing.qty++;
+
+  } else {
+
+    cart.push({
+
+      cartKey,
+
+      productId: p.id,
+
+      qty: 1,
+
+      name: variant ?
+        `${p.name} - ${variant.variantLabel}` :
+        p.name,
+
+      price: variant ?
+        variant.price :
+        p.price,
+
+      cost: p.cost,
+
+      variantLabel:
+        variant?.variantLabel || '',
+
+      variantQty:
+        variant?.variantQty || 1
+
+    });
+
+  }
+
   renderCart();
+
 }
 
 function changeQty(productId, delta) {
@@ -2012,6 +2061,7 @@ function openProductModal(id) {
   sel.innerHTML = db.categories.map(c => `<option value="${c}">${c}</option>`).join('');
 
   document.getElementById('recipeBuilder').innerHTML = '';
+  clearVariantBuilder();
 
   if (id) {
 
@@ -2027,6 +2077,8 @@ function openProductModal(id) {
     document.getElementById('productStock').value = p.stock;
     document.getElementById('productReorder').value = p.reorder;
     document.getElementById('productDescription').value = p.description || '';
+    document.getElementById('productType').value = p.type || 'standard';
+    renderVariantRows(p.variants || []);
 
     document.getElementById('recipeMode').value = p.recipeMode || 'unit';
     document.getElementById('batchYield').value = p.batchYield || 1;
@@ -2088,7 +2140,9 @@ function saveProduct() {
     description: document.getElementById('productDescription').value.trim(),
     recipeMode: document.getElementById('recipeMode').value,
     batchYield: parseFloat(document.getElementById('batchYield').value) || 1,
-    recipe
+    recipe,
+    type: document.getElementById('productType').value,
+    variants: collectVariants()
   };
 
   if (!data.name) {
@@ -3521,6 +3575,27 @@ function renderDashboardChart() {
 }
 
 
+
+function clearVariantBuilder(){
+  const wrap=document.getElementById('variantBuilder');
+  if(wrap) wrap.innerHTML='';
+}
+
+function renderVariantRows(variants=[]){
+  clearVariantBuilder();
+  if(!variants.length){
+    addVariantRow({
+      label:'Per Piece',
+      quantity:1,
+      price:0,
+      pricingType:'dynamic'
+    });
+    return;
+  }
+  variants.forEach(v=>addVariantRow(v));
+}
+
+
 function addVariantRow(data = {}) {
 
   const wrap =
@@ -3570,18 +3645,15 @@ function addVariantRow(data = {}) {
         <option value="fixed">Fixed</option>
       </select>
     </div>
-
     <div class="form-group">
-      <label>&nbsp;</label>
-      <button
-        type="button"
-        class="btn btn-secondary remove-variant-btn">
-        Remove
-      </button>
-    </div>
+<label>&nbsp;</label>
+<button type="button" class="btn btn-secondary remove-variant-btn">Remove</button>
+</div>
   `;
 
   wrap.appendChild(row);
+
+  row.querySelector('.remove-variant-btn').onclick=()=>row.remove();
 
 }
 
@@ -3636,8 +3708,6 @@ function openVariantSelector(product){
 
   const choice =
     prompt(message);
-
-  if(choice === null) return;
 
   const selected =
     product.variants[
@@ -3689,27 +3759,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 });
 
-
-
-document.addEventListener('click', (e) => {
-
-  if(
-    e.target.classList.contains(
-      'remove-variant-btn'
-    )
-  ){
-
-    const row =
-      e.target.closest('.form-row');
-
-    if(row){
-      row.remove();
-    }
-
-  }
-
-});
-
 </script>
 
 
@@ -3736,6 +3785,27 @@ document.addEventListener('click', (e) => {
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js">
+
+function clearVariantBuilder(){
+  const wrap=document.getElementById('variantBuilder');
+  if(wrap) wrap.innerHTML='';
+}
+
+function renderVariantRows(variants=[]){
+  clearVariantBuilder();
+  if(!variants.length){
+    addVariantRow({
+      label:'Per Piece',
+      quantity:1,
+      price:0,
+      pricingType:'dynamic'
+    });
+    return;
+  }
+  variants.forEach(v=>addVariantRow(v));
+}
+
+
 function addVariantRow(data = {}) {
 
   const wrap =
@@ -3785,18 +3855,15 @@ function addVariantRow(data = {}) {
         <option value="fixed">Fixed</option>
       </select>
     </div>
-
     <div class="form-group">
-      <label>&nbsp;</label>
-      <button
-        type="button"
-        class="btn btn-secondary remove-variant-btn">
-        Remove
-      </button>
-    </div>
+<label>&nbsp;</label>
+<button type="button" class="btn btn-secondary remove-variant-btn">Remove</button>
+</div>
   `;
 
   wrap.appendChild(row);
+
+  row.querySelector('.remove-variant-btn').onclick=()=>row.remove();
 
 }
 
@@ -3852,8 +3919,6 @@ function openVariantSelector(product){
   const choice =
     prompt(message);
 
-  if(choice === null) return;
-
   const selected =
     product.variants[
       parseInt(choice) - 1
@@ -3879,27 +3944,6 @@ function openVariantSelector(product){
   addToCart(cartProduct);
 
 }
-
-
-
-document.addEventListener('click', (e) => {
-
-  if(
-    e.target.classList.contains(
-      'remove-variant-btn'
-    )
-  ){
-
-    const row =
-      e.target.closest('.form-row');
-
-    if(row){
-      row.remove();
-    }
-
-  }
-
-});
 
 </script>
 
@@ -3930,6 +3974,27 @@ document.addEventListener('click', (e) => {
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js">
+
+function clearVariantBuilder(){
+  const wrap=document.getElementById('variantBuilder');
+  if(wrap) wrap.innerHTML='';
+}
+
+function renderVariantRows(variants=[]){
+  clearVariantBuilder();
+  if(!variants.length){
+    addVariantRow({
+      label:'Per Piece',
+      quantity:1,
+      price:0,
+      pricingType:'dynamic'
+    });
+    return;
+  }
+  variants.forEach(v=>addVariantRow(v));
+}
+
+
 function addVariantRow(data = {}) {
 
   const wrap =
@@ -3979,18 +4044,15 @@ function addVariantRow(data = {}) {
         <option value="fixed">Fixed</option>
       </select>
     </div>
-
     <div class="form-group">
-      <label>&nbsp;</label>
-      <button
-        type="button"
-        class="btn btn-secondary remove-variant-btn">
-        Remove
-      </button>
-    </div>
+<label>&nbsp;</label>
+<button type="button" class="btn btn-secondary remove-variant-btn">Remove</button>
+</div>
   `;
 
   wrap.appendChild(row);
+
+  row.querySelector('.remove-variant-btn').onclick=()=>row.remove();
 
 }
 
@@ -4046,8 +4108,6 @@ function openVariantSelector(product){
   const choice =
     prompt(message);
 
-  if(choice === null) return;
-
   const selected =
     product.variants[
       parseInt(choice) - 1
@@ -4073,27 +4133,6 @@ function openVariantSelector(product){
   addToCart(cartProduct);
 
 }
-
-
-
-document.addEventListener('click', (e) => {
-
-  if(
-    e.target.classList.contains(
-      'remove-variant-btn'
-    )
-  ){
-
-    const row =
-      e.target.closest('.form-row');
-
-    if(row){
-      row.remove();
-    }
-
-  }
-
-});
 
 </script>
 
