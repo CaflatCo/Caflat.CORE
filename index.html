@@ -775,14 +775,17 @@ main{
       placeholder="Password"
     />
 
-    <button type="button" onclick="login()">
+    <button type="button" onclick="login(); return false;">
       Login
     </button>
 
     <div style="margin-top:16px;font-size:12px;color:#666;">
-      Staff Login:<br>
+      Admin Login:<br>
       username: <strong>admin</strong><br>
-      password: <strong>admin123</strong>
+      password: <strong>Ry9@qm408me</strong><br><br>
+      Staff Login:<br>
+      username: <strong>staff</strong><br>
+      password: <strong>staff123</strong>
     </div>
 
   </div>
@@ -2452,10 +2455,6 @@ function openVariantSelector(product){
 
 }
 
-}
-
-
-
 function openIngredientModal(){
 
   document
@@ -2477,8 +2476,14 @@ function login(){
       document.getElementById('loginPassword').value.trim();
 
     if(
-      username === 'admin' &&
-      password === 'admin123'
+      (
+        username === 'admin' &&
+        password === 'Ry9@qm408me'
+      ) ||
+      (
+        username === 'staff' &&
+        password === 'staff123'
+      )
     ){
 
       localStorage.setItem(
@@ -2489,6 +2494,18 @@ function login(){
       document
         .getElementById('loginScreen')
         .style.display = 'none';
+
+      const badge =
+        document.getElementById('roleBadge');
+
+      if(badge){
+
+        badge.textContent =
+          username === 'admin'
+          ? 'ADMIN'
+          : 'STAFF';
+
+      }
 
       return;
 
