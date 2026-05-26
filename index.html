@@ -1,4 +1,45 @@
-<!DOCTYPE html>
+
+
+<div class="login-screen" id="loginScreen">
+
+  <div class="login-card">
+
+    <h2 style="
+      text-align:center;
+      width:100%;
+      font-size:32px;
+      font-weight:900;
+      letter-spacing:4px;
+      margin-bottom:28px;
+    ">Caflat.Co POS</h2>
+
+    <input
+      type="text"
+      id="loginUsername"
+      placeholder="Username"
+    />
+
+    <input
+      type="password"
+      id="loginPassword"
+      placeholder="Password"
+    />
+
+    <button onclick="login()">
+      Login
+    </button>
+
+    <div style="margin-top:16px;font-size:12px;color:#666;">
+      Staff Login:<br>
+      username: <strong>admin</strong><br>
+      password: <strong>admin123</strong>
+    </div>
+
+  </div>
+
+</div>
+
+  <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -740,49 +781,6 @@ main{
 </style>
 </head>
 <body>
-
-
-<div class="login-screen" id="loginScreen">
-
-  <div class="login-card">
-
-    <h2 style="
-      text-align:center;
-      width:100%;
-      font-size:32px;
-      font-weight:900;
-      letter-spacing:4px;
-      margin-bottom:28px;
-    ">Caflat.Co POS</h2>
-
-    <input
-      type="text"
-      id="loginUsername"
-      placeholder="Username"
-    />
-
-    <input
-      type="password"
-      id="loginPassword"
-      placeholder="Password"
-    />
-
-    <button onclick="login()">
-      Login
-    </button>
-
-    <div style="margin-top:16px;font-size:12px;color:#666;">
-      Staff Login:<br>
-      username: <strong>admin</strong><br>
-      password: <strong>admin123</strong>
-    </div>
-
-  </div>
-
-</div>
-
-  
-
 
 <header>
   <div style="display:flex;align-items:center;gap:12px;"><h1 id="brandName">Caflat.Co POS</h1><div class="role-badge" id="roleBadge">ADMIN</div></div>
@@ -2321,103 +2319,101 @@ function openIngredientModal(id) {
 }
 
 
+
 function saveIngredient() {
 
-  const purchaseUnit =
-    document.getElementById(
-      'ingredientPurchaseUnit'
-    ).value;
+  try {
 
-  let baseUnit =
-    purchaseUnit;
+    if (!window.db) {
+      window.db = {};
+    }
 
-  let conversion = 1;
+    if (!db.ingredients) {
+      db.ingredients = [];
+    }
 
-  if (purchaseUnit === 'kg') {
+    const ingredient = {
 
-    baseUnit = 'g';
+      id:
+        document.getElementById('ingredientId').value
+        || Date.now().toString(),
 
-    conversion = 1000;
+      name:
+        document.getElementById('ingredientName').value.trim(),
 
-  }
+      unit:
+        document.getElementById('ingredientPurchaseUnit').value,
 
-  if (purchaseUnit === 'L') {
+      purchaseUnit:
+        document.getElementById('ingredientPurchaseUnit').value,
 
-    baseUnit = 'ml';
-
-    conversion = 1000;
-
-  }
-
-  const ingredient = {
-
-    id:
-      document.getElementById(
-        'ingredientId'
-      ).value || Date.now().toString(),
-
-    name:
-      document.getElementById(
-        'ingredientName'
-      ).value,
-
-    unit: baseUnit,
-
-    purchaseUnit,
-
-    purchaseCost:
-      parseFloat(
-        document.getElementById(
-          'ingredientPurchaseCost'
-        ).value
-      ) || 0,
-
-    stock:
-      (
+      purchaseCost:
         parseFloat(
-          document.getElementById(
-            'ingredientStock'
-          ).value
+          document.getElementById('ingredientPurchaseCost').value
+        ) || 0,
+
+      stock:
+        parseFloat(
+          document.getElementById('ingredientStock').value
+        ) || 0,
+
+      reorder:
+        parseFloat(
+          document.getElementById('ingredientReorder').value
         ) || 0
-      ) * conversion,
 
-    reorder:
-      parseFloat(
-        document.getElementById(
-          'ingredientReorder'
-        ).value
-      ) || 0
+    };
 
-  };
+    if (!ingredient.name) {
+      alert('Ingredient name is required.');
+      return;
+    }
 
-  const existingIndex =
-    db.ingredients.findIndex(
-      i => i.id === ingredient.id
+    const existingIndex =
+      db.ingredients.findIndex(
+        i => i.id === ingredient.id
+      );
+
+    if (existingIndex >= 0) {
+
+      db.ingredients[existingIndex] =
+        ingredient;
+
+    } else {
+
+      db.ingredients.push(
+        ingredient
+      );
+
+    }
+
+    localStorage.setItem(
+      'caflat_pos_db',
+      JSON.stringify(db)
     );
 
-  if (existingIndex >= 0) {
+    if (typeof saveDB === 'function') {
+      saveDB();
+    }
 
-    db.ingredients[
-      existingIndex
-    ] = ingredient;
+    renderIngredientsTable();
 
-  } else {
+    closeModal('ingredientModal');
 
-    db.ingredients.push(
-      ingredient
+    alert('Ingredient saved successfully.');
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert(
+      'Ingredient save failed: ' + err.message
     );
 
   }
-
-  saveDB();
-
-  renderIngredients();
-
-  closeModal(
-    'ingredientModal'
-  );
 
 }
+
 
 
 function deleteIngredient(id) {
