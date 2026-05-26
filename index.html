@@ -2723,11 +2723,64 @@ function exportSalesCSV() {
 
 /* ============ DASHBOARD ============ */
 
+
+
+function getIngredientUnitCost(ingredient){
+
+  if(!ingredient) return 0;
+
+  const packageCost =
+    Number(ingredient.purchaseCost || 0);
+
+  const packageQty =
+    Number(
+      ingredient.packageQty ||
+      ingredient.purchaseQty ||
+      1
+    );
+
+  if(packageQty <= 0){
+    return 0;
+  }
+
+  return packageCost / packageQty;
+
+}
+
+
+
+function calculateProductInventoryValue(product){
+
+  try{
+
+    const stock =
+      Number(product.stock || 0);
+
+    const recipeCost =
+      calculateRecipeCost(
+        product.recipe || []
+      );
+
+    return recipeCost * stock;
+
+  } catch(err){
+
+    console.error(
+      'Product inventory valuation failed',
+      err
+    );
+
+    return 0;
+
+  }
+
+}
+
 function renderDashboard() {
   const today = todayISO();
-  const todaySales = db.sales.filter(s => s.at.slice(0, 10) === today);
+  const todaySales = db.sales.filter(s => !s.refunded).filter(s => s.at.slice(0, 10) === today);
   const monthStart = today.slice(0, 7);
-  const monthSales = db.sales.filter(s => s.at.slice(0, 7) === monthStart);
+  const monthSales = db.sales.filter(s => !s.refunded).filter(s => s.at.slice(0, 7) === monthStart);
 
   const todayRevenue = todaySales.reduce((s, x) => s + x.total, 0);
   const todayProfit = todaySales.reduce((s, x) => s + x.profit, 0);
@@ -2753,7 +2806,7 @@ function renderDashboard() {
     }, 0);
 
   const pendingSales =
-    db.sales.filter(s => s.status === 'pending');
+    db.sales.filter(s => !s.refunded).filter(s => s.status === 'pending');
 
   const pendingRevenue =
     pendingSales.reduce((s, x) => s + x.total, 0);
@@ -2913,7 +2966,7 @@ function renderDashboard() {
     );
 
     const sales =
-      db.sales.filter(
+      db.sales.filter(s => !s.refunded).filter(
         s => s.at.slice(0,10) === key
       );
 
@@ -2975,7 +3028,9 @@ function renderDashboard() {
           name: i.name,
           qty: 0,
           revenue: 0,
-          profit: 0
+          snapshotCost: cost,
+      snapshotProfit: profit,
+      profit: 0
         };
 
       }
@@ -3165,7 +3220,9 @@ function renderReports() {
           name: i.name,
           qty: 0,
           revenue: 0,
-          profit: 0
+          snapshotCost: cost,
+      snapshotProfit: profit,
+      profit: 0
         };
 
       }
@@ -3893,6 +3950,16 @@ function migrateIngredients(){
 
 // ===== PHASE 2 RECIPE ENGINE =====
 
+
+
+function moneyRound(value){
+
+  return Math.round(
+    (Number(value || 0) + Number.EPSILON) * 100
+  ) / 100;
+
+}
+
 function calculateRecipeCost(recipe = []){
 
   let total = 0;
@@ -3910,7 +3977,7 @@ function calculateRecipeCost(recipe = []){
 
   });
 
-  return total;
+  return moneyRound(total);
 
 }
 
