@@ -348,6 +348,7 @@
 
   /* LOGIN SYSTEM */
   .login-screen {
+    pointer-events:auto;
     position: fixed;
     inset: 0;
     background: #fff;
@@ -735,6 +736,15 @@ main{
 
 }
 
+
+.modal-overlay{
+  pointer-events:auto;
+}
+
+.login-card{
+  position:relative;
+  z-index:100000;
+}
 </style>
 </head>
 <body>
@@ -765,7 +775,7 @@ main{
       placeholder="Password"
     />
 
-    <button onclick="login()">
+    <button type="button" onclick="login()">
       Login
     </button>
 
@@ -2453,6 +2463,65 @@ function openIngredientModal(){
     .classList.add('active');
 
 }
+
+
+
+function login(){
+
+  try{
+
+    const username =
+      document.getElementById('loginUsername').value.trim();
+
+    const password =
+      document.getElementById('loginPassword').value.trim();
+
+    if(
+      username === 'admin' &&
+      password === 'admin123'
+    ){
+
+      localStorage.setItem(
+        'caflat_logged_in',
+        'true'
+      );
+
+      document
+        .getElementById('loginScreen')
+        .style.display = 'none';
+
+      return;
+
+    }
+
+    alert('Invalid credentials');
+
+  } catch(err){
+
+    console.error(err);
+    alert('Login failed');
+
+  }
+
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+
+  const loggedIn =
+    localStorage.getItem('caflat_logged_in');
+
+  if(loggedIn === 'true'){
+
+    const screen =
+      document.getElementById('loginScreen');
+
+    if(screen){
+      screen.style.display = 'none';
+    }
+
+  }
+
+});
 
 </script>
 
