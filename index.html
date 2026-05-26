@@ -755,6 +755,29 @@ main{
 
 }
 
+
+/* VARIANT SYSTEM FIX */
+
+#variantBuilder{
+  margin-bottom:16px;
+}
+
+#variantBuilder .form-row{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
+  width:100%;
+}
+
+@media(max-width:768px){
+
+  #variantBuilder .form-row{
+    grid-template-columns:1fr;
+  }
+
+}
+
 </style>
 </head>
 <body>
@@ -1133,7 +1156,30 @@ main{
       <label>Description (optional)</label>
       <textarea id="productDescription" rows="2"></textarea>
     </div>
-    <div class="section-title">
+    
+<div class="section-title">
+  Product Variants
+</div>
+
+<div class="form-group">
+  <label>Product Type</label>
+  <select id="productType">
+    <option value="standard">Standard Product</option>
+    <option value="assorted">Assorted Box</option>
+  </select>
+</div>
+
+<div id="variantBuilder"></div>
+
+<button
+  type="button"
+  class="btn btn-secondary"
+  onclick="addVariantRow()">
+  + Add Variant
+</button>
+
+
+<div class="section-title">
   Recipe Configuration
 </div>
 
@@ -3459,6 +3505,164 @@ function renderDashboardChart() {
 
 }
 
+
+function addVariantRow(data = {}) {
+
+  const wrap =
+    document.getElementById(
+      'variantBuilder'
+    );
+
+  if(!wrap) return;
+
+  const row =
+    document.createElement('div');
+
+  row.className = 'form-row';
+
+  row.style.marginBottom = '12px';
+
+  row.innerHTML = `
+    <div class="form-group">
+      <label>Variant Label</label>
+      <input type="text"
+        class="variant-label"
+        placeholder="Box of 6"
+        value="${data.label || ''}" />
+    </div>
+
+    <div class="form-group">
+      <label>Quantity</label>
+      <input type="number"
+        class="variant-qty"
+        min="1"
+        value="${data.quantity || 1}" />
+    </div>
+
+    <div class="form-group">
+      <label>Price</label>
+      <input type="number"
+        class="variant-price"
+        min="0"
+        step="0.01"
+        value="${data.price || 0}" />
+    </div>
+
+    <div class="form-group">
+      <label>Pricing Type</label>
+      <select class="variant-pricing">
+        <option value="dynamic">Dynamic</option>
+        <option value="fixed">Fixed</option>
+      </select>
+    </div>
+  `;
+
+  wrap.appendChild(row);
+
+}
+
+function collectVariants(){
+
+  const rows =
+    document.querySelectorAll(
+      '#variantBuilder .form-row'
+    );
+
+  return [...rows].map(row => ({
+
+    label:
+      row.querySelector('.variant-label')?.value || '',
+
+    quantity:
+      Number(
+        row.querySelector('.variant-qty')?.value || 1
+      ),
+
+    price:
+      Number(
+        row.querySelector('.variant-price')?.value || 0
+      ),
+
+    pricingType:
+      row.querySelector('.variant-pricing')?.value || 'dynamic'
+
+  }));
+
+}
+
+function openVariantSelector(product){
+
+  if(
+    !product.variants ||
+    !product.variants.length
+  ){
+    addToCart(product);
+    return;
+  }
+
+  let message =
+    'Choose Variant:\n\n';
+
+  product.variants.forEach((v,i)=>{
+
+    message +=
+      `${i+1}. ${v.label} - ₱${v.price}\n`;
+
+  });
+
+  const choice =
+    prompt(message);
+
+  const selected =
+    product.variants[
+      Number(choice) - 1
+    ];
+
+  if(!selected) return;
+
+  const cartProduct = {
+
+    ...product,
+
+    variantLabel:
+      selected.label,
+
+    variantQty:
+      selected.quantity,
+
+    price:
+      selected.price
+
+  };
+
+  addToCart(cartProduct);
+
+}
+
+
+document.addEventListener('DOMContentLoaded',()=>{
+
+  const variantBuilder =
+    document.getElementById(
+      'variantBuilder'
+    );
+
+  if(
+    variantBuilder &&
+    !variantBuilder.children.length
+  ){
+
+    addVariantRow({
+      label:'Per Piece',
+      quantity:1,
+      price:0,
+      pricingType:'dynamic'
+    });
+
+  }
+
+});
+
 </script>
 
 
@@ -3484,7 +3688,141 @@ function renderDashboardChart() {
 />
 
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js">
+function addVariantRow(data = {}) {
+
+  const wrap =
+    document.getElementById(
+      'variantBuilder'
+    );
+
+  if(!wrap) return;
+
+  const row =
+    document.createElement('div');
+
+  row.className = 'form-row';
+
+  row.style.marginBottom = '12px';
+
+  row.innerHTML = `
+    <div class="form-group">
+      <label>Variant Label</label>
+      <input type="text"
+        class="variant-label"
+        placeholder="Box of 6"
+        value="${data.label || ''}" />
+    </div>
+
+    <div class="form-group">
+      <label>Quantity</label>
+      <input type="number"
+        class="variant-qty"
+        min="1"
+        value="${data.quantity || 1}" />
+    </div>
+
+    <div class="form-group">
+      <label>Price</label>
+      <input type="number"
+        class="variant-price"
+        min="0"
+        step="0.01"
+        value="${data.price || 0}" />
+    </div>
+
+    <div class="form-group">
+      <label>Pricing Type</label>
+      <select class="variant-pricing">
+        <option value="dynamic">Dynamic</option>
+        <option value="fixed">Fixed</option>
+      </select>
+    </div>
+  `;
+
+  wrap.appendChild(row);
+
+}
+
+function collectVariants(){
+
+  const rows =
+    document.querySelectorAll(
+      '#variantBuilder .form-row'
+    );
+
+  return [...rows].map(row => ({
+
+    label:
+      row.querySelector('.variant-label')?.value || '',
+
+    quantity:
+      Number(
+        row.querySelector('.variant-qty')?.value || 1
+      ),
+
+    price:
+      Number(
+        row.querySelector('.variant-price')?.value || 0
+      ),
+
+    pricingType:
+      row.querySelector('.variant-pricing')?.value || 'dynamic'
+
+  }));
+
+}
+
+function openVariantSelector(product){
+
+  if(
+    !product.variants ||
+    !product.variants.length
+  ){
+    addToCart(product);
+    return;
+  }
+
+  let message =
+    'Choose Variant:\n\n';
+
+  product.variants.forEach((v,i)=>{
+
+    message +=
+      `${i+1}. ${v.label} - ₱${v.price}\n`;
+
+  });
+
+  const choice =
+    prompt(message);
+
+  const selected =
+    product.variants[
+      Number(choice) - 1
+    ];
+
+  if(!selected) return;
+
+  const cartProduct = {
+
+    ...product,
+
+    variantLabel:
+      selected.label,
+
+    variantQty:
+      selected.quantity,
+
+    price:
+      selected.price
+
+  };
+
+  addToCart(cartProduct);
+
+}
+
+</script>
 
 </body>
 </html>
@@ -3512,7 +3850,141 @@ function renderDashboardChart() {
 />
 
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js">
+function addVariantRow(data = {}) {
+
+  const wrap =
+    document.getElementById(
+      'variantBuilder'
+    );
+
+  if(!wrap) return;
+
+  const row =
+    document.createElement('div');
+
+  row.className = 'form-row';
+
+  row.style.marginBottom = '12px';
+
+  row.innerHTML = `
+    <div class="form-group">
+      <label>Variant Label</label>
+      <input type="text"
+        class="variant-label"
+        placeholder="Box of 6"
+        value="${data.label || ''}" />
+    </div>
+
+    <div class="form-group">
+      <label>Quantity</label>
+      <input type="number"
+        class="variant-qty"
+        min="1"
+        value="${data.quantity || 1}" />
+    </div>
+
+    <div class="form-group">
+      <label>Price</label>
+      <input type="number"
+        class="variant-price"
+        min="0"
+        step="0.01"
+        value="${data.price || 0}" />
+    </div>
+
+    <div class="form-group">
+      <label>Pricing Type</label>
+      <select class="variant-pricing">
+        <option value="dynamic">Dynamic</option>
+        <option value="fixed">Fixed</option>
+      </select>
+    </div>
+  `;
+
+  wrap.appendChild(row);
+
+}
+
+function collectVariants(){
+
+  const rows =
+    document.querySelectorAll(
+      '#variantBuilder .form-row'
+    );
+
+  return [...rows].map(row => ({
+
+    label:
+      row.querySelector('.variant-label')?.value || '',
+
+    quantity:
+      Number(
+        row.querySelector('.variant-qty')?.value || 1
+      ),
+
+    price:
+      Number(
+        row.querySelector('.variant-price')?.value || 0
+      ),
+
+    pricingType:
+      row.querySelector('.variant-pricing')?.value || 'dynamic'
+
+  }));
+
+}
+
+function openVariantSelector(product){
+
+  if(
+    !product.variants ||
+    !product.variants.length
+  ){
+    addToCart(product);
+    return;
+  }
+
+  let message =
+    'Choose Variant:\n\n';
+
+  product.variants.forEach((v,i)=>{
+
+    message +=
+      `${i+1}. ${v.label} - ₱${v.price}\n`;
+
+  });
+
+  const choice =
+    prompt(message);
+
+  const selected =
+    product.variants[
+      Number(choice) - 1
+    ];
+
+  if(!selected) return;
+
+  const cartProduct = {
+
+    ...product,
+
+    variantLabel:
+      selected.label,
+
+    variantQty:
+      selected.quantity,
+
+    price:
+      selected.price
+
+  };
+
+  addToCart(cartProduct);
+
+}
+
+</script>
 
 </body>
   
