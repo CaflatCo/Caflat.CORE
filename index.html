@@ -1553,7 +1553,8 @@ document.querySelectorAll('nav button').forEach(btn => {
     if (view === 'dashboard') renderDashboard();
     if (view === 'products') renderProductsTable();
     if (view === 'inventory') renderInventoryTable();
-    if (view === 'ingredients') renderIngredientsTable();
+    if (view === 'ingredients') migrateIngredients();
+renderIngredientsTable();
     if (view === 'sales') renderSalesTable();
     if (view === 'reports') renderReports();
     if (view === 'settings') renderSettings();
@@ -2036,7 +2037,22 @@ function completeSale(status = 'paid') {
 
   db.sales.push(sale);
   saveDB();
-  closeModal('checkoutModal');
+  
+closeModal('checkoutModal');
+
+  } catch(err){
+
+    console.error(
+      'Sale completion failed',
+      err
+    );
+
+    alert(
+      'Transaction failed safely.'
+    );
+
+  }
+
   showReceipt(sale);
 
   cart = [];
@@ -2338,15 +2354,16 @@ function openIngredientModal(id) {
 // No automatic unit conversion.
 // Package costing uses selected unit directly.
 
-function saveIngredient() {
 
-  try {
+function saveIngredient(){
 
-    if (!window.db) {
+  try{
+
+    if(!window.db){
       window.db = {};
     }
 
-    if (!db.ingredients) {
+    if(!db.ingredients){
       db.ingredients = [];
     }
 
@@ -2372,8 +2389,6 @@ function saveIngredient() {
           document.getElementById('ingredientPurchaseCost').value
         ) || 0,
 
-      costPerUnit: 0,
-
       stock:
         parseFloat(
           document.getElementById('ingredientStock').value
@@ -2386,25 +2401,30 @@ function saveIngredient() {
 
     };
 
-    if (!ingredient.name) {
-      alert('Ingredient name is required.');
+    if(!ingredient.name){
+      alert('Ingredient name required');
       return;
     }
 
-    if (ingredient.packageQty <= 0) {
-      alert('Package quantity must be greater than 0.');
+    if(ingredient.packageQty <= 0){
+      alert('Package quantity must be greater than 0');
       return;
     }
 
-    ingredient.costPerUnit =
-      ingredient.packageCost / ingredient.packageQty;
+    normalizeIngredientData(ingredient);
 
-    const existingIndex =
-      db.ingredients.findIndex(
-        i => i.id === ingredient.id
-      );
+    
+product.recipe =
+  collectRecipeData();
 
-    if (existingIndex >= 0) {
+product.recipeCost =
+  calculateRecipeCost(product.recipe);
+
+const existingIndex =
+
+      db.ingredients.findIndex(i => i.id === ingredient.id);
+
+    if(existingIndex >= 0){
 
       db.ingredients[existingIndex] = ingredient;
 
@@ -2420,9 +2440,9 @@ function saveIngredient() {
 
     closeModal('ingredientModal');
 
-    alert('Ingredient saved successfully.');
+    alert('Ingredient saved successfully');
 
-  } catch (err) {
+  } catch(err){
 
     console.error(err);
 
@@ -2437,12 +2457,14 @@ function saveIngredient() {
 
 
 
+
 function deleteIngredient(id) {
   if (!confirm('Delete this ingredient?')) return;
   db.ingredients = db.ingredients.filter(i => i.id !== id);
   saveDB();
   renderIngredientsTable();
 }
+
 
 
 function renderIngredientsTable(){
@@ -2460,6 +2482,7 @@ function renderIngredientsTable(){
       '<tr><td colspan="6" class="empty-state">No ingredients found</td></tr>';
 
     return;
+
   }
 
   db.ingredients.forEach(ingredient => {
@@ -2468,27 +2491,45 @@ function renderIngredientsTable(){
 
     tr.innerHTML = `
       <td>${ingredient.name}</td>
-      <td>${ingredient.purchaseUnit || ''}</td>
+
+      <td>
+        ${ingredient.baseUnit || ingredient.purchaseUnit}
+      </td>
+
       <td>
         ₱${(ingredient.packageCost || 0).toFixed(2)}
         per
         ${(ingredient.packageQty || 0)}
         ${ingredient.purchaseUnit || ''}
       </td>
-      <td>${ingredient.stock || 0}</td>
-      <td>${ingredient.reorderLevel || 0}</td>
+
       <td>
+        ${(ingredient.stock || 0)}
+        ${ingredient.purchaseUnit || ''}
+      </td>
+
+      <td>
+        ${(ingredient.reorderLevel || 0)}
+      </td>
+
+      <td>
+
         <div class="actions">
-          <button class="btn btn-sm btn-secondary"
+
+          <button
+            class="btn btn-sm btn-secondary"
             onclick="editIngredient('${ingredient.id}')">
             Edit
           </button>
 
-          <button class="btn btn-sm"
+          <button
+            class="btn btn-sm"
             onclick="deleteIngredient('${ingredient.id}')">
             Delete
           </button>
+
         </div>
+
       </td>
     `;
 
@@ -2497,6 +2538,7 @@ function renderIngredientsTable(){
   });
 
 }
+
 
 
 /* ============ INVENTORY ============ */
@@ -3938,6 +3980,412 @@ function closeModal(id){
   if(modal){
     modal.style.display = 'none';
     modal.classList.remove('active');
+  }
+
+}
+
+
+// ===== STABLE UNIT CONVERSION ENGINE =====
+
+const UNIT_CONVERSIONS = {
+  kg: { base: 'g', multiplier: 1000 },
+  g: { base: 'g', multiplier: 1 },
+
+  L: { base: 'ml', multiplier: 1000 },
+  ml: { base: 'ml', multiplier: 1 },
+
+  pc: { base: 'pc', multiplier: 1 }
+};
+
+function normalizeIngredientData(ingredient){
+
+  const unitInfo =
+    UNIT_CONVERSIONS[ingredient.purchaseUnit]
+    || { base: ingredient.purchaseUnit, multiplier: 1 };
+
+  ingredient.baseUnit =
+    unitInfo.base;
+
+  ingredient.conversionRate =
+    unitInfo.multiplier;
+
+  ingredient.baseQty =
+    (ingredient.packageQty || 0)
+    * unitInfo.multiplier;
+
+  ingredient.costPerBaseUnit =
+    ingredient.baseQty > 0
+      ? ingredient.packageCost / ingredient.baseQty
+      : 0;
+
+  ingredient.stockInBaseUnit =
+    (ingredient.stock || 0)
+    * unitInfo.multiplier;
+
+  return ingredient;
+
+}
+
+
+// ===== INGREDIENT DATA MIGRATION =====
+
+function migrateIngredients(){
+
+  if(!db.ingredients) return;
+
+  db.ingredients = db.ingredients.map(ingredient => {
+
+    if(!ingredient.baseUnit){
+
+      ingredient.packageQty =
+        ingredient.packageQty || 1;
+
+      ingredient.packageCost =
+        ingredient.packageCost
+        || ingredient.purchaseCost
+        || 0;
+
+      normalizeIngredientData(ingredient);
+
+    }
+
+    return ingredient;
+
+  });
+
+  saveDB();
+
+}
+
+
+// ===== PHASE 2 RECIPE ENGINE =====
+
+function calculateRecipeCost(recipe = []){
+
+  let total = 0;
+
+  recipe.forEach(item => {
+
+    const ingredient =
+      db.ingredients.find(i => i.id === item.ingredientId);
+
+    if(!ingredient) return;
+
+    total +=
+      (ingredient.costPerBaseUnit || 0)
+      * (item.qty || 0);
+
+  });
+
+  return total;
+
+}
+
+function deductRecipeIngredients(product, qtySold = 1){
+
+  try{
+
+    if(!product.recipe || !Array.isArray(product.recipe)){
+      return;
+    }
+
+    product.recipe.forEach(recipeItem => {
+
+      const ingredient =
+        db.ingredients.find(
+          i => i.id === recipeItem.ingredientId
+        );
+
+      if(!ingredient) return;
+
+      const deduction =
+        (recipeItem.qty || 0)
+        * qtySold;
+
+      ingredient.stockInBaseUnit =
+        (ingredient.stockInBaseUnit || 0)
+        - deduction;
+
+      ingredient.stock =
+        ingredient.stockInBaseUnit
+        / (ingredient.conversionRate || 1);
+
+    });
+
+    saveDB();
+
+  } catch(err){
+
+    console.error(
+      'Ingredient deduction failed',
+      err
+    );
+
+  }
+
+}
+
+
+function collectRecipeData(){
+
+  const rows =
+    document.querySelectorAll(
+      '#recipeBuilder .form-row'
+    );
+
+  const recipe = [];
+
+  rows.forEach(row => {
+
+    const ingredientId =
+      row.querySelector('.recipe-ingredient')?.value;
+
+    const qty =
+      parseFloat(
+        row.querySelector('.recipe-qty')?.value
+      ) || 0;
+
+    const ingredient =
+      db.ingredients.find(i => i.id === ingredientId);
+
+    if(!ingredient) return;
+
+    recipe.push({
+      ingredientId,
+      qty,
+      baseUnit: ingredient.baseUnit
+    });
+
+  });
+
+  return recipe;
+
+}
+
+
+function getLowStockIngredients(){
+
+  return (db.ingredients || []).filter(i => {
+
+    return (
+      (i.stock || 0)
+      <= (i.reorderLevel || 0)
+    );
+
+  });
+
+}
+
+
+// ===== PHASE 3 DATABASE VALIDATION =====
+
+const DEFAULT_DB = {
+
+  products: [],
+  ingredients: [],
+  inventory: [],
+  sales: [],
+  settings: {},
+  categories: [],
+  heldOrders: []
+
+};
+
+function validateDB(){
+
+  try{
+
+    if(!window.db || typeof db !== 'object'){
+      window.db = structuredClone(DEFAULT_DB);
+    }
+
+    Object.keys(DEFAULT_DB).forEach(key => {
+
+      if(!db[key]){
+
+        db[key] =
+          structuredClone(DEFAULT_DB[key]);
+
+      }
+
+    });
+
+    if(!Array.isArray(db.products)){
+      db.products = [];
+    }
+
+    if(!Array.isArray(db.ingredients)){
+      db.ingredients = [];
+    }
+
+    if(!Array.isArray(db.sales)){
+      db.sales = [];
+    }
+
+    if(!Array.isArray(db.inventory)){
+      db.inventory = [];
+    }
+
+    saveDB();
+
+    return true;
+
+  } catch(err){
+
+    console.error(
+      'DB validation failed',
+      err
+    );
+
+    return false;
+
+  }
+
+}
+
+
+function recoverDatabase(){
+
+  try{
+
+    console.warn(
+      'Attempting DB recovery'
+    );
+
+    validateDB();
+
+    migrateIngredients();
+
+    renderAll();
+
+    return true;
+
+  } catch(err){
+
+    console.error(
+      'DB recovery failed',
+      err
+    );
+
+    alert(
+      'Database recovery failed.'
+    );
+
+    return false;
+
+  }
+
+}
+
+
+function validateTransaction(cart = []){
+
+  try{
+
+    if(!Array.isArray(cart) || cart.length === 0){
+
+      alert('Cart is empty');
+
+      return false;
+
+    }
+
+    for(const item of cart){
+
+      const product =
+        db.products.find(
+          p => p.id === item.productId
+        );
+
+      if(!product){
+
+        alert(
+          'Product missing in database'
+        );
+
+        return false;
+
+      }
+
+      if(product.stock < item.qty){
+
+        alert(
+          `${product.name} has insufficient stock`
+        );
+
+        return false;
+
+      }
+
+      if(product.recipe){
+
+        for(const recipeItem of product.recipe){
+
+          const ingredient =
+            db.ingredients.find(
+              i => i.id === recipeItem.ingredientId
+            );
+
+          if(!ingredient) continue;
+
+          const required =
+            recipeItem.qty * item.qty;
+
+          if(
+            (ingredient.stockInBaseUnit || 0)
+            < required
+          ){
+
+            alert(
+              `${ingredient.name} is insufficient`
+            );
+
+            return false;
+
+          }
+
+        }
+
+      }
+
+    }
+
+    return true;
+
+  } catch(err){
+
+    console.error(
+      'Transaction validation failed',
+      err
+    );
+
+    return false;
+
+  }
+
+}
+
+
+function renderAll(){
+
+  try{
+
+    renderProducts();
+    renderProductsTable();
+    renderIngredientsTable();
+    renderSalesTable();
+
+    if(typeof renderDashboard === 'function'){
+      renderDashboard();
+    }
+
+  } catch(err){
+
+    console.error(
+      'Render system failed',
+      err
+    );
+
   }
 
 }
