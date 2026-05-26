@@ -1,45 +1,4 @@
-
-
-<div class="login-screen" id="loginScreen">
-
-  <div class="login-card">
-
-    <h2 style="
-      text-align:center;
-      width:100%;
-      font-size:32px;
-      font-weight:900;
-      letter-spacing:4px;
-      margin-bottom:28px;
-    ">Caflat.Co POS</h2>
-
-    <input
-      type="text"
-      id="loginUsername"
-      placeholder="Username"
-    />
-
-    <input
-      type="password"
-      id="loginPassword"
-      placeholder="Password"
-    />
-
-    <button onclick="login()">
-      Login
-    </button>
-
-    <div style="margin-top:16px;font-size:12px;color:#666;">
-      Staff Login:<br>
-      username: <strong>admin</strong><br>
-      password: <strong>admin123</strong>
-    </div>
-
-  </div>
-
-</div>
-
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -782,6 +741,49 @@ main{
 </head>
 <body>
 
+
+<div class="login-screen" id="loginScreen">
+
+  <div class="login-card">
+
+    <h2 style="
+      text-align:center;
+      width:100%;
+      font-size:32px;
+      font-weight:900;
+      letter-spacing:4px;
+      margin-bottom:28px;
+    ">Caflat.Co POS</h2>
+
+    <input
+      type="text"
+      id="loginUsername"
+      placeholder="Username"
+    />
+
+    <input
+      type="password"
+      id="loginPassword"
+      placeholder="Password"
+    />
+
+    <button onclick="login()">
+      Login
+    </button>
+
+    <div style="margin-top:16px;font-size:12px;color:#666;">
+      Staff Login:<br>
+      username: <strong>admin</strong><br>
+      password: <strong>admin123</strong>
+    </div>
+
+  </div>
+
+</div>
+
+  
+
+
 <header>
   <div style="display:flex;align-items:center;gap:12px;"><h1 id="brandName">Caflat.Co POS</h1><div class="role-badge" id="roleBadge">ADMIN</div></div>
   <nav>
@@ -969,7 +971,7 @@ main{
       <div class="table-wrapper"><table id="ingredientsTable">
         <thead>
           <tr>
-            <th>Name</th><th>Base Unit</th><th>Purchase Cost</th>
+            <th>Name</th><th>Base Unit</th><th>Package Cost</th>
             <th>Stock</th><th>Reorder Level</th><th>Actions</th>
           </tr>
         </thead>
@@ -1239,6 +1241,7 @@ main{
 </div>
 
 
+
 <!-- INGREDIENT MODAL -->
 <div class="modal-overlay" id="ingredientModal">
 
@@ -1256,27 +1259,21 @@ main{
     <div class="form-row">
 
       <div class="form-group">
-        <label>Purchase Unit</label>
+        <label>Package Unit</label>
 
         <select id="ingredientPurchaseUnit">
-
-          <option value="kg">Kilogram (kg)</option>
           <option value="g">Gram (g)</option>
-
-          <option value="L">Liter (L)</option>
           <option value="ml">Milliliter (ml)</option>
-
           <option value="pc">Piece (pc)</option>
-
         </select>
       </div>
 
       <div class="form-group">
-        <label>Purchase Cost</label>
+        <label>Package Quantity</label>
 
         <input
           type="number"
-          id="ingredientPurchaseCost"
+          id="ingredientPackageQty"
           step="0.01"
           min="0"
         />
@@ -1287,11 +1284,11 @@ main{
     <div class="form-row">
 
       <div class="form-group">
-        <label>Stock Purchased</label>
+        <label>Package Cost</label>
 
         <input
           type="number"
-          id="ingredientStock"
+          id="ingredientPurchaseCost"
           step="0.01"
           min="0"
         />
@@ -1308,6 +1305,17 @@ main{
         />
       </div>
 
+    </div>
+
+    <div class="form-group">
+      <label>Current Stock</label>
+
+      <input
+        type="number"
+        id="ingredientStock"
+        step="0.01"
+        min="0"
+      />
     </div>
 
     <div class="modal-actions">
@@ -1331,6 +1339,7 @@ main{
   </div>
 
 </div>
+
 
 <!-- INVENTORY MODAL -->
 <div class="modal-overlay" id="inventoryModal">
@@ -2320,6 +2329,7 @@ function openIngredientModal(id) {
 
 
 
+
 function saveIngredient() {
 
   try {
@@ -2341,23 +2351,27 @@ function saveIngredient() {
       name:
         document.getElementById('ingredientName').value.trim(),
 
-      unit:
-        document.getElementById('ingredientPurchaseUnit').value,
-
       purchaseUnit:
         document.getElementById('ingredientPurchaseUnit').value,
 
-      purchaseCost:
+      packageQty:
+        parseFloat(
+          document.getElementById('ingredientPackageQty').value
+        ) || 0,
+
+      packageCost:
         parseFloat(
           document.getElementById('ingredientPurchaseCost').value
         ) || 0,
+
+      costPerUnit: 0,
 
       stock:
         parseFloat(
           document.getElementById('ingredientStock').value
         ) || 0,
 
-      reorder:
+      reorderLevel:
         parseFloat(
           document.getElementById('ingredientReorder').value
         ) || 0
@@ -2369,6 +2383,14 @@ function saveIngredient() {
       return;
     }
 
+    if (ingredient.packageQty <= 0) {
+      alert('Package quantity must be greater than 0.');
+      return;
+    }
+
+    ingredient.costPerUnit =
+      ingredient.packageCost / ingredient.packageQty;
+
     const existingIndex =
       db.ingredients.findIndex(
         i => i.id === ingredient.id
@@ -2376,25 +2398,15 @@ function saveIngredient() {
 
     if (existingIndex >= 0) {
 
-      db.ingredients[existingIndex] =
-        ingredient;
+      db.ingredients[existingIndex] = ingredient;
 
     } else {
 
-      db.ingredients.push(
-        ingredient
-      );
+      db.ingredients.push(ingredient);
 
     }
 
-    localStorage.setItem(
-      'caflat_pos_db',
-      JSON.stringify(db)
-    );
-
-    if (typeof saveDB === 'function') {
-      saveDB();
-    }
+    saveDB();
 
     renderIngredientsTable();
 
@@ -2416,6 +2428,7 @@ function saveIngredient() {
 
 
 
+
 function deleteIngredient(id) {
   if (!confirm('Delete this ingredient?')) return;
   db.ingredients = db.ingredients.filter(i => i.id !== id);
@@ -2423,24 +2436,60 @@ function deleteIngredient(id) {
   renderIngredientsTable();
 }
 
-function renderIngredientsTable() {
-  const tbody = document.querySelector('#ingredientsTable tbody');
-  if (!db.ingredients.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#888;">No ingredients yet.</td></tr>';
+
+function renderIngredientsTable(){
+
+  const tbody =
+    document.querySelector('#ingredientsTable tbody');
+
+  if(!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if(!db.ingredients || db.ingredients.length === 0){
+
+    tbody.innerHTML =
+      '<tr><td colspan="6" class="empty-state">No ingredients found</td></tr>';
+
     return;
   }
-  tbody.innerHTML = db.ingredients.map(i => `
-    <tr>
-      <td>${i.name}</td><td>${i.unit}</td><td>${fmt(i.purchaseCost || 0)} / ${i.purchaseUnit || 'g'}</td>
-      <td>${i.stock}${i.stock <= i.reorder ? ' <span class="badge dark">LOW</span>' : ''}</td>
-      <td>${i.reorder}</td>
-      <td class="actions">
-        <button class="btn btn-sm btn-secondary" onclick="openIngredientModal('${i.id}')">Edit</button>
-        <button class="btn btn-sm" onclick="deleteIngredient('${i.id}')">Delete</button>
+
+  db.ingredients.forEach(ingredient => {
+
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+      <td>${ingredient.name}</td>
+      <td>${ingredient.purchaseUnit || ''}</td>
+      <td>
+        ₱${(ingredient.packageCost || 0).toFixed(2)}
+        per
+        ${(ingredient.packageQty || 0)}
+        ${ingredient.purchaseUnit || ''}
       </td>
-    </tr>
-  `).join('');
+      <td>${ingredient.stock || 0}</td>
+      <td>${ingredient.reorderLevel || 0}</td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-sm btn-secondary"
+            onclick="editIngredient('${ingredient.id}')">
+            Edit
+          </button>
+
+          <button class="btn btn-sm"
+            onclick="deleteIngredient('${ingredient.id}')">
+            Delete
+          </button>
+        </div>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+
+  });
+
 }
+
 
 /* ============ INVENTORY ============ */
 function openInventoryModal() {
