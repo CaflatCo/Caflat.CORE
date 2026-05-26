@@ -745,6 +745,14 @@ main{
   position:relative;
   z-index:100000;
 }
+
+.login-screen.hidden{
+  display:none !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+  opacity:0 !important;
+}
+
 </style>
 </head>
 <body>
@@ -2491,9 +2499,18 @@ function login(){
         'true'
       );
 
-      document
-        .getElementById('loginScreen')
-        .style.display = 'none';
+      const loginScreen =
+        document.getElementById('loginScreen');
+
+      if(loginScreen){
+
+        loginScreen.style.display = 'none';
+        loginScreen.style.visibility = 'hidden';
+        loginScreen.style.pointerEvents = 'none';
+        loginScreen.style.opacity = '0';
+        loginScreen.classList.add('hidden');
+
+      }
 
       const badge =
         document.getElementById('roleBadge');
