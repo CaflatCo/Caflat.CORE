@@ -803,14 +803,14 @@ main{
 <header>
   <div style="display:flex;align-items:center;gap:12px;"><h1 id="brandName">Caflat.Co</h1><div class="role-badge" id="roleBadge">ADMIN</div></div>
   <nav>
-    <button data-view="pos" class="active">Point of Sale</button>
-    <button data-view="dashboard">Dashboard</button>
-    <button data-view="products">Products</button>
-    <button data-view="inventory">Inventory</button>
-    <button data-view="ingredients">Ingredients</button>
-    <button data-view="sales">Sales</button>
-    <button data-view="reports">Reports</button>
-    <button data-view="settings">Settings</button>
+    <button data-view="pos" onclick="switchView(\'pos\')" class="active" onclick="switchView('pos')">Point of Sale</button>
+    <button data-view="dashboard" onclick="switchView(\'dashboard\')" onclick="switchView('dashboard')">Dashboard</button>
+    <button data-view="products" onclick="switchView(\'products\')" onclick="switchView('products')">Products</button>
+    <button data-view="inventory" onclick="switchView(\'inventory\')" onclick="switchView('inventory')">Inventory</button>
+    <button data-view="ingredients" onclick="switchView(\'ingredients\')" onclick="switchView('ingredients')">Ingredients</button>
+    <button data-view="sales" onclick="switchView(\'sales\')" onclick="switchView('sales')">Sales</button>
+    <button data-view="reports" onclick="switchView(\'reports\')" onclick="switchView('reports')">Reports</button>
+    <button data-view="settings" onclick="switchView(\'settings\')" onclick="switchView('settings')">Settings</button>
   </nav>
 </header>
 
@@ -1573,26 +1573,146 @@ function getBaseCost(cost, unit) {
 }
 
 
+
+
+function switchView(view){
+
+  try{
+
+    document
+      .querySelectorAll('nav button')
+      .forEach(btn => {
+
+        btn.classList.remove('active');
+
+        if(btn.dataset.view === view){
+          btn.classList.add('active');
+        }
+
+      });
+
+    document
+      .querySelectorAll('.view')
+      .forEach(v => v.classList.remove('active'));
+
+    const target =
+      document.getElementById('view-' + view);
+
+    if(target){
+      target.classList.add('active');
+    }
+
+    if(view === 'dashboard' && typeof renderDashboard === 'function'){
+      renderDashboard();
+    }
+
+    if(view === 'products' && typeof renderProductsTable === 'function'){
+      renderProductsTable();
+    }
+
+    if(view === 'inventory' && typeof renderInventoryTable === 'function'){
+      renderInventoryTable();
+    }
+
+    if(view === 'ingredients'){
+
+      if(typeof migrateIngredients === 'function'){
+        migrateIngredients();
+      }
+
+      if(typeof renderIngredientsTable === 'function'){
+        renderIngredientsTable();
+      }
+
+    }
+
+    if(view === 'sales' && typeof renderSalesTable === 'function'){
+      renderSalesTable();
+    }
+
+    if(view === 'reports' && typeof renderReports === 'function'){
+      renderReports();
+    }
+
+    if(view === 'settings' && typeof renderSettings === 'function'){
+      renderSettings();
+    }
+
+  } catch(err){
+
+    console.error(
+      'Navigation failed:',
+      err
+    );
+
+  }
+
+}
+
+
 /* ============ NAVIGATION ============ */
-document.querySelectorAll('nav button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const view = btn.dataset.view;
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById('view-' + view).classList.add('active');
-    if (view === 'dashboard') renderDashboard();
-    if (view === 'products') renderProductsTable();
-    if (view === 'inventory') renderInventoryTable();
-    if (view === 'ingredients') migrateIngredients();
-renderIngredientsTable();
-    if (view === 'sales') renderSalesTable();
-    if (view === 'reports') renderReports();
-    if (view === 'settings') renderSettings();
-  });
-});
+
+function switchView(view){
+
+  try{
+
+    document
+      .querySelectorAll('nav button')
+      .forEach(btn => {
+
+        btn.classList.remove('active');
+
+        if(btn.dataset.view === view){
+          btn.classList.add('active');
+        }
+
+      });
+
+    document
+      .querySelectorAll('.view')
+      .forEach(v => v.classList.remove('active'));
+
+    const target =
+      document.getElementById('view-' + view);
+
+    if(target){
+      target.classList.add('active');
+    }
+
+    const renderMap = {
+
+      dashboard: 'renderDashboard',
+      products: 'renderProductsTable',
+      inventory: 'renderInventoryTable',
+      ingredients: 'renderIngredientsTable',
+      sales: 'renderSalesTable',
+      reports: 'renderReports',
+      settings: 'renderSettings'
+
+    };
+
+    const fnName = renderMap[view];
+
+    if(
+      fnName &&
+      typeof window[fnName] === 'function'
+    ){
+      window[fnName]();
+    }
+
+  } catch(err){
+
+    console.error(
+      'Navigation Error:',
+      err
+    );
+
+  }
+
+}
 
 /* ============ POS / CART ============ */
+
 let cart = [];
 let cartDiscount = { type: 'percent', value: 0 };
 let activeCategory = '';
@@ -2330,9 +2450,56 @@ function toggleRecipeMode() {
 function addRecipeRow(
   ingredientId = '',
   qty = ''
-) {
+){
 
-  return;
+  const wrap =
+    document.getElementById('recipeBuilder');
+
+  if(!wrap) return;
+
+  const row =
+    document.createElement('div');
+
+  row.className =
+    'form-row recipe-row';
+
+  const ingredientOptions =
+    (db.ingredients || [])
+      .map(i => `
+        <option
+          value="${i.id}"
+          ${ingredientId === i.id ? 'selected' : ''}
+        >
+          ${i.name}
+        </option>
+      `)
+      .join('');
+
+  row.innerHTML = `
+
+    <select class="recipe-ingredient">
+      <option value="">Select Ingredient</option>
+      ${ingredientOptions}
+    </select>
+
+    <input
+      type="number"
+      class="recipe-qty"
+      placeholder="Qty"
+      step="0.01"
+      value="${qty || ''}"
+    />
+
+    <button
+      type="button"
+      class="btn btn-secondary"
+      onclick="this.parentElement.remove()">
+      Remove
+    </button>
+
+  `;
+
+  wrap.appendChild(row);
 
 }
 
