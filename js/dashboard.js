@@ -11,8 +11,8 @@ function refreshDashboard() {
   const kpi = getKPISummary();
 
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-  set('dashboardTotalSales',  formatCurrency(kpi.revenue));
-  set('dashboardTotalOrders', kpi.orders);
+  set('dashboardTotalSales',  formatCurrency(kpi.totalRevenue || kpi.revenue));
+  set('dashboardTotalOrders', kpi.totalOrders || kpi.orders);
   set('dashboardItemsSold',   kpi.itemsSold);
   set('dashboardAverageOrder',formatCurrency(kpi.avgTicket));
 
@@ -176,3 +176,13 @@ window.refreshDashboard       = refreshDashboard;
 window.renderDashboardChart   = renderDashboardChart;
 window.renderTopProducts      = renderTopProducts;
 window.renderLowStockDashboard= renderLowStockDashboard;
+
+const __oldRefreshDashboard=refreshDashboard;
+refreshDashboard=function(){
+ const kpi=getKPISummary();
+ __oldRefreshDashboard();
+ const rb=document.getElementById('dashboardRevenueBreakdown');
+ if(rb) rb.textContent=`POS: ${formatCurrency(kpi.posRevenue)} (${kpi.posRevenuePercent}%) • Supply: ${formatCurrency(kpi.supplyRevenue)} (${kpi.supplyRevenuePercent}%)`;
+ const ob=document.getElementById('dashboardOrdersBreakdown');
+ if(ob) ob.textContent=`POS: ${kpi.posOrders} (${kpi.posOrderPercent}%) • Supply: ${kpi.supplyOrders} (${kpi.supplyOrderPercent}%)`;
+}

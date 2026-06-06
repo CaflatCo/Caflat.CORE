@@ -183,3 +183,19 @@ window.getPaymentBreakdown = getPaymentBreakdown;
 window.getLowStockItems = getLowStockItems;
 window.getLowStockProducts = getLowStockProducts;
 window.getKPISummary = getKPISummary;
+
+function getPaidSupplyOrders(){return (APP_STATE.supplyOrders||[]).filter(o=>String(o.status||'').toUpperCase()==='PAID');}
+function getSupplyRevenue(){return getPaidSupplyOrders().reduce((s,o)=>s+Number(o.grandTotal||o.total||0),0);}
+function getSupplyOrderCount(){return getPaidSupplyOrders().length;}
+const __oldGetKPISummary=getKPISummary;
+getKPISummary=function(){
+ const k=__oldGetKPISummary();
+ const posRevenue=k.revenue,posOrders=k.orders;
+ const supplyRevenue=getSupplyRevenue(), supplyOrders=getSupplyOrderCount();
+ const totalRevenue=posRevenue+supplyRevenue,totalOrders=posOrders+supplyOrders;
+ return {...k,totalRevenue,posRevenue,supplyRevenue,totalOrders,posOrders,supplyOrders,
+ posRevenuePercent: totalRevenue?Math.round(posRevenue/totalRevenue*100):0,
+ supplyRevenuePercent: totalRevenue?Math.round(supplyRevenue/totalRevenue*100):0,
+ posOrderPercent: totalOrders?Math.round(posOrders/totalOrders*100):0,
+ supplyOrderPercent: totalOrders?Math.round(supplyOrders/totalOrders*100):0};
+}
