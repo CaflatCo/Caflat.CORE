@@ -136,14 +136,8 @@ function renderLowStockDashboard() {
   const productAlerts    = getLowStockProducts();
 
   const all = [
-    ...ingredientAlerts.map(i => ({
-      name: i.name, stock: Number(i.stock || 0), unit: i.unit || '',
-      type: 'Ingredient', soldOut: Number(i.stock || 0) <= 0
-    })),
-    ...productAlerts.map(p => ({
-      name: p.name, stock: Number(p.stock || 0), unit: 'units',
-      type: 'Product', soldOut: Number(p.stock || 0) <= 0
-    }))
+    ...ingredientAlerts.map(i => ({ name: i.name, stock: i.stock, unit: i.unit || '',    type: 'Ingredient' })),
+    ...productAlerts.map(p =>    ({ name: p.name, stock: p.stock, unit: 'units',          type: 'Product'    }))
   ];
 
   if (!all.length) {
@@ -154,20 +148,15 @@ function renderLowStockDashboard() {
     return;
   }
 
-  // Sort: sold out first, then low stock
-  all.sort((a, b) => Number(b.soldOut) - Number(a.soldOut));
-
   container.innerHTML = all.map(item => `
-    <div class="low-stock-card${item.soldOut ? ' sold-out' : ''}">
+    <div class="low-stock-card">
       <div>
         <div class="low-stock-name">${escapeHtml(item.name)}</div>
         <div class="low-stock-meta" style="font-size:9px;letter-spacing:1px;text-transform:uppercase;">
-          ${escapeHtml(item.type)} · ${item.soldOut ? 'OUT OF STOCK' : 'LOW STOCK'}
+          ${escapeHtml(item.type)}
         </div>
       </div>
-      <div class="low-stock-meta">
-        ${item.soldOut ? '0' : item.stock} ${escapeHtml(item.unit)} left
-      </div>
+      <div class="low-stock-meta">${item.stock} ${escapeHtml(item.unit)} left</div>
     </div>`).join('');
 }
 

@@ -1,3 +1,7 @@
+/* ═══════════════════════════════════════════════════════
+   SETTINGS.JS — Categories, branding, settings, demo data
+═══════════════════════════════════════════════════════ */
+
 function getCategories() {
   return Array.isArray(APP_STATE.categories) ? APP_STATE.categories : [];
 }
@@ -12,21 +16,12 @@ function setCategories(categories) {
 function addCategory() {
   const input = document.getElementById('newCategoryInput');
   if (!input) return;
-
   const value = sanitizeText(input.value);
-  if (!value) {
-    showNotification('Category name is required', 'error');
-    return;
-  }
-
+  if (!value) { showNotification('Category name is required', 'error'); return; }
   const categories = getCategories();
-  const exists = categories.some(category => category.toLowerCase() === value.toLowerCase());
-
-  if (exists) {
-    showNotification('Category already exists', 'error');
-    return;
+  if (categories.some(c => c.toLowerCase() === value.toLowerCase())) {
+    showNotification('Category already exists', 'error'); return;
   }
-
   categories.push(value);
   setCategories(categories);
   input.value = '';
@@ -34,29 +29,21 @@ function addCategory() {
 }
 
 function deleteCategory(categoryName) {
-  const confirmed = confirm(`Delete ${categoryName}?`);
-  if (!confirmed) return;
-
-  const filtered = getCategories().filter(category => category !== categoryName);
-  setCategories(filtered);
+  if (!confirm(`Delete "${categoryName}"?`)) return;
+  setCategories(getCategories().filter(c => c !== categoryName));
   showNotification('Category deleted', 'success');
 }
 
 function renderCategories() {
   const container = document.getElementById('categoryList');
   if (!container) return;
-
-  const categories = getCategories();
   container.innerHTML = '';
-
-  categories.forEach(category => {
+  getCategories().forEach(cat => {
     const item = document.createElement('div');
     item.className = 'category-chip';
     item.innerHTML = `
-      <span>${escapeHtml(category)}</span>
-      <button type="button" data-action="delete-category" data-category="${escapeHtml(category)}">×</button>
-    `;
-    item.querySelector('button')?.addEventListener('click', () => deleteCategory(category));
+      <span>${escapeHtml(cat)}</span>
+      <button type="button" data-action="delete-category" data-category="${escapeHtml(cat)}" title="Delete">×</button>`;
     container.appendChild(item);
   });
 }
@@ -64,140 +51,151 @@ function renderCategories() {
 function renderCategoryOptions() {
   const selects = document.querySelectorAll('#productCategory, #productCategoryFilter');
   const categories = getCategories();
-
   selects.forEach(select => {
     const current = select.value;
     const isFilter = select.id === 'productCategoryFilter';
     select.innerHTML = '';
-
     if (isFilter) {
-      const allOption = document.createElement('option');
-      allOption.value = 'All';
-      allOption.textContent = 'All Categories';
-      select.appendChild(allOption);
+      const opt = document.createElement('option');
+      opt.value = 'All'; opt.textContent = 'All Categories';
+      select.appendChild(opt);
     } else {
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.textContent = 'Select Category';
-      select.appendChild(placeholder);
+      const opt = document.createElement('option');
+      opt.value = ''; opt.textContent = 'Select Category';
+      select.appendChild(opt);
     }
-
-    categories.forEach(category => {
-      const option = document.createElement('option');
-      option.value = category;
-      option.textContent = category;
-      if (current === category) option.selected = true;
-      select.appendChild(option);
+    categories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat; opt.textContent = cat;
+      if (current === cat) opt.selected = true;
+      select.appendChild(opt);
     });
   });
 }
 
+/* ── Settings ── */
 function saveSettings() {
-  const brandName = sanitizeText(getElementValue('settingsBrandName'));
-  const taxRate = safeNumber(getElementValue('settingsTaxRate'));
+  const brandName    = sanitizeText(getElementValue('settingsBrandName'));
+  const taxRate      = safeNumber(getElementValue('settingsTaxRate'));
   const receiptFooter = sanitizeText(getElementValue('settingsReceiptFooter'));
+
+  const voidPin = String(getElementValue('settingsVoidPin') || '').trim();
+  if (voidPin && (voidPin.length !== 6 || !/^\d{6}$/.test(voidPin))) {
+    showNotification('Void PIN must be exactly 6 digits', 'error');
+    return;
+  }
+
+  const supplierModeEnabled = document.getElementById('settingsSupplierMode')?.checked === true;
 
   updateState('settings', current => ({
     ...current,
     brandName: brandName || current.brandName,
     taxRate,
-    receiptFooter
+    receiptFooter,
+    supplierModeEnabled,
+    ...(voidPin ? { voidPin } : {})
   }));
 
   renderBranding();
+  if (typeof applySupplierModeToggle === 'function') applySupplierModeToggle();
   showNotification('Settings saved', 'success');
 }
 
 function renderBranding() {
-  const brandTargets = document.querySelectorAll('[data-brand-name]');
-  const brandName = APP_STATE.settings?.brandName || 'Caflat.CoPOS v1';
-
-  brandTargets.forEach(target => {
-    target.textContent = brandName;
-  });
-
+  const brandName = APP_STATE.settings?.brandName || 'Caflat.Co POS';
+  document.querySelectorAll('[data-brand-name]').forEach(el => { el.textContent = brandName; });
   const brandInput = document.getElementById('settingsBrandName');
   if (brandInput) brandInput.value = brandName;
-
   const taxInput = document.getElementById('settingsTaxRate');
-  if (taxInput) taxInput.value = APP_STATE.settings?.taxRate || 0;
-
+  if (taxInput) taxInput.value = APP_STATE.settings?.taxRate ?? 0;
   const footerInput = document.getElementById('settingsReceiptFooter');
   if (footerInput) footerInput.value = APP_STATE.settings?.receiptFooter || '';
-}
 
-function loadDemoData() {
-  const confirmed = confirm('Load demo data?');
-  if (!confirmed) return;
+  // Void PIN — show placeholder only, never expose stored value
+  const voidPinInput = document.getElementById('settingsVoidPin');
+  if (voidPinInput) voidPinInput.value = '';
+  voidPinInput && voidPinInput.setAttribute('placeholder', '••••••  (enter new PIN to change)');
 
-  APP_STATE.products = [
-    {
-      id: generateId(),
-      name: 'Classic Choco Chip',
-      category: 'Cookies',
-      description: 'Premium chocolate chip cookie',
-      price: 65,
-      stock: 25,
-      reorderLevel: 5,
-      variants: [],
-      recipe: []
-    },
-    {
-      id: generateId(),
-      name: 'Dubai Chewy Cookie',
-      category: 'Chewy Cookies',
-      description: 'Premium pistachio chewy cookie',
-      price: 140,
-      stock: 15,
-      reorderLevel: 5,
-      variants: []
-    }
-  ];
-
-  APP_STATE.ingredients = [
-    {
-      id: generateId(),
-      name: 'Butter',
-      unit: 'g',
-      stock: 5000,
-      reorderLevel: 1000,
-      packageQuantity: 5000,
-      packageCost: 1200,
-      costPerUnit: 0.24
-    },
-    {
-      id: generateId(),
-      name: 'Chocolate Chips',
-      unit: 'g',
-      stock: 3000,
-      reorderLevel: 500,
-      packageQuantity: 3000,
-      packageCost: 850,
-      costPerUnit: 0.28
-    }
-  ];
-
-  APP_STATE.sales = [];
-  persistState();
-  renderEverything();
-  showNotification('Demo data loaded', 'success');
+  const supplierToggle = document.getElementById('settingsSupplierMode');
+  if (supplierToggle) supplierToggle.checked = APP_STATE.settings?.supplierModeEnabled === true;
 }
 
 function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-window.getCategories = getCategories;
-window.setCategories = setCategories;
-window.addCategory = addCategory;
-window.deleteCategory = deleteCategory;
-window.renderCategories = renderCategories;
+/* ── Demo data ── */
+function loadDemoData() {
+  if (!confirm('Load demo data? This will replace current products and ingredients.')) return;
+
+  const cId = generateId(), dId = generateId(), bId = generateId(), fId = generateId();
+  const btrId = generateId(), chocId = generateId(), floId = generateId(), milkId = generateId();
+
+  APP_STATE.ingredients = [
+    { id: btrId,  name: 'Butter',          unit: 'g',   stock: 5000, reorderLevel: 1000, packageQuantity: 5000, packageCost: 1200, costPerUnit: 0.24, createdAt: new Date().toISOString() },
+    { id: chocId, name: 'Chocolate Chips', unit: 'g',   stock: 3000, reorderLevel: 500,  packageQuantity: 3000, packageCost: 850,  costPerUnit: 0.283, createdAt: new Date().toISOString() },
+    { id: floId,  name: 'All-Purpose Flour', unit: 'g', stock: 8000, reorderLevel: 2000, packageQuantity: 1000, packageCost: 55,   costPerUnit: 0.055, createdAt: new Date().toISOString() },
+    { id: milkId, name: 'Fresh Milk',      unit: 'ml',  stock: 2000, reorderLevel: 500,  packageQuantity: 1000, packageCost: 120,  costPerUnit: 0.12, createdAt: new Date().toISOString() },
+  ];
+
+  APP_STATE.products = [
+    {
+      id: cId, name: 'Classic Choco Chip', category: 'Cookies',
+      price: 65, stock: 25, reorderLevel: 5,
+      variants: [], recipeMode: 'unit', batchYield: 1,
+      recipe: [
+        { ingredientId: btrId,  quantity: 30 },
+        { ingredientId: chocId, quantity: 20 },
+        { ingredientId: floId,  quantity: 40 }
+      ],
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: dId, name: 'Dubai Chewy Cookie', category: 'Chewy Cookies',
+      price: 140, stock: 15, reorderLevel: 5,
+      variants: [], recipeMode: 'unit', batchYield: 1,
+      recipe: [
+        { ingredientId: btrId,  quantity: 35 },
+        { ingredientId: floId,  quantity: 50 }
+      ],
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: bId, name: 'Iced Latte', category: 'Drinks',
+      price: 120, stock: 30, reorderLevel: 5,
+      variants: [
+        { id: generateId(), name: 'Small',  price: 100, multiplier: 1 },
+        { id: generateId(), name: 'Medium', price: 120, multiplier: 1 },
+        { id: generateId(), name: 'Large',  price: 150, multiplier: 1 },
+      ],
+      recipe: [{ ingredientId: milkId, quantity: 200 }],
+      recipeMode: 'unit', batchYield: 1,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: fId, name: 'Cold Brew', category: 'Drinks',
+      price: 110, stock: 20, reorderLevel: 5,
+      variants: [], recipe: [{ ingredientId: milkId, quantity: 100 }],
+      recipeMode: 'unit', batchYield: 1,
+      createdAt: new Date().toISOString()
+    }
+  ];
+
+  if (!APP_STATE.categories.includes('Drinks')) APP_STATE.categories.push('Drinks');
+
+  APP_STATE.sales = [];
+  persistState();
+  if (typeof renderEverything === 'function') renderEverything();
+  showNotification('Demo data loaded', 'success');
+}
+
+window.getCategories       = getCategories;
+window.setCategories       = setCategories;
+window.addCategory         = addCategory;
+window.deleteCategory      = deleteCategory;
+window.renderCategories    = renderCategories;
 window.renderCategoryOptions = renderCategoryOptions;
-window.saveSettings = saveSettings;
-window.renderBranding = renderBranding;
-window.loadDemoData = loadDemoData;
+window.saveSettings        = saveSettings;
+window.renderBranding      = renderBranding;
+window.loadDemoData        = loadDemoData;

@@ -1,269 +1,259 @@
-let reportRevenueChartInstance = null;
+/* ═══════════════════════════════════════════════════════
+   REPORTS.JS — Reports view rendering only
+   Pure renderer. All data from analytics.js.
+   Dashboard rendering lives in dashboard.js.
+   No calculations here.
+═══════════════════════════════════════════════════════ */
 
-function getSales() {
-  return Array.isArray(APP_STATE.sales) ? APP_STATE.sales : [];
+let reportChartInstance    = null;
+let hourlyChartInstance    = null;
+
+/* ── Date range helper ── */
+function getReportDateRange() {
+  const fromVal = document.getElementById('reportFromDate')?.value;
+  const toVal   = document.getElementById('reportToDate')?.value;
+  return {
+    fromDate: fromVal ? new Date(`${fromVal}T00:00:00`) : null,
+    toDate:   toVal   ? new Date(`${toVal}T23:59:59`)   : null
+  };
 }
 
-function getFilteredSales() {
-  const fromDateEl = document.getElementById('reportFromDate');
-  const toDateEl = document.getElementById('reportToDate');
-
-  const fromDate = fromDateEl?.value ? new Date(`${fromDateEl.value}T00:00:00`) : null;
-  const toDate = toDateEl?.value ? new Date(`${toDateEl.value}T23:59:59`) : null;
-
-  return getSales().filter(sale => {
-    const saleDate = new Date(sale.audit?.completedAt || sale.completedAt || sale.createdAt || Date.now());
-    const matchesFrom = !fromDate || saleDate >= fromDate;
-    const matchesTo = !toDate || saleDate <= toDate;
-    return matchesFrom && matchesTo;
-  });
-}
-
-function calculateReportMetrics(sales = getFilteredSales()) {
-  const totalSales = sales.reduce((sum, sale) => sum + Number(sale.total ?? sale.totals?.total ?? 0), 0);
-  const totalOrders = sales.length;
-  const totalItemsSold = sales.reduce(
-    (sum, sale) =>
-      sum + (Array.isArray(sale.items)
-        ? sale.items.reduce((itemSum, item) => itemSum + Number(item.quantity || 0), 0)
-        : 0),
-    0
-  );
-  const averageOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
-
-  return { totalSales, totalOrders, totalItemsSold, averageOrderValue };
-}
-
-function refreshDashboard() {
-  const metrics = calculateReportMetrics(getSales());
-
-  const totalSalesEl = document.getElementById('dashboardTotalSales');
-  const totalOrdersEl = document.getElementById('dashboardTotalOrders');
-  const totalItemsEl = document.getElementById('dashboardItemsSold');
-  const averageOrderEl = document.getElementById('dashboardAverageOrder');
-
-  if (totalSalesEl) totalSalesEl.textContent = formatCurrency(metrics.totalSales);
-  if (totalOrdersEl) totalOrdersEl.textContent = metrics.totalOrders;
-  if (totalItemsEl) totalItemsEl.textContent = metrics.totalItemsSold;
-  if (averageOrderEl) averageOrderEl.textContent = formatCurrency(metrics.averageOrderValue);
-
-  renderTopProducts();
-  renderLowStockDashboard();
-}
-
-function renderTopProducts() {
-  const container = document.getElementById('topProductsContainer');
-  if (!container) return;
-
-  const sales = getSales();
-  const totals = {};
-
-  sales.forEach(sale => {
-    if (!Array.isArray(sale.items)) return;
-
-    sale.items.forEach(item => {
-      if (!totals[item.name]) totals[item.name] = 0;
-      totals[item.name] += Number(item.quantity || 0);
-    });
-  });
-
-  const ranked = Object.entries(totals)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
-  container.innerHTML = '';
-
-  if (!ranked.length) {
-    container.innerHTML = `<div class="empty-state">No sales data yet</div>`;
-    return;
-  }
-
-  ranked.forEach(([name, qty]) => {
-    const row = document.createElement('div');
-    row.className = 'top-product-row';
-    row.innerHTML = `
-      <div class="top-product-name">${escapeHtml(name)}</div>
-      <div class="top-product-qty">${qty} sold</div>
-    `;
-    container.appendChild(row);
-  });
-}
-
-function renderLowStockDashboard() {
-  const container = document.getElementById('lowStockContainer');
-  if (!container) return;
-
-  const lowStockItems = (APP_STATE.ingredients || []).filter(
-    ingredient => Number(ingredient.stock || 0) <= Number(ingredient.reorderLevel || 0)
-  );
-
-  container.innerHTML = '';
-
-  if (!lowStockItems.length) {
-    container.innerHTML = `<div class="empty-state">No low stock alerts</div>`;
-    return;
-  }
-
-  lowStockItems.forEach(ingredient => {
-    const card = document.createElement('div');
-    card.className = 'low-stock-card';
-    card.innerHTML = `
-      <div class="low-stock-name">${escapeHtml(ingredient.name)}</div>
-      <div class="low-stock-meta">${ingredient.stock} ${escapeHtml(ingredient.unit)} left</div>
-    `;
-    container.appendChild(card);
-  });
-}
-
+/* ── Entry point ── */
 function renderReports() {
-  const sales = getFilteredSales();
-  const metrics = calculateReportMetrics(sales);
+  const { fromDate, toDate } = getReportDateRange();
 
-  const statsGrid = document.getElementById('reportStatsGrid');
-  if (statsGrid) {
-    statsGrid.innerHTML = `
-      <div class="stat-card">
-        <div class="label">Total Sales</div>
-        <div class="value">${formatCurrency(metrics.totalSales)}</div>
-        <div class="sub">${metrics.totalOrders} orders</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Orders</div>
-        <div class="value">${metrics.totalOrders}</div>
-        <div class="sub">Filtered period</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Items Sold</div>
-        <div class="value">${metrics.totalItemsSold}</div>
-        <div class="sub">Units moved</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Avg Order</div>
-        <div class="value">${formatCurrency(metrics.averageOrderValue)}</div>
-        <div class="sub">Per order value</div>
-      </div>
-    `;
-  }
-
-  renderRevenueChart(sales);
-  renderReportProductsTable(sales);
-  renderIngredientUsageTable(sales);
-  renderReportInsightsTable(sales);
+  renderReportKPIs(fromDate, toDate);
+  renderRevenueChart(fromDate, toDate);
+  renderHourlySalesChart(fromDate, toDate);
+  renderPaymentBreakdown(fromDate, toDate);
+  renderReportProductsTable(fromDate, toDate);
+  renderIngredientUsageTable(fromDate, toDate);
+  renderReportInsightsTable(fromDate, toDate);
 }
 
-function renderRevenueChart(sales) {
+/* ── KPI cards ── */
+function renderReportKPIs(fromDate, toDate) {
+  const statsGrid = document.getElementById('reportStatsGrid');
+  if (!statsGrid) return;
+
+  const revenue = getRevenue(fromDate, toDate);
+  const orders  = getOrderCount(fromDate, toDate);
+  const items   = getItemsSold(fromDate, toDate);
+  const avg     = getAverageTicket(fromDate, toDate);
+  const discount= getTotalDiscount(fromDate, toDate);
+
+  statsGrid.innerHTML = `
+    <div class="stat-card dark">
+      <div class="label">Total Revenue</div>
+      <div class="value">${formatCurrency(revenue)}</div>
+      <div class="sub">${orders} completed order${orders !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Orders</div>
+      <div class="value">${orders}</div>
+      <div class="sub">Filtered period</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Items Sold</div>
+      <div class="value">${items}</div>
+      <div class="sub">Units moved</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Avg Order</div>
+      <div class="value">${formatCurrency(avg)}</div>
+      <div class="sub">Discount given: ${formatCurrency(discount)}</div>
+    </div>`;
+}
+
+/* ── Revenue trend chart ── */
+function renderRevenueChart(fromDate, toDate) {
   const canvas = document.getElementById('reportRevenueChart');
   if (!canvas || typeof Chart === 'undefined') return;
 
-  const daily = new Map();
+  const trend = getDailySalesTrend(fromDate, toDate);
 
-  sales.forEach(sale => {
-    const date = new Date(sale.audit?.completedAt || sale.completedAt || sale.createdAt || Date.now());
-    const key = date.toISOString().slice(0, 10);
-    daily.set(key, (daily.get(key) || 0) + Number(sale.total ?? sale.totals?.total ?? 0));
-  });
+  if (reportChartInstance) { reportChartInstance.destroy(); reportChartInstance = null; }
 
-  const labels = Array.from(daily.keys()).sort();
-  const values = labels.map(label => daily.get(label));
-
-  if (reportRevenueChartInstance) {
-    reportRevenueChartInstance.destroy();
+  if (!trend.labels.length) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '12px Nunito, sans-serif';
+    ctx.fillStyle = '#aaa';
+    ctx.textAlign = 'center';
+    ctx.fillText('No sales data for selected period', canvas.width / 2, canvas.height / 2);
+    return;
   }
 
-  reportRevenueChartInstance = new Chart(canvas.getContext('2d'), {
+  const shortLabels = trend.labels.map(l =>
+    new Date(l).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
+  );
+
+  reportChartInstance = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: {
-      labels,
+      labels: shortLabels,
       datasets: [{
         label: 'Revenue',
-        data: values,
+        data: trend.values,
+        borderColor: '#000',
+        backgroundColor: 'rgba(0,0,0,.04)',
+        fill: true,
         tension: 0.35,
-        fill: false
+        pointRadius: 4,
+        pointBackgroundColor: '#000',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false }
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => formatCurrency(ctx.parsed.y) } }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 11 }, color: '#999' }
+        },
+        y: {
+          grid: { color: '#f4f4f4' },
+          ticks: {
+            font: { size: 11 }, color: '#999',
+            callback: v => '₱' + (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v)
+          }
+        }
       }
     }
   });
 }
 
-function renderReportProductsTable(sales) {
-  const tbody = document.querySelector('#reportProductsTable tbody');
-  if (!tbody) return;
+/* ── Hourly sales chart ── */
+function renderHourlySalesChart(fromDate, toDate) {
+  const canvas = document.getElementById('reportHourlyChart');
+  if (!canvas || typeof Chart === 'undefined') return;
 
-  const totals = {};
-
-  sales.forEach(sale => {
-    if (!Array.isArray(sale.items)) return;
-    sale.items.forEach(item => {
-      if (!totals[item.name]) {
-        totals[item.name] = { qty: 0, revenue: 0, cost: 0, profit: 0 };
-      }
-      totals[item.name].qty += Number(item.quantity || 0);
-      totals[item.name].revenue += Number(item.total || (Number(item.price || 0) * Number(item.quantity || 0)));
-
-      const product = (APP_STATE.products || []).find(
-        p => String(p.id) === String(item.productId)
-      );
-
-      let lineCost = 0;
-
-      if (product && Array.isArray(product.recipe)) {
-        product.recipe.forEach(recipeItem => {
-          const ingredient = (APP_STATE.ingredients || []).find(
-            i => String(i.id) === String(recipeItem.ingredientId)
-          );
-
-          if (!ingredient) return;
-
-          lineCost +=
-            Number(recipeItem.quantity || 0) *
-            Number(ingredient.costPerUnit || 0) *
-            Number(item.quantity || 0);
-        });
-      }
-
-      totals[item.name].cost += lineCost;
-      totals[item.name].profit =
-        totals[item.name].revenue - totals[item.name].cost;
-    });
+  const hours = getHourlySales(fromDate, toDate);
+  const labels = hours.map((_, i) => {
+    const h = i % 12 || 12;
+    return `${h}${i < 12 ? 'am' : 'pm'}`;
   });
 
-  const ranked = Object.entries(totals)
-    .sort((a, b) => b[1].revenue - a[1].revenue);
+  if (hourlyChartInstance) { hourlyChartInstance.destroy(); hourlyChartInstance = null; }
 
-  tbody.innerHTML = '';
+  hourlyChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: hours,
+        backgroundColor: hours.map(v => v > 0 ? '#000' : '#f0f0f0'),
+        borderRadius: 3,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => formatCurrency(ctx.parsed.y) } }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 9 }, color: '#aaa' }
+        },
+        y: {
+          grid: { color: '#f4f4f4' },
+          ticks: {
+            font: { size: 10 }, color: '#999',
+            callback: v => '₱' + (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v)
+          }
+        }
+      }
+    }
+  });
+}
 
-  if (!ranked.length) {
-    tbody.innerHTML = `<tr><td colspan="4" class="empty-state">No data</td></tr>`;
+/* ── Payment breakdown ── */
+function renderPaymentBreakdown(fromDate, toDate) {
+  const container = document.getElementById('paymentBreakdownContainer');
+  if (!container) return;
+
+  const breakdown = getPaymentBreakdown(fromDate, toDate);
+  const total = Object.values(breakdown).reduce((s, v) => s + v, 0);
+
+  if (!total) {
+    container.innerHTML = `<div class="empty-state">No payment data</div>`;
     return;
   }
 
-  ranked.forEach(([name, info]) => {
+  container.innerHTML = Object.entries(breakdown)
+    .sort((a, b) => b[1] - a[1])
+    .map(([method, amount]) => {
+      const pct = ((amount / total) * 100).toFixed(1);
+      return `
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+            <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;">
+              ${escapeHtml(method)}
+            </span>
+            <span style="font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;">
+              ${formatCurrency(amount)} &middot; ${pct}%
+            </span>
+          </div>
+          <div style="height:6px;background:var(--gray-100);border-radius:3px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:var(--black);border-radius:3px;transition:width .5s ease;"></div>
+          </div>
+        </div>`;
+    }).join('');
+}
+
+/* ── Product profitability table ── */
+function renderReportProductsTable(fromDate, toDate) {
+  const tbody = document.querySelector('#reportProductsTable tbody');
+  if (!tbody) return;
+
+  const ranked = getProductProfitability(fromDate, toDate);
+  tbody.innerHTML = '';
+
+  if (!ranked.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No sales data for selected period</td></tr>`;
+    return;
+  }
+
+  ranked.forEach(item => {
+    const margin = item.revenue > 0
+      ? ((item.profit / item.revenue) * 100).toFixed(1)
+      : null;
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${escapeHtml(name)}</td>
-      <td>${info.qty}</td>
-      <td>${formatCurrency(info.revenue)}</td>
-      <td>${formatCurrency(info.profit || 0)}</td>
-    `;
+      <td style="font-weight:700;">${escapeHtml(item.name)}</td>
+      <td>${item.qty}</td>
+      <td>${formatCurrency(item.revenue)}</td>
+      <td>${formatCurrency(item.cost)}</td>
+      <td style="font-weight:700;">
+        ${formatCurrency(item.profit)}
+        ${margin !== null
+          ? `<span style="font-size:10px;color:var(--gray-400);margin-left:4px;">(${margin}%)</span>`
+          : ''}
+      </td>`;
     tbody.appendChild(row);
   });
 }
 
-function renderIngredientUsageTable(sales) {
+/* ── Ingredient usage table ── */
+function renderIngredientUsageTable(fromDate, toDate) {
   const tbody = document.querySelector('#ingredientUsageTable tbody');
   if (!tbody) return;
 
+  const sales = getCompletedSales(fromDate, toDate);
   const usage = new Map();
 
   sales.forEach(sale => {
     if (!Array.isArray(sale.items)) return;
-
     sale.items.forEach(item => {
       const product = (APP_STATE.products || []).find(p => String(p.id) === String(item.productId));
       if (!product || !Array.isArray(product.recipe)) return;
@@ -272,8 +262,9 @@ function renderIngredientUsageTable(sales) {
         const ingredient = (APP_STATE.ingredients || []).find(i => String(i.id) === String(recipeItem.ingredientId));
         if (!ingredient) return;
 
+        const key = `${ingredient.name}|${ingredient.unit}|${ingredient.id}`;
         const qty = Number(recipeItem.quantity || 0) * Number(item.quantity || 0);
-        usage.set(ingredient.name, (usage.get(ingredient.name) || 0) + qty);
+        usage.set(key, (usage.get(key) || 0) + qty);
       });
     });
   });
@@ -282,34 +273,48 @@ function renderIngredientUsageTable(sales) {
   tbody.innerHTML = '';
 
   if (!ranked.length) {
-    tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No data</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No ingredient usage data</td></tr>`;
     return;
   }
 
-  ranked.forEach(([name, qty]) => {
-    const ingredient = (APP_STATE.ingredients || []).find(i => i.name === name);
+  ranked.forEach(([key, qty]) => {
+    const [name, unit, id] = key.split('|');
+    const ingredient = (APP_STATE.ingredients || []).find(i => String(i.id) === String(id));
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${escapeHtml(name)}</td>
-      <td>${qty}</td>
-      <td>${ingredient ? ingredient.stock : '—'}</td>
-    `;
+      <td style="font-weight:700;">${escapeHtml(name)}</td>
+      <td>${Number(qty).toFixed(2)} ${escapeHtml(unit || '')}</td>
+      <td>${ingredient
+        ? `${Number(ingredient.stock).toFixed(2)} ${escapeHtml(ingredient.unit || '')}`
+        : '—'}</td>`;
     tbody.appendChild(row);
   });
 }
 
-function renderReportInsightsTable(sales) {
+/* ── Operational insights table ── */
+function renderReportInsightsTable(fromDate, toDate) {
   const tbody = document.querySelector('#reportInsightsTable tbody');
   if (!tbody) return;
 
-  const completedSales = sales.filter(sale => (sale.status || '').toUpperCase() === 'COMPLETED');
-  const pendingSales = sales.filter(sale => (sale.status || '').toUpperCase() === 'PENDING');
+  const sales     = getAnalyticsSales(fromDate, toDate);
+  const completed = sales.filter(s => (s.status || '').toUpperCase() === 'COMPLETED');
+  const pending   = sales.filter(s => (s.status || '').toUpperCase() === 'PENDING');
+  const discount  = getTotalDiscount(fromDate, toDate);
+
+  const uniqueProducts = new Set(
+    sales.flatMap(s => Array.isArray(s.items) ? s.items.map(i => i.name) : [])
+  ).size;
+
+  const uniqueCustomers = new Set(
+    sales.map(s => s.customer?.name || s.customerName || 'Walk-in Customer')
+  ).size;
 
   const rows = [
-    ['Completed Sales', completedSales.length],
-    ['Pending Orders', pendingSales.length],
-    ['Unique Products Sold', new Set(sales.flatMap(sale => Array.isArray(sale.items) ? sale.items.map(i => i.name) : [])).size],
-    ['Unique Customers', new Set(sales.map(sale => sale.customer?.name || sale.customerName || '')).size]
+    ['Completed Sales',      completed.length],
+    ['Pending Orders',       pending.length],
+    ['Unique Products Sold', uniqueProducts],
+    ['Unique Customers',     uniqueCustomers],
+    ['Total Discount Given', formatCurrency(discount)]
   ];
 
   tbody.innerHTML = '';
@@ -317,49 +322,17 @@ function renderReportInsightsTable(sales) {
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${escapeHtml(metric)}</td>
-      <td>${value}</td>
-    `;
+      <td style="font-weight:700;">${value}</td>`;
     tbody.appendChild(row);
   });
 }
 
-function exportSalesReport() {
-  const sales = getSales();
-  const lines = [
-    ['Receipt', 'Date', 'Payment', 'Status', 'Subtotal', 'Discount', 'Tax', 'Total'].join(',')
-  ];
-
-  sales.forEach(sale => {
-    const saleDate = new Date(sale.audit?.completedAt || sale.completedAt || sale.createdAt || Date.now());
-    lines.push([
-      sale.receiptNumber || sale.id || '',
-      saleDate.toISOString(),
-      sale.paymentMethod || sale.payment?.method || '',
-      sale.status || '',
-      Number(sale.subtotal ?? sale.totals?.subtotal ?? 0),
-      Number(sale.discount ?? sale.totals?.discount ?? 0),
-      Number(sale.tax ?? sale.totals?.tax ?? 0),
-      Number(sale.total ?? sale.totals?.total ?? 0)
-    ].join(','));
-  });
-
-  downloadTextFile(`sales-report-${Date.now()}.csv`, lines.join('\n'));
-  showNotification('Sales report exported', 'success');
-}
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-window.getSales = getSales;
-window.calculateReportMetrics = calculateReportMetrics;
-window.refreshDashboard = refreshDashboard;
-window.renderTopProducts = renderTopProducts;
-window.renderReports = renderReports;
-window.exportSalesReport = exportSalesReport;
-window.renderLowStockDashboard = renderLowStockDashboard;
+/* ── Exports ── */
+window.renderReports              = renderReports;
+window.renderReportKPIs           = renderReportKPIs;
+window.renderRevenueChart         = renderRevenueChart;
+window.renderHourlySalesChart     = renderHourlySalesChart;
+window.renderPaymentBreakdown     = renderPaymentBreakdown;
+window.renderReportProductsTable  = renderReportProductsTable;
+window.renderIngredientUsageTable = renderIngredientUsageTable;
+window.renderReportInsightsTable  = renderReportInsightsTable;
