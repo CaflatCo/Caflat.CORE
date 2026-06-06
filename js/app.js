@@ -43,6 +43,7 @@ function renderEverything() {
     'renderSupplyView',
     'renderClientsList',
     'applySupplierModeToggle',
+    'applySupplierCartButton',
     'renderCart',
     'refreshDashboard',
     'renderReports'

@@ -32,7 +32,8 @@ function bindPrimaryButtons() {
     ['heldOrdersBtn',     () => openHeldOrdersModal()],
     ['holdOrderBtn',      () => holdOrder()],
     ['importDataBtn',     () => document.getElementById('importDataInput')?.click()],
-    ['addSupplyOrderBtn', () => openSupplyOrderModal()],
+    ['addSupplyOrderBtn',    () => openSupplyOrderModal()],
+    ['supplierOrderBtn',     () => openSupplierOrderPrompt()],
     ['exportSupplyBtn',   () => exportSupplyCSV()],
     ['addClientBtn',      () => openClientModal()],
     ['saveSupplyOrderBtn',() => saveSupplyOrder()],
@@ -145,7 +146,9 @@ function bindDelegatedActions() {
       case 'confirm-void':          confirmVoid(); break;
 
       // Supply actions
-      case 'add-supply-order':       openSupplyOrderModal(); break;
+      case 'open-supplier-order-prompt': openSupplierOrderPrompt(); break;
+      case 'confirm-supplier-order':     confirmSupplierOrder(); break;
+      case 'add-supply-order':           openSupplyOrderModal(); break;
       case 'edit-supply-order':      openSupplyOrderModal(actionEl.dataset.id || ''); break;
       case 'delete-supply-order':    deleteSupplyOrder(actionEl.dataset.id || ''); break;
       case 'advance-supply-status':  advanceSupplyStatus(actionEl.dataset.id || ''); break;

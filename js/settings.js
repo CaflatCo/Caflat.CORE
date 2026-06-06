@@ -97,7 +97,8 @@ function saveSettings() {
   }));
 
   renderBranding();
-  if (typeof applySupplierModeToggle === 'function') applySupplierModeToggle();
+  if (typeof applySupplierModeToggle  === 'function') applySupplierModeToggle();
+  if (typeof applySupplierCartButton === 'function') applySupplierCartButton();
   showNotification('Settings saved', 'success');
 }
 
