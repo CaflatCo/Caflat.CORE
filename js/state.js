@@ -1,22 +1,11 @@
-/* ═══════════════════════════════════════════════════════
-   STATE.JS — Central application state
-═══════════════════════════════════════════════════════ */
-
 const APP_STATE = {
   currentUserRole: 'STAFF',
 
   settings: {
-    brandName: 'Caflat.Co POS',
+    brandName: 'Caflat.CoPOS v1',
     taxRate: 0,
-    receiptFooter: 'Thank you for choosing Caflat.Co',
-    currency: 'PHP',
-    orderTypes: ['Dine In', 'Take Out', 'Delivery'],
-    lowStockThreshold: 5,
-    voidPin: '000000',          // Admin void PIN — changeable in Settings
-    supplierModeEnabled: false  // Supplier Mode feature toggle
+    receiptFooter: 'Thank you for choosing Caflat.Co'
   },
-
-  receiptCounter: 0,            // Sequential permanent counter, never resets
 
   products: [],
   ingredients: [],
@@ -24,17 +13,15 @@ const APP_STATE = {
   cart: [],
   heldOrders: [],
   inventoryMovements: [],
-  auditLog: [],                 // Immutable audit trail
-  supplyOrders: [],             // Supplier order records
-  supplierClients: [],          // B2B client list
-  supplyInvoiceCounter: 0,      // Sequential invoice counter
-  categories: ['Cookies', 'Chewy Cookies', 'Drinks'],
+  categories: [
+    'Cookies',
+    'Chewy Cookies',
+    'Drinks'
+  ],
 
   ui: {
     currentView: 'pos',
-    activeCategory: 'All',
-    orderType: 'Dine In',
-    posSearch: ''
+    activeCategory: 'All'
   }
 };
 
@@ -52,35 +39,15 @@ function resetState() {
   APP_STATE.cart = [];
   APP_STATE.heldOrders = [];
   APP_STATE.inventoryMovements = [];
-  APP_STATE.auditLog = [];
-  APP_STATE.receiptCounter = 0;
-  APP_STATE.categories = ['Cookies', 'Chewy Cookies', 'Drinks'];
-  APP_STATE.supplyOrders = [];
-  APP_STATE.supplierClients = [];
-  APP_STATE.supplyInvoiceCounter = 0;
+  APP_STATE.categories = [
+    'Cookies',
+    'Chewy Cookies',
+    'Drinks'
+  ];
+
   persistState();
 }
 
-/* ── Receipt number generator ── */
-function generateReceiptNumber() {
-  APP_STATE.receiptCounter = Number(APP_STATE.receiptCounter || 0) + 1;
-  const year = String(new Date().getFullYear()).slice(-2);  // "25"
-  const seq  = String(APP_STATE.receiptCounter).padStart(6, '0'); // "000001"
-  persistState();
-  return `CF-${year}-${seq}`;  // e.g. CF-25-000001
-}
-
-/* ── Supply invoice number generator ── */
-function generateInvoiceNumber() {
-  APP_STATE.supplyInvoiceCounter = Number(APP_STATE.supplyInvoiceCounter || 0) + 1;
-  const year = String(new Date().getFullYear()).slice(-2);
-  const seq  = String(APP_STATE.supplyInvoiceCounter).padStart(5, '0');
-  persistState();
-  return `INV-${year}-${seq}`;  // e.g. INV-25-00001
-}
-
-window.APP_STATE             = APP_STATE;
-window.updateState           = updateState;
-window.resetState            = resetState;
-window.generateReceiptNumber = generateReceiptNumber;
-window.generateInvoiceNumber = generateInvoiceNumber;
+window.APP_STATE = APP_STATE;
+window.updateState = updateState;
+window.resetState = resetState;

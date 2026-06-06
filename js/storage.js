@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════════════════════
-   STORAGE.JS — Persistence, import/export
-═══════════════════════════════════════════════════════ */
-
 const STORAGE_KEY = 'caflat_pos_v1';
 
 function getPersistedState() {
@@ -17,20 +13,18 @@ function getPersistedState() {
 
 function persistState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      settings:           APP_STATE.settings,
-      receiptCounter:     APP_STATE.receiptCounter,
-      products:           APP_STATE.products,
-      ingredients:        APP_STATE.ingredients,
-      sales:              APP_STATE.sales,
-      categories:         APP_STATE.categories,
-      heldOrders:         APP_STATE.heldOrders,
-      inventoryMovements: APP_STATE.inventoryMovements,
-      auditLog:           APP_STATE.auditLog,
-      supplyOrders:        APP_STATE.supplyOrders,
-      supplierClients:     APP_STATE.supplierClients,
-      supplyInvoiceCounter:APP_STATE.supplyInvoiceCounter
-    }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        settings: APP_STATE.settings,
+        products: APP_STATE.products,
+        ingredients: APP_STATE.ingredients,
+        sales: APP_STATE.sales,
+        categories: APP_STATE.categories,
+        heldOrders: APP_STATE.heldOrders,
+        inventoryMovements: APP_STATE.inventoryMovements
+      })
+    );
   } catch (error) {
     console.error('Failed to persist state', error);
   }
@@ -40,99 +34,93 @@ function restorePersistedState() {
   const persisted = getPersistedState();
   if (!persisted) return;
 
-  // Merge settings carefully so new keys (voidPin) get defaults if missing
-  APP_STATE.settings = Object.assign({
-    brandName: 'Caflat.Co POS',
-    taxRate: 0,
-    receiptFooter: 'Thank you for choosing Caflat.Co',
-    currency: 'PHP',
-    orderTypes: ['Dine In', 'Take Out', 'Delivery'],
-    lowStockThreshold: 5,
-    voidPin: '000000',
-    supplierModeEnabled: false
-  }, persisted.settings || {});
-
-  APP_STATE.receiptCounter     = Number(persisted.receiptCounter || 0);
-  APP_STATE.products           = Array.isArray(persisted.products)           ? persisted.products           : [];
-  APP_STATE.ingredients        = Array.isArray(persisted.ingredients)        ? persisted.ingredients        : [];
-  APP_STATE.sales              = Array.isArray(persisted.sales)              ? persisted.sales              : [];
-  APP_STATE.categories         = Array.isArray(persisted.categories)         ? persisted.categories         : APP_STATE.categories;
-  APP_STATE.heldOrders         = Array.isArray(persisted.heldOrders)        ? persisted.heldOrders         : [];
+  APP_STATE.settings = persisted.settings || APP_STATE.settings;
+  APP_STATE.products = Array.isArray(persisted.products) ? persisted.products : [];
+  APP_STATE.ingredients = Array.isArray(persisted.ingredients) ? persisted.ingredients : [];
+  APP_STATE.sales = Array.isArray(persisted.sales) ? persisted.sales : [];
+  APP_STATE.categories = Array.isArray(persisted.categories) ? persisted.categories : APP_STATE.categories;
+  APP_STATE.heldOrders = Array.isArray(persisted.heldOrders) ? persisted.heldOrders : [];
   APP_STATE.inventoryMovements = Array.isArray(persisted.inventoryMovements) ? persisted.inventoryMovements : [];
-  APP_STATE.auditLog             = Array.isArray(persisted.auditLog)           ? persisted.auditLog           : [];
-  APP_STATE.supplyOrders         = Array.isArray(persisted.supplyOrders)       ? persisted.supplyOrders       : [];
-  APP_STATE.supplierClients      = Array.isArray(persisted.supplierClients)    ? persisted.supplierClients    : [];
-  APP_STATE.supplyInvoiceCounter = Number(persisted.supplyInvoiceCounter || 0);
 }
 
-/* ── Export full backup ── */
 function exportAllData() {
-  const data = {
+  const payload = {
     exportedAt: new Date().toISOString(),
-    version: 'v1B',
-    settings: APP_STATE.settings,
-    receiptCounter: APP_STATE.receiptCounter,
-    products: APP_STATE.products,
-    ingredients: APP_STATE.ingredients,
-    sales: APP_STATE.sales,
-    categories: APP_STATE.categories,
-    heldOrders: APP_STATE.heldOrders,
-    inventoryMovements: APP_STATE.inventoryMovements,
-    auditLog: APP_STATE.auditLog,
-    supplyOrders: APP_STATE.supplyOrders,
-    supplierClients: APP_STATE.supplierClients,
-    supplyInvoiceCounter: APP_STATE.supplyInvoiceCounter
-  };
-  downloadTextFile(`caflat-backup-${Date.now()}.json`, JSON.stringify(data, null, 2));
-  showNotification('Backup exported', 'success');
-}
-
-/* ── Import backup ── */
-function importAllData(file) {
-  const reader = new FileReader();
-  reader.onload = event => {
-    try {
-      const data = JSON.parse(event.target.result);
-      if (!data.products && !data.sales) {
-        showNotification('Invalid backup file', 'error');
-        return;
-      }
-      if (!confirm('This will replace all current data. Continue?')) return;
-
-      APP_STATE.settings           = Object.assign({ voidPin: '000000' }, data.settings || {});
-      APP_STATE.receiptCounter     = Number(data.receiptCounter || 0);
-      APP_STATE.products           = Array.isArray(data.products)           ? data.products           : [];
-      APP_STATE.ingredients        = Array.isArray(data.ingredients)        ? data.ingredients        : [];
-      APP_STATE.sales              = Array.isArray(data.sales)              ? data.sales              : [];
-      APP_STATE.categories         = Array.isArray(data.categories)         ? data.categories         : [];
-      APP_STATE.heldOrders         = Array.isArray(data.heldOrders)         ? data.heldOrders         : [];
-      APP_STATE.inventoryMovements = Array.isArray(data.inventoryMovements) ? data.inventoryMovements : [];
-      APP_STATE.auditLog             = Array.isArray(data.auditLog)           ? data.auditLog           : [];
-      APP_STATE.supplyOrders         = Array.isArray(data.supplyOrders)       ? data.supplyOrders       : [];
-      APP_STATE.supplierClients      = Array.isArray(data.supplierClients)    ? data.supplierClients    : [];
-      APP_STATE.supplyInvoiceCounter = Number(data.supplyInvoiceCounter || 0);
-
-      persistState();
-      if (typeof renderEverything === 'function') renderEverything();
-      showNotification('Backup imported successfully', 'success');
-    } catch (err) {
-      showNotification('Failed to import — invalid file', 'error');
+    data: {
+      settings: APP_STATE.settings,
+      products: APP_STATE.products,
+      ingredients: APP_STATE.ingredients,
+      sales: APP_STATE.sales,
+      categories: APP_STATE.categories,
+      heldOrders: APP_STATE.heldOrders,
+      inventoryMovements: APP_STATE.inventoryMovements
     }
   };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = `caflat-backup-${Date.now()}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function importAllData(file) {
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = event => {
+    try {
+      const parsed = JSON.parse(event.target.result);
+      const data = parsed.data || {};
+
+      APP_STATE.settings = data.settings || APP_STATE.settings;
+      APP_STATE.products = Array.isArray(data.products) ? data.products : [];
+      APP_STATE.ingredients = Array.isArray(data.ingredients) ? data.ingredients : [];
+      APP_STATE.sales = Array.isArray(data.sales) ? data.sales : [];
+      APP_STATE.categories = Array.isArray(data.categories) ? data.categories : APP_STATE.categories;
+      APP_STATE.heldOrders = Array.isArray(data.heldOrders) ? data.heldOrders : [];
+      APP_STATE.inventoryMovements = Array.isArray(data.inventoryMovements) ? data.inventoryMovements : [];
+
+      persistState();
+
+      if (typeof renderEverything === 'function') {
+        renderEverything();
+      }
+
+      showNotification('Backup imported successfully', 'success');
+    } catch (error) {
+      console.error('Import failed', error);
+      showNotification('Invalid backup file', 'error');
+    }
+  };
+
   reader.readAsText(file);
 }
 
-/* ── Reset business data ── */
+window.persistState = persistState;
+window.restorePersistedState = restorePersistedState;
+window.exportAllData = exportAllData;
+window.importAllData = importAllData;
+
+
 function resetBusinessData() {
-  if (typeof resetState === 'function') resetState();
+  const settings = APP_STATE.settings;
   localStorage.removeItem(STORAGE_KEY);
-  if (typeof renderEverything === 'function') renderEverything();
-  showNotification('All data reset', 'info');
+  APP_STATE.settings = settings;
+  APP_STATE.products = [];
+  APP_STATE.ingredients = [];
+  APP_STATE.sales = [];
+  APP_STATE.categories = [];
+  APP_STATE.heldOrders = [];
+  APP_STATE.inventoryMovements = [];
+  persistState();
+  location.reload();
 }
 
-window.getPersistedState    = getPersistedState;
-window.persistState         = persistState;
-window.restorePersistedState= restorePersistedState;
-window.exportAllData        = exportAllData;
-window.importAllData        = importAllData;
-window.resetBusinessData    = resetBusinessData;
+window.resetBusinessData = resetBusinessData;

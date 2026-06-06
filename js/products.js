@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════════════════════
-   PRODUCTS.JS — Product management + POS product grid
-═══════════════════════════════════════════════════════ */
-
 function getProducts() {
   return Array.isArray(APP_STATE.products) ? APP_STATE.products : [];
 }
@@ -10,7 +6,7 @@ function setProducts(products) {
   updateState('products', () => Array.isArray(products) ? products : []);
   renderProductsTable();
   renderPOSProducts();
-  if (typeof refreshDashboard === 'function') refreshDashboard();
+  refreshDashboard();
 }
 
 function getProductFormData() {
@@ -18,32 +14,33 @@ function getProductFormData() {
     id: getElementValue('productId') || generateId(),
     name: sanitizeText(getElementValue('productName')),
     category: sanitizeText(getElementValue('productCategory')),
+    description: sanitizeText(getElementValue('productDescription')),
     price: safeNumber(getElementValue('productPrice')),
     stock: safeNumber(getElementValue('productStock')),
     reorderLevel: safeNumber(getElementValue('productReorderLevel')),
     variantType: getElementValue('variantType') || 'custom',
     variants: collectVariants(),
     recipe: collectRecipeRows(),
-    recipeMode: getElementValue('recipeMode') || 'unit',
-    batchYield: safeNumber(getElementValue('batchYield')) || 1,
     createdAt: new Date().toISOString()
   };
 }
 
 function collectVariants() {
-  return Array.from(document.querySelectorAll('.variant-row'))
+  const rows = document.querySelectorAll('.variant-row');
+  return Array.from(rows)
     .map(row => {
       const name = sanitizeText(row.querySelector('.variant-name')?.value);
       const price = safeNumber(row.querySelector('.variant-price')?.value);
       if (!name) return null;
-      const multiplier = safeNumber(row.querySelector('.variant-multiplier')?.value) || 1;
+      const multiplier = safeNumber(row.querySelector('.variant-multiplier')?.value)||1;
       return { id: row.dataset.variantId || generateId(), name, price, multiplier };
     })
     .filter(Boolean);
 }
 
 function collectRecipeRows() {
-  return Array.from(document.querySelectorAll('.recipe-row'))
+  const rows = document.querySelectorAll('.recipe-row');
+  return Array.from(rows)
     .map(row => {
       const ingredientId = row.querySelector('.recipe-ingredient')?.value;
       const quantity = safeNumber(row.querySelector('.recipe-qty')?.value);
@@ -55,56 +52,94 @@ function collectRecipeRows() {
 
 function saveProduct() {
   const data = getProductFormData();
-  if (!data.name) { showNotification('Product name is required', 'error'); return; }
-  if (!data.category) { showNotification('Category is required', 'error'); return; }
+
+  if (!data.name) {
+    showNotification('Product name is required', 'error');
+    return;
+  }
+
+  if (!data.category) {
+    showNotification('Category is required', 'error');
+    return;
+  }
 
   const products = getProducts();
-  const idx = products.findIndex(p => String(p.id) === String(data.id));
-  if (idx >= 0) products[idx] = data;
-  else products.push(data);
+  const existingIndex = products.findIndex(product => String(product.id) === String(data.id));
+
+  if (existingIndex >= 0) {
+    products[existingIndex] = data;
+  } else {
+    products.push(data);
+  }
 
   setProducts(products);
   closeModal('productModal');
   clearProductForm();
-  showNotification('Product saved', 'success');
+  showNotification('Product saved successfully', 'success');
 }
 
 function clearProductForm() {
-  ['productId','productName','productCategory','productPrice','productStock','productReorderLevel','batchYield'].forEach(id => setElementValue(id, ''));
-  const vb = document.getElementById('variantBuilder'); if (vb) vb.innerHTML = '';
-  const rb = document.getElementById('recipeBuilder'); if (rb) rb.innerHTML = '';
+  setElementValue('productId', '');
+  setElementValue('productName', '');
+  setElementValue('productCategory', '');
+  setElementValue('productDescription', '');
+  setElementValue('productPrice', '');
+  setElementValue('productStock', '');
+  setElementValue('productReorderLevel', '');
+
+  const variantContainer = document.getElementById('variantBuilder');
+  if (variantContainer) variantContainer.innerHTML = '';
+
+  const recipeContainer = document.getElementById('recipeBuilder');
+  if (recipeContainer) recipeContainer.innerHTML = '';
 }
 
 function openProductModal(productId = null) {
   clearProductForm();
+
   if (productId) {
-    const product = getProducts().find(p => String(p.id) === String(productId));
-    if (product) hydrateProductForm(product);
+    const product = getProducts().find(item => String(item.id) === String(productId));
+    if (product) {
+      hydrateProductForm(product);
+      // Trigger after DOM settles so dropdowns are populated
+      setTimeout(() => {
+        if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+      }, 50);
+    }
+  } else {
+    // Reset preview for new product
+    const container = document.getElementById('productCostPreview');
+    if (container) container.innerHTML = '';
   }
+
   openModal('productModal');
 }
 
 function hydrateProductForm(product) {
   setElementValue('productId', product.id);
   setElementValue('productName', product.name);
+  setElementValue('productCategory', product.category);
+  setElementValue('productDescription', product.description);
   setElementValue('productPrice', product.price);
   setElementValue('productStock', product.stock);
   setElementValue('productReorderLevel', product.reorderLevel);
   setElementValue('variantType', product.variantType || 'custom');
-  setElementValue('recipeMode', product.recipeMode || 'unit');
-  setElementValue('batchYield', product.batchYield || 1);
 
-  // category
-  const catSelect = document.getElementById('productCategory');
-  if (catSelect) catSelect.value = product.category;
+  if (Array.isArray(product.variants)) {
+    product.variants.forEach(variant => addVariantRow(variant));
+  }
 
-  if (Array.isArray(product.variants)) product.variants.forEach(v => addVariantRow(v));
-  if (Array.isArray(product.recipe)) product.recipe.forEach(r => addRecipeRow(r));
+  if (Array.isArray(product.recipe)) {
+    product.recipe.forEach(recipeItem => addRecipeRow(recipeItem));
+  }
 }
 
 function deleteProduct(productId) {
-  if (!confirm('Delete this product?')) return;
-  setProducts(getProducts().filter(p => String(p.id) !== String(productId)));
+  const confirmed = confirm('Delete this product?');
+  if (!confirmed) return;
+
+  const filtered = getProducts().filter(product => String(product.id) !== String(productId));
+  setProducts(filtered);
   showNotification('Product deleted', 'success');
 }
 
@@ -115,40 +150,51 @@ function renderProductsTable() {
   const search = sanitizeText(getElementValue('productSearch')).toLowerCase();
   const category = getElementValue('productCategoryFilter');
 
-  const products = getProducts().filter(p => {
-    const matchesSearch = !search || p.name.toLowerCase().includes(search);
-    const matchesCategory = !category || category === 'All' || p.category === category;
+  const products = getProducts().filter(product => {
+    const matchesSearch = !search || product.name.toLowerCase().includes(search);
+    const matchesCategory = !category || category === 'All' || product.category === category;
     return matchesSearch && matchesCategory;
   });
 
   tableBody.innerHTML = '';
 
   if (!products.length) {
-    tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">No products found</td></tr>`;
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="7" class="empty-state">No products found</td>
+      </tr>
+    `;
     return;
   }
 
   products.forEach(product => {
-    const stock = Number(product.stock || 0);
-    const soldOut = stock <= 0;
-    const lowStock = !soldOut && stock <= Number(product.reorderLevel || 0);
+    const soldOut = Number(product.stock || 0) <= 0;
+    const lowStock = !soldOut && Number(product.stock || 0) <= Number(product.reorderLevel || 0);
     const row = document.createElement('tr');
-    if (soldOut) row.classList.add('sold-out-row');
-    else if (lowStock) row.classList.add('low-stock-row');
+    if (lowStock || soldOut) row.classList.add('low-stock-row');
 
     row.innerHTML = `
-      <td style="font-weight:700;">${escapeHtml(product.name)}</td>
+      <td>${escapeHtml(product.name)}</td>
       <td>${escapeHtml(product.category)}</td>
       <td>${formatCurrency(product.price)}</td>
-      <td style="font-variant-numeric:tabular-nums;">${product.stock}</td>
+      <td>${product.stock}</td>
       <td>${product.reorderLevel}</td>
-      <td>${soldOut ? `<span class="badge-sold-out">Sold Out</span>` : lowStock ? `<span class="badge-low-stock">Low Stock</span>` : `<span class="badge-ok">OK</span>`}</td>
+      <td>
+        ${soldOut
+          ? `<span class="badge-low-stock">SOLD OUT</span>`
+          : lowStock
+            ? `<span class="badge-low-stock">Low Stock</span>`
+            : `<span class="badge dark">OK</span>`
+        }
+      </td>
       <td>
         <div class="table-actions">
           <button type="button" class="btn btn-sm" data-action="edit-product" data-id="${product.id}">Edit</button>
           <button type="button" class="btn btn-sm btn-secondary" data-action="delete-product" data-id="${product.id}">Delete</button>
         </div>
-      </td>`;
+      </td>
+    `;
+
     tableBody.appendChild(row);
   });
 }
@@ -158,10 +204,7 @@ function renderPOSProducts() {
   if (!grid) return;
 
   const activeCategory = APP_STATE.ui?.activeCategory || 'All';
-  const searchQuery = (APP_STATE.ui?.posSearch || '').toLowerCase();
-
-  let products = getProducts().filter(p => activeCategory === 'All' || p.category === activeCategory);
-  if (searchQuery) products = products.filter(p => p.name.toLowerCase().includes(searchQuery));
+  const products = getProducts().filter(product => activeCategory === 'All' || product.category === activeCategory);
 
   grid.innerHTML = '';
 
@@ -170,51 +213,113 @@ function renderPOSProducts() {
     return;
   }
 
-  const cart = getCart();
-
   products.forEach(product => {
-    const stock = Number(product.stock || 0);
-    const soldOut = stock <= 0;
-    const lowStock = !soldOut && stock <= Number(product.reorderLevel || 0);
-    const cartQty = cart.filter(i => String(i.productId) === String(product.id)).reduce((s, i) => s + i.quantity, 0);
-    const hasVariants = Array.isArray(product.variants) && product.variants.length;
-
+    const soldOut = Number(product.stock || 0) <= 0;
+    const lowStock = !soldOut && Number(product.stock || 0) <= Number(product.reorderLevel || 0);
     const card = document.createElement('div');
-    card.className = `pos-product-card${lowStock ? ' low-stock' : ''}${soldOut ? ' out-of-stock' : ''}`;
+    card.className = `pos-product-card ${lowStock ? 'low-stock' : ''} ${soldOut ? 'out-of-stock' : ''}`;
 
     card.innerHTML = `
-      ${cartQty > 0 ? `<div class="pos-card-cart-qty">${cartQty}</div>` : ''}
       <div class="pos-card-top">
         <div class="pos-category-badge">${escapeHtml(product.category)}</div>
-        ${lowStock && !soldOut ? `<div class="pos-low-stock-pill">Low</div>` : ''}
+        
       </div>
+
       <div class="pos-product-body">
         <div class="pos-product-name">${escapeHtml(product.name)}</div>
+        
       </div>
-      <div class="pos-product-footer">
-        <div class="pos-product-footer-left">
-          <div class="pos-product-price">${formatCurrency(product.price)}</div>
-          <div class="pos-product-stock${lowStock ? ' low' : ''}">${soldOut ? 'SOLD OUT' : `${stock} left`}</div>
-        </div>
-        ${hasVariants && !soldOut ? `<button class="pos-options-btn" type="button" title="Options">&#x22EF;</button>` : ''}
-      </div>`;
 
-    // Ellipsis button opens variant selector; stopPropagation keeps card tap clean
-    if (hasVariants && !soldOut) {
-      card.querySelector('.pos-options-btn').addEventListener('click', e => {
+      <div class="pos-product-footer">
+        <div class="pos-product-price">${formatCurrency(product.price)}</div>
+        <div class="pos-product-stock">${soldOut ? 'SOLD OUT' : lowStock ? `${product.stock} LEFT • LOW` : `${product.stock} LEFT`}</div>
+      </div>
+    `;
+
+    if (Array.isArray(product.variants) && product.variants.length) {
+      const optionsBtn = document.createElement('button');
+      optionsBtn.className = 'pos-options-btn';
+      optionsBtn.textContent = 'Options';
+      optionsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         openVariantSelector(product.id);
       });
+      const category = card.querySelector('.product-category');
+      if (category && category.parentNode) {
+        category.parentNode.appendChild(optionsBtn);
+      } else {
+        const top=card.querySelector('.pos-card-top'); if(top) top.appendChild(optionsBtn); else card.appendChild(optionsBtn);
+      }
     }
 
-    // Card tap always adds base product to cart (spammable)
     if (!soldOut) {
-      card.addEventListener('click', () => addToCart(product.id));
-    }
+  card.addEventListener('click', () => {
+    addToCart(product.id);
+  });
+}
 
     grid.appendChild(card);
   });
 }
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+
+/* ── Product cost preview ── */
+function renderProductCostPreview() {
+  const container = document.getElementById('productCostPreview');
+  if (!container) return;
+
+  const cost  = calculateProductCostFromForm();    // analytics.js — single source
+  const price = Number(document.getElementById('productPrice')?.value || 0);
+  const profit = price - cost;
+  const margin = price > 0 ? (profit / price) * 100 : 0;
+  const hasRecipe = document.querySelectorAll('.recipe-row').length > 0;
+
+  if (!hasRecipe) {
+    container.innerHTML = `
+      <div class="cost-preview-empty">
+        Add recipe ingredients to see cost breakdown
+      </div>`;
+    return;
+  }
+
+  const profitColor = profit >= 0 ? 'var(--black)' : '#dc2626';
+  const marginColor = margin >= 0 ? 'var(--black)' : '#dc2626';
+
+  container.innerHTML = `
+    <div class="cost-preview-grid">
+      <div class="cost-preview-item">
+        <div class="cost-preview-label">Cost</div>
+        <div class="cost-preview-value">${formatCurrency(cost)}</div>
+      </div>
+      <div class="cost-preview-item">
+        <div class="cost-preview-label">Price</div>
+        <div class="cost-preview-value">${price > 0 ? formatCurrency(price) : '—'}</div>
+      </div>
+      <div class="cost-preview-item">
+        <div class="cost-preview-label">Profit</div>
+        <div class="cost-preview-value" style="color:${profitColor};">
+          ${price > 0 ? formatCurrency(profit) : '—'}
+        </div>
+      </div>
+      <div class="cost-preview-item">
+        <div class="cost-preview-label">Margin</div>
+        <div class="cost-preview-value" style="color:${marginColor};">
+          ${price > 0 ? margin.toFixed(1) + '%' : '—'}
+        </div>
+      </div>
+    </div>`;
+}
+
+window.renderProductCostPreview = renderProductCostPreview;
 
 window.getProducts = getProducts;
 window.setProducts = setProducts;

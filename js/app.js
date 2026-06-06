@@ -1,10 +1,9 @@
-/* ═══════════════════════════════════════════════════════
-   APP.JS — Bootstrap, render lifecycle, navigation
-═══════════════════════════════════════════════════════ */
-
 function initializeApp() {
   try {
-    if (typeof restorePersistedState === 'function') restorePersistedState();
+    if (typeof restorePersistedState === 'function') {
+      restorePersistedState();
+    }
+
     if (typeof initializeAuth === 'function') initializeAuth();
     if (typeof initializeUIActions === 'function') initializeUIActions();
     if (typeof initializeSales === 'function') initializeSales();
@@ -18,7 +17,7 @@ function initializeApp() {
     bindSearchFilters();
     setDefaultView();
 
-    console.log('Caflat.Co POS v1 initialized');
+    console.log('Caflat.Co POS initialized');
   } catch (error) {
     console.error('Initialization failed', error);
     showNotification('App initialization failed', 'error');
@@ -28,7 +27,6 @@ function initializeApp() {
 function renderEverything() {
   const renderCalls = [
     'renderCategoryTabs',
-    'renderOrderTypeTabs',
     'renderProductsTable',
     'renderPOSProducts',
     'renderIngredientsTable',
@@ -39,47 +37,37 @@ function renderEverything() {
     'renderIngredientDropdowns',
     'renderLowStockAlerts',
     'renderBranding',
-    'renderAuditLog',
-    'renderSupplyView',
-    'renderClientsList',
-    'applySupplierModeToggle',
-    'applySupplierCartButton',
     'renderCart',
     'refreshDashboard',
     'renderReports'
   ];
 
-  renderCalls.forEach(fn => {
-    if (typeof window[fn] === 'function') {
-      try { window[fn](); }
-      catch (e) { console.error(`Failed: ${fn}`, e); }
+  renderCalls.forEach(fnName => {
+    if (typeof window[fnName] === 'function') {
+      try {
+        window[fnName]();
+      } catch (error) {
+        console.error(`Failed to run ${fnName}`, error);
+      }
     }
   });
 }
 
 function bindGlobalEvents() {
   const productSearch = document.getElementById('productSearch');
+  const categoryFilter = document.getElementById('productCategoryFilter');
+
   if (productSearch) {
     productSearch.addEventListener('input', () => {
       if (typeof renderProductsTable === 'function') renderProductsTable();
+      if (typeof renderPOSProducts === 'function') renderPOSProducts();
     });
   }
 
-  // Void PIN live dot feedback
-  const voidPinInput = document.getElementById('voidPin');
-  if (voidPinInput) {
-    voidPinInput.addEventListener('input', () => {
-      if (typeof renderPinDots === 'function') renderPinDots(voidPinInput.value);
-    });
-    voidPinInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); if (typeof confirmVoid === 'function') confirmVoid(); }
-    });
-  }
-
-  const categoryFilter = document.getElementById('productCategoryFilter');
   if (categoryFilter) {
     categoryFilter.addEventListener('change', () => {
       if (typeof renderProductsTable === 'function') renderProductsTable();
+      if (typeof renderPOSProducts === 'function') renderPOSProducts();
     });
   }
 }
@@ -89,11 +77,14 @@ function bindSearchFilters() {
     ['productSearch', 'input'],
     ['productCategoryFilter', 'change']
   ];
+
   filters.forEach(([id, evt]) => {
     const el = document.getElementById(id);
     if (!el) return;
+
     el.addEventListener(evt, () => {
       if (typeof renderProductsTable === 'function') renderProductsTable();
+      if (typeof renderPOSProducts === 'function') renderPOSProducts();
     });
   });
 }
@@ -107,19 +98,47 @@ function bindModalClose() {
   });
 }
 
-function bindCheckoutInputs() {
-  const tenderedEl = document.getElementById('checkoutTendered');
-  if (tenderedEl) tenderedEl.addEventListener('input', calculateChange);
+function getCheckoutFieldIds() {
+  return {
+    tendered: ['checkoutTendered', 'amountTendered'],
+    change: ['checkoutChange', 'changeAmount'],
+    total: ['checkoutTotal'],
+    payment: ['checkoutPayment'],
+    reference: ['paymentReference'],
+    customer: ['checkoutCustomer']
+  };
+}
 
-  const paymentEl = document.getElementById('checkoutPayment');
-  if (paymentEl) paymentEl.addEventListener('change', togglePaymentFields);
+function bindCheckoutInputs() {
+  const ids = getCheckoutFieldIds();
+
+  [...ids.tendered, ...ids.change, ...ids.total].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', () => {
+        if (typeof calculateChange === 'function') calculateChange();
+      });
+    }
+  });
+
+  ids.payment.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', () => {
+        if (typeof togglePaymentFields === 'function') togglePaymentFields();
+      });
+    }
+  });
 }
 
 function bindNavigation() {
-  document.querySelectorAll('[data-view], [data-page]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.view || btn.dataset.page || '';
-      if (target) switchPage(target);
+  const navButtons = document.querySelectorAll('[data-view], [data-page]');
+
+  navButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const target = button.dataset.view || button.dataset.page || '';
+      if (!target) return;
+      switchPage(target);
     });
   });
 }
@@ -132,25 +151,28 @@ function switchPage(target) {
   const cleanTarget = normalizeTarget(target);
   if (!cleanTarget) return;
 
-  updateState('ui', current => ({ ...current, currentView: cleanTarget }));
+  updateState('ui', current => ({
+    ...current,
+    currentView: cleanTarget
+  }));
 
-  document.querySelectorAll('.view, .page').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('[data-view], [data-page]').forEach(b => b.classList.remove('active'));
+  const sections = document.querySelectorAll('.view, .page');
+  sections.forEach(section => section.classList.remove('active'));
+
+  const navButtons = document.querySelectorAll('[data-view], [data-page]');
+  navButtons.forEach(button => button.classList.remove('active'));
 
   const targetSection =
     document.getElementById(`view-${cleanTarget}`) ||
     document.getElementById(cleanTarget);
+
   if (targetSection) targetSection.classList.add('active');
 
   const activeButton =
     document.querySelector(`[data-view="${cleanTarget}"]`) ||
     document.querySelector(`[data-page="${cleanTarget}"]`);
-  if (activeButton) activeButton.classList.add('active');
 
-  // Trigger chart re-render on dashboard/reports switch
-  if (cleanTarget === 'dashboard' && typeof refreshDashboard  === 'function') refreshDashboard();
-  if (cleanTarget === 'reports'   && typeof renderReports      === 'function') renderReports();
-  if (cleanTarget === 'supply'    && typeof renderSupplyView   === 'function') renderSupplyView();
+  if (activeButton) activeButton.classList.add('active');
 }
 
 function setDefaultView() {
@@ -160,12 +182,12 @@ function setDefaultView() {
 
 document.addEventListener('DOMContentLoaded', initializeApp);
 
-window.initializeApp   = initializeApp;
-window.renderEverything= renderEverything;
-window.bindGlobalEvents= bindGlobalEvents;
-window.bindSearchFilters=bindSearchFilters;
-window.bindModalClose  = bindModalClose;
-window.bindCheckoutInputs=bindCheckoutInputs;
-window.bindNavigation  = bindNavigation;
-window.switchPage      = switchPage;
-window.switchView      = switchPage;
+window.initializeApp = initializeApp;
+window.renderEverything = renderEverything;
+window.bindGlobalEvents = bindGlobalEvents;
+window.bindSearchFilters = bindSearchFilters;
+window.bindModalClose = bindModalClose;
+window.bindCheckoutInputs = bindCheckoutInputs;
+window.bindNavigation = bindNavigation;
+window.switchPage = switchPage;
+window.switchView = switchPage;
