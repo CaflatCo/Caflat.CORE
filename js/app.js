@@ -39,6 +39,7 @@ function renderEverything() {
     'renderIngredientDropdowns',
     'renderLowStockAlerts',
     'renderBranding',
+    'renderAuditLog',
     'renderCart',
     'refreshDashboard',
     'renderReports'
@@ -57,6 +58,17 @@ function bindGlobalEvents() {
   if (productSearch) {
     productSearch.addEventListener('input', () => {
       if (typeof renderProductsTable === 'function') renderProductsTable();
+    });
+  }
+
+  // Void PIN live dot feedback
+  const voidPinInput = document.getElementById('voidPin');
+  if (voidPinInput) {
+    voidPinInput.addEventListener('input', () => {
+      if (typeof renderPinDots === 'function') renderPinDots(voidPinInput.value);
+    });
+    voidPinInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); if (typeof confirmVoid === 'function') confirmVoid(); }
     });
   }
 

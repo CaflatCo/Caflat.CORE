@@ -79,11 +79,18 @@ function saveSettings() {
   const taxRate      = safeNumber(getElementValue('settingsTaxRate'));
   const receiptFooter = sanitizeText(getElementValue('settingsReceiptFooter'));
 
+  const voidPin = String(getElementValue('settingsVoidPin') || '').trim();
+  if (voidPin && (voidPin.length !== 6 || !/^\d{6}$/.test(voidPin))) {
+    showNotification('Void PIN must be exactly 6 digits', 'error');
+    return;
+  }
+
   updateState('settings', current => ({
     ...current,
     brandName: brandName || current.brandName,
     taxRate,
-    receiptFooter
+    receiptFooter,
+    ...(voidPin ? { voidPin } : {})
   }));
 
   renderBranding();
@@ -99,6 +106,11 @@ function renderBranding() {
   if (taxInput) taxInput.value = APP_STATE.settings?.taxRate ?? 0;
   const footerInput = document.getElementById('settingsReceiptFooter');
   if (footerInput) footerInput.value = APP_STATE.settings?.receiptFooter || '';
+
+  // Void PIN — show placeholder only, never expose stored value
+  const voidPinInput = document.getElementById('settingsVoidPin');
+  if (voidPinInput) voidPinInput.value = '';
+  voidPinInput && voidPinInput.setAttribute('placeholder', '••••••  (enter new PIN to change)');
 }
 
 function escapeHtml(value) {

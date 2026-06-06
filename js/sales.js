@@ -338,7 +338,7 @@ function buildTransactionSnapshot({ status, paymentStatus, paymentMethod, tender
   const tax = calculateCartTax();
   const total = Math.max(0, subtotal - discount + tax);
   const timestamp = new Date().toISOString();
-  const receiptNumber = `RCPT-${Date.now()}`;
+  const receiptNumber = generateReceiptNumber();
   const orderType = APP_STATE.ui?.orderType || 'Dine In';
 
   return {
@@ -587,13 +587,16 @@ function renderSalesTable() {
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(itemSummary)}">${escapeHtml(itemSummary)}</td>
       <td>${formatCurrency(sale.totals?.total ?? sale.total ?? 0)}</td>
       <td>${escapeHtml((sale.payment?.method || sale.paymentMethod || 'cash').toUpperCase())}</td>
-      <td><span class="${statusClass}">${escapeHtml(sale.status || 'COMPLETED')}</span></td>
+      <td><span class="${(sale.status||'').toUpperCase()==='VOIDED' ? 'badge-voided' : statusClass}">${escapeHtml(sale.status || 'COMPLETED')}</span></td>
       <td>
         <div class="table-actions">
           ${(sale.status||'').toUpperCase()==='PENDING'
             ? `<button type="button" class="btn btn-sm" data-action="complete-pending-sale" data-id="${sale.id}">Complete</button>
                <button type="button" class="btn btn-sm btn-secondary" data-action="cancel-pending-sale" data-id="${sale.id}">Cancel</button>`
-            : `<button type="button" class="btn btn-sm btn-secondary" data-action="open-sale-receipt" data-id="${sale.id}">Receipt</button>`}
+            : (sale.status||'').toUpperCase()==='VOIDED'
+              ? `<button type="button" class="btn btn-sm btn-secondary" data-action="open-sale-receipt" data-id="${sale.id}">Receipt</button>`
+              : `<button type="button" class="btn btn-sm btn-secondary" data-action="open-sale-receipt" data-id="${sale.id}">Receipt</button>
+                 <button type="button" class="btn btn-sm btn-danger" data-action="open-void-modal" data-id="${sale.id}">Void</button>`}
         </div>
       </td>`;
     tableBody.appendChild(row);

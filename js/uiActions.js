@@ -126,6 +126,8 @@ function bindDelegatedActions() {
       case 'complete-pending-sale': completePendingSale(actionEl.dataset.id || ''); break;
       case 'cancel-pending-sale':   cancelPendingSale(actionEl.dataset.id || ''); break;
       case 'open-sale-receipt':     openSaleReceipt(actionEl.dataset.id || ''); break;
+      case 'open-void-modal':       openVoidModal(actionEl.dataset.id || ''); break;
+      case 'confirm-void':          confirmVoid(); break;
       case 'delete-category':       deleteCategory(actionEl.dataset.category || ''); break;
       case 'quick-amount':          setQuickAmount(Number(actionEl.dataset.amount)); break;
       default: break;
