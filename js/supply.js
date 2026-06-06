@@ -592,7 +592,21 @@ function renderSupplierOrderCartSummary(cart) {
       </div>`;
   }).join('');
 
-  if (totalEl) totalEl.textContent = formatCurrency(grandTotal);
+  // Show discount line if a discount is active
+  const discount = typeof calculateCartDiscount === 'function' ? calculateCartDiscount() : 0;
+  const tax      = typeof calculateCartTax      === 'function' ? calculateCartTax()      : 0;
+  const finalTotal = Math.max(0, grandTotal - discount + tax);
+
+  if (discount > 0) {
+    container.innerHTML += `
+      <div style="display:flex;justify-content:space-between;padding:5px 0;
+        font-size:12px;color:var(--warning);">
+        <span style="font-weight:700;">Discount Applied</span>
+        <span style="font-weight:800;">-${formatCurrency(discount)}</span>
+      </div>`;
+  }
+
+  if (totalEl) totalEl.textContent = formatCurrency(finalTotal);
 }
 
 function confirmSupplierOrder() {
@@ -608,7 +622,7 @@ function confirmSupplierOrder() {
   const client    = getSupplierClients().find(c => String(c.id) === String(clientId));
   const timestamp = new Date().toISOString();
 
-  // Convert cart lines to supply line items (use retail price as starting point)
+  // Convert cart lines to supply line items (retail price as starting point)
   const items = cart.map(item => ({
     description: item.name,
     qty:         Number(item.quantity || 0) * Number(item.multiplier || 1),
@@ -616,7 +630,11 @@ function confirmSupplierOrder() {
     total:       Number(item.price || 0) * Number(item.quantity || 0)
   }));
 
-  const grandTotal = items.reduce((s, i) => s + i.total, 0);
+  // Apply cart discount to grand total (mirrors checkout behaviour)
+  const subtotal    = items.reduce((s, i) => s + i.total, 0);
+  const discount    = typeof calculateCartDiscount === 'function' ? calculateCartDiscount() : 0;
+  const tax         = typeof calculateCartTax      === 'function' ? calculateCartTax()      : 0;
+  const grandTotal  = Math.max(0, subtotal - discount + tax);
 
   const newOrder = {
     id:            generateId(),
@@ -627,6 +645,9 @@ function confirmSupplierOrder() {
     deliveryDate:  deliveryDate || '',
     notes,
     items,
+    subtotal,
+    discount,
+    tax,
     grandTotal,
     status:        'ORDERED',   // Cart → Supply skips DRAFTED, starts at ORDERED
     statusHistory: [
