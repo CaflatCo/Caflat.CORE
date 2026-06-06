@@ -113,7 +113,7 @@
             <span style="font-size:11px;color:var(--gray-400);">All-time overview</span>
           </div>
 
-          <div class="stats-grid">
+          <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
             <div class="stat-card dark">
               <div class="label">Total Revenue</div>
               <div class="value" id="dashboardTotalSales">₱0.00</div>
@@ -129,10 +129,22 @@
               <div class="value" id="dashboardItemsSold">0</div>
               <div class="sub">Units moved</div>
             </div>
+          </div>
+          <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px;">
             <div class="stat-card">
               <div class="label">Avg Order</div>
               <div class="value" id="dashboardAverageOrder">₱0.00</div>
               <div class="sub">Per transaction</div>
+            </div>
+            <div class="stat-card" id="dashboardPendingCard">
+              <div class="label">Pending Orders</div>
+              <div class="value" id="dashboardPendingOrders">0</div>
+              <div class="sub">Awaiting completion</div>
+            </div>
+            <div class="stat-card" id="dashboardStockCard">
+              <div class="label">Stock Alerts</div>
+              <div class="value" id="dashboardLowStockCount">0</div>
+              <div class="sub">Items at reorder level</div>
             </div>
           </div>
 
@@ -608,6 +620,7 @@
   <script src="./js/storage.js"></script>
   <script src="./js/auth.js"></script>
   <script src="./js/analytics.js"></script>
+  <script src="./js/dashboard.js"></script>
   <script src="./js/products.js"></script>
   <script src="./js/ingredients.js"></script>
   <script src="./js/inventory.js"></script>
