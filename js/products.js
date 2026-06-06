@@ -133,7 +133,8 @@ function renderProductsTable() {
     const soldOut = stock <= 0;
     const lowStock = !soldOut && stock <= Number(product.reorderLevel || 0);
     const row = document.createElement('tr');
-    if (lowStock || soldOut) row.classList.add('low-stock-row');
+    if (soldOut) row.classList.add('sold-out-row');
+    else if (lowStock) row.classList.add('low-stock-row');
 
     row.innerHTML = `
       <td style="font-weight:700;">${escapeHtml(product.name)}</td>
@@ -141,7 +142,7 @@ function renderProductsTable() {
       <td>${formatCurrency(product.price)}</td>
       <td style="font-variant-numeric:tabular-nums;">${product.stock}</td>
       <td>${product.reorderLevel}</td>
-      <td>${soldOut ? `<span class="badge-low-stock">Sold Out</span>` : lowStock ? `<span class="badge-low-stock">Low Stock</span>` : `<span class="badge-ok">OK</span>`}</td>
+      <td>${soldOut ? `<span class="badge-sold-out">Sold Out</span>` : lowStock ? `<span class="badge-low-stock">Low Stock</span>` : `<span class="badge-ok">OK</span>`}</td>
       <td>
         <div class="table-actions">
           <button type="button" class="btn btn-sm" data-action="edit-product" data-id="${product.id}">Edit</button>
