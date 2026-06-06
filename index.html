@@ -88,6 +88,19 @@
       box-shadow: 0 1px 3px rgba(0,0,0,.2);
     }
     .toggle-switch input:checked ~ .toggle-knob { transform: translateX(20px); }
+    /* Supplier order button */
+    .supplier-order-btn {
+      width: 100%; padding: 12px 16px;
+      background: var(--white); color: var(--black);
+      border: 1.5px solid var(--gray-300);
+      cursor: pointer; font-size: 10px; letter-spacing: 2px;
+      text-transform: uppercase; font-weight: 900;
+      border-radius: var(--radius-md); font-family: var(--font-main);
+      transition: all 0.15s ease;
+    }
+    .supplier-order-btn:hover {
+      border-color: var(--black); background: var(--gray-50);
+    }
     .pin-dots { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
     .pin-dot {
       width: 14px; height: 14px; border-radius: 50%;
@@ -204,6 +217,10 @@
                 <button type="button" id="heldOrdersBtn">Held&nbsp;<span id="heldOrdersBadge">0</span></button>
                 <button type="button" id="holdOrderBtn">Hold</button>
               </div>
+              <button class="supplier-order-btn" type="button" id="supplierOrderBtn"
+                style="display:none;" data-action="open-supplier-order-prompt">
+                Supply Order ↗
+              </button>
               <button class="checkout-btn" type="button" id="checkoutBtn">Checkout →</button>
             </div>
           </div>
@@ -867,6 +884,63 @@
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="clientModal">Cancel</button>
           <button class="btn" id="saveClientBtn" type="button">Save Client</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Supplier Order Prompt Modal -->
+    <div class="modal-overlay" id="supplierOrderPromptModal">
+      <div class="modal" style="max-width:520px;">
+        <h3>Convert Cart to Supply Order</h3>
+
+        <!-- Cart summary -->
+        <div class="void-summary" style="margin-bottom:16px;">
+          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;
+            font-weight:800;color:var(--gray-400);margin-bottom:10px;">Order Summary</div>
+          <div id="supplierOrderCartSummary"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;
+            padding-top:10px;margin-top:8px;border-top:1px solid var(--gray-200);">
+            <span style="font-size:10px;font-weight:800;letter-spacing:1px;
+              text-transform:uppercase;color:var(--gray-500);">Total</span>
+            <span id="supplierOrderCartTotal"
+              style="font-size:18px;font-weight:900;">₱0.00</span>
+          </div>
+        </div>
+
+        <div style="background:var(--warning-bg);border:1px solid var(--warning-border);
+          border-radius:var(--radius-md);padding:10px 14px;margin-bottom:16px;
+          font-size:11px;color:var(--warning);font-weight:700;">
+          ⚠ Stock will not be deducted until order is marked Delivered.
+        </div>
+
+        <div class="form-group">
+          <label>Client <span style="color:var(--danger);">*</span></label>
+          <select id="supplierOrderClientSelect" class="supply-client-select"></select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Expected Delivery Date</label>
+            <input id="supplierOrderDeliveryDate" type="date" />
+          </div>
+          <div class="form-group">
+            <label>Invoice Number</label>
+            <input id="supplierOrderInvoiceNum" type="text" readonly
+              style="background:var(--gray-50);font-family:var(--font-mono);font-weight:700;" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="supplierOrderNotes" rows="2"
+            placeholder="Special instructions, terms, etc."></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="supplierOrderPromptModal">Cancel</button>
+          <button class="btn" type="button"
+            data-action="confirm-supplier-order">Confirm Supply Order</button>
         </div>
       </div>
     </div>
