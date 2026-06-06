@@ -1,0 +1,167 @@
+/* ═══════════════════════════════════════════════════════
+   DASHBOARD.JS — Dashboard view rendering
+   Pure renderer. All data from analytics.js.
+   No calculations here.
+═══════════════════════════════════════════════════════ */
+
+let dashboardChartInstance = null;
+
+/* ── Entry point ── */
+function refreshDashboard() {
+  const kpi = getKPISummary();
+
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('dashboardTotalSales',  formatCurrency(kpi.revenue));
+  set('dashboardTotalOrders', kpi.orders);
+  set('dashboardItemsSold',   kpi.itemsSold);
+  set('dashboardAverageOrder',formatCurrency(kpi.avgTicket));
+
+  renderDashboardKPIAlerts(kpi);
+  renderTopProducts();
+  renderLowStockDashboard();
+  renderDashboardChart();
+}
+
+/* ── KPI alert badges ── */
+function renderDashboardKPIAlerts(kpi) {
+  const pendingEl = document.getElementById('dashboardPendingOrders');
+  if (pendingEl) pendingEl.textContent = kpi.pendingOrders;
+
+  const lowStockEl = document.getElementById('dashboardLowStockCount');
+  if (lowStockEl) lowStockEl.textContent = kpi.lowStockCount;
+
+  // Highlight alert cards
+  const pendingCard = document.getElementById('dashboardPendingCard');
+  if (pendingCard) {
+    pendingCard.classList.toggle('dashboard-alert', kpi.pendingOrders > 0);
+  }
+  const stockCard = document.getElementById('dashboardStockCard');
+  if (stockCard) {
+    stockCard.classList.toggle('dashboard-alert', kpi.lowStockCount > 0);
+  }
+}
+
+/* ── Sales trend chart ── */
+function renderDashboardChart() {
+  const canvas = document.getElementById('dashboardChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const trend = getDailySalesTrend();
+
+  if (dashboardChartInstance) {
+    dashboardChartInstance.destroy();
+    dashboardChartInstance = null;
+  }
+
+  if (!trend.labels.length) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '12px Nunito, sans-serif';
+    ctx.fillStyle = '#aaa';
+    ctx.textAlign = 'center';
+    ctx.fillText('No sales data yet', canvas.width / 2, canvas.height / 2);
+    return;
+  }
+
+  const labels = trend.labels.slice(-14);
+  const values = trend.values.slice(-14);
+  const shortLabels = labels.map(l =>
+    new Date(l).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
+  );
+
+  dashboardChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: shortLabels,
+      datasets: [{
+        label: 'Revenue',
+        data: values,
+        backgroundColor: '#000',
+        borderRadius: 4,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => formatCurrency(ctx.parsed.y) } }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 11 }, color: '#999' }
+        },
+        y: {
+          grid: { color: '#f0f0f0' },
+          ticks: {
+            font: { size: 11 }, color: '#999',
+            callback: v => '₱' + (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v)
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ── Top products widget ── */
+function renderTopProducts() {
+  const container = document.getElementById('topProductsContainer');
+  if (!container) return;
+
+  const top = getTopProducts(5);
+
+  if (!top.length) {
+    container.innerHTML = `<div class="empty-state">No sales yet — complete a sale to see rankings</div>`;
+    return;
+  }
+
+  container.innerHTML = top.map((item, i) => `
+    <div class="top-product-row">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:10px;font-weight:900;color:var(--gray-300);width:16px;text-align:right;">${i + 1}</span>
+        <div class="top-product-name">${escapeHtml(item.name)}</div>
+      </div>
+      <div class="top-product-qty">${item.qty} sold &middot; ${formatCurrency(item.revenue)}</div>
+    </div>`).join('');
+}
+
+/* ── Low stock widget ── */
+function renderLowStockDashboard() {
+  const container = document.getElementById('lowStockContainer');
+  if (!container) return;
+
+  const ingredientAlerts = getLowStockItems();
+  const productAlerts    = getLowStockProducts();
+
+  const all = [
+    ...ingredientAlerts.map(i => ({ name: i.name, stock: i.stock, unit: i.unit || '',    type: 'Ingredient' })),
+    ...productAlerts.map(p =>    ({ name: p.name, stock: p.stock, unit: 'units',          type: 'Product'    }))
+  ];
+
+  if (!all.length) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding:20px 0;">
+        All stock levels OK ✓
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = all.map(item => `
+    <div class="low-stock-card">
+      <div>
+        <div class="low-stock-name">${escapeHtml(item.name)}</div>
+        <div class="low-stock-meta" style="font-size:9px;letter-spacing:1px;text-transform:uppercase;">
+          ${escapeHtml(item.type)}
+        </div>
+      </div>
+      <div class="low-stock-meta">${item.stock} ${escapeHtml(item.unit)} left</div>
+    </div>`).join('');
+}
+
+/* ── Exports ── */
+window.refreshDashboard       = refreshDashboard;
+window.renderDashboardChart   = renderDashboardChart;
+window.renderTopProducts      = renderTopProducts;
+window.renderLowStockDashboard= renderLowStockDashboard;
