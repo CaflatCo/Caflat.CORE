@@ -40,6 +40,9 @@ function renderEverything() {
     'renderLowStockAlerts',
     'renderBranding',
     'renderAuditLog',
+    'renderSupplyView',
+    'renderClientsList',
+    'applySupplierModeToggle',
     'renderCart',
     'refreshDashboard',
     'renderReports'
@@ -144,8 +147,9 @@ function switchPage(target) {
   if (activeButton) activeButton.classList.add('active');
 
   // Trigger chart re-render on dashboard/reports switch
-  if (cleanTarget === 'dashboard' && typeof refreshDashboard === 'function') refreshDashboard();
-  if (cleanTarget === 'reports'   && typeof renderReports     === 'function') renderReports();
+  if (cleanTarget === 'dashboard' && typeof refreshDashboard  === 'function') refreshDashboard();
+  if (cleanTarget === 'reports'   && typeof renderReports      === 'function') renderReports();
+  if (cleanTarget === 'supply'    && typeof renderSupplyView   === 'function') renderSupplyView();
 }
 
 function setDefaultView() {

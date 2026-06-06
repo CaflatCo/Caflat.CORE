@@ -10,6 +10,7 @@ function initializeUIActions() {
   bindRecipeBuilder();
   bindDelegatedActions();
   bindPOSSearch();
+  bindSupplyFilters();
   renderCategoryTabs();
 }
 
@@ -31,6 +32,11 @@ function bindPrimaryButtons() {
     ['heldOrdersBtn',     () => openHeldOrdersModal()],
     ['holdOrderBtn',      () => holdOrder()],
     ['importDataBtn',     () => document.getElementById('importDataInput')?.click()],
+    ['addSupplyOrderBtn', () => openSupplyOrderModal()],
+    ['exportSupplyBtn',   () => exportSupplyCSV()],
+    ['addClientBtn',      () => openClientModal()],
+    ['saveSupplyOrderBtn',() => saveSupplyOrder()],
+    ['saveClientBtn',     () => saveSupplierClient()],
     ['exportDataBtn',     () => exportAllData()],
     ['exportDataBtnProducts', () => exportAllData()],
   ];
@@ -70,6 +76,15 @@ function bindVariantBuilder() {
 function bindRecipeBuilder() {
   const btn = document.getElementById('addRecipeBtn');
   if (btn) btn.addEventListener('click', () => addRecipeRow());
+}
+
+function bindSupplyFilters() {
+  ['supplyStatusFilter','supplyClientFilter','supplyFromDate','supplyToDate'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', () => {
+      if (typeof renderSupplyTable === 'function') renderSupplyTable();
+    });
+  });
 }
 
 function bindPOSSearch() {
@@ -128,6 +143,20 @@ function bindDelegatedActions() {
       case 'open-sale-receipt':     openSaleReceipt(actionEl.dataset.id || ''); break;
       case 'open-void-modal':       openVoidModal(actionEl.dataset.id || ''); break;
       case 'confirm-void':          confirmVoid(); break;
+
+      // Supply actions
+      case 'add-supply-order':       openSupplyOrderModal(); break;
+      case 'edit-supply-order':      openSupplyOrderModal(actionEl.dataset.id || ''); break;
+      case 'delete-supply-order':    deleteSupplyOrder(actionEl.dataset.id || ''); break;
+      case 'advance-supply-status':  advanceSupplyStatus(actionEl.dataset.id || ''); break;
+      case 'cancel-supply-order':    cancelSupplyOrder(actionEl.dataset.id || ''); break;
+      case 'save-supply-order':      saveSupplyOrder(); break;
+      case 'export-supply-csv':      exportSupplyCSV(); break;
+      case 'add-supply-line':        addSupplyLineItemRow(); break;
+      case 'add-client':             openClientModal(); break;
+      case 'edit-client':            openClientModal(actionEl.dataset.id || ''); break;
+      case 'delete-client':          deleteSupplierClient(actionEl.dataset.id || ''); break;
+      case 'save-client':            saveSupplierClient(); break;
       case 'delete-category':       deleteCategory(actionEl.dataset.category || ''); break;
       case 'quick-amount':          setQuickAmount(Number(actionEl.dataset.amount)); break;
       default: break;
@@ -275,3 +304,4 @@ window.renderOrderTypeTabs  = renderOrderTypeTabs;
 window.setActiveCategory    = setActiveCategory;
 window.setOrderType         = setOrderType;
 window.printReceipt         = printReceipt;
+window.bindSupplyFilters     = bindSupplyFilters;

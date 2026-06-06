@@ -12,7 +12,8 @@ const APP_STATE = {
     currency: 'PHP',
     orderTypes: ['Dine In', 'Take Out', 'Delivery'],
     lowStockThreshold: 5,
-    voidPin: '000000'           // Admin void PIN — changeable in Settings
+    voidPin: '000000',          // Admin void PIN — changeable in Settings
+    supplierModeEnabled: false  // Supplier Mode feature toggle
   },
 
   receiptCounter: 0,            // Sequential permanent counter, never resets
@@ -24,6 +25,9 @@ const APP_STATE = {
   heldOrders: [],
   inventoryMovements: [],
   auditLog: [],                 // Immutable audit trail
+  supplyOrders: [],             // Supplier order records
+  supplierClients: [],          // B2B client list
+  supplyInvoiceCounter: 0,      // Sequential invoice counter
   categories: ['Cookies', 'Chewy Cookies', 'Drinks'],
 
   ui: {
@@ -51,6 +55,9 @@ function resetState() {
   APP_STATE.auditLog = [];
   APP_STATE.receiptCounter = 0;
   APP_STATE.categories = ['Cookies', 'Chewy Cookies', 'Drinks'];
+  APP_STATE.supplyOrders = [];
+  APP_STATE.supplierClients = [];
+  APP_STATE.supplyInvoiceCounter = 0;
   persistState();
 }
 
@@ -63,7 +70,17 @@ function generateReceiptNumber() {
   return `CF-${year}-${seq}`;  // e.g. CF-25-000001
 }
 
-window.APP_STATE          = APP_STATE;
-window.updateState        = updateState;
-window.resetState         = resetState;
+/* ── Supply invoice number generator ── */
+function generateInvoiceNumber() {
+  APP_STATE.supplyInvoiceCounter = Number(APP_STATE.supplyInvoiceCounter || 0) + 1;
+  const year = String(new Date().getFullYear()).slice(-2);
+  const seq  = String(APP_STATE.supplyInvoiceCounter).padStart(5, '0');
+  persistState();
+  return `INV-${year}-${seq}`;  // e.g. INV-25-00001
+}
+
+window.APP_STATE             = APP_STATE;
+window.updateState           = updateState;
+window.resetState            = resetState;
 window.generateReceiptNumber = generateReceiptNumber;
+window.generateInvoiceNumber = generateInvoiceNumber;

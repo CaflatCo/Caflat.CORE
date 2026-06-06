@@ -85,15 +85,19 @@ function saveSettings() {
     return;
   }
 
+  const supplierModeEnabled = document.getElementById('settingsSupplierMode')?.checked === true;
+
   updateState('settings', current => ({
     ...current,
     brandName: brandName || current.brandName,
     taxRate,
     receiptFooter,
+    supplierModeEnabled,
     ...(voidPin ? { voidPin } : {})
   }));
 
   renderBranding();
+  if (typeof applySupplierModeToggle === 'function') applySupplierModeToggle();
   showNotification('Settings saved', 'success');
 }
 
@@ -111,6 +115,9 @@ function renderBranding() {
   const voidPinInput = document.getElementById('settingsVoidPin');
   if (voidPinInput) voidPinInput.value = '';
   voidPinInput && voidPinInput.setAttribute('placeholder', '••••••  (enter new PIN to change)');
+
+  const supplierToggle = document.getElementById('settingsSupplierMode');
+  if (supplierToggle) supplierToggle.checked = APP_STATE.settings?.supplierModeEnabled === true;
 }
 
 function escapeHtml(value) {

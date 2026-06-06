@@ -26,7 +26,10 @@ function persistState() {
       categories:         APP_STATE.categories,
       heldOrders:         APP_STATE.heldOrders,
       inventoryMovements: APP_STATE.inventoryMovements,
-      auditLog:           APP_STATE.auditLog
+      auditLog:           APP_STATE.auditLog,
+      supplyOrders:        APP_STATE.supplyOrders,
+      supplierClients:     APP_STATE.supplierClients,
+      supplyInvoiceCounter:APP_STATE.supplyInvoiceCounter
     }));
   } catch (error) {
     console.error('Failed to persist state', error);
@@ -45,7 +48,8 @@ function restorePersistedState() {
     currency: 'PHP',
     orderTypes: ['Dine In', 'Take Out', 'Delivery'],
     lowStockThreshold: 5,
-    voidPin: '000000'
+    voidPin: '000000',
+    supplierModeEnabled: false
   }, persisted.settings || {});
 
   APP_STATE.receiptCounter     = Number(persisted.receiptCounter || 0);
@@ -55,7 +59,10 @@ function restorePersistedState() {
   APP_STATE.categories         = Array.isArray(persisted.categories)         ? persisted.categories         : APP_STATE.categories;
   APP_STATE.heldOrders         = Array.isArray(persisted.heldOrders)        ? persisted.heldOrders         : [];
   APP_STATE.inventoryMovements = Array.isArray(persisted.inventoryMovements) ? persisted.inventoryMovements : [];
-  APP_STATE.auditLog           = Array.isArray(persisted.auditLog)           ? persisted.auditLog           : [];
+  APP_STATE.auditLog             = Array.isArray(persisted.auditLog)           ? persisted.auditLog           : [];
+  APP_STATE.supplyOrders         = Array.isArray(persisted.supplyOrders)       ? persisted.supplyOrders       : [];
+  APP_STATE.supplierClients      = Array.isArray(persisted.supplierClients)    ? persisted.supplierClients    : [];
+  APP_STATE.supplyInvoiceCounter = Number(persisted.supplyInvoiceCounter || 0);
 }
 
 /* ── Export full backup ── */
@@ -71,7 +78,10 @@ function exportAllData() {
     categories: APP_STATE.categories,
     heldOrders: APP_STATE.heldOrders,
     inventoryMovements: APP_STATE.inventoryMovements,
-    auditLog: APP_STATE.auditLog
+    auditLog: APP_STATE.auditLog,
+    supplyOrders: APP_STATE.supplyOrders,
+    supplierClients: APP_STATE.supplierClients,
+    supplyInvoiceCounter: APP_STATE.supplyInvoiceCounter
   };
   downloadTextFile(`caflat-backup-${Date.now()}.json`, JSON.stringify(data, null, 2));
   showNotification('Backup exported', 'success');
@@ -97,7 +107,10 @@ function importAllData(file) {
       APP_STATE.categories         = Array.isArray(data.categories)         ? data.categories         : [];
       APP_STATE.heldOrders         = Array.isArray(data.heldOrders)         ? data.heldOrders         : [];
       APP_STATE.inventoryMovements = Array.isArray(data.inventoryMovements) ? data.inventoryMovements : [];
-      APP_STATE.auditLog           = Array.isArray(data.auditLog)           ? data.auditLog           : [];
+      APP_STATE.auditLog             = Array.isArray(data.auditLog)           ? data.auditLog           : [];
+      APP_STATE.supplyOrders         = Array.isArray(data.supplyOrders)       ? data.supplyOrders       : [];
+      APP_STATE.supplierClients      = Array.isArray(data.supplierClients)    ? data.supplierClients    : [];
+      APP_STATE.supplyInvoiceCounter = Number(data.supplyInvoiceCounter || 0);
 
       persistState();
       if (typeof renderEverything === 'function') renderEverything();
