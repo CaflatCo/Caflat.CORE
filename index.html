@@ -15,19 +15,46 @@
       --warning-bg: #fff7ed;
       --warning-border: #fed7aa;
     }
-    /* Orange — pending/low stock (needs attention) */
+    /* ── Orange = needs attention (low stock, pending) ── */
+    /* badge-low-stock is orange ONLY when used for "Low Stock" label */
+    /* badge-sold-out is red for 0 stock items */
     .badge-low-stock {
       background: var(--warning-bg) !important;
       color: var(--warning) !important;
       border-color: var(--warning-border) !important;
     }
     .badge-low-stock::before { background: var(--warning) !important; }
+
+    /* badge-sold-out — red, hard stop */
+    .badge-sold-out {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 999px;
+      background: #fef2f2; color: #dc2626;
+      font-size: 9px; font-weight: 800; letter-spacing: 1px;
+      text-transform: uppercase; border: 1px solid #fecaca;
+    }
+    .badge-sold-out::before {
+      content: ''; width: 5px; height: 5px;
+      border-radius: 50%; background: #dc2626; flex-shrink: 0;
+    }
+
+    /* Low stock dashboard widget — orange */
     .low-stock-card {
       border-color: var(--warning-border) !important;
       background: var(--warning-bg) !important;
     }
     .low-stock-name { color: var(--warning) !important; }
     .low-stock-meta { color: var(--warning) !important; }
+
+    /* Sold-out dashboard widget items — red */
+    .low-stock-card.sold-out {
+      border-color: #fecaca !important;
+      background: #fef2f2 !important;
+    }
+    .low-stock-card.sold-out .low-stock-name { color: #dc2626 !important; }
+    .low-stock-card.sold-out .low-stock-meta { color: #dc2626 !important; }
+
+    /* POS tiles */
     .pos-low-stock-pill {
       background: var(--warning-bg) !important;
       color: var(--warning) !important;
@@ -35,9 +62,14 @@
     }
     .pos-product-card.low-stock { border-color: var(--warning-border) !important; }
     .pos-product-stock.low { color: var(--warning) !important; }
+
+    /* Table rows — orange for low, red for sold out */
     .low-stock-row td { background: #fffbf7 !important; }
     .low-stock-row td:first-child { border-left: 3px solid var(--warning) !important; }
-    /* Dashboard alert cards — orange for pending/low stock */
+    .sold-out-row td { background: #fef2f2 !important; }
+    .sold-out-row td:first-child { border-left: 3px solid #dc2626 !important; }
+
+    /* Dashboard alert cards — orange for pending/stock alerts */
     .dashboard-alert {
       border-color: var(--warning-border) !important;
       background: var(--warning-bg) !important;
@@ -918,16 +950,15 @@
           <select id="supplierOrderClientSelect" class="supply-client-select"></select>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Expected Delivery Date</label>
-            <input id="supplierOrderDeliveryDate" type="date" />
-          </div>
-          <div class="form-group">
-            <label>Invoice Number</label>
-            <input id="supplierOrderInvoiceNum" type="text" readonly
-              style="background:var(--gray-50);font-family:var(--font-mono);font-weight:700;" />
-          </div>
+        <div class="form-group">
+          <label>Invoice Number</label>
+          <input id="supplierOrderInvoiceNum" type="text" readonly
+            style="background:var(--gray-50);font-family:var(--font-mono);font-weight:700;
+              letter-spacing:2px;font-size:15px;" />
+        </div>
+        <div class="form-group">
+          <label>Expected Delivery Date</label>
+          <input id="supplierOrderDeliveryDate" type="date" />
         </div>
 
         <div class="form-group">
