@@ -2,185 +2,112 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <title>Caflat.Co POS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
   <link href="css/styles.css" rel="stylesheet" />
   <style>
-    /* ── Semantic color overrides ── */
-    :root {
-      --warning: #ea580c;
-      --warning-bg: #fff7ed;
-      --warning-border: #fed7aa;
+    /* ── Cost preview card ── */
+    .cost-preview-card {
+      margin-top: 16px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      background: var(--gray-50);
     }
-    /* ── Orange = needs attention (low stock, pending) ── */
-    /* badge-low-stock is orange ONLY when used for "Low Stock" label */
-    /* badge-sold-out is red for 0 stock items */
-    .badge-low-stock {
-      background: var(--warning-bg) !important;
-      color: var(--warning) !important;
-      border-color: var(--warning-border) !important;
+    .cost-preview-empty {
+      font-size: 11px;
+      color: var(--gray-400);
+      text-align: center;
+      padding: 8px 0;
+      letter-spacing: 0.5px;
     }
-    .badge-low-stock::before { background: var(--warning) !important; }
+    .cost-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .cost-preview-item {
+      text-align: center;
+    }
+    .cost-preview-label {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: var(--gray-400);
+      margin-bottom: 6px;
+    }
+    .cost-preview-value {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--black);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
 
-    /* badge-sold-out — red, hard stop */
-    .badge-sold-out {
+    /* ── Sales status badges ── */
+    .badge-completed {
       display: inline-flex; align-items: center; gap: 5px;
       padding: 3px 9px; border-radius: 999px;
-      background: #fef2f2; color: #dc2626;
+      background: #f0fdf4; color: #15803d;
       font-size: 9px; font-weight: 800; letter-spacing: 1px;
-      text-transform: uppercase; border: 1px solid #fecaca;
+      text-transform: uppercase; border: 1px solid #bbf7d0;
     }
-    .badge-sold-out::before {
-      content: ''; width: 5px; height: 5px;
-      border-radius: 50%; background: #dc2626; flex-shrink: 0;
+    .badge-pending {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 999px;
+      background: #fff7ed; color: #c2410c;
+      font-size: 9px; font-weight: 800; letter-spacing: 1px;
+      text-transform: uppercase; border: 1px solid #fed7aa;
     }
-
-    /* Low stock dashboard widget — orange */
-    .low-stock-card {
-      border-color: var(--warning-border) !important;
-      background: var(--warning-bg) !important;
-    }
-    .low-stock-name { color: var(--warning) !important; }
-    .low-stock-meta { color: var(--warning) !important; }
-
-    /* Sold-out dashboard widget items — red */
-    .low-stock-card.sold-out {
-      border-color: #fecaca !important;
-      background: #fef2f2 !important;
-    }
-    .low-stock-card.sold-out .low-stock-name { color: #dc2626 !important; }
-    .low-stock-card.sold-out .low-stock-meta { color: #dc2626 !important; }
-
-    /* POS tiles */
-    .pos-low-stock-pill {
-      background: var(--warning-bg) !important;
-      color: var(--warning) !important;
-      border-color: var(--warning-border) !important;
-    }
-    .pos-product-card.low-stock { border-color: var(--warning-border) !important; }
-    .pos-product-stock.low { color: var(--warning) !important; }
-
-    /* Table rows — orange for low, red for sold out */
-    .low-stock-row td { background: #fffbf7 !important; }
-    .low-stock-row td:first-child { border-left: 3px solid var(--warning) !important; }
-    .sold-out-row td { background: #fef2f2 !important; }
-    .sold-out-row td:first-child { border-left: 3px solid #dc2626 !important; }
-
-    /* Dashboard alert cards — orange for pending/stock alerts */
-    .dashboard-alert {
-      border-color: var(--warning-border) !important;
-      background: var(--warning-bg) !important;
-    }
-    .dashboard-alert .value { color: var(--warning) !important; }
-    /* Red stays for out-of-stock / sold out / void / danger */
-    .badge-voided {
+    .badge-refunded {
       display: inline-flex; align-items: center; gap: 5px;
       padding: 3px 9px; border-radius: 999px;
       background: #f3f4f6; color: #6b7280;
       font-size: 9px; font-weight: 800; letter-spacing: 1px;
       text-transform: uppercase; border: 1px solid #e5e7eb;
     }
-    /* Supply line row */
-    .supply-line-row {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 8px; padding: 10px 12px;
-      border: 1px solid var(--gray-100); border-radius: var(--radius-md);
-      background: var(--gray-50);
+
+    /* ── Refund button ── */
+    .refund-btn {
+      background: #fef2f2 !important;
+      color: #dc2626 !important;
+      border-color: #fecaca !important;
     }
-    .supply-line-row input {
-      padding: 7px 10px; border: 1px solid var(--gray-200);
-      border-radius: var(--radius-md); font-family: var(--font-main);
-      font-size: 12px; background: var(--white);
+    .refund-btn:hover {
+      background: #dc2626 !important;
+      color: #fff !important;
+      border-color: #dc2626 !important;
     }
-    /* Supplier mode toggle */
-    .settings-toggle-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 16px; border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius-lg); margin-bottom: 12px;
-    }
-    .settings-toggle-label { font-size: 13px; font-weight: 700; }
-    .settings-toggle-sub   { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
-    .toggle-switch {
-      position: relative; width: 44px; height: 24px;
-      cursor: pointer; flex-shrink: 0;
-    }
-    .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-track {
-      position: absolute; inset: 0; background: var(--gray-200);
-      border-radius: 12px; transition: background .2s ease;
-    }
-    .toggle-switch input:checked + .toggle-track { background: var(--black); }
-    .toggle-knob {
-      position: absolute; top: 3px; left: 3px;
-      width: 18px; height: 18px; background: white;
-      border-radius: 50%; transition: transform .2s ease;
-      box-shadow: 0 1px 3px rgba(0,0,0,.2);
-    }
-    .toggle-switch input:checked ~ .toggle-knob { transform: translateX(20px); }
-    /* Supplier order button */
-    .supplier-order-btn {
-      width: 100%; padding: 12px 16px;
-      background: var(--white); color: var(--black);
-      border: 1.5px solid var(--gray-300);
-      cursor: pointer; font-size: 10px; letter-spacing: 2px;
-      text-transform: uppercase; font-weight: 900;
-      border-radius: var(--radius-md); font-family: var(--font-main);
-      transition: all 0.15s ease;
-    }
-    .supplier-order-btn:hover {
-      border-color: var(--black); background: var(--gray-50);
-    }
-    .pin-dots { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
-    .pin-dot {
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid var(--gray-300); background: transparent;
-      transition: all 0.1s ease;
-    }
-    .pin-dot.filled { background: var(--black); border-color: var(--black); }
-    .void-summary {
-      background: var(--gray-50); border: 1px solid var(--gray-200);
-      border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 16px;
-    }
-    .void-summary-row {
-      display: flex; justify-content: space-between;
-      font-size: 12px; padding: 3px 0;
-    }
-    .void-summary-row span:first-child { color: var(--gray-500); }
-    .void-summary-row span:last-child { font-weight: 700; }
-    .void-warning {
-      background: #fef2f2; border: 1px solid #fecaca;
-      border-radius: var(--radius-md); padding: 10px 14px;
-      font-size: 11px; color: #dc2626; font-weight: 700;
-      margin-bottom: 16px; text-align: center; letter-spacing: 0.5px;
+
+    /* ── Responsive cost preview ── */
+    @media (max-width: 480px) {
+      .cost-preview-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
-
-  <!-- ═══ LOGIN ═══ -->
   <div class="login-screen" id="loginScreen">
     <div class="login-card">
-      <h2>Caflat.Co</h2>
-      <div class="login-subtitle">Point of Sale</div>
+      <h2>Caflat.Co POS</h2>
       <input id="loginUsername" placeholder="Username" type="text" autocomplete="username" />
       <input id="loginPassword" placeholder="Password" type="password" autocomplete="current-password" />
-      <button id="loginBtn" type="button">Sign In</button>
+      <button id="loginBtn" type="button">Login</button>
     </div>
   </div>
 
-  <!-- ═══ APP SHELL ═══ -->
   <div id="app">
-
     <header>
       <div style="display:flex;align-items:center;gap:12px;">
         <h1 id="brandName" data-brand-name>Caflat.Co POS</h1>
-        <div class="role-badge" id="roleBadge">STAFF</div>
+        <div class="role-badge" id="roleBadge">ADMIN</div>
       </div>
+
       <nav>
-        <button class="active" data-view="pos">POS</button>
+        <button class="active" data-view="pos">Point of Sale</button>
         <button data-view="dashboard">Dashboard</button>
         <button data-view="products">Products</button>
         <button data-view="ingredients">Ingredients</button>
@@ -188,161 +115,123 @@
         <button data-view="sales">Sales</button>
         <button data-view="reports">Reports</button>
         <button data-view="settings">Settings</button>
-        <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
       </nav>
     </header>
 
     <main>
-
-      <!-- ═══ POS VIEW ═══ -->
       <section class="view" id="view-pos">
-
-        <!-- Left: Products -->
         <div class="pos-products">
-          <!-- Order type tabs -->
-          <div id="orderTypeTabs" class="order-type-tabs"></div>
-
-          <!-- Category filter tabs -->
           <div class="category-tabs" id="categoryTabs"></div>
-
-          <!-- Search -->
-          <div class="pos-search-wrap">
-            <input id="posSearch" type="text" placeholder="Search products…" autocomplete="off" />
-          </div>
-
-          <!-- Product grid -->
           <div class="product-grid" id="productGrid"></div>
         </div>
 
-        <!-- Right: Cart -->
         <div class="pos-cart">
-          <div class="cart-header">
-            Current Order
-            <span class="cart-item-count" id="cartItemCount">0</span>
-          </div>
-
+          <div class="cart-header">Current Order</div>
           <div class="cart-items" id="cartItems">
-            <div class="empty-cart-state">
-              <div class="empty-cart-icon">🛒</div>
-              <div class="empty-cart-title">Cart is empty</div>
-              <div class="empty-cart-subtitle">Tap a product to add it</div>
-            </div>
+            <div class="empty-state">No items added</div>
           </div>
 
           <div class="cart-summary">
-            <div class="cart-row"><span>Subtotal</span><span id="cartSubtotal">₱0.00</span></div>
-            <div class="cart-row"><span>Discount</span><span id="cartDiscount">₱0.00</span></div>
-            <div class="cart-row"><span>Tax</span><span id="cartTax">₱0.00</span></div>
-            <div class="cart-row total"><span>Total</span><span id="cartTotal">₱0.00</span></div>
+            <div class="cart-row"><span>Subtotal</span><span id="cartSubtotal">0.00</span></div>
+            <div class="cart-row"><span>Discount</span><span id="cartDiscount">0.00</span></div>
+            <div class="cart-row"><span>Tax</span><span id="cartTax">0.00</span></div>
+            <div class="cart-row total"><span>Total</span><span id="cartTotal">0.00</span></div>
 
             <div class="discount-input">
-              <input id="discountValue" type="number" min="0" step="0.01" placeholder="Discount" />
+              <input id="discountValue" min="0" placeholder="Discount" step="0.01" type="number" />
               <select id="discountType">
                 <option value="percent">%</option>
-                <option value="amount">₱ Amt</option>
+                <option value="amount">Amt</option>
               </select>
             </div>
 
             <div class="cart-actions">
               <div class="cart-actions-row">
                 <button type="button" id="clearCartBtn">Clear</button>
-                <button type="button" id="heldOrdersBtn">Held&nbsp;<span id="heldOrdersBadge">0</span></button>
+                <button type="button" id="heldOrdersBtn">Held (<span id="heldOrdersBadge">0</span>)</button>
                 <button type="button" id="holdOrderBtn">Hold</button>
               </div>
-              <button class="supplier-order-btn" type="button" id="supplierOrderBtn"
-                style="display:none;" data-action="open-supplier-order-prompt">
-                Supply Order ↗
-              </button>
-              <button class="checkout-btn" type="button" id="checkoutBtn">Checkout →</button>
+              <button class="checkout-btn" type="button" id="checkoutBtn">Checkout</button>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ═══ DASHBOARD VIEW ═══ -->
       <section class="view" id="view-dashboard">
         <div class="panel">
           <div class="panel-header">
             <h2>Dashboard</h2>
-            <span style="font-size:11px;color:var(--gray-400);">All-time overview</span>
           </div>
 
-          <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
-            <div class="stat-card dark">
-              <div class="label">Total Revenue</div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="label">Total Sales</div>
               <div class="value" id="dashboardTotalSales">₱0.00</div>
               <div class="sub">All completed sales</div>
             </div>
             <div class="stat-card">
               <div class="label">Orders</div>
               <div class="value" id="dashboardTotalOrders">0</div>
-              <div class="sub">Completed transactions</div>
+              <div class="sub">Sales count</div>
             </div>
             <div class="stat-card">
               <div class="label">Items Sold</div>
               <div class="value" id="dashboardItemsSold">0</div>
               <div class="sub">Units moved</div>
             </div>
-          </div>
-          <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px;">
             <div class="stat-card">
               <div class="label">Avg Order</div>
               <div class="value" id="dashboardAverageOrder">₱0.00</div>
-              <div class="sub">Per transaction</div>
-            </div>
-            <div class="stat-card" id="dashboardPendingCard">
-              <div class="label">Pending Orders</div>
-              <div class="value" id="dashboardPendingOrders">0</div>
-              <div class="sub">Awaiting completion</div>
-            </div>
-            <div class="stat-card" id="dashboardStockCard">
-              <div class="label">Stock Alerts</div>
-              <div class="value" id="dashboardLowStockCount">0</div>
-              <div class="sub">Items at reorder level</div>
+              <div class="sub">Per order value</div>
             </div>
           </div>
 
-          <div class="section-title">Sales Trend (last 14 days)</div>
-          <div class="chart-container">
-            <canvas id="dashboardChart"></canvas>
+          <div class="section-title">Quick Performance</div>
+          <div style="border:1px solid #000;padding:16px;background:#fff;margin-bottom:24px;width:100%;overflow:hidden;">
+            <div class="empty-state">Sales chart placeholder</div>
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-            <div>
-              <div class="section-title">Top Selling Products</div>
-              <div class="stat-card" style="min-height:0;padding:14px 18px;">
-                <div id="topProductsContainer"></div>
-              </div>
-            </div>
-            <div>
-              <div class="section-title">Stock Alerts</div>
-              <div id="lowStockContainer"></div>
-            </div>
+          <div class="section-title">Top Selling Products</div>
+          <div class="stat-card">
+            <div id="topProductsContainer"></div>
+          </div>
+
+          <div class="section-title">Low Stock Alerts</div>
+          <div class="stat-card">
+            <div id="lowStockContainer"></div>
           </div>
         </div>
       </section>
 
-      <!-- ═══ PRODUCTS VIEW ═══ -->
       <section class="view" id="view-products">
         <div class="panel">
           <div class="panel-header">
             <h2>Products</h2>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button class="btn" id="addProductBtn" type="button">+ Add Product</button>
-              <button class="btn btn-secondary" id="exportDataBtnProducts" type="button">Export Data</button>
-              <button class="btn btn-secondary" id="loadDemoBtnProducts" type="button">Load Demo</button>
+              <button class="btn btn-secondary" id="exportDataBtnProducts" type="button">Export All Data</button>
+              <button class="btn btn-secondary" id="loadDemoBtnProducts" type="button">Load Demo Data</button>
             </div>
           </div>
+
           <div class="filter-bar">
-            <input id="productSearch" placeholder="Search products…" type="text" style="flex:1;min-width:180px;" />
-            <select id="productCategoryFilter"><option value="All">All Categories</option></select>
+            <input id="productSearch" placeholder="Search..." type="text" />
+            <select id="productCategoryFilter">
+              <option value="All">All Categories</option>
+            </select>
           </div>
+
           <div class="table-wrapper">
             <table id="productsTable">
               <thead>
                 <tr>
-                  <th>Name</th><th>Category</th><th>Price</th>
-                  <th>Stock</th><th>Reorder</th><th>Status</th><th>Actions</th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Reorder</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -351,19 +240,25 @@
         </div>
       </section>
 
-      <!-- ═══ INGREDIENTS VIEW ═══ -->
       <section class="view" id="view-ingredients">
         <div class="panel">
           <div class="panel-header">
             <h2>Ingredients</h2>
             <button class="btn" id="addIngredientBtn" type="button">+ Add Ingredient</button>
           </div>
+
           <div class="table-wrapper">
             <table id="ingredientsTable">
               <thead>
                 <tr>
-                  <th>Name</th><th>Unit</th><th>Pkg Qty</th><th>Pkg Cost</th>
-                  <th>Cost/Unit</th><th>Stock</th><th>Reorder</th><th>Actions</th>
+                  <th>Name</th>
+                  <th>Unit</th>
+                  <th>Package Qty</th>
+                  <th>Package Cost</th>
+                  <th>Cost / Unit</th>
+                  <th>Stock</th>
+                  <th>Reorder Level</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -372,19 +267,24 @@
         </div>
       </section>
 
-      <!-- ═══ INVENTORY VIEW ═══ -->
       <section class="view" id="view-inventory">
         <div class="panel">
           <div class="panel-header">
             <h2>Inventory</h2>
-            <span style="font-size:11px;color:var(--gray-400);">Ingredient stock levels</span>
           </div>
+
           <div class="table-wrapper">
             <table id="inventoryTable">
               <thead>
                 <tr>
-                  <th>Name</th><th>Unit</th><th>Pkg Qty</th><th>Pkg Cost</th>
-                  <th>Stock</th><th>Reorder</th><th>Status</th><th>Actions</th>
+                  <th>Name</th>
+                  <th>Unit</th>
+                  <th>Package Qty</th>
+                  <th>Package Cost</th>
+                  <th>Stock</th>
+                  <th>Reorder Level</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -393,13 +293,13 @@
         </div>
       </section>
 
-      <!-- ═══ SALES VIEW ═══ -->
       <section class="view" id="view-sales">
         <div class="panel">
           <div class="panel-header">
             <h2>Sales History</h2>
             <button class="btn btn-secondary" id="exportSalesBtn" type="button">Export CSV</button>
           </div>
+
           <div class="filter-bar">
             <input id="salesFromDate" type="date" />
             <input id="salesToDate" type="date" />
@@ -412,25 +312,18 @@
               <option value="qrph">QR PH</option>
             </select>
           </div>
+
           <div class="table-wrapper">
             <table id="salesTable">
               <thead>
                 <tr>
-                  <th>Receipt #</th><th>Date</th><th>Items</th>
-                  <th>Total</th><th>Payment</th><th>Status</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <div class="section-title" style="margin-top:32px;">Audit Log</div>
-          <div class="table-wrapper">
-            <table id="auditLogTable">
-              <thead>
-                <tr>
-                  <th>Timestamp</th><th>Action</th><th>Receipt #</th>
-                  <th>Reason</th><th>Outcome</th>
+                  <th>Receipt #</th>
+                  <th>Date</th>
+                  <th>Items</th>
+                  <th>Subtotal</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -439,11 +332,10 @@
         </div>
       </section>
 
-      <!-- ═══ REPORTS VIEW ═══ -->
       <section class="view" id="view-reports">
         <div class="panel">
           <div class="panel-header">
-            <h2>Reports &amp; Analytics</h2>
+            <h2>Reports & Analytics</h2>
           </div>
 
           <div class="filter-bar">
@@ -452,272 +344,163 @@
             <button class="btn btn-secondary" type="button" data-action="refresh-reports">Apply Filter</button>
           </div>
 
-          <!-- KPI Cards -->
           <div class="stats-grid" id="reportStatsGrid"></div>
 
-          <!-- Revenue Trend -->
           <div class="section-title">Revenue Trend</div>
-          <div class="chart-container">
+          <div style="border:1px solid #000;padding:16px;background:#fff;margin-bottom:24px;height:320px;">
             <canvas id="reportRevenueChart"></canvas>
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;">
-            <!-- Hourly Sales -->
-            <div>
-              <div class="section-title">Hourly Sales Distribution</div>
-              <div class="chart-container" style="height:200px;">
-                <canvas id="reportHourlyChart"></canvas>
-              </div>
-            </div>
-            <!-- Payment Breakdown -->
-            <div>
-              <div class="section-title">Payment Methods</div>
-              <div class="stat-card" style="min-height:0;">
-                <div id="paymentBreakdownContainer"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Product Performance -->
           <div class="section-title">Product Performance</div>
           <div class="table-wrapper">
             <table id="reportProductsTable">
               <thead>
-                <tr><th>Product</th><th>Qty Sold</th><th>Revenue</th><th>Cost</th><th>Profit</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <!-- Ingredient Usage -->
-          <div class="section-title">Ingredient Usage</div>
-          <div class="table-wrapper">
-            <table id="ingredientUsageTable">
-              <thead>
-                <tr><th>Ingredient</th><th>Estimated Usage</th><th>Remaining Stock</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <!-- Insights -->
-          <div class="section-title">Operational Insights</div>
-          <div class="table-wrapper">
-            <table id="reportInsightsTable">
-              <thead><tr><th>Metric</th><th>Value</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ═══ SUPPLY VIEW ═══ -->
-      <section class="view" id="view-supply">
-        <div class="panel">
-          <div class="panel-header">
-            <h2>Supply Orders</h2>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn" id="addSupplyOrderBtn" type="button">+ New Order</button>
-              <button class="btn btn-secondary" id="exportSupplyBtn" type="button">Export CSV</button>
-            </div>
-          </div>
-
-          <!-- KPI Cards -->
-          <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
-            <div class="stat-card dark">
-              <div class="label">Total Invoiced</div>
-              <div class="value" id="supplyTotalRevenue">₱0.00</div>
-              <div class="sub">All orders</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">Total Collected</div>
-              <div class="value" id="supplyTotalPaid">₱0.00</div>
-              <div class="sub">Paid orders only</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">Active Orders</div>
-              <div class="value" id="supplyPendingCount">0</div>
-              <div class="sub">Not yet paid</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">Awaiting Payment</div>
-              <div class="value" id="supplyOverdueCount">0</div>
-              <div class="sub">Delivered or invoiced</div>
-            </div>
-          </div>
-
-          <!-- Filters -->
-          <div class="filter-bar">
-            <input id="supplyFromDate" type="date" />
-            <input id="supplyToDate" type="date" />
-            <select id="supplyStatusFilter">
-              <option value="">All Statuses</option>
-              <option value="DRAFTED">Draft</option>
-              <option value="ORDERED">Ordered</option>
-              <option value="DELIVERED">Delivered</option>
-              <option value="INVOICED">Invoiced</option>
-              <option value="PAID">Paid</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-            <select id="supplyClientFilter">
-              <option value="">All Clients</option>
-            </select>
-          </div>
-
-          <!-- Orders table -->
-          <div class="table-wrapper">
-            <table id="supplyTable">
-              <thead>
                 <tr>
-                  <th>Invoice #</th><th>Client</th><th>Order Date</th>
-                  <th>Status Timeline</th><th>Total</th>
-                  <th>Status</th><th>Notes</th><th>Actions</th>
+                  <th>Product</th>
+                  <th>Qty Sold</th>
+                  <th>Revenue</th>
+                  <th>Profit</th>
                 </tr>
               </thead>
               <tbody></tbody>
             </table>
           </div>
 
-          <!-- Clients section -->
-          <div class="section-title" style="margin-top:32px;">Clients</div>
-          <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-            <button class="btn btn-secondary" id="addClientBtn" type="button">+ Add Client</button>
+          <div class="section-title">Ingredient Usage</div>
+          <div class="table-wrapper">
+            <table id="ingredientUsageTable">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th>Estimated Usage</th>
+                  <th>Remaining Stock</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
-          <div id="clientsList"></div>
+
+          <div class="section-title">Operational Insights</div>
+          <div class="table-wrapper">
+            <table id="reportInsightsTable">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
-      <!-- ═══ SETTINGS VIEW ═══ -->
       <section class="view" id="view-settings">
         <div class="panel">
           <div class="panel-header">
-            <h2>Settings</h2>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn" id="saveSettingsBtn" type="button">Save Settings</button>
-              <button class="btn btn-secondary" id="resetDataBtn" type="button">Reset Data</button>
-              <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
-            </div>
-          </div>
+  <h2>Settings</h2>
+
+  <div style="display:flex; gap:8px;">
+    <button class="btn" id="saveSettingsBtn" type="button">
+      Save Settings
+    </button>
+
+    <button class="btn" id="resetDataBtn" type="button">
+      Reset All Data
+    </button>
+
+    <button class="btn btn-secondary" id="logoutBtn" type="button">
+      Logout
+    </button>
+  </div>
+</div>
 
           <div class="form-group">
             <label>Brand Name</label>
             <input id="settingsBrandName" type="text" />
           </div>
-          <div class="form-row">
-            <div class="form-group">
+
+          <div class="form-group">
               <label>Tax Rate (%)</label>
-              <input id="settingsTaxRate" type="number" step="0.01" />
-            </div>
+              <input id="settingsTaxRate" step="0.01" type="number" />
           </div>
+
           <div class="form-group">
-            <label>Receipt Footer</label>
-            <textarea id="settingsReceiptFooter" rows="2"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Void / Refund PIN (6 digits)</label>
-            <input id="settingsVoidPin" type="password" maxlength="6"
-              placeholder="••••••  (enter new PIN to change)"
-              autocomplete="new-password" style="letter-spacing:4px;font-size:16px;" />
+              <label>Receipt Footer</label>
+              <textarea id="settingsReceiptFooter" rows="2"></textarea>
           </div>
 
           <div class="section-title">Categories</div>
           <div id="categoryList"></div>
-          <div class="filter-bar" style="margin-top:8px;">
-            <input id="newCategoryInput" placeholder="New category name" type="text" style="flex:1;" />
-            <button class="btn btn-secondary" id="addCategoryBtn" type="button">Add</button>
-          </div>
-
-          <div class="section-title">Features</div>
-          <div class="settings-toggle-row">
-            <div>
-              <div class="settings-toggle-label">Supplier Mode</div>
-              <div class="settings-toggle-sub">
-                Enable supply order tracking for B2B clients. Adds the Supply tab to navigation.
-              </div>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="settingsSupplierMode" />
-              <div class="toggle-track"></div>
-              <div class="toggle-knob"></div>
-            </label>
+          <div class="form-row" style="margin-top:10px;">
+            <input id="newCategoryInput" placeholder="New category name" type="text" />
+            <button class="btn btn-secondary" id="addCategoryBtn" type="button">Add Category</button>
           </div>
 
           <div class="section-title">Data Management</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
             <button class="btn btn-secondary" id="loadDemoBtn" type="button">Load Demo Data</button>
-            <button class="btn btn-secondary" id="exportDataBtn" data-action="export-data" type="button">Export Backup</button>
-            <button class="btn btn-secondary" id="importDataBtn" type="button">Import Backup</button>
+            <button class="btn btn-secondary" id="exportDataBtn" data-action="export-data" type="button">Export All Data</button>
+            <button class="btn btn-secondary" id="importDataBtn" type="button">Import Data</button>
             <input accept=".json" id="importDataInput" style="display:none" type="file" />
           </div>
         </div>
       </section>
-
     </main>
 
-    <!-- ═══════════════════════════════════════════════════
-         MODALS
-    ═══════════════════════════════════════════════════ -->
-
-    <!-- Product modal -->
     <div class="modal-overlay" id="productModal">
       <div class="modal">
         <h3>Product</h3>
         <input id="productId" type="hidden" />
-        <div class="form-row">
-          <div class="form-group">
-            <label>Name</label>
-            <input id="productName" type="text" />
-          </div>
-          <div class="form-group">
-            <label>Category</label>
-            <select id="productCategory"></select>
-          </div>
+
+        <div class="form-group">
+          <label>Name</label>
+          <input id="productName" type="text" />
         </div>
+
+        <div class="form-group">
+          <label>Category</label>
+          <select id="productCategory"></select>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
-            <label>Price (₱)</label>
-            <input id="productPrice" type="number" min="0" step="0.01" />
+            <label>Price</label>
+            <input id="productPrice" min="0" step="0.01" type="number" />
           </div>
           <div class="form-group">
             <label>Stock</label>
-            <input id="productStock" type="number" min="0" />
+            <input id="productStock" min="0" type="number" />
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Reorder Level</label>
-            <input id="productReorderLevel" type="number" min="0" />
-          </div>
-          <div class="form-group">
-            <label>Variant Type</label>
-            <select id="variantType">
-              <option value="quantity">Quantity</option>
-              <option value="size">Size</option>
-              <option value="custom">Custom</option>
-            </select>
-          </div>
+
+        <div class="form-group">
+          <label>Reorder Level</label>
+          <input id="productReorderLevel" min="0" type="number" />
         </div>
 
         <div class="section-title">Variants</div>
-        <div id="variantBuilder"></div>
-        <button class="btn btn-secondary" id="addVariantBtn" type="button" style="margin-bottom:16px;">+ Add Variant</button>
 
-        <div class="section-title">Recipe (Ingredients)</div>
-        <div class="form-row" style="margin-bottom:10px;">
-          <div class="form-group" style="margin-bottom:0;">
-            <label>Recipe Mode</label>
-            <select id="recipeMode">
-              <option value="unit">Per Unit</option>
-              <option value="batch">Per Batch</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label>Batch Yield</label>
-            <input id="batchYield" type="number" min="1" value="1" placeholder="Units per batch" />
-          </div>
+        <div class="form-group">
+          <label>Variant Type</label>
+          <select id="variantType">
+            <option value="quantity">Quantity</option>
+            <option value="size">Size</option>
+            <option value="custom">Custom</option>
+          </select>
         </div>
+
+        <div id="variantBuilder"></div>
+        <button class="btn btn-secondary" id="addVariantBtn" type="button">+ Add Variant</button>
+
+        <div class="section-title">Recipe</div>
         <div id="recipeBuilder"></div>
-        <button class="btn btn-secondary" id="addRecipeBtn" type="button" style="margin-bottom:4px;">+ Add Ingredient</button>
+        <button class="btn btn-secondary" id="addRecipeBtn" type="button">+ Add Ingredient</button>
+
+        <!-- Cost preview card — live, driven by analytics.js -->
+        <div id="productCostPreview" class="cost-preview-card">
+          <div class="cost-preview-empty">Add recipe ingredients to see cost breakdown</div>
+        </div>
 
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="productModal">Cancel</button>
@@ -726,41 +509,95 @@
       </div>
     </div>
 
-    <!-- Ingredient modal -->
+    <!-- Refund Modal -->
+    <div class="modal-overlay" id="refundModal">
+      <div class="modal" style="max-width:480px;">
+        <h3>Process Refund</h3>
+        <input id="refundSaleId" type="hidden" />
+
+        <!-- Sale summary -->
+        <div style="background:var(--gray-50);border:1px solid var(--gray-200);
+          border-radius:var(--radius-md);padding:14px 16px;margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;">
+            <span style="color:var(--gray-500);">Receipt</span>
+            <span style="font-weight:700;font-family:monospace;" id="refundReceiptNum">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;">
+            <span style="color:var(--gray-500);">Date</span>
+            <span style="font-weight:700;" id="refundSaleDate">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;
+            padding:10px 0 3px;margin-top:6px;border-top:1px solid var(--gray-200);">
+            <span style="color:var(--gray-500);">Total Refund</span>
+            <span style="font-weight:900;font-size:16px;" id="refundSaleTotal">—</span>
+          </div>
+        </div>
+
+        <!-- Items -->
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;
+          font-weight:800;color:var(--gray-400);margin-bottom:8px;">Items</div>
+        <div id="refundItemsSummary" style="margin-bottom:16px;"></div>
+
+        <!-- Warning -->
+        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-md);
+          padding:10px 14px;font-size:11px;color:#dc2626;font-weight:700;
+          margin-bottom:16px;text-align:center;">
+          ⚠ Stock will be restored. This action cannot be undone.
+        </div>
+
+        <!-- Reason -->
+        <div class="form-group">
+          <label>Reason for Refund <span style="color:#dc2626;">*</span></label>
+          <textarea id="refundReason" rows="2"
+            placeholder="e.g. Wrong item, customer dissatisfied, duplicate order…"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="refundModal">Cancel</button>
+          <button class="btn" type="button" data-action="confirm-refund"
+            style="background:#dc2626;border-color:#dc2626;">Confirm Refund</button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="ingredientModal">
       <div class="modal">
         <h3>Ingredient</h3>
         <input id="ingredientId" type="hidden" />
-        <div class="form-row">
-          <div class="form-group">
-            <label>Name</label>
-            <input id="ingredientName" type="text" />
-          </div>
-          <div class="form-group">
-            <label>Unit (g, ml, pcs…)</label>
-            <input id="ingredientUnit" type="text" />
-          </div>
+
+        <div class="form-group">
+          <label>Name</label>
+          <input id="ingredientName" type="text" />
         </div>
+
+        <div class="form-group">
+          <label>Unit</label>
+          <input id="ingredientUnit" type="text" />
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label>Package Qty</label>
-            <input id="ingredientPackageQty" type="number" min="0" step="0.01" />
+            <input id="ingredientPackageQty" min="0" step="0.01" type="number" />
           </div>
           <div class="form-group">
-            <label>Package Cost (₱)</label>
-            <input id="ingredientPackageCost" type="number" min="0" step="0.01" />
+            <label>Package Cost</label>
+            <input id="ingredientPackageCost" min="0" step="0.01" type="number" />
           </div>
         </div>
+
         <div class="form-row">
           <div class="form-group">
-            <label>Current Stock</label>
-            <input id="ingredientStock" type="number" min="0" step="0.01" />
+            <label>Stock</label>
+            <input id="ingredientStock" min="0" step="0.01" type="number" />
           </div>
           <div class="form-group">
             <label>Reorder Level</label>
-            <input id="ingredientReorderLevel" type="number" min="0" step="0.01" />
+            <input id="ingredientReorderLevel" min="0" step="0.01" type="number" />
           </div>
         </div>
+
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="ingredientModal">Cancel</button>
           <button class="btn" id="saveIngredientBtn" type="button">Save Ingredient</button>
@@ -768,277 +605,72 @@
       </div>
     </div>
 
-    <!-- Checkout modal -->
     <div class="modal-overlay" id="checkoutModal">
       <div class="modal">
         <h3>Complete Sale</h3>
 
         <div class="form-group">
           <label>Total Due</label>
-          <input id="checkoutTotal" readonly type="text" style="font-size:22px;font-weight:900;" />
+          <input id="checkoutTotal" readonly type="text" />
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Customer Name</label>
-            <input id="checkoutCustomer" type="text" placeholder="Walk-in Customer" />
-          </div>
-          <div class="form-group">
-            <label>Payment Method</label>
-            <select id="checkoutPayment">
-              <option value="cash">Cash</option>
-              <option value="gcash">GCash</option>
-              <option value="maya">Maya</option>
-              <option value="bank">Bank Transfer</option>
-              <option value="qrph">QR PH</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label>Payment Method</label>
+          <select id="checkoutPayment">
+            <option value="cash">Cash</option>
+            <option value="gcash">GCash</option>
+            <option value="maya">Maya</option>
+            <option value="bank">Bank Transfer</option>
+            <option value="qrph">QR PH</option>
+          </select>
         </div>
 
-        <!-- QR PH display -->
         <div id="qrphSection" style="display:none;text-align:center;margin-bottom:16px;">
-          <div class="payment-badge">QR PAYMENT</div>
-          <img id="paymentQRImage" src="./assets/qr-placeholder.png"
-            style="width:220px;border:1px solid var(--gray-200);padding:10px;background:#fff;border-radius:12px;object-fit:contain;display:block;margin:0 auto;" />
+          <div class="payment-badge" id="paymentBadge">QR PAYMENT</div>
+          <img id="paymentQRImage" src="./assets/qr-placeholder.png" style="width:280px;border:1px solid #000;padding:10px;background:#fff;border-radius:12px;object-fit:contain;" />
         </div>
 
-        <!-- Reference number -->
         <div class="form-group" id="referenceWrap" style="display:none;">
           <label>Reference Number</label>
-          <input id="paymentReference" type="text" placeholder="e.g. GCash reference ID" />
+          <input id="paymentReference" type="text" />
         </div>
 
-        <!-- Cash tendered -->
-        <div id="tenderedWrap">
-          <div class="form-group">
-            <label>Amount Tendered (₱)</label>
-            <input id="checkoutTendered" type="number" min="0" step="0.01" />
-          </div>
-          <!-- Quick cash buttons -->
-          <div class="quick-amounts" id="quickAmounts">
-            <button type="button" class="quick-amount-btn" data-action="quick-amount" data-amount="50">50</button>
-            <button type="button" class="quick-amount-btn" data-action="quick-amount" data-amount="100">100</button>
-            <button type="button" class="quick-amount-btn" data-action="quick-amount" data-amount="200">200</button>
-            <button type="button" class="quick-amount-btn" data-action="quick-amount" data-amount="500">500</button>
-            <button type="button" class="quick-amount-btn" data-action="quick-amount" data-amount="1000">1000</button>
-          </div>
+        <div class="form-group" id="tenderedWrap">
+          <label>Amount Tendered</label>
+          <input id="checkoutTendered" min="0" step="0.01" type="number" />
         </div>
 
         <div class="form-group">
           <label>Change</label>
-          <input id="checkoutChange" readonly type="text" style="font-weight:700;" />
+          <input id="checkoutChange" readonly type="text" />
+        </div>
+
+        <div class="form-group">
+          <label>Customer Name (optional)</label>
+          <input id="checkoutCustomer" type="text" />
         </div>
 
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="checkoutModal">Cancel</button>
-          <button class="btn btn-secondary" type="button" data-action="complete-sale-pending">Mark Pending</button>
           <button class="btn" type="button" data-action="complete-sale">Complete &amp; Print</button>
+          <button class="btn" type="button" data-action="complete-sale-pending">Mark Pending</button>
         </div>
       </div>
     </div>
 
-    <!-- Supply Order Modal -->
-    <div class="modal-overlay" id="supplyOrderModal">
-      <div class="modal" style="max-width:680px;">
-        <h3>Supply Order</h3>
-        <input id="supplyOrderId" type="hidden" />
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Invoice Number</label>
-            <input id="supplyInvoiceNumber" type="text" readonly
-              style="background:var(--gray-50);font-family:var(--font-mono);font-weight:700;" />
-          </div>
-          <div class="form-group">
-            <label>Order Date <span style="color:var(--danger);">*</span></label>
-            <input id="supplyOrderDate" type="date" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Client <span style="color:var(--danger);">*</span></label>
-          <select id="supplyClientSelect" class="supply-client-select"></select>
-        </div>
-
-        <div class="section-title" style="margin-top:4px;">Line Items</div>
-        <div style="display:grid;grid-template-columns:2fr 80px 110px 100px 36px;
-          gap:8px;padding:6px 12px;font-size:9px;font-weight:800;letter-spacing:1.5px;
-          text-transform:uppercase;color:var(--gray-400);">
-          <span>Description</span><span>Qty</span><span>Unit Price</span>
-          <span style="text-align:right;">Total</span><span></span>
-        </div>
-        <div id="supplyLineItems"></div>
-        <button class="btn btn-secondary" type="button" data-action="add-supply-line"
-          style="margin-bottom:16px;">+ Add Line Item</button>
-
-        <div style="display:flex;justify-content:flex-end;align-items:center;gap:12px;
-          padding:12px 0;border-top:1.5px solid var(--black);margin-top:4px;">
-          <span style="font-size:10px;letter-spacing:2px;text-transform:uppercase;
-            font-weight:800;color:var(--gray-400);">Grand Total</span>
-          <span id="supplyOrderTotal" style="font-size:22px;font-weight:900;">₱0.00</span>
-        </div>
-
-        <div class="form-group">
-          <label>Notes</label>
-          <textarea id="supplyNotes" rows="2" placeholder="Special instructions, terms, etc."></textarea>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button" data-close-modal="supplyOrderModal">Cancel</button>
-          <button class="btn" id="saveSupplyOrderBtn" type="button">Save Order</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Client Modal -->
-    <div class="modal-overlay" id="clientModal">
-      <div class="modal" style="max-width:480px;">
-        <h3>Client</h3>
-        <input id="clientId" type="hidden" />
-        <div class="form-group">
-          <label>Client Name <span style="color:var(--danger);">*</span></label>
-          <input id="clientName" type="text" placeholder="e.g. Caflat Café Makati" />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Contact Person</label>
-            <input id="clientContact" type="text" placeholder="Name" />
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input id="clientEmail" type="email" placeholder="email@example.com" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Address</label>
-          <textarea id="clientAddress" rows="2" placeholder="Delivery / billing address"></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button" data-close-modal="clientModal">Cancel</button>
-          <button class="btn" id="saveClientBtn" type="button">Save Client</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Supplier Order Prompt Modal -->
-    <div class="modal-overlay" id="supplierOrderPromptModal">
-      <div class="modal" style="max-width:520px;">
-        <h3>Convert Cart to Supply Order</h3>
-
-        <!-- Cart summary -->
-        <div class="void-summary" style="margin-bottom:16px;">
-          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;
-            font-weight:800;color:var(--gray-400);margin-bottom:10px;">Order Summary</div>
-          <div id="supplierOrderCartSummary"></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;
-            padding-top:10px;margin-top:8px;border-top:1px solid var(--gray-200);">
-            <span style="font-size:10px;font-weight:800;letter-spacing:1px;
-              text-transform:uppercase;color:var(--gray-500);">Total</span>
-            <span id="supplierOrderCartTotal"
-              style="font-size:18px;font-weight:900;">₱0.00</span>
-          </div>
-        </div>
-
-        <div style="background:var(--warning-bg);border:1px solid var(--warning-border);
-          border-radius:var(--radius-md);padding:10px 14px;margin-bottom:16px;
-          font-size:11px;color:var(--warning);font-weight:700;">
-          ⚠ Stock will not be deducted until order is marked Delivered.
-        </div>
-
-        <div class="form-group">
-          <label>Client <span style="color:var(--danger);">*</span></label>
-          <select id="supplierOrderClientSelect" class="supply-client-select"></select>
-        </div>
-
-        <div class="form-group">
-          <label>Invoice Number</label>
-          <input id="supplierOrderInvoiceNum" type="text" readonly
-            style="background:var(--gray-50);font-family:var(--font-mono);font-weight:700;
-              letter-spacing:2px;font-size:15px;" />
-        </div>
-        <div class="form-group">
-          <label>Expected Delivery Date</label>
-          <input id="supplierOrderDeliveryDate" type="date" />
-        </div>
-
-        <div class="form-group">
-          <label>Notes</label>
-          <textarea id="supplierOrderNotes" rows="2"
-            placeholder="Special instructions, terms, etc."></textarea>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="supplierOrderPromptModal">Cancel</button>
-          <button class="btn" type="button"
-            data-action="confirm-supplier-order">Confirm Supply Order</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Void modal -->
-    <div class="modal-overlay" id="voidModal">
-      <div class="modal" style="max-width:460px;">
-        <h3>Void Transaction</h3>
-        <input id="voidSaleId" type="hidden" />
-
-        <div class="void-summary">
-          <div class="void-summary-row">
-            <span>Receipt</span><span id="voidReceiptNum">—</span>
-          </div>
-          <div class="void-summary-row">
-            <span>Total</span><span id="voidSaleTotal">—</span>
-          </div>
-          <div class="void-summary-row">
-            <span>Date</span><span id="voidSaleDate">—</span>
-          </div>
-        </div>
-
-        <div class="void-warning">
-          ⚠ This action cannot be undone. Stock will be restored.
-        </div>
-
-        <div class="form-group">
-          <label>Reason for Void <span style="color:var(--danger);">*</span></label>
-          <textarea id="voidReason" rows="2"
-            placeholder="e.g. Wrong order, customer request, duplicate transaction…"></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Admin Void PIN <span style="color:var(--danger);">*</span></label>
-          <div class="pin-dots" id="voidPinDots">
-            <div class="pin-dot"></div><div class="pin-dot"></div>
-            <div class="pin-dot"></div><div class="pin-dot"></div>
-            <div class="pin-dot"></div><div class="pin-dot"></div>
-          </div>
-          <input id="voidPin" type="password" maxlength="6"
-            placeholder="Enter 6-digit PIN"
-            autocomplete="off"
-            style="text-align:center;letter-spacing:6px;font-size:20px;font-weight:900;" />
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button" data-close-modal="voidModal">Cancel</button>
-          <button class="btn btn-danger" type="button" data-action="confirm-void">Confirm Void</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Receipt modal -->
     <div class="modal-overlay" id="receiptModal">
-      <div class="modal" id="receiptContent" style="max-width:400px;">
+      <div class="modal" id="receiptContent">
         <div class="receipt" id="receiptBody"></div>
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="receiptModal">Close</button>
-          <button class="btn" type="button" data-action="print-receipt">Print Receipt</button>
+          <button class="btn" type="button" data-action="print-receipt">Print</button>
         </div>
       </div>
     </div>
 
-    <!-- Variant selector modal -->
     <div class="modal-overlay" id="variantModal">
-      <div class="modal" style="max-width:480px;">
-        <h3 id="variantModalTitle">Select Option</h3>
+      <div class="modal">
+        <h3>Select Variant</h3>
         <div class="variant-options" id="variantOptions"></div>
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="variantModal">Cancel</button>
@@ -1046,32 +678,14 @@
       </div>
     </div>
 
-    <!-- Notifications -->
     <div id="notificationContainer"></div>
-
-  </div><!-- /#app -->
-
-  <!-- Held Orders Modal (outside #app, uses hidden class) -->
-  <div class="hidden" id="heldOrdersModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Held Orders</h3>
-      </div>
-      <div id="heldOrdersList"></div>
-      <div class="modal-actions">
-        <button type="button" id="closeHeldOrdersBtn" class="btn btn-secondary">Close</button>
-      </div>
-    </div>
   </div>
 
-  <!-- ═══ SCRIPTS ═══ -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="./js/utils.js"></script>
   <script src="./js/state.js"></script>
   <script src="./js/storage.js"></script>
   <script src="./js/auth.js"></script>
-  <script src="./js/analytics.js"></script>
-  <script src="./js/dashboard.js"></script>
   <script src="./js/products.js"></script>
   <script src="./js/ingredients.js"></script>
   <script src="./js/inventory.js"></script>
@@ -1079,10 +693,17 @@
   <script src="./js/reports.js"></script>
   <script src="./js/settings.js"></script>
   <script src="./js/uiActions.js"></script>
-  <script src="./js/void.js"></script>
-  <script src="./js/supply.js"></script>
   <script src="./js/navigation.js"></script>
   <script src="./js/app.js"></script>
 
+<div class="modal hidden" id="heldOrdersModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header"><h3>Held Orders</h3></div>
+    <div id="heldOrdersList" style="display:flex;flex-direction:column;gap:12px;"></div>
+    <div class="modal-actions">
+      <button type="button" id="closeHeldOrdersBtn">Close</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
