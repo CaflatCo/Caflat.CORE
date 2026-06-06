@@ -491,6 +491,8 @@ function applySupplierModeToggle() {
   const enabled = APP_STATE.settings?.supplierModeEnabled === true;
   const navBtn  = document.getElementById('navSupply');
   if (navBtn) navBtn.style.display = enabled ? '' : 'none';
+  // Also sync cart button
+  if (typeof applySupplierCartButton === 'function') applySupplierCartButton();
 }
 
 /* ── Full render entry point ── */
@@ -525,3 +527,151 @@ window.renderSupplyKPIs       = renderSupplyKPIs;
 window.renderSupplyView       = renderSupplyView;
 window.exportSupplyCSV        = exportSupplyCSV;
 window.applySupplierModeToggle= applySupplierModeToggle;
+
+/* ═══════════════════════════════════════════════════════
+   CART → SUPPLY ORDER CONVERSION
+   Opens from POS cart. No stock deduction at order time.
+   Stock deducted only when status advances to DELIVERED.
+═══════════════════════════════════════════════════════ */
+
+function openSupplierOrderPrompt() {
+  const cart = getCart();
+  if (!cart.length) {
+    showNotification('Cart is empty', 'error');
+    return;
+  }
+
+  const clients = getSupplierClients();
+  if (!clients.length) {
+    showNotification('Add a client in the Supply tab first', 'error');
+    return;
+  }
+
+  // Populate client dropdown
+  renderClientDropdowns();
+
+  // Pre-fill invoice number
+  const invoiceNumber = generateInvoiceNumber();
+  setElementValue('supplierOrderInvoiceNum', invoiceNumber);
+
+  // Pre-fill delivery date (today + 1 day as default)
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  setElementValue('supplierOrderDeliveryDate', tomorrow.toISOString().slice(0, 10));
+
+  // Clear notes
+  setElementValue('supplierOrderNotes', '');
+
+  // Render cart summary
+  renderSupplierOrderCartSummary(cart);
+
+  openModal('supplierOrderPromptModal');
+}
+
+function renderSupplierOrderCartSummary(cart) {
+  const container = document.getElementById('supplierOrderCartSummary');
+  const totalEl   = document.getElementById('supplierOrderCartTotal');
+  if (!container) return;
+
+  let grandTotal = 0;
+  container.innerHTML = cart.map(item => {
+    const lineTotal = Number(item.price || 0) * Number(item.quantity || 0);
+    grandTotal += lineTotal;
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        padding:5px 0;border-bottom:1px solid var(--gray-100);font-size:12px;">
+        <div>
+          <span style="font-weight:700;">${escapeHtml(item.name)}</span>
+          <span style="color:var(--gray-400);margin-left:6px;">
+            ×${item.quantity} @ ${formatCurrency(item.price)}
+          </span>
+        </div>
+        <span style="font-weight:800;font-variant-numeric:tabular-nums;">
+          ${formatCurrency(lineTotal)}
+        </span>
+      </div>`;
+  }).join('');
+
+  if (totalEl) totalEl.textContent = formatCurrency(grandTotal);
+}
+
+function confirmSupplierOrder() {
+  const cart     = getCart();
+  const clientId = document.getElementById('supplierOrderClientSelect')?.value || '';
+  const notes    = sanitizeText(getElementValue('supplierOrderNotes'));
+  const deliveryDate = getElementValue('supplierOrderDeliveryDate');
+  const invoiceNumber = getElementValue('supplierOrderInvoiceNum');
+
+  if (!cart.length)  { showNotification('Cart is empty', 'error');          return; }
+  if (!clientId)     { showNotification('Please select a client', 'error'); return; }
+
+  const client    = getSupplierClients().find(c => String(c.id) === String(clientId));
+  const timestamp = new Date().toISOString();
+
+  // Convert cart lines to supply line items (use retail price as starting point)
+  const items = cart.map(item => ({
+    description: item.name,
+    qty:         Number(item.quantity || 0) * Number(item.multiplier || 1),
+    unitPrice:   Number(item.price || 0),
+    total:       Number(item.price || 0) * Number(item.quantity || 0)
+  }));
+
+  const grandTotal = items.reduce((s, i) => s + i.total, 0);
+
+  const newOrder = {
+    id:            generateId(),
+    invoiceNumber,
+    clientId,
+    clientName:    client?.name || '',
+    orderDate:     new Date().toISOString().slice(0, 10),
+    deliveryDate:  deliveryDate || '',
+    notes,
+    items,
+    grandTotal,
+    status:        'ORDERED',   // Cart → Supply skips DRAFTED, starts at ORDERED
+    statusHistory: [
+      {
+        status:    'DRAFTED',
+        changedAt: timestamp,
+        note:      'Auto-created from POS cart'
+      },
+      {
+        status:    'ORDERED',
+        changedAt: timestamp,
+        note:      'Converted from POS cart by ' + (APP_STATE.currentUserRole || 'STAFF')
+      }
+    ],
+    createdAt:  timestamp,
+    updatedAt:  timestamp,
+    source:     'pos-cart'   // Track origin
+  };
+
+  const orders = getSupplyOrders();
+  orders.push(newOrder);
+  updateState('supplyOrders', () => orders);
+
+  // Clear cart — no stock deduction
+  if (typeof clearCart === 'function') clearCart(true);
+
+  closeModal('supplierOrderPromptModal');
+  renderSupplyTable();
+  renderSupplyKPIs();
+
+  showNotification(
+    `Supply order ${invoiceNumber} created for ${client?.name || 'client'}`,
+    'success'
+  );
+}
+
+/* ── Show/hide supplier order button based on setting ── */
+function applySupplierCartButton() {
+  const btn = document.getElementById('supplierOrderBtn');
+  if (!btn) return;
+  const enabled = APP_STATE.settings?.supplierModeEnabled === true;
+  btn.style.display = enabled ? 'block' : 'none';
+}
+
+window.openSupplierOrderPrompt       = openSupplierOrderPrompt;
+window.renderSupplierOrderCartSummary= renderSupplierOrderCartSummary;
+window.confirmSupplierOrder          = confirmSupplierOrder;
+window.applySupplierCartButton       = applySupplierCartButton;
