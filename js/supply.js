@@ -161,6 +161,7 @@ function renderSupplyLineItems(items = []) {
   if (!container) return;
   container.innerHTML = '';
   items.forEach(item => addSupplyLineItemRow(item));
+  updateSupplyOrderTotal();
 }
 
 function addSupplyLineItemRow(item = null) {
@@ -635,6 +636,15 @@ function confirmSupplierOrder() {
   const discount    = typeof calculateCartDiscount === 'function' ? calculateCartDiscount() : 0;
   const tax         = typeof calculateCartTax      === 'function' ? calculateCartTax()      : 0;
   const grandTotal  = Math.max(0, subtotal - discount + tax);
+
+  // Preserve discounted pricing in supply order line items
+  if (subtotal > 0 && discount > 0) {
+    const ratio = Math.max(0, (subtotal - discount) / subtotal);
+    items.forEach(i => {
+      i.unitPrice = Number((i.unitPrice * ratio).toFixed(2));
+      i.total = Number((i.qty * i.unitPrice).toFixed(2));
+    });
+  }
 
   const newOrder = {
     id:            generateId(),
