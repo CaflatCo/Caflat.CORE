@@ -294,10 +294,12 @@ function advanceSupplyStatus(orderId) {
     return;
   }
 
+  const oldStatus = order.status;
   const nextStatus = SUPPLY_STATUSES[currentIdx + 1];
   const note = prompt(`Note for status change to ${SUPPLY_STATUS_LABELS[nextStatus]} (optional):`) || '';
   const timestamp = new Date().toISOString();
 
+  handleSupplyStatusTransition(order, oldStatus, nextStatus);
   order.status = nextStatus;
   order.updatedAt = timestamp;
   order.statusHistory = Array.isArray(order.statusHistory) ? order.statusHistory : [];
@@ -323,6 +325,19 @@ function cancelSupplyOrder(orderId) {
   updateState('supplyOrders', () => orders);
   renderSupplyTable();
   showNotification('Order cancelled', 'success');
+}
+
+
+function handleSupplyStatusTransition(order, oldStatus, newStatus) {
+  console.log('[SupplierModeV2]', oldStatus, '->', newStatus, order.id);
+
+  // TODO: integrate with inventory engine
+  // ORDERED   = reserve stock
+  // DELIVERED = deduct stock
+  // CANCELLED = release reservation
+  // VOIDED    = release reservation
+  // REFUNDED  = restore stock
+  // PAID      = create sales record (channel SUPPLY)
 }
 
 /* ── Status badge ── */
