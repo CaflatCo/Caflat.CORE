@@ -621,6 +621,7 @@ function advanceSupplyStatus(orderId) {
   order.statusHistory = Array.isArray(order.statusHistory) ? order.statusHistory : [];
   order.statusHistory.push({ status: nextStatus, changedAt: timestamp, note });
   _auditSupplyEvent(`SUPPLY_ORDER_${nextStatus}`, order);
+  if(nextStatus==='VOIDED'){ _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);}
 
   updateState('supplyOrders', () => orders);
   renderSupplyTable();
@@ -636,8 +637,8 @@ function cancelSupplyOrder(orderId) {
 
   // Release reservation if exists
   if (order.stockDeducted) {
-    if (order.stockDeducted) { _restoreSupplyStock(order); order.stockDeducted = false; }
-  _releaseSupplyReservation(order);
+    _restoreSupplyStock(order);
+    order.stockDeducted = false;
     order.reservedStock = false;
   }
 
@@ -942,9 +943,12 @@ function confirmSupplierOrder() {
   };
 
   // Deduct stock immediately since status starts at ORDERED
+  _auditSupplyEvent('SUPPLY_ORDER_CREATED', newOrder);
   _deductSupplyStock(newOrder);
   newOrder.stockDeducted = true;
   newOrder.reservedStock = false;
+  _auditSupplyEvent('SUPPLY_ORDER_ORDERED', newOrder);
+  _auditSupplyEvent('SUPPLY_STOCK_DEDUCTED', newOrder);
 
   const orders = getSupplyOrders();
   orders.push(newOrder);
