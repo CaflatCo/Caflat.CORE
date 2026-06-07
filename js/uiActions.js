@@ -78,6 +78,9 @@ function bindRecipeBuilder() {
   const btn = document.getElementById('addRecipeBtn');
   if (btn) btn.addEventListener('click', () => addRecipeRow());
 
+  const pkgBtn = document.getElementById('addPackagingBtn');
+  if (pkgBtn) pkgBtn.addEventListener('click', () => addPackagingRow());
+
   // Live cost preview on price / recipe mode / yield change
   ['productPrice','recipeMode','batchYield'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', () => {
@@ -159,6 +162,13 @@ function bindDelegatedActions() {
       case 'cancel-pending-sale':   cancelPendingSale(actionEl.dataset.id || ''); break;
       case 'open-sale-receipt':     openSaleReceipt(actionEl.dataset.id || ''); break;
       case 'open-void-modal':       openVoidModal(actionEl.dataset.id || ''); break;
+      case 'open-refund-modal':     if(typeof openRefundModal==='function') openRefundModal(actionEl.dataset.id||''); break;
+      case 'confirm-refund':        if(typeof confirmRefund==='function') confirmRefund(); break;
+      case 'clone-product':         if(typeof cloneProduct==='function') cloneProduct(actionEl.dataset.id||''); break;
+      case 'run-integrity-check':      if(typeof renderIntegrityReport==='function') renderIntegrityReport(); break;
+      case 'refresh-inventory-movements': if(typeof renderInventoryMovementHistory==='function') renderInventoryMovementHistory(); break;
+      case 'view-transaction-timeline': if(typeof renderTransactionTimeline==='function') renderTransactionTimeline(actionEl.dataset.id||''); break;
+      case 'add-packaging-row':     addPackagingRow(); break;
       case 'open-refund-modal':     openRefundModal(actionEl.dataset.id || ''); break;
       case 'confirm-refund':        confirmRefund(); break;
       case 'clone-product':         cloneProduct(actionEl.dataset.id || ''); break;
@@ -249,6 +259,38 @@ function addVariantRow(variant = null) {
     <button type="button" class="btn btn-sm btn-secondary remove-variant-btn">✕</button>`;
   row.querySelector('.remove-variant-btn').addEventListener('click', () => row.remove());
   container.appendChild(row);
+}
+
+function addPackagingRow(pkg = null) {
+  const container = document.getElementById('packagingBuilder');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'packaging-row';
+  row.dataset.pkgId = pkg?.id || generateId();
+  row.innerHTML = `
+    <input type="text"   class="packaging-name" placeholder="e.g. Cookie Box, Sticker, Paper Bag"
+      value="${escapeHtml(pkg?.name || '')}"
+      style="flex:2;padding:7px 10px;border:1px solid var(--gray-200);
+        border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />
+    <input type="number" class="packaging-cost" placeholder="Cost (₱)"
+      value="${pkg?.cost || ''}" min="0" step="0.01"
+      style="width:110px;padding:7px 10px;border:1px solid var(--gray-200);
+        border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />
+    <button type="button" class="btn btn-sm btn-secondary remove-packaging-btn">✕</button>`;
+  row.querySelector('.remove-packaging-btn').addEventListener('click', () => {
+    row.remove();
+    if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+  });
+  row.querySelector('.packaging-name')?.addEventListener('input', () => {
+    if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+  });
+  row.querySelector('.packaging-cost')?.addEventListener('input', () => {
+    if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+  });
+  container.appendChild(row);
+  if (typeof renderProductCostPreview === 'function') {
+    requestAnimationFrame(() => renderProductCostPreview());
+  }
 }
 
 function addRecipeRow(recipe = null) {
@@ -346,6 +388,7 @@ function printReceipt() {
 window.initializeUIActions  = initializeUIActions;
 window.addVariantRow        = addVariantRow;
 window.addRecipeRow         = addRecipeRow;
+window.addPackagingRow      = addPackagingRow;
 window.openVariantSelector  = openVariantSelector;
 window.renderCategoryTabs   = renderCategoryTabs;
 window.renderOrderTypeTabs  = renderOrderTypeTabs;

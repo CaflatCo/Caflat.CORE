@@ -24,6 +24,7 @@ function getProductFormData() {
     variantType: getElementValue('variantType') || 'custom',
     variants: collectVariants(),
     recipe: collectRecipeRows(),
+    packagingItems: collectPackagingRows(),
     recipeMode: getElementValue('recipeMode') || 'unit',
     batchYield: safeNumber(getElementValue('batchYield')) || 1,
     createdAt: new Date().toISOString()
@@ -53,6 +54,19 @@ function collectRecipeRows() {
     .filter(Boolean);
 }
 
+function collectPackagingRows() {
+  return Array.from(document.querySelectorAll('.packaging-row'))
+    .map(row => {
+      const name = sanitizeText(row.querySelector('.packaging-name')?.value);
+      const cost = safeNumber(row.querySelector('.packaging-cost')?.value);
+      if (!name) return null;
+      return { id: row.dataset.pkgId || generateId(), name, cost };
+    })
+    .filter(Boolean);
+}
+
+window.collectPackagingRows = collectPackagingRows;
+
 function saveProduct() {
   const data = getProductFormData();
   if (!data.name) { showNotification('Product name is required', 'error'); return; }
@@ -73,6 +87,7 @@ function clearProductForm() {
   ['productId','productName','productCategory','productPrice','productStock','productReorderLevel','batchYield'].forEach(id => setElementValue(id, ''));
   const vb = document.getElementById('variantBuilder'); if (vb) vb.innerHTML = '';
   const rb = document.getElementById('recipeBuilder'); if (rb) rb.innerHTML = '';
+  const pb = document.getElementById('packagingBuilder'); if (pb) pb.innerHTML = '';
 }
 
 function openProductModal(productId = null) {
@@ -108,6 +123,7 @@ function hydrateProductForm(product) {
 
   if (Array.isArray(product.variants)) product.variants.forEach(v => addVariantRow(v));
   if (Array.isArray(product.recipe)) product.recipe.forEach(r => addRecipeRow(r));
+  if (Array.isArray(product.packagingItems)) product.packagingItems.forEach(p => addPackagingRow(p));
 }
 
 function deleteProduct(productId) {
@@ -243,27 +259,48 @@ function renderProductCostPreview() {
   const container = document.getElementById('productCostPreview');
   if (!container) return;
 
-  const hasRows = document.querySelectorAll('.recipe-row').length > 0;
-  const cost    = calculateProductCostFromForm(); // analytics.js
-  const price   = Number(document.getElementById('productPrice')?.value || 0);
-  const profit  = price - cost;
-  const margin  = price > 0 ? (profit / price) * 100 : 0;
+  const recipeRows    = document.querySelectorAll('.recipe-row');
+  const packagingRows = document.querySelectorAll('.packaging-row');
+  const hasContent    = recipeRows.length > 0 || packagingRows.length > 0;
 
-  if (!hasRows && cost === 0) {
+  // Ingredient cost
+  const ingredients = APP_STATE.ingredients || [];
+  const recipeMode  = document.getElementById('recipeMode')?.value || 'unit';
+  const batchYield  = Math.max(1, Number(document.getElementById('batchYield')?.value || 1));
+  let ingredientCost = 0;
+  recipeRows.forEach(row => {
+    const ingredientId = row.querySelector('.recipe-ingredient')?.value;
+    const qty          = Number(row.querySelector('.recipe-qty')?.value || 0);
+    if (!ingredientId || !qty) return;
+    const ing = ingredients.find(i => String(i.id) === String(ingredientId));
+    if (!ing) return;
+    const perUnit = recipeMode === 'batch' ? qty / batchYield : qty;
+    ingredientCost += perUnit * Number(ing.costPerUnit || 0);
+  });
+
+  // Packaging cost
+  let packagingCost = 0;
+  packagingRows.forEach(row => {
+    packagingCost += Number(row.querySelector('.packaging-cost')?.value || 0);
+  });
+
+  const totalCost = ingredientCost + packagingCost;
+  const price     = Number(document.getElementById('productPrice')?.value || 0);
+  const profit    = price - totalCost;
+  const margin    = price > 0 ? (profit / price) * 100 : 0;
+  const profitNeg = profit < 0;
+
+  if (!hasContent && totalCost === 0) {
     container.innerHTML = `
-      <div class="cost-preview-empty">
-        Add recipe ingredients to see cost breakdown
-      </div>`;
+      <div class="cost-preview-empty">Add recipe ingredients or packaging to see cost breakdown</div>`;
     return;
   }
 
-  const profitNeg = profit < 0;
-
   container.innerHTML = `
-    <div class="cost-preview-grid">
+    <div class="cost-preview-grid" style="margin-bottom:12px;">
       <div class="cost-preview-item">
-        <div class="cost-preview-label">Cost</div>
-        <div class="cost-preview-value">${formatCurrency(cost)}</div>
+        <div class="cost-preview-label">Total Cost</div>
+        <div class="cost-preview-value">${formatCurrency(totalCost)}</div>
       </div>
       <div class="cost-preview-item">
         <div class="cost-preview-label">Price</div>
@@ -271,17 +308,26 @@ function renderProductCostPreview() {
       </div>
       <div class="cost-preview-item">
         <div class="cost-preview-label">Profit</div>
-        <div class="cost-preview-value" style="${profitNeg ? 'color:#dc2626;' : ''}">
+        <div class="cost-preview-value" style="${profitNeg ? 'color:#dc2626;' : 'color:#16a34a;'}">
           ${price > 0 ? formatCurrency(profit) : '—'}
         </div>
       </div>
       <div class="cost-preview-item">
         <div class="cost-preview-label">Margin</div>
-        <div class="cost-preview-value" style="${profitNeg ? 'color:#dc2626;' : ''}">
+        <div class="cost-preview-value" style="${profitNeg ? 'color:#dc2626;' : 'color:#16a34a;'}">
           ${price > 0 ? margin.toFixed(1) + '%' : '—'}
         </div>
       </div>
-    </div>`;
+    </div>
+    ${(ingredientCost > 0 || packagingCost > 0) ? `
+    <div style="display:flex;gap:16px;padding-top:10px;border-top:1px solid var(--gray-100);">
+      <div style="font-size:11px;color:var(--gray-500);">
+        Ingredients: <span style="font-weight:700;">${formatCurrency(ingredientCost)}</span>
+      </div>
+      <div style="font-size:11px;color:var(--gray-500);">
+        Packaging: <span style="font-weight:700;">${formatCurrency(packagingCost)}</span>
+      </div>
+    </div>` : ''}`;
 }
 
 /* ═══════════════════════════════════════════════════════

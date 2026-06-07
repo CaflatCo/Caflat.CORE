@@ -36,32 +36,44 @@ function renderReportKPIs(fromDate, toDate) {
   const statsGrid = document.getElementById('reportStatsGrid');
   if (!statsGrid) return;
 
-  const revenue = getRevenue(fromDate, toDate);
-  const orders  = getOrderCount(fromDate, toDate);
-  const items   = getItemsSold(fromDate, toDate);
-  const avg     = getAverageTicket(fromDate, toDate);
-  const discount= getTotalDiscount(fromDate, toDate);
+  const posRevenue   = getRevenue(fromDate, toDate);
+  const orders       = getOrderCount(fromDate, toDate);
+  const items        = getItemsSold(fromDate, toDate);
+  const avg          = getAverageTicket(fromDate, toDate);
+  const discount     = getTotalDiscount(fromDate, toDate);
+
+  // Supply revenue from analytics
+  const supplyRevenue      = typeof getSupplyRevenue_      === 'function' ? getSupplyRevenue_()      : 0;
+  const supplyOrders       = typeof getSupplyOrderCount_   === 'function' ? getSupplyOrderCount_()   : 0;
+  const outstanding        = typeof getOutstandingReceivables === 'function' ? getOutstandingReceivables() : 0;
+  const collectionRate     = typeof getCollectionRate      === 'function' ? getCollectionRate()      : 0;
+  const totalRevenue       = posRevenue + supplyRevenue;
 
   statsGrid.innerHTML = `
     <div class="stat-card dark">
       <div class="label">Total Revenue</div>
-      <div class="value">${formatCurrency(revenue)}</div>
-      <div class="sub">${orders} completed order${orders !== 1 ? 's' : ''}</div>
+      <div class="value">${formatCurrency(totalRevenue)}</div>
+      <div class="sub">POS: ${formatCurrency(posRevenue)} · Supply: ${formatCurrency(supplyRevenue)}</div>
     </div>
     <div class="stat-card">
-      <div class="label">Orders</div>
+      <div class="label">POS Orders</div>
       <div class="value">${orders}</div>
-      <div class="sub">Filtered period</div>
+      <div class="sub">Avg ${formatCurrency(avg)} · Disc. ${formatCurrency(discount)}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Supply Orders</div>
+      <div class="value">${supplyOrders}</div>
+      <div class="sub">Paid supply orders</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Receivables</div>
+      <div class="value" style="font-size:20px;">${formatCurrency(outstanding)}</div>
+      <div class="sub">Collection rate: ${collectionRate.toFixed(1)}%</div>
     </div>
     <div class="stat-card">
       <div class="label">Items Sold</div>
       <div class="value">${items}</div>
-      <div class="sub">Units moved</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">Avg Order</div>
-      <div class="value">${formatCurrency(avg)}</div>
-      <div class="sub">Discount given: ${formatCurrency(discount)}</div>
+      <div class="sub">Units moved (POS)</div>
     </div>`;
 }
 

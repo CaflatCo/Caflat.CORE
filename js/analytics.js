@@ -184,6 +184,116 @@ window.getLowStockItems = getLowStockItems;
 window.getLowStockProducts = getLowStockProducts;
 window.getKPISummary = getKPISummary;
 
+
+/* ── Product cost calculation — single source of truth ── */
+function calculateProductCost(recipe, recipeMode, batchYield, packagingItems) {
+  const ingredients = APP_STATE.ingredients || [];
+  if (!Array.isArray(recipe)) return 0;
+  const yield_ = Math.max(1, Number(batchYield || 1));
+  const mode   = String(recipeMode || 'unit');
+
+  const ingredientCost = recipe.reduce((total, ri) => {
+    const ing = ingredients.find(i => String(i.id) === String(ri.ingredientId));
+    if (!ing) return total;
+    const perUnit = mode === 'batch'
+      ? Number(ri.quantity || 0) / yield_
+      : Number(ri.quantity || 0);
+    return total + perUnit * Number(ing.costPerUnit || 0);
+  }, 0);
+
+  const packagingCost = Array.isArray(packagingItems)
+    ? packagingItems.reduce((s, p) => s + Number(p.cost || 0), 0)
+    : 0;
+
+  return ingredientCost + packagingCost;
+}
+
+/* ── Live cost from form DOM ── */
+function calculateProductCostFromForm() {
+  const rows       = document.querySelectorAll('.recipe-row');
+  const ingredients= APP_STATE.ingredients || [];
+  const recipeMode = document.getElementById('recipeMode')?.value || 'unit';
+  const batchYield = Math.max(1, Number(document.getElementById('batchYield')?.value || 1));
+  let ingredientCost = 0;
+
+  rows.forEach(row => {
+    const ingredientId = row.querySelector('.recipe-ingredient')?.value;
+    const qty          = Number(row.querySelector('.recipe-qty')?.value || 0);
+    if (!ingredientId || !qty) return;
+    const ing = ingredients.find(i => String(i.id) === String(ingredientId));
+    if (!ing) return;
+    const perUnit = recipeMode === 'batch' ? qty / batchYield : qty;
+    ingredientCost += perUnit * Number(ing.costPerUnit || 0);
+  });
+
+  // Add packaging costs from packaging rows
+  const packagingRows = document.querySelectorAll('.packaging-row');
+  let packagingCost = 0;
+  packagingRows.forEach(row => {
+    packagingCost += Number(row.querySelector('.packaging-cost')?.value || 0);
+  });
+
+  return ingredientCost + packagingCost;
+}
+
+/* ── Supply analytics ── */
+function getSupplyOrders_() {
+  return Array.isArray(APP_STATE.supplyOrders) ? APP_STATE.supplyOrders : [];
+}
+
+function getSupplyRevenue_() {
+  return getSupplyOrders_()
+    .filter(o => String(o.status||'').toUpperCase() === 'PAID')
+    .reduce((s, o) => s + Number(o.grandTotal || 0), 0);
+}
+
+function getSupplyOrderCount_() {
+  return getSupplyOrders_()
+    .filter(o => String(o.status||'').toUpperCase() === 'PAID').length;
+}
+
+function getOutstandingReceivables() {
+  return getSupplyOrders_()
+    .filter(o => ['DELIVERED','INVOICED'].includes(String(o.status||'').toUpperCase()))
+    .reduce((s, o) => s + Number(o.grandTotal || 0), 0);
+}
+
+function getCollectionRate() {
+  const total = getSupplyOrders_()
+    .filter(o => !['DRAFTED','CANCELLED','VOIDED'].includes(String(o.status||'').toUpperCase()))
+    .reduce((s, o) => s + Number(o.grandTotal || 0), 0);
+  if (!total) return 0;
+  return (getSupplyRevenue_() / total) * 100;
+}
+
+/* ── Inventory discrepancy detection ── */
+function getDailyDiscrepancies() {
+  const movements = Array.isArray(APP_STATE.inventoryMovements)
+    ? APP_STATE.inventoryMovements : [];
+
+  const byDay = new Map();
+  movements.forEach(m => {
+    const day = new Date(m.createdAt || Date.now()).toISOString().slice(0, 10);
+    if (!byDay.has(day)) byDay.set(day, { added: 0, used: 0, adjustments: 0 });
+    const entry = byDay.get(day);
+    entry.added       += Number(m.quantityAdded || 0);
+    entry.used        += Number(m.quantityUsed  || 0);
+    if (m.type === 'manual-adjustment') entry.adjustments++;
+  });
+
+  return Array.from(byDay.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([date, data]) => ({ date, ...data }));
+}
+
+window.calculateProductCost         = calculateProductCost;
+window.calculateProductCostFromForm = calculateProductCostFromForm;
+window.getSupplyRevenue_            = getSupplyRevenue_;
+window.getSupplyOrderCount_         = getSupplyOrderCount_;
+window.getOutstandingReceivables    = getOutstandingReceivables;
+window.getCollectionRate            = getCollectionRate;
+window.getDailyDiscrepancies        = getDailyDiscrepancies;
+
 function getPaidSupplyOrders(){return (APP_STATE.supplyOrders||[]).filter(o=>String(o.status||'').toUpperCase()==='PAID');}
 function getSupplyRevenue(){return getPaidSupplyOrders().reduce((s,o)=>s+Number(o.grandTotal||o.total||0),0);}
 function getSupplyOrderCount(){return getPaidSupplyOrders().length;}

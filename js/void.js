@@ -232,27 +232,51 @@ function renderAuditLog() {
   const tbody = document.querySelector('#auditLogTable tbody');
   if (!tbody) return;
 
-  const log = Array.isArray(APP_STATE.auditLog) ? APP_STATE.auditLog : [];
+  const log   = Array.isArray(APP_STATE.auditLog) ? APP_STATE.auditLog : [];
+  const limit = window.auditLimit || 5;
   tbody.innerHTML = '';
 
-  window.auditLimit=window.auditLimit||5;
   if (!log.length) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No audit entries yet</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No audit entries yet</td></tr>`;
     return;
   }
 
-  log.slice().reverse().slice(0,(window.auditLimit||5)).forEach(entry => {
+  log.slice().reverse().slice(0, limit).forEach(entry => {
     const date = new Date(entry.timestamp);
-    const outcomeClass = entry.outcome === 'SUCCESS' ? 'badge-ok' : 'badge-low-stock';
+    const outcomeClass = entry.outcome === 'SUCCESS'  ? 'badge-ok'
+                       : entry.outcome === 'DENIED'   ? 'badge-refunded'
+                       : entry.outcome === 'TAMPERED' ? 'badge-sold-out'
+                       : 'badge-low-stock';
+
+    const ref = entry.receiptNumber || entry.invoiceNumber || entry.saleId
+             || entry.referenceId   || '—';
+
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-      <td style="font-family:var(--font-mono);font-size:11px;">${escapeHtml(entry.action || '')}</td>
-      <td>${escapeHtml(entry.receiptNumber || entry.saleId || '—')}</td>
-      <td>${escapeHtml(entry.reason || '—')}</td>
+      <td style="white-space:nowrap;font-size:11px;">
+        ${date.toLocaleDateString()} ${date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+      </td>
+      <td style="font-family:var(--font-mono);font-size:10px;font-weight:700;">
+        ${escapeHtml(entry.action || '')}
+      </td>
+      <td style="font-size:11px;">${escapeHtml(ref)}</td>
+      <td style="font-size:11px;">${escapeHtml(entry.role || entry.by || '—')}</td>
+      <td style="font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+        title="${escapeHtml(entry.note || entry.reason || entry.details || '')}">
+        ${escapeHtml(entry.note || entry.reason || entry.details || '—')}
+      </td>
       <td><span class="${outcomeClass}">${escapeHtml(entry.outcome || '—')}</span></td>`;
     tbody.appendChild(row);
   });
+
+  // See more (5 default, +5 on expand)
+  if (typeof _renderSeeMore === 'function') {
+    _renderSeeMore(
+      'auditSeeMore', log.length, limit,
+      () => { window.auditLimit = (window.auditLimit || 5) + 5; renderAuditLog(); },
+      () => { window.auditLimit = 5; renderAuditLog(); }
+    );
+  }
 }
 
 window.openVoidModal    = openVoidModal;

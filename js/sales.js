@@ -581,16 +581,10 @@ function renderSalesTable() {
   }
 
 
-  let ctl=document.getElementById('salesTableControls');
-  if(!ctl){
-    ctl=document.createElement('div');
-    ctl.id='salesTableControls';
-    tableBody.parentElement.appendChild(ctl);
-  }
-  ctl.innerHTML=`Showing ${Math.min(window.salesTableLimit||20,sales.length)} of ${sales.length}
-  <button onclick="window.salesTableLimit=(window.salesTableLimit||20)+20;renderSalesTable()">${(window.salesTableLimit||20) < sales.length ? '<button onclick="window.salesTableLimit=(window.salesTableLimit||20)+20;renderSalesTable()">Show More</button>' : '<button onclick="window.salesTableLimit=20;renderSalesTable()">Show Less</button>'}`;
+  const limit = window.salesTableLimit || 20;
+  const paged = sales.slice().reverse().slice(0, limit);
 
-  sales.slice().reverse().slice(0, window.salesTableLimit || 20).forEach(sale => {
+  paged.forEach(sale => {
     const saleDate = new Date(sale.audit?.completedAt || sale.completedAt || sale.createdAt || Date.now());
     const itemSummary = Array.isArray(sale.items)
       ? sale.items.map(i => {
@@ -621,12 +615,22 @@ function renderSalesTable() {
             : (sale.status||'').toUpperCase()==='VOIDED'
               ? `<button type="button" class="btn btn-sm btn-secondary" data-action="open-sale-receipt" data-id="${sale.id}">Receipt</button>`
               : `<button type="button" class="btn btn-sm btn-secondary" data-action="open-sale-receipt" data-id="${sale.id}">Receipt</button>
+                 <button type="button" class="btn btn-sm btn-secondary" data-action="view-transaction-timeline" data-id="${sale.id}">Timeline</button>
                  <button type="button" class="btn btn-sm btn-danger" data-action="open-void-modal" data-id="${sale.id}">Void</button>
                  <button type="button" class="btn btn-sm refund-action-btn" data-action="open-refund-modal" data-id="${sale.id}">Refund</button>`}
         </div>
       </td>`;
     tableBody.appendChild(row);
   });
+
+  // See more
+  if (typeof _renderSeeMore === 'function') {
+    _renderSeeMore(
+      'salesSeeMore', sales.length, window.salesTableLimit || 20,
+      () => { window.salesTableLimit = (window.salesTableLimit || 20) + 20; renderSalesTable(); },
+      () => { window.salesTableLimit = 20; renderSalesTable(); }
+    );
+  }
 }
 
 function exportSalesReport() {
