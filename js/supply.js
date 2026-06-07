@@ -1,3 +1,33 @@
+
+function _createSupplySalesRecord(order) {
+  if (!order || order.salesRecordId) return;
+
+  const sales = Array.isArray(APP_STATE.sales) ? APP_STATE.sales : [];
+  const saleId = `SUP-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+
+  const sale = {
+    id: saleId,
+    orderNumber: order.invoiceNumber || order.orderNumber || saleId,
+    customerName: order.clientName || order.client || 'Supply Client',
+    channel: 'SUPPLY',
+    source: 'SUPPLY_ORDER',
+    sourceOrderId: order.id,
+    paymentStatus: 'PAID',
+    status: 'COMPLETED',
+    total: Number(order.grandTotal || order.total || 0),
+    createdAt: new Date().toISOString(),
+    items: Array.isArray(order.items) ? order.items : []
+  };
+
+  sales.push(sale);
+  updateState('sales', () => sales);
+
+  order.salesRecordId = saleId;
+
+  if (typeof refreshDashboard === 'function') refreshDashboard();
+  if (typeof renderSalesTable === 'function') renderSalesTable();
+}
+
 /* ═══════════════════════════════════════════════════════
    SUPPLY.JS — Supplier Order Tracking v2
    Product-linked line items (productId required).
@@ -528,6 +558,11 @@ function advanceSupplyStatus(orderId) {
     }
     _reserveSupplyStock(order);
     order.reservedStock = true;
+  }
+
+  // ── PAID: create sales record ──
+  if (nextStatus === 'PAID' && !order.salesRecordId) {
+    _createSupplySalesRecord(order);
   }
 
   // ── DELIVERED: hard deduct ──
