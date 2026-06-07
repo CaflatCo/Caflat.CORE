@@ -17,7 +17,6 @@ function _buildCanonicalString(transaction) {
   return JSON.stringify({
     id:            transaction.id,
     receiptNumber: transaction.receiptNumber,
-    status:        transaction.status,
     orderType:     transaction.orderType || '',
     items: (transaction.items || []).map(i => ({
       productId: i.productId,
@@ -31,10 +30,6 @@ function _buildCanonicalString(transaction) {
       discount: transaction.totals?.discount ?? transaction.discount ?? 0,
       tax:      transaction.totals?.tax      ?? transaction.tax      ?? 0,
       total:    transaction.totals?.total    ?? transaction.total    ?? 0
-    },
-    payment: {
-      method:   transaction.payment?.method  ?? transaction.paymentMethod ?? '',
-      tendered: transaction.payment?.tendered ?? transaction.tendered ?? 0
     },
     createdAt: transaction.audit?.createdAt ?? transaction.createdAt ?? ''
   });
