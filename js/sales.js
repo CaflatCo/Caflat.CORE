@@ -580,18 +580,7 @@ function renderSalesTable() {
     return;
   }
 
-  const searchText=(document.getElementById('salesSearch')?.value||'').toLowerCase().trim();
-  let filteredSales=sales;
-  if(searchText){
-    filteredSales=sales.filter(sale=>{
-      const receipt=String(sale.receiptNumber||'').toLowerCase();
-      const customer=String(sale.customer?.name||sale.customerName||'').toLowerCase();
-      const payment=String(sale.payment?.method||sale.paymentMethod||'').toLowerCase();
-      const items=Array.isArray(sale.items)?sale.items.map(i=>i.name||'').join(' ').toLowerCase():'';
-      return receipt.includes(searchText)||customer.includes(searchText)||payment.includes(searchText)||items.includes(searchText);
-    });
-  }
-  filteredSales.slice().reverse().slice(0,window.salesTableLimit||20).forEach(sale => {
+  sales.slice().reverse().slice(0, window.salesTableLimit || 20).forEach(sale => {
     const saleDate = new Date(sale.audit?.completedAt || sale.completedAt || sale.createdAt || Date.now());
     const itemSummary = Array.isArray(sale.items)
       ? sale.items.map(i => {
