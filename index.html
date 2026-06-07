@@ -228,6 +228,33 @@
       background:#dc2626 !important; color:#fff !important;
       border-color:#dc2626 !important;
     }
+    /* See More */
+    .see-more-container {
+      display:flex; align-items:center; justify-content:center;
+      gap:10px; padding:10px 0; border-top:1px solid var(--gray-100);
+    }
+    .see-more-btn {
+      padding:6px 16px; border:1.5px solid var(--gray-200);
+      background:var(--white); border-radius:var(--radius-full);
+      font-size:10px; font-weight:800; letter-spacing:1px;
+      text-transform:uppercase; cursor:pointer;
+      transition:all .15s ease; font-family:var(--font-main);
+      display:flex; align-items:center; gap:6px;
+    }
+    .see-more-btn:hover { background:var(--black); color:var(--white); border-color:var(--black); }
+    .see-more-count {
+      font-size:9px; font-weight:700; color:var(--gray-400);
+      background:var(--gray-100); padding:2px 7px;
+      border-radius:var(--radius-full);
+    }
+    .see-more-btn:hover .see-more-count { color:rgba(255,255,255,.6); background:rgba(255,255,255,.15); }
+    /* Packaging row */
+    .packaging-row {
+      display:flex; align-items:center; gap:8px;
+      margin-bottom:8px; padding:8px 12px;
+      border:1px solid var(--gray-100); border-radius:var(--radius-md);
+      background:var(--gray-50);
+    }
   </style>
 </head>
 <body>
@@ -495,19 +522,21 @@
               <tbody></tbody>
             </table>
           </div>
+          <div id="salesSeeMore" class="see-more-container"></div>
 
           <div class="section-title" style="margin-top:32px;">Audit Log</div>
           <div class="table-wrapper">
             <table id="auditLogTable">
               <thead>
                 <tr>
-                  <th>Timestamp</th><th>Action</th><th>Receipt #</th>
-                  <th>Reason</th><th>Outcome</th>
+                  <th>Timestamp</th><th>Action</th><th>Reference</th>
+                  <th>By</th><th>Note</th><th>Outcome</th>
                 </tr>
               </thead>
               <tbody></tbody>
             </table>
           </div>
+          <div id="auditSeeMore" class="see-more-container"></div>
 
           <div class="section-title" style="margin-top:32px;">
             Transaction Integrity
@@ -523,6 +552,24 @@
               Click "Run Check" to verify all transactions are untampered
             </div>
           </div>
+          <div id="integritySeeMore" class="see-more-container"></div>
+
+          <div class="section-title" style="margin-top:32px;">
+            Inventory Movement History
+            <button class="btn btn-sm btn-secondary" type="button"
+              data-action="refresh-inventory-movements" style="margin-left:auto;">
+              Refresh
+            </button>
+          </div>
+          <div id="inventoryMovementContainer"
+            style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+              padding:14px 18px;background:var(--gray-50);"></div>
+          <div id="inventoryMovementSeeMore" class="see-more-container"></div>
+
+          <div class="section-title" style="margin-top:32px;">Daily Discrepancy Report</div>
+          <div id="discrepancyContainer"
+            style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+              padding:14px 18px;background:var(--gray-50);"></div>
         </div>
       </section>
 
@@ -656,7 +703,7 @@
             <table id="supplyTable">
               <thead>
                 <tr>
-                  <th>Invoice #</th><th>Client</th><th>Order Date</th>
+                  <th>Invoice #</th><th>Client</th><th>Items</th>
                   <th>Status Timeline</th><th>Total</th>
                   <th>Status</th><th>Notes</th><th>Actions</th>
                 </tr>
@@ -664,6 +711,7 @@
               <tbody></tbody>
             </table>
           </div>
+          <div id="supplySeeMore" class="see-more-container"></div>
 
           <!-- Clients section -->
           <div class="section-title" style="margin-top:32px;">Clients</div>
@@ -806,9 +854,17 @@
         <div id="recipeBuilder"></div>
         <button class="btn btn-secondary" id="addRecipeBtn" type="button" style="margin-bottom:12px;">+ Add Ingredient</button>
 
+        <div class="section-title" style="margin-top:16px;">Packaging Costs</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;">
+          Add packaging items (boxes, stickers, bags) included per unit sold.
+        </div>
+        <div id="packagingBuilder"></div>
+        <button class="btn btn-secondary" id="addPackagingBtn" type="button"
+          style="margin-bottom:12px;">+ Add Packaging Item</button>
+
         <!-- Cost Preview Card — live via analytics.js -->
         <div id="productCostPreview" class="cost-preview-card">
-          <div class="cost-preview-empty">Add recipe ingredients to see cost breakdown</div>
+          <div class="cost-preview-empty">Add ingredients or packaging to see cost breakdown</div>
         </div>
 
         <!-- Product Templates — shown based on selected category -->
@@ -1122,6 +1178,19 @@
     </div>
 
     <!-- Void modal -->
+    <!-- Transaction Timeline Modal -->
+    <div class="modal-overlay" id="transactionTimelineModal">
+      <div class="modal" style="max-width:480px;">
+        <h3>Transaction Timeline</h3>
+        <div id="transactionTimelineContent"
+          style="max-height:400px;overflow-y:auto;"></div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="transactionTimelineModal">Close</button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="voidModal">
       <div class="modal" style="max-width:460px;">
         <h3>Void Transaction</h3>
