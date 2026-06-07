@@ -28,6 +28,7 @@ const APP_STATE = {
   supplyOrders: [],             // Supplier order records
   supplierClients: [],          // B2B client list
   supplyInvoiceCounter: 0,      // Sequential invoice counter
+  stockReservations: [],        // Soft stock holds for ORDERED supply orders
   categories: ['Cookies', 'Chewy Cookies', 'Drinks'],
 
   ui: {
@@ -58,6 +59,7 @@ function resetState() {
   APP_STATE.supplyOrders = [];
   APP_STATE.supplierClients = [];
   APP_STATE.supplyInvoiceCounter = 0;
+  APP_STATE.stockReservations = [];
   persistState();
 }
 

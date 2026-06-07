@@ -29,7 +29,8 @@ function persistState() {
       auditLog:           APP_STATE.auditLog,
       supplyOrders:        APP_STATE.supplyOrders,
       supplierClients:     APP_STATE.supplierClients,
-      supplyInvoiceCounter:APP_STATE.supplyInvoiceCounter
+      supplyInvoiceCounter:APP_STATE.supplyInvoiceCounter,
+      stockReservations:   APP_STATE.stockReservations
     }));
   } catch (error) {
     console.error('Failed to persist state', error);
@@ -63,6 +64,8 @@ function restorePersistedState() {
   APP_STATE.supplyOrders         = Array.isArray(persisted.supplyOrders)       ? persisted.supplyOrders       : [];
   APP_STATE.supplierClients      = Array.isArray(persisted.supplierClients)    ? persisted.supplierClients    : [];
   APP_STATE.supplyInvoiceCounter = Number(persisted.supplyInvoiceCounter || 0);
+  APP_STATE.stockReservations    = Array.isArray(persisted.stockReservations)
+    ? persisted.stockReservations : [];
 }
 
 /* ── Export full backup ── */
@@ -81,7 +84,8 @@ function exportAllData() {
     auditLog: APP_STATE.auditLog,
     supplyOrders: APP_STATE.supplyOrders,
     supplierClients: APP_STATE.supplierClients,
-    supplyInvoiceCounter: APP_STATE.supplyInvoiceCounter
+    supplyInvoiceCounter: APP_STATE.supplyInvoiceCounter,
+    stockReservations: APP_STATE.stockReservations
   };
   downloadTextFile(`caflat-backup-${Date.now()}.json`, JSON.stringify(data, null, 2));
   showNotification('Backup exported', 'success');
@@ -111,6 +115,8 @@ function importAllData(file) {
       APP_STATE.supplyOrders         = Array.isArray(data.supplyOrders)       ? data.supplyOrders       : [];
       APP_STATE.supplierClients      = Array.isArray(data.supplierClients)    ? data.supplierClients    : [];
       APP_STATE.supplyInvoiceCounter = Number(data.supplyInvoiceCounter || 0);
+      APP_STATE.stockReservations    = Array.isArray(data.stockReservations)
+        ? data.stockReservations : [];
 
       persistState();
       if (typeof renderEverything === 'function') renderEverything();
