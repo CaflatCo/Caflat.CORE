@@ -155,7 +155,7 @@ async function renderIntegrityReport() {
         <table>
           <thead><tr><th>Receipt #</th><th>Reason</th></tr></thead>
           <tbody>
-            ${report.failures.slice(0,5).map(f => `
+            ${report.failures.slice(0,(window.integrityLimit||5)).map(f => `
               <tr>
                 <td style="font-family:var(--font-mono);font-size:11px;">${escapeHtml(f.receiptNumber||f.id||'—')}</td>
                 <td style="color:#dc2626;font-size:11px;">${escapeHtml(f.reason)}</td>
@@ -164,7 +164,11 @@ async function renderIntegrityReport() {
         </table>
       </div>` : ''}
     <div style="font-size:10px;color:var(--gray-400);margin-top:12px;text-align:right;">
-      Checked: ${new Date(report.checkedAt).toLocaleString()}
+      ${report.failures.length>5?`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+<span>Showing ${Math.min(window.integrityLimit||5,report.failures.length)} of ${report.failures.length}</span>
+<button class="btn btn-sm btn-secondary" onclick="window.integrityLimit=((window.integrityLimit||5)>=report.failures.length?5:(window.integrityLimit||5)+5);renderIntegrityReport()">${((window.integrityLimit||5)>=report.failures.length)?'Show Less':'Show More'}</button>
+</div>`:''}
+Checked: ${new Date(report.checkedAt).toLocaleString()}
     </div>`;
 }
 

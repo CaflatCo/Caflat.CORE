@@ -235,12 +235,13 @@ function renderAuditLog() {
   const log = Array.isArray(APP_STATE.auditLog) ? APP_STATE.auditLog : [];
   tbody.innerHTML = '';
 
+  window.auditLimit=window.auditLimit||5;
   if (!log.length) {
     tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No audit entries yet</td></tr>`;
     return;
   }
 
-  log.slice().reverse().slice(0,5).forEach(entry => {
+  log.slice().reverse().slice(0,(window.auditLimit||5)).forEach(entry => {
     const date = new Date(entry.timestamp);
     const outcomeClass = entry.outcome === 'SUCCESS' ? 'badge-ok' : 'badge-low-stock';
     const row = document.createElement('tr');
