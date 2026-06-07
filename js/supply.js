@@ -372,7 +372,8 @@ function deleteSupplyOrder(orderId) {
   if (!confirm('Delete this supply order?')) return;
   const order = getSupplyOrderById(orderId);
   // Release any reservation before deleting
-  if (order?.reservedStock) _releaseSupplyReservation(order);
+  if (order?.reservedStock) if (order.stockDeducted) { _restoreSupplyStock(order); order.stockDeducted = false; }
+  _releaseSupplyReservation(order);
   updateState('supplyOrders', () => getSupplyOrders().filter(o => String(o.id) !== String(orderId)));
   renderSupplyTable();
   showNotification('Order deleted', 'success');
@@ -430,6 +431,26 @@ function _releaseSupplyReservation(order) {
 }
 
 /* DELIVERED — hard deduct using same engine as POS sales */
+
+/* CANCELLED / VOIDED / REFUNDED — restore stock previously deducted */
+function _restoreSupplyStock(order) {
+  const cart = _supplyItemsToCart(order);
+  if (!cart.length) return;
+
+  const updatedProducts = (APP_STATE.products || []).map(product => {
+    const units = cart.reduce((sum, line) => {
+      if (String(line.productId) !== String(product.id)) return sum;
+      return sum + Number(line.quantity || 0);
+    }, 0);
+    if (!units) return product;
+    return { ...product, stock: Number(product.stock || 0) + units };
+  });
+  updateState('products', () => updatedProducts);
+
+  _logInventoryMovements(order, 'supply-stock-restored', 0,
+    `Restored from supply order ${order.invoiceNumber}`);
+}
+
 function _deductSupplyStock(order) {
   const cart = _supplyItemsToCart(order);
   if (!cart.length) return;
@@ -471,6 +492,7 @@ function _deductSupplyStock(order) {
   }
 
   // Release reservation now that stock is hard-deducted
+  if (order.stockDeducted) { _restoreSupplyStock(order); order.stockDeducted = false; }
   _releaseSupplyReservation(order);
 
   _logInventoryMovements(order, 'supply-delivery-deduction', 0,
@@ -556,8 +578,8 @@ function advanceSupplyStatus(orderId) {
     if (errors.length) {
       if (!confirm(`Stock warning:\n${errors.join('\n')}\n\nProceed anyway?`)) return;
     }
-    _reserveSupplyStock(order);
-    order.reservedStock = true;
+    _deductSupplyStock(order);
+    order.stockDeducted = true;
   }
 
   // ── PAID: create sales record ──
@@ -566,7 +588,7 @@ function advanceSupplyStatus(orderId) {
   }
 
   // ── DELIVERED: hard deduct ──
-  if (nextStatus === 'DELIVERED' && !order.stockDeducted) {
+  if (false && nextStatus === 'DELIVERED' && !order.stockDeducted) {
     if (!confirm(`Mark as Delivered?\nThis will permanently deduct stock for all line items.`)) return;
     _deductSupplyStock(order);
     order.stockDeducted  = true;
@@ -595,7 +617,8 @@ function cancelSupplyOrder(orderId) {
 
   // Release reservation if exists
   if (order.reservedStock) {
-    _releaseSupplyReservation(order);
+    if (order.stockDeducted) { _restoreSupplyStock(order); order.stockDeducted = false; }
+  _releaseSupplyReservation(order);
     order.reservedStock = false;
   }
 
