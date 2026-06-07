@@ -588,8 +588,7 @@ function renderSalesTable() {
     tableBody.parentElement.appendChild(ctl);
   }
   ctl.innerHTML=`Showing ${Math.min(window.salesTableLimit||20,sales.length)} of ${sales.length}
-  <button onclick="window.salesTableLimit=(window.salesTableLimit||20)+20;renderSalesTable()">Show More</button>
-  <button onclick="window.salesTableLimit=20;renderSalesTable()">Show Less</button>`;
+  <button onclick="window.salesTableLimit=(window.salesTableLimit||20)+20;renderSalesTable()">${(window.salesTableLimit||20) < sales.length ? '<button onclick="window.salesTableLimit=(window.salesTableLimit||20)+20;renderSalesTable()">Show More</button>' : '<button onclick="window.salesTableLimit=20;renderSalesTable()">Show Less</button>'}`;
 
   sales.slice().reverse().slice(0, window.salesTableLimit || 20).forEach(sale => {
     const saleDate = new Date(sale.audit?.completedAt || sale.completedAt || sale.createdAt || Date.now());

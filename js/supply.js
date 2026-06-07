@@ -718,8 +718,7 @@ function renderSupplyTable() {
     tbody.parentElement.appendChild(ctl);
   }
   ctl.innerHTML=`Showing ${Math.min(window.supplyTableLimit||5,orders.length)} of ${orders.length}
-  <button onclick="window.supplyTableLimit=(window.supplyTableLimit||5)+5;renderSupplyTable()">Show More</button>
-  <button onclick="window.supplyTableLimit=5;renderSupplyTable()">Show Less</button>`;
+  <button onclick="window.supplyTableLimit=(window.supplyTableLimit||5)+5;renderSupplyTable()">${(window.supplyTableLimit||5) < orders.length ? '<button onclick="window.supplyTableLimit=(window.supplyTableLimit||5)+5;renderSupplyTable()">Show More</button>' : '<button onclick="window.supplyTableLimit=5;renderSupplyTable()">Show Less</button>'}`;
 
   orders.slice().reverse().slice(0, window.supplyTableLimit || 5).forEach(order => {
     const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
