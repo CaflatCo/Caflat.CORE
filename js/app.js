@@ -40,6 +40,7 @@ function renderEverything() {
     'renderLowStockAlerts',
     'renderBranding',
     'renderAuditLog',
+    'renderIntegrityReport',
     'renderSupplyView',
     'renderClientsList',
     'applySupplierModeToggle',

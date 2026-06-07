@@ -474,6 +474,11 @@ function completeSale(forceStatus = 'COMPLETED') {
     tendered, change, referenceNumber, customerName, cartOverride: cart
   });
 
+  // Seal transaction for immutability before persisting
+  if (typeof sealTransaction === 'function') {
+    sealTransaction(transaction).then(() => persistState());
+  }
+
   pushSale(transaction);
   deductProductStockForCart(cart);
   deductInventoryForCart(cart);
@@ -578,7 +583,11 @@ function renderSalesTable() {
     const saleDate = new Date(sale.audit?.completedAt || sale.completedAt || sale.createdAt || Date.now());
     const itemSummary = Array.isArray(sale.items)
       ? sale.items.map(i => `${i.name} ×${i.quantity}`).join(', ') : '';
-    const statusClass = (sale.status || '').toUpperCase() === 'PENDING' ? 'badge-low-stock' : 'badge-ok';
+    const saleStatus = (sale.status || '').toUpperCase();
+    const statusClass = saleStatus === 'PENDING'  ? 'badge-pending'
+                      : saleStatus === 'REFUNDED' ? 'badge-refunded'
+                      : saleStatus === 'VOIDED'   ? 'badge-voided'
+                      : 'badge-ok';
 
     const row = document.createElement('tr');
     row.innerHTML = `
@@ -587,7 +596,7 @@ function renderSalesTable() {
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(itemSummary)}">${escapeHtml(itemSummary)}</td>
       <td>${formatCurrency(sale.totals?.total ?? sale.total ?? 0)}</td>
       <td>${escapeHtml((sale.payment?.method || sale.paymentMethod || 'cash').toUpperCase())}</td>
-      <td><span class="${(sale.status||'').toUpperCase()==='VOIDED' ? 'badge-voided' : statusClass}">${escapeHtml(sale.status || 'COMPLETED')}</span></td>
+      <td><span class="${statusClass}">${escapeHtml(sale.status || 'COMPLETED')}</span></td>
       <td>
         <div class="table-actions">
           ${(sale.status||'').toUpperCase()==='PENDING'
@@ -596,7 +605,8 @@ function renderSalesTable() {
             : (sale.status||'').toUpperCase()==='VOIDED'
               ? `<button type="button" class="btn btn-sm btn-secondary" data-action="open-sale-receipt" data-id="${sale.id}">Receipt</button>`
               : `<button type="button" class="btn btn-sm btn-secondary" data-action="open-sale-receipt" data-id="${sale.id}">Receipt</button>
-                 <button type="button" class="btn btn-sm btn-danger" data-action="open-void-modal" data-id="${sale.id}">Void</button>`}
+                 <button type="button" class="btn btn-sm btn-danger" data-action="open-void-modal" data-id="${sale.id}">Void</button>
+                 <button type="button" class="btn btn-sm refund-action-btn" data-action="open-refund-modal" data-id="${sale.id}">Refund</button>`}
         </div>
       </td>`;
     tableBody.appendChild(row);
