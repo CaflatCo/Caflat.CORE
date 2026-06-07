@@ -582,7 +582,12 @@ function renderSalesTable() {
   sales.slice().reverse().forEach(sale => {
     const saleDate = new Date(sale.audit?.completedAt || sale.completedAt || sale.createdAt || Date.now());
     const itemSummary = Array.isArray(sale.items)
-      ? sale.items.map(i => `${i.name} ×${i.quantity}`).join(', ') : '';
+      ? sale.items.map(i => {
+          const name = i.name || i.productName || i.description || 'Product';
+          const qty = i.quantity || i.qty || 0;
+          return `${name} ×${qty}`;
+        }).join(', ')
+      : '';
     const saleStatus = (sale.status || '').toUpperCase();
     const statusClass = saleStatus === 'PENDING'  ? 'badge-pending'
                       : saleStatus === 'REFUNDED' ? 'badge-refunded'
