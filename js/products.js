@@ -82,6 +82,10 @@ function openProductModal(productId = null) {
     if (product) hydrateProductForm(product);
   }
   openModal('productModal');
+  setTimeout(() => {
+    if (typeof renderProductTemplates   === 'function') renderProductTemplates();
+    if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+  }, 60);
 }
 
 function hydrateProductForm(product) {
@@ -146,6 +150,7 @@ function renderProductsTable() {
       <td>
         <div class="table-actions">
           <button type="button" class="btn btn-sm" data-action="edit-product" data-id="${product.id}">Edit</button>
+          <button type="button" class="btn btn-sm btn-secondary" data-action="clone-product" data-id="${product.id}">Clone</button>
           <button type="button" class="btn btn-sm btn-secondary" data-action="delete-product" data-id="${product.id}">Delete</button>
         </div>
       </td>`;
@@ -224,3 +229,233 @@ window.deleteProduct = deleteProduct;
 window.renderProductsTable = renderProductsTable;
 window.renderPOSProducts = renderPOSProducts;
 window.clearProductForm = clearProductForm;
+
+/* ═══════════════════════════════════════════════════════
+   PRODUCT COST PREVIEW
+   Reads from DOM via analytics.js. Pure renderer.
+═══════════════════════════════════════════════════════ */
+
+function renderProductCostPreview() {
+  const container = document.getElementById('productCostPreview');
+  if (!container) return;
+
+  const hasRows = document.querySelectorAll('.recipe-row').length > 0;
+  const cost    = calculateProductCostFromForm(); // analytics.js
+  const price   = Number(document.getElementById('productPrice')?.value || 0);
+  const profit  = price - cost;
+  const margin  = price > 0 ? (profit / price) * 100 : 0;
+
+  if (!hasRows && cost === 0) {
+    container.innerHTML = `
+      <div class="cost-preview-empty">
+        Add recipe ingredients to see cost breakdown
+      </div>`;
+    return;
+  }
+
+  const profitNeg = profit < 0;
+
+  container.innerHTML = `
+    <div class="cost-preview-grid">
+      <div class="cost-preview-item">
+        <div class="cost-preview-label">Cost</div>
+        <div class="cost-preview-value">${formatCurrency(cost)}</div>
+      </div>
+      <div class="cost-preview-item">
+        <div class="cost-preview-label">Price</div>
+        <div class="cost-preview-value">${price > 0 ? formatCurrency(price) : '—'}</div>
+      </div>
+      <div class="cost-preview-item">
+        <div class="cost-preview-label">Profit</div>
+        <div class="cost-preview-value" style="${profitNeg ? 'color:#dc2626;' : ''}">
+          ${price > 0 ? formatCurrency(profit) : '—'}
+        </div>
+      </div>
+      <div class="cost-preview-item">
+        <div class="cost-preview-label">Margin</div>
+        <div class="cost-preview-value" style="${profitNeg ? 'color:#dc2626;' : ''}">
+          ${price > 0 ? margin.toFixed(1) + '%' : '—'}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PRODUCT TEMPLATES
+   Preset base configurations per category.
+   Templates are starting points — all fields editable.
+═══════════════════════════════════════════════════════ */
+
+const PRODUCT_TEMPLATES = {
+  'Cookies': [
+    {
+      label: 'Classic Cookie',
+      icon: '🍪',
+      data: { price: 65, stock: 24, reorderLevel: 6, recipeMode: 'batch', batchYield: 12,
+              variantType: 'quantity',
+              variants: [
+                { name: 'Single',   price: 65,  multiplier: 1 },
+                { name: 'Box of 4', price: 240, multiplier: 4 },
+                { name: 'Box of 6', price: 350, multiplier: 6 }
+              ]}
+    },
+    {
+      label: 'Chewy Cookie',
+      icon: '🍫',
+      data: { price: 85, stock: 24, reorderLevel: 6, recipeMode: 'batch', batchYield: 12,
+              variantType: 'quantity',
+              variants: [
+                { name: 'Single',    price: 85,  multiplier: 1  },
+                { name: 'Box of 4',  price: 320, multiplier: 4  },
+                { name: 'Box of 12', price: 900, multiplier: 12 }
+              ]}
+    }
+  ],
+  'Drinks': [
+    {
+      label: 'Iced Drink',
+      icon: '🧋',
+      data: { price: 120, stock: 30, reorderLevel: 5, recipeMode: 'unit', batchYield: 1,
+              variantType: 'size',
+              variants: [
+                { name: 'Small',  price: 100, multiplier: 1 },
+                { name: 'Medium', price: 120, multiplier: 1 },
+                { name: 'Large',  price: 150, multiplier: 1 }
+              ]}
+    },
+    {
+      label: 'Hot Drink',
+      icon: '☕',
+      data: { price: 100, stock: 30, reorderLevel: 5, recipeMode: 'unit', batchYield: 1,
+              variantType: 'size',
+              variants: [
+                { name: 'Regular', price: 100, multiplier: 1 },
+                { name: 'Large',   price: 130, multiplier: 1 }
+              ]}
+    }
+  ],
+  'Pastries': [
+    {
+      label: 'Slice / Piece',
+      icon: '🥐',
+      data: { price: 95, stock: 12, reorderLevel: 3, recipeMode: 'unit', batchYield: 1,
+              variants: [] }
+    }
+  ]
+};
+
+function getTemplatesForCategory(category) {
+  if (!category) return [];
+  // Exact match first, then partial
+  const exact = PRODUCT_TEMPLATES[category];
+  if (exact) return exact;
+  const key = Object.keys(PRODUCT_TEMPLATES).find(k =>
+    category.toLowerCase().includes(k.toLowerCase()) ||
+    k.toLowerCase().includes(category.toLowerCase())
+  );
+  return key ? PRODUCT_TEMPLATES[key] : [];
+}
+
+function renderProductTemplates() {
+  const container = document.getElementById('productTemplateRow');
+  if (!container) return;
+
+  const category  = document.getElementById('productCategory')?.value || '';
+  const templates = getTemplatesForCategory(category);
+
+  if (!templates.length) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+  const list = document.getElementById('productTemplateList');
+  if (!list) return;
+
+  list.innerHTML = templates.map((t, i) => `
+    <button type="button" class="template-chip" data-template-index="${i}"
+      title="Apply template: ${escapeHtml(t.label)}">
+      ${t.icon} ${escapeHtml(t.label)}
+    </button>`).join('');
+
+  list.querySelectorAll('.template-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx      = Number(btn.dataset.templateIndex);
+      const template = templates[idx];
+      if (!template) return;
+      applyProductTemplate(template.data, category);
+    });
+  });
+}
+
+function applyProductTemplate(templateData, category) {
+  // Only fill fields that aren't already filled — don't overwrite name
+  if (!document.getElementById('productPrice')?.value)
+    setElementValue('productPrice', templateData.price);
+  if (!document.getElementById('productStock')?.value)
+    setElementValue('productStock', templateData.stock);
+  if (!document.getElementById('productReorderLevel')?.value)
+    setElementValue('productReorderLevel', templateData.reorderLevel);
+
+  setElementValue('recipeMode',   templateData.recipeMode  || 'unit');
+  setElementValue('batchYield',   templateData.batchYield  || 1);
+  setElementValue('variantType',  templateData.variantType || 'custom');
+
+  // Apply variants — clear existing first
+  const vb = document.getElementById('variantBuilder');
+  if (vb) vb.innerHTML = '';
+  if (Array.isArray(templateData.variants)) {
+    templateData.variants.forEach(v =>
+      addVariantRow({ ...v, id: generateId() })
+    );
+  }
+
+  renderProductCostPreview();
+  showNotification('Template applied', 'success');
+}
+
+/* ═══════════════════════════════════════════════════════
+   CLONE PRODUCT
+   Copies all fields into a new product form.
+   Prefixes name with "Copy of". New ID assigned.
+═══════════════════════════════════════════════════════ */
+
+function cloneProduct(productId) {
+  const product = getProducts().find(p => String(p.id) === String(productId));
+  if (!product) { showNotification('Product not found', 'error'); return; }
+
+  clearProductForm();
+
+  // Clear ID so it gets a new one on save
+  setElementValue('productId', '');
+  setElementValue('productName', `Copy of ${product.name}`);
+  setElementValue('productPrice', product.price);
+  setElementValue('productStock', product.stock);
+  setElementValue('productReorderLevel', product.reorderLevel);
+  setElementValue('recipeMode',  product.recipeMode  || 'unit');
+  setElementValue('batchYield',  product.batchYield  || 1);
+  setElementValue('variantType', product.variantType || 'custom');
+
+  const catSelect = document.getElementById('productCategory');
+  if (catSelect) catSelect.value = product.category;
+
+  if (Array.isArray(product.variants))
+    product.variants.forEach(v => addVariantRow({ ...v, id: generateId() }));
+  if (Array.isArray(product.recipe))
+    product.recipe.forEach(r => addRecipeRow(r));
+
+  openModal('productModal');
+
+  // Trigger template hints and cost preview after DOM settles
+  setTimeout(() => {
+    renderProductTemplates();
+    renderProductCostPreview();
+  }, 60);
+
+  showNotification(`Cloning "${product.name}" — edit and save`, 'info');
+}
+
+window.renderProductCostPreview = renderProductCostPreview;
+window.renderProductTemplates   = renderProductTemplates;
+window.applyProductTemplate     = applyProductTemplate;
+window.cloneProduct             = cloneProduct;
