@@ -240,7 +240,7 @@ function renderAuditLog() {
     return;
   }
 
-  log.slice().reverse().forEach(entry => {
+  log.slice().reverse().slice(0,5).forEach(entry => {
     const date = new Date(entry.timestamp);
     const outcomeClass = entry.outcome === 'SUCCESS' ? 'badge-ok' : 'badge-low-stock';
     const row = document.createElement('tr');

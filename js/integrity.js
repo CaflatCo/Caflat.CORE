@@ -155,7 +155,7 @@ async function renderIntegrityReport() {
         <table>
           <thead><tr><th>Receipt #</th><th>Reason</th></tr></thead>
           <tbody>
-            ${report.failures.map(f => `
+            ${report.failures.slice(0,5).map(f => `
               <tr>
                 <td style="font-family:var(--font-mono);font-size:11px;">${escapeHtml(f.receiptNumber||f.id||'—')}</td>
                 <td style="color:#dc2626;font-size:11px;">${escapeHtml(f.reason)}</td>
