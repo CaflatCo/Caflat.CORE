@@ -1,3 +1,4 @@
+window.supplyTableLimit=5;
 
 function _auditSupplyEvent(action, order, outcome='SUCCESS', details='') {
   try {
@@ -709,7 +710,17 @@ function renderSupplyTable() {
     return;
   }
 
-  orders.slice().reverse().forEach(order => {
+  const searchText=(document.getElementById('supplySearch')?.value||'').toLowerCase().trim();
+  let filteredOrders=orders;
+  if(searchText){
+    filteredOrders=orders.filter(order=>{
+      const invoice=String(order.invoiceNumber||'').toLowerCase();
+      const client=String(order.clientName||'').toLowerCase();
+      const products=(order.items||[]).map(i=>i.productName||'').join(' ').toLowerCase();
+      return invoice.includes(searchText)||client.includes(searchText)||products.includes(searchText);
+    });
+  }
+  filteredOrders.slice().reverse().slice(0,window.supplyTableLimit||5).forEach(order => {
     const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
     const getTs   = status => {
       const e = history.find(h => h.status === status);
