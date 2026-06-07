@@ -157,6 +157,78 @@
       margin-bottom: 16px; text-align: center; letter-spacing: 0.5px;
     }
   </style>
+  <style>
+    /* Cost preview card */
+    .cost-preview-card {
+      margin-top:12px; border:1.5px solid var(--gray-200);
+      border-radius:var(--radius-lg); padding:16px 18px;
+      background:var(--gray-50);
+    }
+    .cost-preview-empty {
+      font-size:11px; color:var(--gray-400);
+      text-align:center; padding:6px 0; letter-spacing:.5px;
+    }
+    .cost-preview-grid {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+    }
+    .cost-preview-item { text-align:center; }
+    .cost-preview-label {
+      font-size:9px; letter-spacing:2px; text-transform:uppercase;
+      font-weight:800; color:var(--gray-400); margin-bottom:6px;
+    }
+    .cost-preview-value {
+      font-size:16px; font-weight:900; color:var(--black);
+      font-variant-numeric:tabular-nums; line-height:1;
+    }
+    @media(max-width:480px){ .cost-preview-grid{grid-template-columns:repeat(2,1fr);} }
+
+    /* Template chips */
+    .template-chip {
+      padding:6px 14px; border:1.5px solid var(--gray-200);
+      background:var(--white); border-radius:var(--radius-full);
+      font-size:11px; font-weight:700; cursor:pointer;
+      transition:all .15s ease; font-family:var(--font-main);
+    }
+    .template-chip:hover {
+      background:var(--black); color:var(--white); border-color:var(--black);
+    }
+
+    /* Status badges */
+    .badge-ok, .badge-completed {
+      display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
+      border-radius:999px;background:#f0fdf4;color:#15803d;
+      font-size:9px;font-weight:800;letter-spacing:1px;
+      text-transform:uppercase;border:1px solid #bbf7d0;
+    }
+    .badge-pending {
+      display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
+      border-radius:999px;background:#fff7ed;color:#c2410c;
+      font-size:9px;font-weight:800;letter-spacing:1px;
+      text-transform:uppercase;border:1px solid #fed7aa;
+    }
+    .badge-refunded {
+      display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
+      border-radius:999px;background:#f3f4f6;color:#6b7280;
+      font-size:9px;font-weight:800;letter-spacing:1px;
+      text-transform:uppercase;border:1px solid #e5e7eb;
+    }
+    .badge-voided {
+      display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
+      border-radius:999px;background:#f3f4f6;color:#6b7280;
+      font-size:9px;font-weight:800;letter-spacing:1px;
+      text-transform:uppercase;border:1px solid #e5e7eb;
+    }
+
+    /* Refund button in table */
+    .refund-action-btn {
+      background:#fef2f2 !important; color:#dc2626 !important;
+      border-color:#fecaca !important;
+    }
+    .refund-action-btn:hover {
+      background:#dc2626 !important; color:#fff !important;
+      border-color:#dc2626 !important;
+    }
+  </style>
 </head>
 <body>
 
@@ -435,6 +507,21 @@
               </thead>
               <tbody></tbody>
             </table>
+          </div>
+
+          <div class="section-title" style="margin-top:32px;">
+            Transaction Integrity
+            <button class="btn btn-sm btn-secondary" type="button"
+              data-action="run-integrity-check" style="margin-left:auto;">
+              Run Check
+            </button>
+          </div>
+          <div id="integrityReportContainer"
+            style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+              padding:16px 18px;background:var(--gray-50);">
+            <div class="cost-preview-empty">
+              Click "Run Check" to verify all transactions are untampered
+            </div>
           </div>
         </div>
       </section>
@@ -717,7 +804,21 @@
           </div>
         </div>
         <div id="recipeBuilder"></div>
-        <button class="btn btn-secondary" id="addRecipeBtn" type="button" style="margin-bottom:4px;">+ Add Ingredient</button>
+        <button class="btn btn-secondary" id="addRecipeBtn" type="button" style="margin-bottom:12px;">+ Add Ingredient</button>
+
+        <!-- Cost Preview Card — live via analytics.js -->
+        <div id="productCostPreview" class="cost-preview-card">
+          <div class="cost-preview-empty">Add recipe ingredients to see cost breakdown</div>
+        </div>
+
+        <!-- Product Templates — shown based on selected category -->
+        <div id="productTemplateRow" style="display:none;margin-top:16px;">
+          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;
+            font-weight:800;color:var(--gray-400);margin-bottom:8px;">
+            Quick Templates
+          </div>
+          <div id="productTemplateList" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
 
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="productModal">Cancel</button>
@@ -976,6 +1077,50 @@
       </div>
     </div>
 
+    <!-- Refund modal -->
+    <div class="modal-overlay" id="refundModal">
+      <div class="modal" style="max-width:480px;">
+        <h3>Process Refund</h3>
+        <input id="refundSaleId" type="hidden" />
+
+        <div class="void-summary">
+          <div class="void-summary-row">
+            <span>Receipt</span>
+            <span id="refundReceiptNum" style="font-family:var(--font-mono);font-weight:700;">—</span>
+          </div>
+          <div class="void-summary-row">
+            <span>Date</span><span id="refundSaleDate">—</span>
+          </div>
+          <div class="void-summary-row" style="font-size:16px;padding-top:8px;margin-top:4px;
+            border-top:1px solid var(--gray-200);">
+            <span style="font-weight:800;">Total Refund</span>
+            <span id="refundSaleTotal" style="font-weight:900;">—</span>
+          </div>
+        </div>
+
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;
+          font-weight:800;color:var(--gray-400);margin:12px 0 8px;">Items</div>
+        <div id="refundItemsSummary" style="margin-bottom:14px;"></div>
+
+        <div class="void-warning">
+          ⚠ Money is returned to customer. Stock will be restored. Cannot be undone.
+        </div>
+
+        <div class="form-group">
+          <label>Reason for Refund <span style="color:var(--danger);">*</span></label>
+          <textarea id="refundReason" rows="2"
+            placeholder="e.g. Wrong order, customer complaint, damaged item…"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="refundModal">Cancel</button>
+          <button class="btn btn-danger" type="button"
+            data-action="confirm-refund">Confirm Refund</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Void modal -->
     <div class="modal-overlay" id="voidModal">
       <div class="modal" style="max-width:460px;">
@@ -1079,6 +1224,8 @@
   <script src="./js/reports.js"></script>
   <script src="./js/settings.js"></script>
   <script src="./js/uiActions.js"></script>
+  <script src="./js/integrity.js"></script>
+  <script src="./js/refund.js"></script>
   <script src="./js/void.js"></script>
   <script src="./js/supply.js"></script>
   <script src="./js/navigation.js"></script>
