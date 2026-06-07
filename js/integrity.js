@@ -108,7 +108,7 @@ async function verifyAllTransactions() {
 }
 
 /* ── Render integrity report in UI ── */
-async function renderIntegrityReport() {
+async async function renderIntegrityReport() {
   const container = document.getElementById('integrityReportContainer');
   if (!container) return;
 
