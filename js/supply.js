@@ -35,6 +35,9 @@ function _createSupplySalesRecord(order) {
   };
 
   sales.push(sale);
+            if (typeof sealTransaction === 'function') {
+                sealTransaction(sale).then(() => { if (typeof persistState === 'function') persistState(); });
+            }
   updateState('sales', () => sales);
 
   order.salesRecordId = saleId;
