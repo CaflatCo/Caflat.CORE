@@ -1,4 +1,19 @@
 
+function _auditSupplyEvent(action, order, outcome='SUCCESS', details='') {
+  try {
+    if (typeof pushAuditEntry === 'function') {
+      pushAuditEntry({
+        action,
+        outcome,
+        referenceId: order?.id || '',
+        invoiceNumber: order?.invoiceNumber || '',
+        details: details || `${order?.clientName || ''}`
+      });
+    }
+  } catch(e) { console.error(e); }
+}
+
+
 function _createSupplySalesRecord(order) {
   if (!order || order.salesRecordId) return;
 
@@ -580,11 +595,14 @@ function advanceSupplyStatus(orderId) {
     }
     _deductSupplyStock(order);
     order.stockDeducted = true;
+    _auditSupplyEvent('SUPPLY_STOCK_DEDUCTED', order);
   }
 
   // ── PAID: create sales record ──
   if (nextStatus === 'PAID' && !order.salesRecordId) {
     _createSupplySalesRecord(order);
+    _auditSupplyEvent('SUPPLY_ORDER_PAID', order);
+    _auditSupplyEvent('SUPPLY_SALE_CREATED', order);
   }
 
   // ── DELIVERED: hard deduct ──
@@ -602,6 +620,7 @@ function advanceSupplyStatus(orderId) {
   order.updatedAt = timestamp;
   order.statusHistory = Array.isArray(order.statusHistory) ? order.statusHistory : [];
   order.statusHistory.push({ status: nextStatus, changedAt: timestamp, note });
+  _auditSupplyEvent(`SUPPLY_ORDER_${nextStatus}`, order);
 
   updateState('supplyOrders', () => orders);
   renderSupplyTable();
@@ -627,6 +646,8 @@ function cancelSupplyOrder(orderId) {
   order.updatedAt = timestamp;
   order.statusHistory = Array.isArray(order.statusHistory) ? order.statusHistory : [];
   order.statusHistory.push({ status: 'CANCELLED', changedAt: timestamp, note: 'Manually cancelled' });
+  _auditSupplyEvent('SUPPLY_ORDER_CANCELLED', order);
+  _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);
 
   updateState('supplyOrders', () => orders);
   renderSupplyTable();
