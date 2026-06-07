@@ -82,10 +82,14 @@ function openProductModal(productId = null) {
     if (product) hydrateProductForm(product);
   }
   openModal('productModal');
+  // Use 120ms — enough time for all recipe rows + dropdowns to fully populate
   setTimeout(() => {
     if (typeof renderProductTemplates   === 'function') renderProductTemplates();
+    // Re-run dropdowns one final time to ensure all values are selected
+    if (typeof renderIngredientDropdowns === 'function') renderIngredientDropdowns();
+    // Then compute cost from the now-correct DOM state
     if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
-  }, 60);
+  }, 120);
 }
 
 function hydrateProductForm(product) {
@@ -446,11 +450,12 @@ function cloneProduct(productId) {
 
   openModal('productModal');
 
-  // Trigger template hints and cost preview after DOM settles
+  // Re-populate dropdowns then compute cost
   setTimeout(() => {
-    renderProductTemplates();
-    renderProductCostPreview();
-  }, 60);
+    if (typeof renderIngredientDropdowns === 'function') renderIngredientDropdowns();
+    if (typeof renderProductTemplates    === 'function') renderProductTemplates();
+    if (typeof renderProductCostPreview  === 'function') renderProductCostPreview();
+  }, 120);
 
   showNotification(`Cloning "${product.name}" — edit and save`, 'info');
 }
