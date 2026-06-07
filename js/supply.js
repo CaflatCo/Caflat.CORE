@@ -331,13 +331,26 @@ function cancelSupplyOrder(orderId) {
 function handleSupplyStatusTransition(order, oldStatus, newStatus) {
   console.log('[SupplierModeV2]', oldStatus, '->', newStatus, order.id);
 
-  // TODO: integrate with inventory engine
-  // ORDERED   = reserve stock
-  // DELIVERED = deduct stock
-  // CANCELLED = release reservation
-  // VOIDED    = release reservation
-  // REFUNDED  = restore stock
-  // PAID      = create sales record (channel SUPPLY)
+  if (newStatus === 'DELIVERED') {
+    try {
+      const items = order.items || [];
+      const cart = items.map(item => ({
+        productId: item.productId,
+        quantity: Number(item.quantity || 0),
+        multiplier: 1
+      }));
+
+      if (typeof deductProductStockForCart === 'function') {
+        deductProductStockForCart(cart);
+      }
+
+      if (typeof deductInventoryForCart === 'function') {
+        deductInventoryForCart(cart);
+      }
+    } catch (err) {
+      console.error('Supply inventory integration failed', err);
+    }
+  }
 }
 
 /* ── Status badge ── */
