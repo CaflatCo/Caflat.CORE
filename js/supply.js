@@ -616,7 +616,7 @@ function cancelSupplyOrder(orderId) {
   if (!order) return;
 
   // Release reservation if exists
-  if (order.reservedStock) {
+  if (order.stockDeducted) {
     if (order.stockDeducted) { _restoreSupplyStock(order); order.stockDeducted = false; }
   _releaseSupplyReservation(order);
     order.reservedStock = false;
@@ -920,9 +920,10 @@ function confirmSupplierOrder() {
     source:    'pos-cart'
   };
 
-  // Reserve stock immediately since status starts at ORDERED
-  _reserveSupplyStock(newOrder);
-  newOrder.reservedStock = true;
+  // Deduct stock immediately since status starts at ORDERED
+  _deductSupplyStock(newOrder);
+  newOrder.stockDeducted = true;
+  newOrder.reservedStock = false;
 
   const orders = getSupplyOrders();
   orders.push(newOrder);
