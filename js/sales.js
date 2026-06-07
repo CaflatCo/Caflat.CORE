@@ -474,12 +474,17 @@ function completeSale(forceStatus = 'COMPLETED') {
     tendered, change, referenceNumber, customerName, cartOverride: cart
   });
 
-  // Seal transaction for immutability before persisting
+  // Seal transaction before saving to avoid false integrity failures
   if (typeof sealTransaction === 'function') {
-    sealTransaction(transaction).then(() => persistState());
+    try {
+      await sealTransaction(transaction);
+    } catch (err) {
+      console.error('sealTransaction failed', err);
+    }
   }
 
   pushSale(transaction);
+  persistState();
   deductProductStockForCart(cart);
   deductInventoryForCart(cart);
   if (isPending) { transaction.audit = transaction.audit || {}; transaction.audit.inventoryDeducted = true; }
