@@ -470,7 +470,7 @@
             <canvas id="dashboardChart"></canvas>
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
             <div>
               <div class="section-title">Top Selling Products</div>
               <div class="stat-card" style="min-height:0;padding:14px 18px;">
@@ -481,6 +481,13 @@
               <div class="section-title">Stock Alerts</div>
               <div id="lowStockContainer"></div>
             </div>
+          </div>
+
+          <div class="section-title">Revenue by Channel</div>
+          <div id="dashboardChannelBreakdown"
+            style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+              padding:16px 18px;background:var(--gray-50);">
+            <div class="cost-preview-empty">No channel data yet</div>
           </div>
         </div>
       </section>
@@ -679,6 +686,20 @@
           </div>
 
           <!-- Product Performance -->
+          <div class="section-title">Revenue by Channel</div>
+          <div class="table-wrapper" style="margin-bottom:28px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Channel</th><th>Revenue</th><th>Orders</th><th>Avg Order</th>
+                </tr>
+              </thead>
+              <tbody id="reportChannelContainer">
+                <tr><td colspan="4" class="empty-state">No data yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+
           <div class="section-title">Product Performance</div>
           <div class="table-wrapper">
             <table id="reportProductsTable">
@@ -690,6 +711,11 @@
           </div>
 
           <!-- Ingredient Usage -->
+          <div class="section-title">Performance by Category</div>
+          <div id="categoryPerformanceContainer" style="margin-bottom:28px;">
+            <div class="cost-preview-empty">No category data yet</div>
+          </div>
+
           <div class="section-title">Ingredient Usage</div>
           <div class="table-wrapper">
             <table id="ingredientUsageTable">
