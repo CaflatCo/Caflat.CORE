@@ -103,7 +103,12 @@ function importAllData(file) {
       }
       if (!confirm('This will replace all current data. Continue?')) return;
 
-      APP_STATE.settings           = Object.assign({ voidPin: '000000' }, data.settings || {});
+      APP_STATE.settings           = Object.assign({
+        brandName: 'Caflat.Co POS', taxRate: 0,
+        receiptFooter: 'Thank you for choosing Caflat.Co',
+        currency: 'PHP', orderTypes: ['Dine In', 'Take Out', 'Delivery'],
+        lowStockThreshold: 5, voidPin: '000000', supplierModeEnabled: false
+      }, data.settings || {});
       APP_STATE.receiptCounter     = Number(data.receiptCounter || 0);
       APP_STATE.products           = Array.isArray(data.products)           ? data.products           : [];
       APP_STATE.ingredients        = Array.isArray(data.ingredients)        ? data.ingredients        : [];

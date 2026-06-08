@@ -233,7 +233,7 @@ function renderAuditLog() {
   if (!tbody) return;
 
   const log   = Array.isArray(APP_STATE.auditLog) ? APP_STATE.auditLog : [];
-  const limit = window.auditLimit || 5;
+  const limit = window.auditLimit || 20;
   tbody.innerHTML = '';
 
   if (!log.length) {
@@ -273,8 +273,8 @@ function renderAuditLog() {
   if (typeof _renderSeeMore === 'function') {
     _renderSeeMore(
       'auditSeeMore', log.length, limit,
-      () => { window.auditLimit = (window.auditLimit || 5) + 5; renderAuditLog(); },
-      () => { window.auditLimit = 5; renderAuditLog(); }
+      () => { window.auditLimit = (window.auditLimit || 20) + 20; renderAuditLog(); },
+      () => { window.auditLimit = 20; renderAuditLog(); }
     );
   }
 }
