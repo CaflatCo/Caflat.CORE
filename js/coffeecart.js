@@ -264,23 +264,15 @@ function renderChannelBreakdown() {
 
 /* ── POS channel selector (shown when Coffee Cart Mode is on) ── */
 function renderChannelSelector() {
+  // This function is kept for compatibility but renderOrderTypeTabs now handles channels.
+  // Just hide the old separate container.
   const container = document.getElementById('channelSelectorContainer');
-  if (!container) return;
-
-  if (!APP_STATE.settings?.coffeeCartModeEnabled) {
-    container.style.display = 'none';
-    return;
-  }
-
-  container.style.display = 'block';
+  if (container) container.style.display = 'none';
+  return;
+  // Dead code below kept for reference:
   const current = APP_STATE.ui?.activeChannel || APP_STATE.ui?.orderType || 'Dine In';
-  const activeEvent = getActiveEvent();
-
-  // Available channels — include Event if session active
-  const available = Object.keys(CART_CHANNELS).filter(ch => {
-    if (ch === 'Event') return !!activeEvent;
-    return true;
-  });
+  // Available channels
+  const available = Object.keys(CART_CHANNELS);
 
   container.innerHTML = available.map(ch => `
     <button type="button"

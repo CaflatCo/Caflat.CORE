@@ -30,7 +30,11 @@ function persistState() {
       supplyOrders:        APP_STATE.supplyOrders,
       supplierClients:     APP_STATE.supplierClients,
       supplyInvoiceCounter:APP_STATE.supplyInvoiceCounter,
-      stockReservations:   APP_STATE.stockReservations
+      stockReservations:   APP_STATE.stockReservations,
+      events:              APP_STATE.events,
+      activeEvent:         APP_STATE.activeEvent,
+      eventPackages:       APP_STATE.eventPackages,
+      leads:               APP_STATE.leads
     }));
   } catch (error) {
     console.error('Failed to persist state', error);
@@ -50,7 +54,8 @@ function restorePersistedState() {
     orderTypes: ['Dine In', 'Take Out', 'Delivery'],
     lowStockThreshold: 5,
     voidPin: '000000',
-    supplierModeEnabled: false
+    supplierModeEnabled:   false,
+    coffeeCartModeEnabled: false
   }, persisted.settings || {});
 
   APP_STATE.receiptCounter     = Number(persisted.receiptCounter || 0);
@@ -66,6 +71,10 @@ function restorePersistedState() {
   APP_STATE.supplyInvoiceCounter = Number(persisted.supplyInvoiceCounter || 0);
   APP_STATE.stockReservations    = Array.isArray(persisted.stockReservations)
     ? persisted.stockReservations : [];
+  APP_STATE.events               = Array.isArray(persisted.events)        ? persisted.events        : [];
+  APP_STATE.activeEvent          = persisted.activeEvent || null;
+  APP_STATE.eventPackages        = Array.isArray(persisted.eventPackages) ? persisted.eventPackages : [];
+  APP_STATE.leads                = Array.isArray(persisted.leads)         ? persisted.leads         : [];
 }
 
 /* ── Export full backup ── */
@@ -85,7 +94,11 @@ function exportAllData() {
     supplyOrders: APP_STATE.supplyOrders,
     supplierClients: APP_STATE.supplierClients,
     supplyInvoiceCounter: APP_STATE.supplyInvoiceCounter,
-    stockReservations: APP_STATE.stockReservations
+    stockReservations: APP_STATE.stockReservations,
+    events:            APP_STATE.events,
+    activeEvent:       APP_STATE.activeEvent,
+    eventPackages:     APP_STATE.eventPackages,
+    leads:             APP_STATE.leads
   };
   downloadTextFile(`caflat-backup-${Date.now()}.json`, JSON.stringify(data, null, 2));
   showNotification('Backup exported', 'success');
@@ -122,6 +135,10 @@ function importAllData(file) {
       APP_STATE.supplyInvoiceCounter = Number(data.supplyInvoiceCounter || 0);
       APP_STATE.stockReservations    = Array.isArray(data.stockReservations)
         ? data.stockReservations : [];
+      APP_STATE.events               = Array.isArray(data.events)        ? data.events        : [];
+      APP_STATE.activeEvent          = data.activeEvent || null;
+      APP_STATE.eventPackages        = Array.isArray(data.eventPackages) ? data.eventPackages : [];
+      APP_STATE.leads                = Array.isArray(data.leads)         ? data.leads         : [];
 
       persistState();
       if (typeof renderEverything === 'function') renderEverything();
