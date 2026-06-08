@@ -807,10 +807,8 @@ function getLeadKPIs() {
 /* ── Full view render (Phase 2) ── */
 function renderCoffeeCartView() {
   renderEventsTable();
-  renderChannelBreakdown();
   renderPackagesTable();
   renderLeadsTable();
-  applyEventSessionBanner();
 
   // Lead KPIs
   const kpi = getLeadKPIs();
