@@ -11,6 +11,7 @@ function initializeUIActions() {
   bindDelegatedActions();
   bindPOSSearch();
   bindSupplyFilters();
+  bindSupplyDiscountInputs();
   renderCategoryTabs();
 }
 
@@ -94,6 +95,16 @@ function bindRecipeBuilder() {
   // Template hints when category changes
   document.getElementById('productCategory')?.addEventListener('change', () => {
     if (typeof renderProductTemplates === 'function') renderProductTemplates();
+  });
+}
+
+function bindSupplyDiscountInputs() {
+  ['supplyDiscountValue','supplyDiscountType'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input',  () => { if(typeof updateSupplyOrderTotal==='function') updateSupplyOrderTotal(); });
+      el.addEventListener('change', () => { if(typeof updateSupplyOrderTotal==='function') updateSupplyOrderTotal(); });
+    }
   });
 }
 
@@ -181,7 +192,9 @@ function bindDelegatedActions() {
       case 'add-supply-order':           openSupplyOrderModal(); break;
       case 'edit-supply-order':      openSupplyOrderModal(actionEl.dataset.id || ''); break;
       case 'delete-supply-order':    deleteSupplyOrder(actionEl.dataset.id || ''); break;
-      case 'advance-supply-status':  advanceSupplyStatus(actionEl.dataset.id || ''); break;
+      case 'advance-supply-status':    advanceSupplyStatus(actionEl.dataset.id || ''); break;
+      case 'open-status-picker':       openStatusPickerModal(actionEl.dataset.id || ''); break;
+      case 'set-supply-status':        setSupplyStatus(actionEl.dataset.orderId || '', actionEl.dataset.status || ''); break;
       case 'cancel-supply-order':    cancelSupplyOrder(actionEl.dataset.id || ''); break;
       case 'save-supply-order':      saveSupplyOrder(); break;
       case 'export-supply-csv':      exportSupplyCSV(); break;

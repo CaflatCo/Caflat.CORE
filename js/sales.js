@@ -13,15 +13,17 @@ function initializeSales() {
 
 function bindSalesLifecycle() {
   const ids = ['discountValue', 'discountType', 'checkoutPayment',
-               'checkoutTendered', 'salesFromDate', 'salesToDate', 'salesPaymentFilter'];
+               'checkoutTendered', 'salesFromDate', 'salesToDate', 'salesPaymentFilter',
+               'salesSearch'];
   const handlers = {
-    'discountValue': ['input', updateCartSummary],
-    'discountType': ['change', updateCartSummary],
-    'checkoutPayment': ['change', togglePaymentFields],
-    'checkoutTendered': ['input', calculateChange],
-    'salesFromDate': ['change', renderSalesTable],
-    'salesToDate': ['change', renderSalesTable],
+    'discountValue':      ['input',  updateCartSummary],
+    'discountType':       ['change', updateCartSummary],
+    'checkoutPayment':    ['change', togglePaymentFields],
+    'checkoutTendered':   ['input',  calculateChange],
+    'salesFromDate':      ['change', renderSalesTable],
+    'salesToDate':        ['change', renderSalesTable],
     'salesPaymentFilter': ['change', renderSalesTable],
+    'salesSearch':        ['input',  renderSalesTable],
   };
   ids.forEach(id => {
     const el = document.getElementById(id);
@@ -558,7 +560,70 @@ function renderReceipt(transaction) {
     ${Number(transaction.payment?.tendered) > 0 ? `<div class="receipt-line"><span>Tendered</span><span>${formatCurrency(transaction.payment.tendered)}</span></div>` : ''}
     ${Number(transaction.payment?.change) > 0 ? `<div class="receipt-line"><span>Change</span><span>${formatCurrency(transaction.payment.change)}</span></div>` : ''}
     ${footer ? `<div class="receipt-divider"></div><div style="text-align:center;font-size:10px;padding:4px 0;">${escapeHtml(footer)}</div>` : ''}
+    <div class="receipt-divider"></div>
+    <div id="receiptQRContainer" style="text-align:center;padding:8px 0;">
+      <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;
+        color:#999;margin-bottom:6px;">Scan for digital copy</div>
+      <canvas id="receiptQRCanvas" style="display:block;margin:0 auto;"></canvas>
+    </div>
   `;
+
+  // Generate QR after DOM renders
+  requestAnimationFrame(() => _generateReceiptQR(transaction));
+}
+
+function _generateReceiptQR(transaction) {
+  const canvas = document.getElementById('receiptQRCanvas');
+  if (!canvas) return;
+
+  // Build compact text receipt for QR encoding
+  const brand    = APP_STATE.settings?.brandName || 'Caflat.Co POS';
+  const date     = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
+                     .toLocaleString('en-PH');
+  const items    = (transaction.items || [])
+    .map(i => `${i.name} x${i.quantity} ${formatCurrency(i.total)}`).join('\n');
+  const total    = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
+  const customer = transaction.customer?.name || transaction.customerName || 'Walk-in';
+  const payment  = (transaction.payment?.method || transaction.paymentMethod || 'cash').toUpperCase();
+  const receipt  = transaction.receiptNumber || transaction.id || '';
+
+  const text = [
+    brand,
+    date,
+    `Receipt: ${receipt}`,
+    `Customer: ${customer}`,
+    `Payment: ${payment}`,
+    '---',
+    items,
+    '---',
+    `TOTAL: ${total}`,
+    APP_STATE.settings?.receiptFooter || ''
+  ].filter(Boolean).join('\n');
+
+  // Use QRCode.js if loaded, otherwise show text fallback
+  if (typeof QRCode !== 'undefined') {
+    canvas.width  = 140;
+    canvas.height = 140;
+    try {
+      QRCode.toCanvas(canvas, text, {
+        width: 140, margin: 1,
+        color: { dark: '#000000', light: '#ffffff' }
+      }, err => { if (err) _receiptQRFallback(canvas, text); });
+    } catch(e) { _receiptQRFallback(canvas, text); }
+  } else {
+    _receiptQRFallback(canvas, text);
+  }
+}
+
+function _receiptQRFallback(canvas, text) {
+  // Show receipt text in a small box if QR lib not available
+  const container = document.getElementById('receiptQRContainer');
+  if (!container) return;
+  canvas.style.display = 'none';
+  const pre = document.createElement('pre');
+  pre.style.cssText = 'font-size:8px;text-align:left;background:#f4f4f4;padding:8px;border-radius:4px;max-height:100px;overflow:auto;white-space:pre-wrap;word-break:break-all;';
+  pre.textContent = text;
+  container.appendChild(pre);
 }
 
 function openSaleReceipt(saleId) {
@@ -580,13 +645,21 @@ function renderSalesTable() {
   const fromDate = document.getElementById('salesFromDate')?.value ? new Date(`${document.getElementById('salesFromDate').value}T00:00:00`) : null;
   const toDate = document.getElementById('salesToDate')?.value ? new Date(`${document.getElementById('salesToDate').value}T23:59:59`) : null;
   const paymentFilter = String(document.getElementById('salesPaymentFilter')?.value || '').toLowerCase();
+  const searchQuery   = String(document.getElementById('salesSearch')?.value || '').toLowerCase().trim();
 
   const sales = getSales().filter(sale => {
     const saleDate = new Date(sale.audit?.completedAt || sale.completedAt || sale.createdAt || Date.now());
-    const matchesFrom = !fromDate || saleDate >= fromDate;
-    const matchesTo = !toDate || saleDate <= toDate;
+    const matchesFrom    = !fromDate || saleDate >= fromDate;
+    const matchesTo      = !toDate   || saleDate <= toDate;
     const matchesPayment = !paymentFilter || paymentFilter === 'all' || String(sale.payment?.method || sale.paymentMethod || '').toLowerCase() === paymentFilter;
-    return matchesFrom && matchesTo && matchesPayment;
+    const matchesSearch  = !searchQuery  || [
+      sale.receiptNumber || '',
+      sale.customer?.name || sale.customerName || '',
+      sale.payment?.method || sale.paymentMethod || '',
+      String(sale.totals?.total ?? sale.total ?? ''),
+      ...(sale.items || []).map(i => i.name || i.productName || '')
+    ].some(field => field.toLowerCase().includes(searchQuery));
+    return matchesFrom && matchesTo && matchesPayment && matchesSearch;
   });
 
   tableBody.innerHTML = '';

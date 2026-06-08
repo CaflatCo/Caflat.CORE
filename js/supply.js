@@ -320,13 +320,24 @@ function updateSupplyLineTotal(row) {
 }
 
 function updateSupplyOrderTotal() {
-  let total = 0;
+  let subtotal = 0;
   document.querySelectorAll('#supplyLineItems .supply-line-row').forEach(row => {
-    total += Number(row.querySelector('.supply-item-qty')?.value   || 0) *
-             Number(row.querySelector('.supply-item-price')?.value || 0);
+    subtotal += Number(row.querySelector('.supply-item-qty')?.value   || 0) *
+                Number(row.querySelector('.supply-item-price')?.value || 0);
   });
-  const el = document.getElementById('supplyOrderTotal');
-  if (el) el.textContent = formatCurrency(total);
+  const discountValue = Number(document.getElementById('supplyDiscountValue')?.value || 0);
+  const discountType  = document.getElementById('supplyDiscountType')?.value || 'percent';
+  const discount      = discountType === 'percent'
+    ? subtotal * (discountValue / 100)
+    : Math.min(discountValue, subtotal);
+  const grandTotal    = Math.max(0, subtotal - discount);
+
+  const subEl  = document.getElementById('supplyOrderSubtotal');
+  const discEl = document.getElementById('supplyOrderDiscount');
+  const totEl  = document.getElementById('supplyOrderTotal');
+  if (subEl)  subEl.textContent  = formatCurrency(subtotal);
+  if (discEl) discEl.textContent = discount > 0 ? `-${formatCurrency(discount)}` : '—';
+  if (totEl)  totEl.textContent  = formatCurrency(grandTotal);
 }
 
 function collectSupplyLineItems() {
@@ -377,6 +388,15 @@ function hydrateSupplyOrderForm(order) {
   setElementValue('supplyNotes',         order.notes || '');
   const clientSelect = document.getElementById('supplyClientSelect');
   if (clientSelect) clientSelect.value = order.clientId || '';
+
+  // Hydrate discount
+  const discountPct = order.discount && order.subtotal
+    ? ((order.discount / order.subtotal) * 100).toFixed(2) : '';
+  const savedType = order.discountType || (discountPct ? 'percent' : 'amount');
+  const savedVal  = savedType === 'percent' ? discountPct : (order.discount || '');
+  setElementValue('supplyDiscountValue', savedVal);
+  setElementValue('supplyDiscountType',  savedType);
+
   renderSupplyLineItems(order.items || []);
 }
 
@@ -411,7 +431,13 @@ function saveSupplyOrder() {
   if (!items.length){ showNotification('Add at least one product line',    'error'); return; }
 
   const client     = getSupplierClients().find(c => String(c.id) === String(clientId));
-  const grandTotal = items.reduce((s, i) => s + i.total, 0);
+  const subtotal       = items.reduce((s, i) => s + i.total, 0);
+  const discountValue  = Number(document.getElementById('supplyDiscountValue')?.value || 0);
+  const discountType   = document.getElementById('supplyDiscountType')?.value || 'percent';
+  const discount       = discountType === 'percent'
+    ? subtotal * (discountValue / 100)
+    : discountValue;
+  const grandTotal     = Math.max(0, subtotal - discount);
   const orders     = getSupplyOrders();
   const existing   = orders.find(o => String(o.id) === String(id));
 
@@ -422,6 +448,10 @@ function saveSupplyOrder() {
     existing.orderDate     = orderDate;
     existing.notes         = notes;
     existing.items         = items;
+    existing.subtotal      = subtotal;
+    existing.discount      = discount;
+    existing.subtotal      = subtotal;
+    existing.discount      = discount;
     existing.grandTotal    = grandTotal;
     existing.updatedAt     = new Date().toISOString();
     updateState('supplyOrders', () => orders);
@@ -430,7 +460,7 @@ function saveSupplyOrder() {
     orders.push({
       id, invoiceNumber, clientId,
       clientName: client?.name || '',
-      orderDate, notes, items, grandTotal,
+      orderDate, notes, items, subtotal, discount, grandTotal,
       status: 'DRAFTED',
       reservedStock: false,
       stockDeducted: false,
@@ -636,22 +666,20 @@ function _checkSupplyStockAvailability(order) {
    STATUS ADVANCEMENT with inventory hooks
 ═══════════════════════════════════════════════════════ */
 
-async function advanceSupplyStatus(orderId) {
+async function setSupplyStatus(orderId, newStatus) {
+  if (!newStatus) return;
   const orders = getSupplyOrders();
   const order  = orders.find(o => String(o.id) === String(orderId));
   if (!order) return;
 
-  const currentIdx = SUPPLY_STATUSES.indexOf(order.status);
-  if (currentIdx === -1 || currentIdx >= SUPPLY_STATUSES.length - 1) {
-    showNotification('Order is already at final status', 'info');
-    return;
-  }
+  const prevStatus = order.status;
+  if (prevStatus === newStatus) return;
+  const newLabel = SUPPLY_STATUS_LABELS[newStatus] || newStatus;
 
-  const nextStatus  = SUPPLY_STATUSES[currentIdx + 1];
-  const nextLabel   = SUPPLY_STATUS_LABELS[nextStatus];
+  // ── Stock logic on status change ──
 
-  // ── ORDERED: reserve stock ──
-  if (nextStatus === 'ORDERED' && !order.reservedStock) {
+  // Moving TO ORDERED from a non-ordered state — deduct stock
+  if (newStatus === 'ORDERED' && !order.stockDeducted) {
     const errors = _checkSupplyStockAvailability(order);
     if (errors.length) {
       if (!confirm(`Stock warning:\n${errors.join('\n')}\n\nProceed anyway?`)) return;
@@ -661,35 +689,80 @@ async function advanceSupplyStatus(orderId) {
     _auditSupplyEvent('SUPPLY_STOCK_DEDUCTED', order);
   }
 
-  // ── PAID: create sales record ──
-  if (nextStatus === 'PAID' && !order.salesRecordId) {
+  // Moving AWAY from ORDERED back to DRAFTED — restore stock
+  if (prevStatus === 'ORDERED' && newStatus === 'DRAFTED' && order.stockDeducted) {
+    if (!confirm('Moving back to Draft will restore stock. Continue?')) return;
+    _restoreSupplyStock(order);
+    order.stockDeducted = false;
+    _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);
+  }
+
+  // Moving to CANCELLED or VOIDED — restore stock if deducted
+  if (['CANCELLED','VOIDED'].includes(newStatus) && order.stockDeducted) {
+    if (!confirm(`Cancelling will restore stock for all line items. Continue?`)) return;
+    _restoreSupplyStock(order);
+    order.stockDeducted = false;
+    _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);
+  }
+
+  // Moving to PAID — create sales record if not already done
+  if (newStatus === 'PAID' && !order.salesRecordId) {
     await _createSupplySalesRecord(order);
     _auditSupplyEvent('SUPPLY_ORDER_PAID', order);
-    _auditSupplyEvent('SUPPLY_SALE_CREATED', order);
   }
 
-  // ── DELIVERED: hard deduct ──
-  if (false && nextStatus === 'DELIVERED' && !order.stockDeducted) {
-    if (!confirm(`Mark as Delivered?\nThis will permanently deduct stock for all line items.`)) return;
-    _deductSupplyStock(order);
-    order.stockDeducted  = true;
-    order.reservedStock  = false;
+  // If un-paying (moving away from PAID) — warn, no automatic reversal
+  if (prevStatus === 'PAID' && newStatus !== 'PAID') {
+    if (!confirm('Moving away from Paid will not automatically reverse the sales record. Continue?')) return;
   }
 
-  const note      = window.prompt(`Note for "${nextLabel}" (optional):`) || '';
+  const note = window.prompt(`Note for status change to "${newLabel}" (optional):`) || '';
   const timestamp = new Date().toISOString();
 
-  order.status    = nextStatus;
+  order.status    = newStatus;
   order.updatedAt = timestamp;
   order.statusHistory = Array.isArray(order.statusHistory) ? order.statusHistory : [];
-  order.statusHistory.push({ status: nextStatus, changedAt: timestamp, note });
-  _auditSupplyEvent(`SUPPLY_ORDER_${nextStatus}`, order);
-  if(nextStatus==='VOIDED'){ _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);}
+  order.statusHistory.push({ status: newStatus, changedAt: timestamp, note,
+    changedFrom: prevStatus, changedBy: APP_STATE.currentUserRole || 'STAFF' });
+  _auditSupplyEvent(`SUPPLY_STATUS_${newStatus}`, order,
+    `Changed from ${prevStatus} → ${newStatus}${note ? ' · ' + note : ''}`);
 
   updateState('supplyOrders', () => orders);
   renderSupplyTable();
   renderSupplyKPIs();
-  showNotification(`Order advanced to ${nextLabel}`, 'success');
+  if (typeof refreshDashboard === 'function') refreshDashboard();
+  showNotification(`Order status set to ${newLabel}`, 'success');
+}
+
+// Keep advanceSupplyStatus as alias for backward compat
+async function advanceSupplyStatus(orderId) {
+  const order = getSupplyOrders().find(o => String(o.id) === String(orderId));
+  if (!order) return;
+  openStatusPickerModal(orderId);
+}
+
+function openStatusPickerModal(orderId) {
+  const order = getSupplyOrders().find(o => String(o.id) === String(orderId));
+  if (!order) return;
+
+  const el = id => document.getElementById(id);
+  if (el('statusPickerOrderId'))   el('statusPickerOrderId').value      = orderId;
+  if (el('statusPickerCurrent'))   el('statusPickerCurrent').textContent = SUPPLY_STATUS_LABELS[order.status] || order.status;
+  if (el('statusPickerInvoice'))   el('statusPickerInvoice').textContent = order.invoiceNumber || '';
+  if (el('statusPickerClient'))    el('statusPickerClient').textContent  = order.clientName    || '';
+
+  // Render status options
+  const container = el('statusPickerOptions');
+  if (container) {
+    const allStatuses = [...SUPPLY_STATUSES, 'CANCELLED', 'VOIDED'];
+    container.innerHTML = allStatuses.map(s => `
+      <button type="button" class="status-picker-btn${order.status === s ? ' active' : ''}"
+        data-action="set-supply-status" data-order-id="${orderId}" data-status="${s}">
+        ${SUPPLY_STATUS_LABELS[s] || s}
+        ${order.status === s ? ' ✓' : ''}
+      </button>`).join('');
+  }
+  openModal('statusPickerModal');
 }
 
 function cancelSupplyOrder(orderId) {
@@ -837,9 +910,8 @@ function renderSupplyTable() {
           ${escapeHtml(order.notes||'—')}</td>
         <td>
           <div class="table-actions">
-            ${canAdvance
-              ? `<button class="btn btn-sm" data-action="advance-supply-status"
-                  data-id="${order.id}">Advance →</button>` : ''}
+            <button class="btn btn-sm" data-action="open-status-picker"
+              data-id="${order.id}">Set Status</button>
             <button class="btn btn-sm btn-secondary" data-action="edit-supply-order"
               data-id="${order.id}">Edit</button>
             ${canAdvance
@@ -1091,6 +1163,8 @@ window.openSupplyOrderModal     = openSupplyOrderModal;
 window.saveSupplyOrder          = saveSupplyOrder;
 window.deleteSupplyOrder        = deleteSupplyOrder;
 window.advanceSupplyStatus      = advanceSupplyStatus;
+window.setSupplyStatus          = setSupplyStatus;
+window.openStatusPickerModal    = openStatusPickerModal;
 window.cancelSupplyOrder        = cancelSupplyOrder;
 window.addSupplyLineItemRow     = addSupplyLineItemRow;
 window.renderSupplyTable        = renderSupplyTable;
