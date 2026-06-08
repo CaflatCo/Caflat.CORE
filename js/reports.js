@@ -26,7 +26,9 @@ function renderReports() {
   renderRevenueChart(fromDate, toDate);
   renderHourlySalesChart(fromDate, toDate);
   renderPaymentBreakdown(fromDate, toDate);
+  renderChannelBreakdownReport(fromDate, toDate);
   renderReportProductsTable(fromDate, toDate);
+  renderCategoryPerformance(fromDate, toDate);
   renderIngredientUsageTable(fromDate, toDate);
   renderReportInsightsTable(fromDate, toDate);
 }
@@ -340,6 +342,190 @@ function renderReportInsightsTable(fromDate, toDate) {
 }
 
 /* ── Exports ── */
+/* ── Channel breakdown (reports) ── */
+function renderChannelBreakdownReport(fromDate, toDate) {
+  const container = document.getElementById('reportChannelContainer');
+  if (!container) return;
+
+  const revenue  = typeof getRevenueByChannel === 'function' ? getRevenueByChannel(fromDate, toDate) : {};
+  const orders   = typeof getOrdersByChannel  === 'function' ? getOrdersByChannel(fromDate, toDate)  : {};
+  const channels = Object.keys({ ...revenue, ...orders });
+
+  if (!channels.length) {
+    container.innerHTML = `<tr><td colspan="4" class="empty-state">No sales data for period</td></tr>`;
+    return;
+  }
+
+  const totalRev = Object.values(revenue).reduce((s, v) => s + v, 0);
+  const totalOrd = Object.values(orders).reduce((s, v) => s + v, 0);
+
+  container.innerHTML = channels
+    .sort((a, b) => (revenue[b] || 0) - (revenue[a] || 0))
+    .map(ch => {
+      const chRev = revenue[ch] || 0;
+      const chOrd = orders[ch]  || 0;
+      const revPct = totalRev > 0 ? ((chRev / totalRev) * 100).toFixed(1) : '0.0';
+      const ordPct = totalOrd > 0 ? ((chOrd / totalOrd) * 100).toFixed(1) : '0.0';
+      const avg    = chOrd > 0 ? chRev / chOrd : 0;
+      return `
+        <tr>
+          <td style="font-weight:700;">${escapeHtml(ch)}</td>
+          <td style="font-variant-numeric:tabular-nums;">${formatCurrency(chRev)}
+            <span style="color:var(--gray-400);font-size:10px;margin-left:4px;">${revPct}%</span>
+          </td>
+          <td>${chOrd}
+            <span style="color:var(--gray-400);font-size:10px;margin-left:4px;">${ordPct}%</span>
+          </td>
+          <td style="font-variant-numeric:tabular-nums;">${formatCurrency(avg)}</td>
+        </tr>`;
+    }).join('');
+}
+
+/* ── Category performance — auto-generates for every category ── */
+let _categoryChartInstances = {};
+
+function renderCategoryPerformance(fromDate, toDate) {
+  const container = document.getElementById('categoryPerformanceContainer');
+  if (!container) return;
+
+  const categories = typeof getCategoryPerformance === 'function'
+    ? getCategoryPerformance(fromDate, toDate) : [];
+
+  if (!categories.length || categories.every(c => c.revenue === 0)) {
+    container.innerHTML = `<div class="empty-state">No category sales data for selected period</div>`;
+    return;
+  }
+
+  // Destroy old chart instances
+  Object.values(_categoryChartInstances).forEach(c => { try { c.destroy(); } catch(e) {} });
+  _categoryChartInstances = {};
+
+  // Summary bar chart (all categories)
+  const summaryId = 'categorySummaryChart';
+  const topRow = `
+    <div style="margin-bottom:28px;">
+      <div class="section-title" style="margin-bottom:12px;">Revenue by Category</div>
+      <div class="chart-container" style="height:180px;">
+        <canvas id="${summaryId}"></canvas>
+      </div>
+    </div>
+
+    <div class="table-wrapper" style="margin-bottom:28px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th><th>Revenue</th><th>Units Sold</th>
+            <th>Orders</th><th>Top Product</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${categories.map(cat => `
+            <tr>
+              <td style="font-weight:700;">${escapeHtml(cat.category)}</td>
+              <td style="font-variant-numeric:tabular-nums;font-weight:700;">
+                ${formatCurrency(cat.revenue)}</td>
+              <td>${cat.qty}</td>
+              <td>${cat.orders}</td>
+              <td style="font-size:11px;color:var(--gray-500);">
+                ${cat.topItems[0] ? escapeHtml(cat.topItems[0].name) : '—'}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;">`;
+
+  // Per-category cards with mini charts
+  const activeCats = categories.filter(c => c.revenue > 0);
+  const catCards   = activeCats.map(cat => {
+    const chartId = `catChart_${cat.category.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}`;
+    return `
+      <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+        padding:16px;background:var(--white);">
+        <div style="font-weight:800;font-size:13px;margin-bottom:4px;">
+          ${escapeHtml(cat.category)}</div>
+        <div style="font-size:20px;font-weight:900;margin-bottom:12px;">
+          ${formatCurrency(cat.revenue)}</div>
+        <div style="height:100px;margin-bottom:12px;">
+          <canvas id="${chartId}"></canvas>
+        </div>
+        <div style="font-size:11px;color:var(--gray-500);margin-bottom:8px;">
+          Top products:</div>
+        ${cat.topItems.map(item => `
+          <div style="display:flex;justify-content:space-between;font-size:12px;
+            padding:3px 0;border-bottom:1px solid var(--gray-100);">
+            <span style="font-weight:700;">${escapeHtml(item.name)}</span>
+            <span style="color:var(--gray-500);">${item.qty} · ${formatCurrency(item.revenue)}</span>
+          </div>`).join('')}
+      </div>`;
+  }).join('');
+
+  container.innerHTML = topRow + catCards + `</div>`;
+
+  // Render summary chart
+  requestAnimationFrame(() => {
+    if (typeof Chart === 'undefined') return;
+
+    const summaryCanvas = document.getElementById(summaryId);
+    if (summaryCanvas) {
+      _categoryChartInstances[summaryId] = new Chart(summaryCanvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: categories.map(c => c.category),
+          datasets: [{
+            data:            categories.map(c => c.revenue),
+            backgroundColor: categories.map((_, i) =>
+              i === 0 ? '#000' : `hsl(0,0%,${Math.min(75, 30 + i * 12)}%)`),
+            borderRadius: 4,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => formatCurrency(ctx.parsed.y) } }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#999' } },
+            y: { grid: { color: '#f0f0f0' },
+              ticks: { font: { size: 10 }, color: '#999',
+                callback: v => '₱' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v) }}
+          }
+        }
+      });
+    }
+
+    // Per-category mini doughnut charts
+    activeCats.forEach(cat => {
+      const chartId = `catChart_${cat.category.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}`;
+      const canvas  = document.getElementById(chartId);
+      if (!canvas || !cat.topItems.length) return;
+
+      const colors = ['#000','#555','#999','#ccc'];
+      _categoryChartInstances[chartId] = new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels:   cat.topItems.map(i => i.name),
+          datasets: [{
+            data:            cat.topItems.map(i => i.revenue),
+            backgroundColor: cat.topItems.map((_, i) => colors[i] || '#eee'),
+            borderWidth:     0
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => `${ctx.label}: ${formatCurrency(ctx.parsed)}` } }
+          }
+        }
+      });
+    });
+  });
+}
+
 window.renderReports              = renderReports;
 window.renderReportKPIs           = renderReportKPIs;
 window.renderRevenueChart         = renderRevenueChart;

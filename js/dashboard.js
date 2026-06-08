@@ -16,10 +16,17 @@ function refreshDashboard() {
   set('dashboardItemsSold',   kpi.itemsSold);
   set('dashboardAverageOrder',formatCurrency(kpi.avgTicket));
 
+  // Revenue + orders breakdown sub-labels
+  const rb = document.getElementById('dashboardRevenueBreakdown');
+  if (rb) rb.textContent = `POS: ${formatCurrency(kpi.posRevenue)} (${kpi.posRevenuePercent}%) · Supply: ${formatCurrency(kpi.supplyRevenue)} (${kpi.supplyRevenuePercent}%)`;
+  const ob = document.getElementById('dashboardOrdersBreakdown');
+  if (ob) ob.textContent = `POS: ${kpi.posOrders} (${kpi.posOrderPercent}%) · Supply: ${kpi.supplyOrders} (${kpi.supplyOrderPercent}%)`;
+
   renderDashboardKPIAlerts(kpi);
   renderTopProducts();
   renderLowStockDashboard();
   renderDashboardChart();
+  renderChannelBreakdownDashboard();
 }
 
 /* ── KPI alert badges ── */
@@ -171,18 +178,53 @@ function renderLowStockDashboard() {
     </div>`).join('');
 }
 
+
+/* ── Channel breakdown (dashboard) ── */
+function renderChannelBreakdownDashboard() {
+  const container = document.getElementById('dashboardChannelBreakdown');
+  if (!container) return;
+
+  const revenue  = typeof getRevenueByChannel === 'function' ? getRevenueByChannel() : {};
+  const orders   = typeof getOrdersByChannel  === 'function' ? getOrdersByChannel()  : {};
+  const channels = Object.keys({ ...revenue, ...orders });
+
+  if (!channels.length) {
+    container.innerHTML = `<div class="empty-state">No sales data yet</div>`;
+    return;
+  }
+
+  const totalRev = Object.values(revenue).reduce((s, v) => s + v, 0);
+
+  container.innerHTML = channels.map(ch => {
+    const chRev = revenue[ch] || 0;
+    const chOrd = orders[ch]  || 0;
+    const pct   = totalRev > 0 ? ((chRev / totalRev) * 100).toFixed(1) : '0.0';
+    const barW  = totalRev > 0 ? Math.round((chRev / totalRev) * 100) : 0;
+
+    return `
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;
+          align-items:baseline;margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:700;">${escapeHtml(ch)}</span>
+          <span style="font-size:12px;font-variant-numeric:tabular-nums;">
+            ${formatCurrency(chRev)}
+            <span style="color:var(--gray-400);font-size:10px;margin-left:4px;">
+              ${chOrd} order${chOrd !== 1 ? 's' : ''} · ${pct}%
+            </span>
+          </span>
+        </div>
+        <div style="height:6px;background:var(--gray-100);border-radius:999px;overflow:hidden;">
+          <div style="height:100%;width:${barW}%;background:var(--black);
+            border-radius:999px;transition:width .3s ease;"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
 /* ── Exports ── */
 window.refreshDashboard       = refreshDashboard;
+window.renderChannelBreakdownDashboard = renderChannelBreakdownDashboard;
 window.renderDashboardChart   = renderDashboardChart;
 window.renderTopProducts      = renderTopProducts;
 window.renderLowStockDashboard= renderLowStockDashboard;
 
-const __oldRefreshDashboard=refreshDashboard;
-refreshDashboard=function(){
- const kpi=getKPISummary();
- __oldRefreshDashboard();
- const rb=document.getElementById('dashboardRevenueBreakdown');
- if(rb) rb.textContent=`POS: ${formatCurrency(kpi.posRevenue)} (${kpi.posRevenuePercent}%) • Supply: ${formatCurrency(kpi.supplyRevenue)} (${kpi.supplyRevenuePercent}%)`;
- const ob=document.getElementById('dashboardOrdersBreakdown');
- if(ob) ob.textContent=`POS: ${kpi.posOrders} (${kpi.posOrderPercent}%) • Supply: ${kpi.supplyOrders} (${kpi.supplyOrderPercent}%)`;
-}

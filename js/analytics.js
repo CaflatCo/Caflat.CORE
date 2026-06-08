@@ -200,6 +200,85 @@ window.getLowStockItems = getLowStockItems;
 window.getLowStockProducts = getLowStockProducts;
 window.getKPISummary = getKPISummary;
 
+/* ── Channel revenue breakdown ── */
+function getRevenueByChannel(fromDate, toDate) {
+  const map = {};
+  getCompletedSales(fromDate, toDate).forEach(sale => {
+    const ch = sale.channel || sale.orderType || 'Dine In';
+    map[ch] = (map[ch] || 0) + Number(sale.totals?.total ?? sale.total ?? 0);
+  });
+  // Add Supply as a channel from supply orders
+  const supplyRev = (APP_STATE.supplyOrders || [])
+    .filter(o => String(o.status||'').toUpperCase() === 'PAID')
+    .reduce((s, o) => s + Number(o.grandTotal || 0), 0);
+  if (supplyRev > 0) map['Supply'] = (map['Supply'] || 0) + supplyRev;
+  return map;
+}
+
+function getOrdersByChannel(fromDate, toDate) {
+  const map = {};
+  getCompletedSales(fromDate, toDate).forEach(sale => {
+    const ch = sale.channel || sale.orderType || 'Dine In';
+    map[ch] = (map[ch] || 0) + 1;
+  });
+  const supplyOrders = (APP_STATE.supplyOrders || [])
+    .filter(o => String(o.status||'').toUpperCase() === 'PAID').length;
+  if (supplyOrders > 0) map['Supply'] = (map['Supply'] || 0) + supplyOrders;
+  return map;
+}
+
+/* ── Category performance — auto-generates for all categories ── */
+function getCategoryPerformance(fromDate, toDate) {
+  const categories = Array.isArray(APP_STATE.categories) ? APP_STATE.categories : [];
+  const sales      = getCompletedSales(fromDate, toDate);
+
+  // Build product → category map
+  const productCategory = {};
+  (APP_STATE.products || []).forEach(p => {
+    productCategory[String(p.id)] = p.category || 'Uncategorised';
+  });
+
+  // Aggregate per category
+  const catMap = {};
+  sales.forEach(sale => {
+    (sale.items || []).forEach(item => {
+      const cat    = productCategory[String(item.productId)] || 'Uncategorised';
+      const qty    = Number(item.quantity || 0) * Number(item.multiplier || 1);
+      const rev    = Number(item.total || (Number(item.price||0) * Number(item.quantity||0)));
+      if (!catMap[cat]) catMap[cat] = { revenue: 0, qty: 0, orders: new Set(), products: {} };
+      catMap[cat].revenue += rev;
+      catMap[cat].qty     += qty;
+      catMap[cat].orders.add(sale.id);
+      if (!catMap[cat].products[item.name]) catMap[cat].products[item.name] = { qty: 0, revenue: 0 };
+      catMap[cat].products[item.name].qty     += qty;
+      catMap[cat].products[item.name].revenue += rev;
+    });
+  });
+
+  // Ensure ALL current categories appear (even with zero sales)
+  const allCats = new Set([...categories, ...Object.keys(catMap)]);
+
+  return Array.from(allCats).map(cat => {
+    const data     = catMap[cat] || { revenue: 0, qty: 0, orders: new Set(), products: {} };
+    const topItems = Object.entries(data.products)
+      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .slice(0, 3)
+      .map(([name, d]) => ({ name, qty: d.qty, revenue: d.revenue }));
+    return {
+      category:  cat,
+      revenue:   data.revenue,
+      qty:       data.qty,
+      orders:    data.orders instanceof Set ? data.orders.size : data.orders,
+      topItems
+    };
+  }).sort((a, b) => b.revenue - a.revenue);
+}
+
+window.getRevenueByChannel   = getRevenueByChannel;
+window.getOrdersByChannel    = getOrdersByChannel;
+window.getCategoryPerformance= getCategoryPerformance;
+
+
 
 /* ── Product cost calculation — single source of truth ── */
 function calculateProductCost(recipe, recipeMode, batchYield, packagingItems) {
