@@ -11,6 +11,7 @@ function initializeUIActions() {
   bindDelegatedActions();
   bindPOSSearch();
   bindSupplyFilters();
+  if (typeof bindLeadFilters === 'function') bindLeadFilters();
   bindSupplyDiscountInputs();
   renderCategoryTabs();
 }
@@ -37,7 +38,14 @@ function bindPrimaryButtons() {
     ['supplierOrderBtn',     () => openSupplierOrderPrompt()],
     ['exportSupplyBtn',   () => exportSupplyCSV()],
     ['addClientBtn',      () => openClientModal()],
-    ['saveSupplyOrderBtn',() => saveSupplyOrder()],
+    ['saveSupplyOrderBtn',  () => saveSupplyOrder()],
+    ['saveEventBtn',        () => saveEvent()],
+    ['addEventBtn',         () => openEventModal()],
+    ['savePackageBtn',      () => savePackage()],
+    ['addPackageBtn',       () => openPackageModal()],
+    ['addPackageItemBtn',   () => addPackageItemRow()],
+    ['saveLeadBtn',         () => saveLead()],
+    ['addLeadBtn',          () => openLeadModal()],
     ['saveClientBtn',     () => saveSupplierClient()],
     ['exportDataBtn',     () => exportAllData()],
     ['exportDataBtnProducts', () => exportAllData()],
@@ -108,6 +116,13 @@ function bindSupplyDiscountInputs() {
   });
 }
 
+function bindLeadFilters() {
+  const f = document.getElementById('leadStatusFilter');
+  if (f) f.addEventListener('change', () => {
+    if (typeof renderLeadsTable === 'function') renderLeadsTable();
+  });
+}
+
 function bindSupplyFilters() {
   ['supplyStatusFilter','supplyClientFilter','supplyFromDate','supplyToDate'].forEach(id => {
     const el = document.getElementById(id);
@@ -172,7 +187,30 @@ function bindDelegatedActions() {
       case 'complete-pending-sale': completePendingSale(actionEl.dataset.id || ''); break;
       case 'cancel-pending-sale':   cancelPendingSale(actionEl.dataset.id || ''); break;
       case 'open-sale-receipt':     openSaleReceipt(actionEl.dataset.id || ''); break;
-      case 'open-void-modal':       openVoidModal(actionEl.dataset.id || ''); break;
+      case 'open-void-modal':         openVoidModal(actionEl.dataset.id || ''); break;
+      // Coffee Cart Mode actions
+      case 'add-event':               openEventModal(); break;
+      case 'edit-event':              openEventModal(actionEl.dataset.id || ''); break;
+      case 'delete-event':            deleteEvent(actionEl.dataset.id || ''); break;
+      case 'save-event':              saveEvent(); break;
+      case 'activate-event':          activateEvent(actionEl.dataset.id || ''); break;
+      case 'end-event-session':       endEventSession(); break;
+      case 'set-channel':             setActiveChannel(actionEl.dataset.channel || 'Dine In'); break;
+      // Phase 2 — Event Profitability
+      case 'open-event-profitability': openEventProfitabilityModal(actionEl.dataset.id || ''); break;
+      case 'add-event-expense':        addExpenseFromForm(actionEl.dataset.eventId || ''); break;
+      case 'delete-event-expense':     deleteEventExpense(actionEl.dataset.eventId || '', actionEl.dataset.expenseId || ''); break;
+      // Phase 2 — Package Builder
+      case 'add-package':              openPackageModal(); break;
+      case 'edit-package':             openPackageModal(actionEl.dataset.id || ''); break;
+      case 'delete-package':           deletePackage(actionEl.dataset.id || ''); break;
+      case 'save-package':             savePackage(); break;
+      case 'add-package-item':         addPackageItemRow(); break;
+      // Phase 2 — Lead Tracker
+      case 'add-lead':                 openLeadModal(); break;
+      case 'edit-lead':                openLeadModal(actionEl.dataset.id || ''); break;
+      case 'delete-lead':              deleteLead(actionEl.dataset.id || ''); break;
+      case 'save-lead':                saveLead(); break;
       case 'open-refund-modal':     if(typeof openRefundModal==='function') openRefundModal(actionEl.dataset.id||''); break;
       case 'confirm-refund':        if(typeof confirmRefund==='function') confirmRefund(); break;
       case 'clone-product':         if(typeof cloneProduct==='function') cloneProduct(actionEl.dataset.id||''); break;

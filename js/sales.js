@@ -357,10 +357,14 @@ function buildTransactionSnapshot({ status, paymentStatus, paymentMethod, tender
   const total = Math.max(0, subtotal - discount + tax);
   const timestamp = new Date().toISOString();
   const receiptNumber = generateReceiptNumber();
-  const orderType = APP_STATE.ui?.orderType || 'Dine In';
+  const orderType    = APP_STATE.ui?.activeChannel || APP_STATE.ui?.orderType || 'Dine In';
+  const activeEvent  = typeof getActiveEvent === 'function' ? getActiveEvent() : null;
 
   return {
     id: generateId(), receiptNumber, status, paymentStatus, orderType,
+    channel:  orderType,
+    eventId:  activeEvent?.id   || null,
+    eventName:activeEvent?.name || null,
     customer: { name: customerName || 'Walk-in Customer' },
     payment: {
       method: paymentMethod, tendered: Number(tendered || 0),
@@ -619,8 +623,8 @@ function _buildQRText(transaction) {
 function _generateReceiptQR(transaction) {
   const qrDiv = document.getElementById('receiptQRDiv');
   if (!qrDiv) return;
-
   qrDiv.innerHTML = '';
+
   const text = _buildQRText(transaction);
 
   if (typeof QRCode === 'undefined') {
@@ -629,12 +633,9 @@ function _generateReceiptQR(transaction) {
   }
 
   try {
-    // qrcodejs uses canvas renderer in HTML documents (SVG renderer only fires
-    // when document root is <svg>, which never happens in a normal HTML page).
-    // Strategy: render to off-screen div, grab the canvas, convert to SVG
-    // via a foreignObject wrapper so the receipt gets true vector output.
+    // Render into a hidden div, then grab the img/canvas after one rAF
     const tempDiv = document.createElement('div');
-    tempDiv.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+    tempDiv.style.cssText = 'position:fixed;left:-9999px;top:-9999px;visibility:hidden;';
     document.body.appendChild(tempDiv);
 
     new QRCode(tempDiv, {
@@ -646,57 +647,46 @@ function _generateReceiptQR(transaction) {
       correctLevel: QRCode.CorrectLevel.M
     });
 
-    // qrcodejs renders a canvas then swaps it to an img tag on some browsers.
-    // Wait one frame for the img swap to complete.
+    // Wait for qrcodejs to finish its internal canvas→img swap
     requestAnimationFrame(() => {
-      const img    = tempDiv.querySelector('img');
-      const canvas = tempDiv.querySelector('canvas');
+      setTimeout(() => {
+        const imgEl    = tempDiv.querySelector('img');
+        const canvasEl = tempDiv.querySelector('canvas');
 
-      if (img && img.src && img.src.startsWith('data:')) {
-        // Got a data URL — wrap in an SVG image element for vector container
-        const svgNS = 'http://www.w3.org/2000/svg';
-        const svg   = document.createElementNS(svgNS, 'svg');
-        svg.setAttribute('xmlns',   'http://www.w3.org/2000/svg');
-        svg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-        svg.setAttribute('width',   '160');
-        svg.setAttribute('height',  '160');
-        svg.setAttribute('viewBox', '0 0 160 160');
-        svg.style.cssText = 'display:block;';
+        // Prefer the img src (data URL); fall back to canvas.toDataURL
+        let dataUrl = null;
+        if (imgEl && imgEl.src && imgEl.src.startsWith('data:')) {
+          dataUrl = imgEl.src;
+        } else if (canvasEl) {
+          try { dataUrl = canvasEl.toDataURL('image/png'); } catch(e2) {}
+        }
 
-        const imageEl = document.createElementNS(svgNS, 'image');
-        imageEl.setAttribute('width',  '160');
-        imageEl.setAttribute('height', '160');
-        imageEl.setAttributeNS('http://www.w3.org/1999/xlink', 'href', img.src);
-        svg.appendChild(imageEl);
-        qrDiv.appendChild(svg);
+        document.body.removeChild(tempDiv);
 
-      } else if (canvas) {
-        // Canvas available — convert to data URL and wrap in SVG
-        try {
-          const dataUrl = canvas.toDataURL('image/png');
-          const svgNS   = 'http://www.w3.org/2000/svg';
-          const svg     = document.createElementNS(svgNS, 'svg');
-          svg.setAttribute('xmlns',        'http://www.w3.org/2000/svg');
-          svg.setAttribute('xmlns:xlink',  'http://www.w3.org/1999/xlink');
-          svg.setAttribute('width',        '160');
-          svg.setAttribute('height',       '160');
-          svg.setAttribute('viewBox',      '0 0 160 160');
-          svg.style.cssText = 'display:block;';
+        if (dataUrl) {
+          // Wrap in SVG <image> — crisp at any resolution, true SVG container
+          const NS  = 'http://www.w3.org/2000/svg';
+          const XNS = 'http://www.w3.org/1999/xlink';
+          const svg = document.createElementNS(NS, 'svg');
+          svg.setAttribute('xmlns',       NS);
+          svg.setAttribute('xmlns:xlink', XNS);
+          svg.setAttribute('width',  '160');
+          svg.setAttribute('height', '160');
+          svg.setAttribute('viewBox', '0 0 160 160');
+          svg.style.display = 'block';
 
-          const imageEl = document.createElementNS(svgNS, 'image');
-          imageEl.setAttribute('width',   '160');
-          imageEl.setAttribute('height',  '160');
-          imageEl.setAttributeNS('http://www.w3.org/1999/xlink', 'href', dataUrl);
-          svg.appendChild(imageEl);
+          const image = document.createElementNS(NS, 'image');
+          image.setAttribute('x',      '0');
+          image.setAttribute('y',      '0');
+          image.setAttribute('width',  '160');
+          image.setAttribute('height', '160');
+          image.setAttributeNS(XNS, 'xlink:href', dataUrl);
+          svg.appendChild(image);
           qrDiv.appendChild(svg);
-        } catch(e2) {
+        } else {
           _receiptQRTextFallback(qrDiv, text);
         }
-      } else {
-        _receiptQRTextFallback(qrDiv, text);
-      }
-
-      document.body.removeChild(tempDiv);
+      }, 80); // 80ms — enough for qrcodejs internal img swap on all browsers
     });
 
   } catch(e) {

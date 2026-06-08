@@ -85,7 +85,8 @@ function saveSettings() {
     return;
   }
 
-  const supplierModeEnabled = document.getElementById('settingsSupplierMode')?.checked === true;
+  const supplierModeEnabled   = document.getElementById('settingsSupplierMode')?.checked   === true;
+  const coffeeCartModeEnabled = document.getElementById('settingsCoffeeCartMode')?.checked === true;
 
   updateState('settings', current => ({
     ...current,
@@ -93,12 +94,14 @@ function saveSettings() {
     taxRate,
     receiptFooter,
     supplierModeEnabled,
+    coffeeCartModeEnabled,
     ...(voidPin ? { voidPin } : {})
   }));
 
   renderBranding();
-  if (typeof applySupplierModeToggle  === 'function') applySupplierModeToggle();
-  if (typeof applySupplierCartButton === 'function') applySupplierCartButton();
+  if (typeof applySupplierModeToggle    === 'function') applySupplierModeToggle();
+  if (typeof applySupplierCartButton   === 'function') applySupplierCartButton();
+  if (typeof applyCoffeeCartModeToggle === 'function') applyCoffeeCartModeToggle();
   showNotification('Settings saved', 'success');
 }
 
@@ -119,6 +122,9 @@ function renderBranding() {
 
   const supplierToggle = document.getElementById('settingsSupplierMode');
   if (supplierToggle) supplierToggle.checked = APP_STATE.settings?.supplierModeEnabled === true;
+
+  const coffeeCartToggle = document.getElementById('settingsCoffeeCartMode');
+  if (coffeeCartToggle) coffeeCartToggle.checked = APP_STATE.settings?.coffeeCartModeEnabled === true;
 }
 
 function escapeHtml(value) {

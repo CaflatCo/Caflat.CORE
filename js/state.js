@@ -13,7 +13,8 @@ const APP_STATE = {
     orderTypes: ['Dine In', 'Take Out', 'Delivery'],
     lowStockThreshold: 5,
     voidPin: '000000',          // Admin void PIN — changeable in Settings
-    supplierModeEnabled: false  // Supplier Mode feature toggle
+    supplierModeEnabled: false, // Supplier Mode feature toggle
+    coffeeCartModeEnabled: false // Coffee Cart Mode feature toggle
   },
 
   receiptCounter: 0,            // Sequential permanent counter, never resets
@@ -29,6 +30,10 @@ const APP_STATE = {
   supplierClients: [],          // B2B client list
   supplyInvoiceCounter: 0,      // Sequential invoice counter
   stockReservations: [],        // Soft stock holds for ORDERED supply orders
+  events: [],                   // Coffee Cart events
+  activeEvent: null,            // Currently active event session
+  eventPackages: [],            // Event Package Builder
+  leads: [],                    // Lead Tracker / CRM
   categories: ['Cookies', 'Chewy Cookies', 'Drinks'],
 
   ui: {
@@ -60,6 +65,10 @@ function resetState() {
   APP_STATE.supplierClients = [];
   APP_STATE.supplyInvoiceCounter = 0;
   APP_STATE.stockReservations = [];
+  APP_STATE.events = [];
+  APP_STATE.activeEvent = null;
+  APP_STATE.eventPackages = [];
+  APP_STATE.leads = [];
   persistState();
 }
 
