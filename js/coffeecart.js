@@ -15,13 +15,10 @@
 
 /* ── Channel definitions ── */
 const CART_CHANNELS = {
-  'Dine In':     { label: 'Dine In',     group: 'pos'   },
-  'Take Out':    { label: 'Take Out',    group: 'pos'   },
-  'Delivery':    { label: 'Delivery',    group: 'pos'   },
-  'Event':       { label: 'Event',       group: 'event' },
-  'Corporate':   { label: 'Corporate',   group: 'b2b'   },
-  'Wholesale':   { label: 'Wholesale',   group: 'b2b'   },
-  'Partner Cafe':{ label: 'Partner Cafe',group: 'b2b'   },
+  'Dine In':  { label: 'Dine In',  group: 'pos'   },
+  'Take Out': { label: 'Take Out', group: 'pos'   },
+  'Delivery': { label: 'Delivery', group: 'pos'   },
+  'Event':    { label: 'Event',    group: 'event' },
 };
 
 /* ── Active Event Session ── */

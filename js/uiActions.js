@@ -279,7 +279,7 @@ function renderOrderTypeTabs() {
     const channels = Object.keys(typeof CART_CHANNELS !== 'undefined' ? CART_CHANNELS : {});
     const available = channels.length
       ? channels
-      : ['Dine In', 'Take Out', 'Delivery', 'Event', 'Corporate', 'Wholesale', 'Partner Cafe'];
+      : ['Dine In', 'Take Out', 'Delivery', 'Event'];
 
     container.innerHTML = available.map(ch => `
       <button type="button" class="order-type-btn${current === ch ? ' active' : ''}"
