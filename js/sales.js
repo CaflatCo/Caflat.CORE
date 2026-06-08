@@ -133,6 +133,12 @@ function calculateCartDiscount() {
   const subtotal = calculateCartSubtotal();
   const { value, type } = getDiscountState();
   if (!value || value <= 0) return 0;
+  if (type === 'percent' && value > 100) {
+    showNotification('Discount cannot exceed 100%', 'error');
+    const el = document.getElementById('discountValue');
+    if (el) el.value = 100;
+    return subtotal;
+  }
   const discount = type === 'percent' ? subtotal * (value / 100) : value;
   return Math.max(0, Math.min(discount, subtotal));
 }
@@ -260,13 +266,22 @@ function holdOrder() {
     return String(entered || existing || 'Walk-in Customer').trim();
   })();
 
-  const snapshot = buildTransactionSnapshot({
-    status: 'HELD', paymentStatus: 'PENDING',
-    paymentMethod: getSelectedPaymentMethod(),
-    tendered: 0, change: 0, referenceNumber: '', customerName, cartOverride: cart
+  // Store cart snapshot only — no receipt number consumed until sale completes
+  heldOrders.push({
+    id: generateId(),
+    customerName,
+    customer: { name: customerName },
+    items: cart.map(i => ({ ...i })),
+    totals: {
+      subtotal: calculateCartSubtotal(),
+      discount: calculateCartDiscount(),
+      tax: calculateCartTax(),
+      total: calculateCartTotal()
+    },
+    createdAt: new Date().toISOString(),
+    audit: { createdAt: new Date().toISOString() }
   });
 
-  heldOrders.push(snapshot);
   updateState('heldOrders', () => heldOrders);
   clearCart(true);
   renderHeldOrdersBadge();
@@ -388,6 +403,12 @@ function deductInventoryForCart(cart) {
 
   if (!ingredientDeltas.size) return;
 
+  // Capture previousStock BEFORE updating state
+  const previousStockMap = new Map();
+  getIngredients().forEach(ing => {
+    if (ingredientDeltas.has(ing.id)) previousStockMap.set(ing.id, Number(ing.stock || 0));
+  });
+
   const updatedIngredients = getIngredients().map(ingredient => {
     if (!ingredientDeltas.has(ingredient.id)) return ingredient;
     return { ...ingredient, stock: Math.max(0, Number(ingredient.stock || 0) - ingredientDeltas.get(ingredient.id)) };
@@ -398,11 +419,12 @@ function deductInventoryForCart(cart) {
   ingredientDeltas.forEach((usedQty, ingredientId) => {
     const ingredient = getIngredientById(ingredientId);
     if (!ingredient) return;
+    const previousStock = previousStockMap.get(ingredientId) ?? Number(ingredient.stock || 0) + usedQty;
+    const newStock = Math.max(0, previousStock - usedQty);
     movements.push({
       id: generateId(), ingredientId, ingredientName: ingredient.name,
       type: 'sale-deduction', quantityAdded: 0, quantityUsed: usedQty,
-      reason: 'Sale deduction', previousStock: Number(ingredient.stock || 0),
-      newStock: Math.max(0, Number(ingredient.stock || 0) - usedQty),
+      reason: 'Sale deduction', previousStock, newStock,
       createdAt: new Date().toISOString(), createdBy: APP_STATE.currentUserRole || 'STAFF'
     });
   });
@@ -513,11 +535,6 @@ async function completeSale(forceStatus = 'COMPLETED') {
 }
 
 /* ── Receipt ── */
-function escapeHtml(value) {
-  return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
 function renderReceipt(transaction) {
   const body = document.getElementById('receiptBody');
   if (!body) return;
@@ -563,8 +580,10 @@ function renderReceipt(transaction) {
     <div class="receipt-divider"></div>
     <div id="receiptQRContainer" style="text-align:center;padding:8px 0;">
       <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;
-        color:#999;margin-bottom:6px;">Scan for digital copy</div>
-      <canvas id="receiptQRCanvas" style="display:block;margin:0 auto;"></canvas>
+        color:#999;margin-bottom:8px;">Scan for digital copy</div>
+      <div id="receiptQRDiv"
+        style="display:inline-block;padding:8px;background:#fff;
+          border:1px solid #e8e8e8;border-radius:8px;"></div>
     </div>
   `;
 
@@ -573,23 +592,23 @@ function renderReceipt(transaction) {
 }
 
 function _generateReceiptQR(transaction) {
-  const canvas = document.getElementById('receiptQRCanvas');
-  if (!canvas) return;
+  const container = document.getElementById('receiptQRContainer');
+  if (!container) return;
 
-  // Build compact text receipt for QR encoding
-  const brand    = APP_STATE.settings?.brandName || 'Caflat.Co POS';
+  // Build compact plain-text receipt for QR encoding
+  const brand    = APP_STATE.settings?.brandName || 'Caflat.Co';
   const date     = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
                      .toLocaleString('en-PH');
   const items    = (transaction.items || [])
-    .map(i => `${i.name} x${i.quantity} ${formatCurrency(i.total)}`).join('\n');
+    .map(i => `${i.name} x${i.quantity}  ${formatCurrency(i.total)}`).join('\n');
   const total    = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
   const customer = transaction.customer?.name || transaction.customerName || 'Walk-in';
   const payment  = (transaction.payment?.method || transaction.paymentMethod || 'cash').toUpperCase();
   const receipt  = transaction.receiptNumber || transaction.id || '';
+  const footer   = APP_STATE.settings?.receiptFooter || '';
 
   const text = [
-    brand,
-    date,
+    brand, date,
     `Receipt: ${receipt}`,
     `Customer: ${customer}`,
     `Payment: ${payment}`,
@@ -597,33 +616,36 @@ function _generateReceiptQR(transaction) {
     items,
     '---',
     `TOTAL: ${total}`,
-    APP_STATE.settings?.receiptFooter || ''
+    footer
   ].filter(Boolean).join('\n');
 
-  // Use QRCode.js if loaded, otherwise show text fallback
-  if (typeof QRCode !== 'undefined') {
-    canvas.width  = 140;
-    canvas.height = 140;
-    try {
-      QRCode.toCanvas(canvas, text, {
-        width: 140, margin: 1,
-        color: { dark: '#000000', light: '#ffffff' }
-      }, err => { if (err) _receiptQRFallback(canvas, text); });
-    } catch(e) { _receiptQRFallback(canvas, text); }
-  } else {
-    _receiptQRFallback(canvas, text);
-  }
-}
+  // Clear previous QR
+  const qrDiv = document.getElementById('receiptQRDiv');
+  if (qrDiv) qrDiv.innerHTML = '';
 
-function _receiptQRFallback(canvas, text) {
-  // Show receipt text in a small box if QR lib not available
-  const container = document.getElementById('receiptQRContainer');
-  if (!container) return;
-  canvas.style.display = 'none';
-  const pre = document.createElement('pre');
-  pre.style.cssText = 'font-size:8px;text-align:left;background:#f4f4f4;padding:8px;border-radius:4px;max-height:100px;overflow:auto;white-space:pre-wrap;word-break:break-all;';
-  pre.textContent = text;
-  container.appendChild(pre);
+  // qrcodejs API: new QRCode(element, { text, width, height })
+  if (typeof QRCode !== 'undefined' && qrDiv) {
+    try {
+      new QRCode(qrDiv, {
+        text,
+        width:        160,
+        height:       160,
+        colorDark:    '#000000',
+        colorLight:   '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      return; // success — exit early
+    } catch(e) {
+      console.warn('QR generation failed:', e);
+    }
+  }
+
+  // Fallback — should rarely be needed
+  if (qrDiv) {
+    qrDiv.innerHTML = `<pre style="font-size:8px;text-align:left;background:#f4f4f4;
+      padding:8px;border-radius:4px;max-height:100px;overflow:auto;
+      white-space:pre-wrap;word-break:break-all;">${escapeHtml(text)}</pre>`;
+  }
 }
 
 function openSaleReceipt(saleId) {
@@ -683,9 +705,10 @@ function renderSalesTable() {
         }).join(', ')
       : '';
     const saleStatus = (sale.status || '').toUpperCase();
-    const statusClass = saleStatus === 'PENDING'  ? 'badge-pending'
-                      : saleStatus === 'REFUNDED' ? 'badge-refunded'
-                      : saleStatus === 'VOIDED'   ? 'badge-voided'
+    const statusClass = saleStatus === 'PENDING'   ? 'badge-pending'
+                      : saleStatus === 'REFUNDED'  ? 'badge-refunded'
+                      : saleStatus === 'VOIDED'    ? 'badge-voided'
+                      : saleStatus === 'CANCELLED' ? 'badge-voided'
                       : 'badge-ok';
 
     const row = document.createElement('tr');
@@ -701,8 +724,9 @@ function renderSalesTable() {
           ${(sale.status||'').toUpperCase()==='PENDING'
             ? `<button type="button" class="btn btn-sm" data-action="complete-pending-sale" data-id="${sale.id}">Complete</button>
                <button type="button" class="btn btn-sm btn-secondary" data-action="cancel-pending-sale" data-id="${sale.id}">Cancel</button>`
-            : (sale.status||'').toUpperCase()==='VOIDED'
-              ? `<button type="button" class="btn btn-sm btn-secondary" data-action="open-sale-receipt" data-id="${sale.id}">Receipt</button>`
+            : ['VOIDED','CANCELLED','REFUNDED'].includes((sale.status||'').toUpperCase())
+              ? `<button type="button" class="btn btn-sm btn-secondary" data-action="open-sale-receipt" data-id="${sale.id}">Receipt</button>
+                 <button type="button" class="btn btn-sm btn-secondary" data-action="view-transaction-timeline" data-id="${sale.id}">Timeline</button>`
               : `<button type="button" class="btn btn-sm btn-secondary" data-action="open-sale-receipt" data-id="${sale.id}">Receipt</button>
                  <button type="button" class="btn btn-sm btn-secondary" data-action="view-transaction-timeline" data-id="${sale.id}">Timeline</button>
                  <button type="button" class="btn btn-sm btn-danger" data-action="open-void-modal" data-id="${sale.id}">Void</button>
@@ -744,18 +768,37 @@ function exportSalesReport() {
 }
 
 /* ── Pending sale management ── */
-function completePendingSale(saleId) {
+async function completePendingSale(saleId) {
   const sales = getSales();
   const sale = sales.find(s => String(s.id) === String(saleId));
   if (!sale) return;
+
   sale.status = 'COMPLETED';
   sale.paymentStatus = 'PAID';
   sale.audit = sale.audit || {};
   sale.audit.completedAt = new Date().toISOString();
   sale.audit.inventoryDeducted = true;
+
+  // Re-seal with updated status so integrity check stays valid
+  if (typeof sealTransaction === 'function') await sealTransaction(sale);
+
   updateState('sales', () => sales);
+
+  if (typeof pushAuditEntry === 'function') {
+    pushAuditEntry({
+      action: 'SALE_COMPLETED',
+      saleId: sale.id,
+      receiptNumber: sale.receiptNumber,
+      total: sale.totals?.total ?? sale.total ?? 0,
+      outcome: 'SUCCESS',
+      note: `Pending order completed · ${sale.payment?.method || 'cash'} · ${formatCurrency(sale.totals?.total ?? sale.total ?? 0)}`
+    });
+  }
+
   renderSalesTable();
   if (typeof refreshDashboard === 'function') refreshDashboard();
+  renderReceipt(sale);
+  openModal('receiptModal');
   showNotification('Pending sale completed', 'success');
 }
 
@@ -775,21 +818,30 @@ function restoreInventoryForSale(sale) {
     });
   });
   if (!ingredientReturns.size) return;
+
+  // Capture previousStock BEFORE updating state
+  const previousStockMap = new Map();
+  getIngredients().forEach(ing => {
+    if (ingredientReturns.has(ing.id)) previousStockMap.set(ing.id, Number(ing.stock || 0));
+  });
+
   const updatedIngredients = getIngredients().map(ingredient => {
     const restoreQty = ingredientReturns.get(ingredient.id);
     if (!restoreQty) return ingredient;
     return { ...ingredient, stock: Number(ingredient.stock || 0) + restoreQty };
   });
   if (typeof setIngredients === 'function') setIngredients(updatedIngredients);
+
   const movements = Array.isArray(APP_STATE.inventoryMovements) ? APP_STATE.inventoryMovements : [];
   ingredientReturns.forEach((qty, ingredientId) => {
     const ingredient = getIngredientById(ingredientId);
     if (!ingredient) return;
+    const previousStock = previousStockMap.get(ingredientId) ?? Number(ingredient.stock || 0) - qty;
+    const newStock = previousStock + qty;
     movements.push({
       id: generateId(), ingredientId, ingredientName: ingredient.name,
       type: 'pending-cancel-restoration', quantityAdded: qty, quantityUsed: 0,
-      reason: 'Pending sale cancelled', previousStock: Number(ingredient.stock || 0),
-      newStock: Number(ingredient.stock || 0) + qty,
+      reason: 'Pending sale cancelled', previousStock, newStock,
       createdAt: new Date().toISOString(), createdBy: APP_STATE.currentUserRole || 'STAFF'
     });
   });
@@ -801,6 +853,9 @@ function cancelPendingSale(saleId) {
   const sales = getSales();
   const sale = sales.find(s => String(s.id) === String(saleId));
   if (!sale) return;
+
+  if (!confirm(`Cancel pending order ${sale.receiptNumber}? Stock will be restored.`)) return;
+
   if (sale.audit?.inventoryDeducted) {
     const updatedProducts = getProducts().map(product => {
       const qty = (sale.items || []).reduce((sum, line) => {
@@ -814,7 +869,26 @@ function cancelPendingSale(saleId) {
     else updateState('products', () => updatedProducts);
     restoreInventoryForSale(sale);
   }
-  updateState('sales', () => sales.filter(s => String(s.id) !== String(saleId)));
+
+  // Mark CANCELLED — preserve the record for audit trail
+  sale.status = 'CANCELLED';
+  sale.audit = sale.audit || {};
+  sale.audit.cancelledAt = new Date().toISOString();
+  sale.audit.cancelledBy = APP_STATE.currentUserRole || 'STAFF';
+
+  updateState('sales', () => sales);
+
+  if (typeof pushAuditEntry === 'function') {
+    pushAuditEntry({
+      action: 'SALE_CANCELLED',
+      saleId: sale.id,
+      receiptNumber: sale.receiptNumber,
+      total: sale.totals?.total ?? sale.total ?? 0,
+      outcome: 'SUCCESS',
+      note: 'Pending order cancelled — stock restored'
+    });
+  }
+
   renderSalesTable();
   showNotification('Pending sale cancelled — stock restored', 'success');
 }
@@ -851,6 +925,9 @@ function resumeHeldOrder(index) {
   const held = Array.isArray(APP_STATE.heldOrders) ? APP_STATE.heldOrders : [];
   const order = held[index];
   if (!order) return;
+
+  if (getCart().length && !confirm('Replace current cart with this held order?')) return;
+
   updateState('cart', () => Array.isArray(order.items) ? order.items : []);
   held.splice(index, 1);
   updateState('heldOrders', () => held);
@@ -875,27 +952,6 @@ function setQuickAmount(amount) {
 }
 
 /* ── Exports ── */
-function initializeSalesCompatibility() {
-  window.completeSale = completeSale;
-  window.togglePaymentFields = togglePaymentFields;
-  window.clearCart = clearCart;
-  window.holdOrder = holdOrder;
-  window.openCheckoutModal = openCheckoutModal;
-  window.renderSalesTable = renderSalesTable;
-  window.renderCart = renderCart;
-  window.exportSalesReport = exportSalesReport;
-  window.calculateChange = calculateChange;
-  window.calculateCartTotal = calculateCartTotal;
-  window.calculateCartSubtotal = calculateCartSubtotal;
-  window.calculateCartDiscount = calculateCartDiscount;
-  window.calculateCartTax = calculateCartTax;
-  window.updateCartSummary = updateCartSummary;
-  window.removeFromCart = removeFromCart;
-  window.increaseQty = increaseQty;
-  window.decreaseQty = decreaseQty;
-  window.openSaleReceipt = openSaleReceipt;
-}
-
 window.initializeSales = initializeSales;
 window.getCart = getCart;
 window.setCart = setCart;

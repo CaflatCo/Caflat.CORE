@@ -157,14 +157,30 @@ function getLowStockProducts() {
 
 /* ── KPI Summary (all-time) ── */
 function getKPISummary() {
+  const posRevenue   = getRevenue();
+  const posOrders    = getOrderCount();
+  const supplyRevenue  = (APP_STATE.supplyOrders || [])
+    .filter(o => String(o.status||'').toUpperCase() === 'PAID')
+    .reduce((s, o) => s + Number(o.grandTotal || o.total || 0), 0);
+  const supplyOrders   = (APP_STATE.supplyOrders || [])
+    .filter(o => String(o.status||'').toUpperCase() === 'PAID').length;
+  const totalRevenue = posRevenue + supplyRevenue;
+  const totalOrders  = posOrders  + supplyOrders;
+
   return {
-    revenue: getRevenue(),
-    orders: getOrderCount(),
-    avgTicket: getAverageTicket(),
-    itemsSold: getItemsSold(),
+    revenue:      posRevenue,
+    orders:       posOrders,
+    avgTicket:    getAverageTicket(),
+    itemsSold:    getItemsSold(),
     totalDiscount: getTotalDiscount(),
     pendingOrders: (APP_STATE.sales || []).filter(s => (s.status || '').toUpperCase() === 'PENDING').length,
-    lowStockCount: getLowStockItems().length
+    lowStockCount: getLowStockItems().length,
+    posRevenue, supplyRevenue, totalRevenue,
+    posOrders,  supplyOrders,  totalOrders,
+    posRevenuePercent:    totalRevenue ? Math.round(posRevenue    / totalRevenue * 100) : 0,
+    supplyRevenuePercent: totalRevenue ? Math.round(supplyRevenue / totalRevenue * 100) : 0,
+    posOrderPercent:      totalOrders  ? Math.round(posOrders     / totalOrders  * 100) : 0,
+    supplyOrderPercent:   totalOrders  ? Math.round(supplyOrders  / totalOrders  * 100) : 0
   };
 }
 
@@ -293,19 +309,3 @@ window.getSupplyOrderCount_         = getSupplyOrderCount_;
 window.getOutstandingReceivables    = getOutstandingReceivables;
 window.getCollectionRate            = getCollectionRate;
 window.getDailyDiscrepancies        = getDailyDiscrepancies;
-
-function getPaidSupplyOrders(){return (APP_STATE.supplyOrders||[]).filter(o=>String(o.status||'').toUpperCase()==='PAID');}
-function getSupplyRevenue(){return getPaidSupplyOrders().reduce((s,o)=>s+Number(o.grandTotal||o.total||0),0);}
-function getSupplyOrderCount(){return getPaidSupplyOrders().length;}
-const __oldGetKPISummary=getKPISummary;
-getKPISummary=function(){
- const k=__oldGetKPISummary();
- const posRevenue=k.revenue,posOrders=k.orders;
- const supplyRevenue=getSupplyRevenue(), supplyOrders=getSupplyOrderCount();
- const totalRevenue=posRevenue+supplyRevenue,totalOrders=posOrders+supplyOrders;
- return {...k,totalRevenue,posRevenue,supplyRevenue,totalOrders,posOrders,supplyOrders,
- posRevenuePercent: totalRevenue?Math.round(posRevenue/totalRevenue*100):0,
- supplyRevenuePercent: totalRevenue?Math.round(supplyRevenue/totalRevenue*100):0,
- posOrderPercent: totalOrders?Math.round(posOrders/totalOrders*100):0,
- supplyOrderPercent: totalOrders?Math.round(supplyOrders/totalOrders*100):0};
-}
