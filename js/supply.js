@@ -15,36 +15,95 @@ function _auditSupplyEvent(action, order, outcome='SUCCESS', details='') {
 }
 
 
-function _createSupplySalesRecord(order) {
+async function _createSupplySalesRecord(order) {
   if (!order || order.salesRecordId) return;
 
-  const sales = Array.isArray(APP_STATE.sales) ? APP_STATE.sales : [];
-  const saleId = `SUP-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  const timestamp     = new Date().toISOString();
+  const saleId        = typeof generateId === 'function' ? generateId()
+                        : `SUP-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  // receiptNumber must match what _buildCanonicalString reads
+  const receiptNumber = order.invoiceNumber || saleId;
+
+  // Normalise items to match POS sale structure
+  const items = (order.items || []).map(item => ({
+    id:          typeof generateId === 'function' ? generateId() : String(Date.now()),
+    productId:   item.productId   || '',
+    variantId:   '',
+    name:        item.productName || item.description || '',
+    quantity:    Number(item.qty  || item.quantity || 0),
+    multiplier:  1,
+    price:       Number(item.unitPrice || item.price || 0),
+    total:       Number(item.total     || 0)
+  }));
+
+  const subtotal = items.reduce((s, i) => s + i.total, 0);
+  const discount = Number(order.discount || 0);
+  const tax      = Number(order.tax      || 0);
+  const total    = Number(order.grandTotal || subtotal);
 
   const sale = {
     id: saleId,
-    orderNumber: order.invoiceNumber || order.orderNumber || saleId,
-    customerName: order.clientName || order.client || 'Supply Client',
-    channel: 'SUPPLY',
-    source: 'SUPPLY_ORDER',
-    sourceOrderId: order.id,
+    receiptNumber,                        // canonical hash reads this field
+    channel:       'SUPPLY',
+    status:        'COMPLETED',
     paymentStatus: 'PAID',
-    status: 'COMPLETED',
-    total: Number(order.grandTotal || order.total || 0),
-    createdAt: new Date().toISOString(),
-    items: Array.isArray(order.items) ? order.items : []
+    orderType:     'Supply Order',
+    customer: {
+      name:     order.clientName || 'B2B Client',
+      clientId: order.clientId   || ''
+    },
+    payment: {
+      method:          'invoice',
+      tendered:        total,
+      change:          0,
+      referenceNumber: receiptNumber
+    },
+    totals: { subtotal, discount, tax, total },
+    items,
+    sourceOrderId: order.id,
+    // Legacy flat fields for analytics compatibility
+    customerName:  order.clientName || 'B2B Client',
+    paymentMethod: 'invoice',
+    subtotal, discount, tax, total,
+    tendered: total, change: 0,
+    referenceNumber: receiptNumber,
+    createdAt:  timestamp,
+    completedAt: timestamp,
+    audit: {
+      createdAt:   timestamp,
+      completedAt: timestamp,
+      completedBy: APP_STATE.currentUserRole || 'ADMIN'
+    }
   };
 
+  // Seal BEFORE pushing to state — await guarantees hash is present
+  if (typeof sealTransaction === 'function') {
+    await sealTransaction(sale);
+  }
+
+  const sales = Array.isArray(APP_STATE.sales) ? APP_STATE.sales : [];
   sales.push(sale);
-            if (typeof sealTransaction === 'function') {
-                sealTransaction(sale).then(() => { if (typeof persistState === 'function') persistState(); });
-            }
   updateState('sales', () => sales);
 
   order.salesRecordId = saleId;
 
-  if (typeof refreshDashboard === 'function') refreshDashboard();
-  if (typeof renderSalesTable === 'function') renderSalesTable();
+  // Audit trail
+  if (typeof pushAuditEntry === 'function') {
+    pushAuditEntry({
+      action:        'SUPPLY_SALE_CREATED',
+      saleId:        saleId,
+      receiptNumber: receiptNumber,
+      referenceId:   order.id,
+      invoiceNumber: order.invoiceNumber,
+      total,
+      outcome:       'SUCCESS',
+      note:          `B2B sale created from supply order ${order.invoiceNumber} · ${order.clientName || ''}`
+    });
+  }
+
+  if (typeof refreshDashboard  === 'function') refreshDashboard();
+  if (typeof renderSalesTable  === 'function') renderSalesTable();
+  if (typeof renderAuditLog    === 'function') renderAuditLog();
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -577,7 +636,7 @@ function _checkSupplyStockAvailability(order) {
    STATUS ADVANCEMENT with inventory hooks
 ═══════════════════════════════════════════════════════ */
 
-function advanceSupplyStatus(orderId) {
+async function advanceSupplyStatus(orderId) {
   const orders = getSupplyOrders();
   const order  = orders.find(o => String(o.id) === String(orderId));
   if (!order) return;
@@ -604,7 +663,7 @@ function advanceSupplyStatus(orderId) {
 
   // ── PAID: create sales record ──
   if (nextStatus === 'PAID' && !order.salesRecordId) {
-    _createSupplySalesRecord(order);
+    await _createSupplySalesRecord(order);
     _auditSupplyEvent('SUPPLY_ORDER_PAID', order);
     _auditSupplyEvent('SUPPLY_SALE_CREATED', order);
   }

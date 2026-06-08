@@ -104,21 +104,29 @@ function buildTransactionTimeline(transaction) {
   const events = [];
   const audit  = transaction.audit || {};
 
-  if (audit.createdAt || transaction.createdAt) {
+  const createdAt   = audit.createdAt   || transaction.createdAt   || null;
+  const completedAt = audit.completedAt || transaction.completedAt || null;
+
+  if (createdAt) {
     events.push({
-      timestamp: audit.createdAt || transaction.createdAt,
+      timestamp: createdAt,
       action:    'CREATED',
       by:        audit.completedBy || transaction.channel || 'STAFF',
-      note:      `${transaction.channel === 'SUPPLY' ? 'Supply order' : 'Sale'} created`
+      note:      `${transaction.channel === 'SUPPLY' ? 'Supply order' : 'Sale'} created · ${transaction.orderType || ''}`
     });
   }
-  if (audit.completedAt) {
+
+  // Only add COMPLETED if it's a different timestamp from CREATED
+  if (completedAt && completedAt !== createdAt) {
     events.push({
-      timestamp: audit.completedAt,
+      timestamp: completedAt,
       action:    'COMPLETED',
       by:        audit.completedBy || 'STAFF',
-      note:      `Payment: ${transaction.payment?.method || transaction.paymentMethod || 'cash'}`
+      note:      `Payment: ${transaction.payment?.method || transaction.paymentMethod || 'cash'} · ${formatCurrency(transaction.totals?.total ?? transaction.total ?? 0)}`
     });
+  } else if (completedAt && completedAt === createdAt && (transaction.status||'').toUpperCase() === 'COMPLETED') {
+    // Same timestamp — merge into CREATED note
+    events[events.length - 1].note += ` · Completed immediately`;
   }
   if (audit.voidedAt) {
     events.push({
@@ -312,24 +320,32 @@ function _renderSeeMore(containerId, total, currentLimit, onMore, onLess) {
   if (!container) {
     container = document.createElement('div');
     container.id = containerId;
-    container.style.cssText = 'text-align:center;padding:12px 0;';
+    container.className = 'see-more-container';
     const parent = document.getElementById(containerId.replace('SeeMore','Container'))
       || document.getElementById(containerId.replace('SeeMore',''));
     if (parent) parent.after(container);
   }
 
+  container.innerHTML = '';
+
+  if (total === 0) return;
+
   if (total <= currentLimit) {
-    container.innerHTML = total > 5
-      ? `<button class="see-more-btn" onclick="(${onLess.toString()})()">↑ Show Less</button>
-         <span class="see-more-count">Showing all ${total}</span>`
-      : '';
+    if (total > 5) {
+      const btn = document.createElement('button');
+      btn.className = 'see-more-btn';
+      btn.innerHTML = `↑ Show Less <span class="see-more-count">Showing all ${total}</span>`;
+      btn.addEventListener('click', onLess);
+      container.appendChild(btn);
+    }
     return;
   }
 
-  container.innerHTML = `
-    <button class="see-more-btn" onclick="(${onMore.toString()})()">
-      Show More <span class="see-more-count">${currentLimit} of ${total}</span>
-    </button>`;
+  const btn = document.createElement('button');
+  btn.className = 'see-more-btn';
+  btn.innerHTML = `Show More <span class="see-more-count">${currentLimit} of ${total}</span>`;
+  btn.addEventListener('click', onMore);
+  container.appendChild(btn);
 }
 
 /* ── Main integrity report render ── */

@@ -429,7 +429,7 @@ function pushSale(transaction) {
   if (typeof refreshDashboard === 'function') refreshDashboard();
 }
 
-function completeSale(forceStatus = 'COMPLETED') {
+async function completeSale(forceStatus = 'COMPLETED') {
   const cart = getCart();
   if (!cart.length) { showNotification('Cart is empty', 'error'); return; }
 
@@ -475,15 +475,31 @@ function completeSale(forceStatus = 'COMPLETED') {
     tendered, change, referenceNumber, customerName, cartOverride: cart
   });
 
-  // Seal transaction for immutability before persisting
+  if (isPending) {
+    transaction.audit = transaction.audit || {};
+    transaction.audit.inventoryDeducted = true;
+  }
+
+  // Seal BEFORE pushing — await ensures hash is present when persisted
   if (typeof sealTransaction === 'function') {
-    sealTransaction(transaction).then(() => persistState());
+    await sealTransaction(transaction);
   }
 
   pushSale(transaction);
   deductProductStockForCart(cart);
   deductInventoryForCart(cart);
-  if (isPending) { transaction.audit = transaction.audit || {}; transaction.audit.inventoryDeducted = true; }
+
+  // Audit trail entry for this sale
+  if (typeof pushAuditEntry === 'function') {
+    pushAuditEntry({
+      action:        isPending ? 'SALE_PENDING' : 'SALE_COMPLETED',
+      saleId:        transaction.id,
+      receiptNumber: transaction.receiptNumber,
+      total:         transaction.totals?.total ?? transaction.total ?? 0,
+      outcome:       'SUCCESS',
+      note:          `${isPending ? 'Pending order' : 'Sale'} · ${method} · ${formatCurrency(transaction.totals?.total ?? transaction.total ?? 0)}`
+    });
+  }
 
   clearCart(true);
   closeModal('checkoutModal');
