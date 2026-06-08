@@ -340,7 +340,7 @@ const PRODUCT_TEMPLATES = {
   'Cookies': [
     {
       label: 'Classic Cookie',
-      icon: '🍪',
+      icon: '',
       data: { price: 65, stock: 24, reorderLevel: 6, recipeMode: 'batch', batchYield: 12,
               variantType: 'quantity',
               variants: [
@@ -351,7 +351,7 @@ const PRODUCT_TEMPLATES = {
     },
     {
       label: 'Chewy Cookie',
-      icon: '🍫',
+      icon: '',
       data: { price: 85, stock: 24, reorderLevel: 6, recipeMode: 'batch', batchYield: 12,
               variantType: 'quantity',
               variants: [
@@ -364,7 +364,7 @@ const PRODUCT_TEMPLATES = {
   'Drinks': [
     {
       label: 'Iced Drink',
-      icon: '🧋',
+      icon: '',
       data: { price: 120, stock: 30, reorderLevel: 5, recipeMode: 'unit', batchYield: 1,
               variantType: 'size',
               variants: [
@@ -375,7 +375,7 @@ const PRODUCT_TEMPLATES = {
     },
     {
       label: 'Hot Drink',
-      icon: '☕',
+      icon: '',
       data: { price: 100, stock: 30, reorderLevel: 5, recipeMode: 'unit', batchYield: 1,
               variantType: 'size',
               variants: [
@@ -387,7 +387,7 @@ const PRODUCT_TEMPLATES = {
   'Pastries': [
     {
       label: 'Slice / Piece',
-      icon: '🥐',
+      icon: '',
       data: { price: 95, stock: 12, reorderLevel: 3, recipeMode: 'unit', batchYield: 1,
               variants: [] }
     }
@@ -425,7 +425,7 @@ function renderProductTemplates() {
   list.innerHTML = templates.map((t, i) => `
     <button type="button" class="template-chip" data-template-index="${i}"
       title="Apply template: ${escapeHtml(t.label)}">
-      ${t.icon} ${escapeHtml(t.label)}
+      ${escapeHtml(t.label)}
     </button>`).join('');
 
   list.querySelectorAll('.template-chip').forEach(btn => {

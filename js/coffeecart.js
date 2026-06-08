@@ -15,13 +15,13 @@
 
 /* ── Channel definitions ── */
 const CART_CHANNELS = {
-  'Dine In':    { label: 'Dine In',    group: 'pos',    icon: '🪑' },
-  'Take Out':   { label: 'Take Out',   group: 'pos',    icon: '🛍' },
-  'Delivery':   { label: 'Delivery',   group: 'pos',    icon: '🛵' },
-  'Event':      { label: 'Event',      group: 'event',  icon: '🎪' },
-  'Corporate':  { label: 'Corporate',  group: 'b2b',    icon: '🏢' },
-  'Wholesale':  { label: 'Wholesale',  group: 'b2b',    icon: '📦' },
-  'Partner Cafe':{ label: 'Partner Cafe', group: 'b2b', icon: '☕' },
+  'Dine In':     { label: 'Dine In',     group: 'pos'   },
+  'Take Out':    { label: 'Take Out',    group: 'pos'   },
+  'Delivery':    { label: 'Delivery',    group: 'pos'   },
+  'Event':       { label: 'Event',       group: 'event' },
+  'Corporate':   { label: 'Corporate',   group: 'b2b'   },
+  'Wholesale':   { label: 'Wholesale',   group: 'b2b'   },
+  'Partner Cafe':{ label: 'Partner Cafe',group: 'b2b'   },
 };
 
 /* ── Active Event Session ── */
@@ -248,15 +248,12 @@ function renderChannelBreakdown() {
     const chRev = revenue[ch] || 0;
     const chOrd = orders[ch]  || 0;
     const pct   = totalRev > 0 ? ((chRev / totalRev) * 100).toFixed(1) : '0.0';
-    const icon  = CART_CHANNELS[ch]?.icon || '📊';
     return `
       <div style="display:flex;align-items:center;justify-content:space-between;
         padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
         margin-bottom:8px;background:var(--white);">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:18px;">${icon}</span>
-          <div>
-            <div style="font-weight:800;font-size:13px;">${escapeHtml(ch)}</div>
+        <div>
+          <div style="font-weight:800;font-size:13px;">${escapeHtml(ch)}</div>
             <div style="font-size:11px;color:var(--gray-400);">${chOrd} orders</div>
           </div>
         </div>
@@ -293,7 +290,7 @@ function renderChannelSelector() {
     <button type="button"
       class="channel-btn${current === ch ? ' active' : ''}"
       data-action="set-channel" data-channel="${ch}">
-      ${CART_CHANNELS[ch].icon} ${CART_CHANNELS[ch].label}
+      ${CART_CHANNELS[ch].label}
     </button>`).join('');
 }
 
