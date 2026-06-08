@@ -15,10 +15,9 @@
 
 /* ── Channel definitions ── */
 const CART_CHANNELS = {
-  'Dine In':  { label: 'Dine In',  group: 'pos'   },
-  'Take Out': { label: 'Take Out', group: 'pos'   },
-  'Delivery': { label: 'Delivery', group: 'pos'   },
-  'Event':    { label: 'Event',    group: 'event' },
+  'Dine In':  { label: 'Dine In',  group: 'pos' },
+  'Take Out': { label: 'Take Out', group: 'pos' },
+  'Delivery': { label: 'Delivery', group: 'pos' },
 };
 
 /* ── Active Event Session ── */
