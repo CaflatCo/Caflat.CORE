@@ -620,9 +620,7 @@ function _generateReceiptQR(transaction) {
   const qrDiv = document.getElementById('receiptQRDiv');
   if (!qrDiv) return;
 
-  // Clear any previous QR
   qrDiv.innerHTML = '';
-
   const text = _buildQRText(transaction);
 
   if (typeof QRCode === 'undefined') {
@@ -631,41 +629,76 @@ function _generateReceiptQR(transaction) {
   }
 
   try {
-    // qrcodejs auto-selects SVG renderer in browser environments
-    // Force SVG by using a fresh div and extracting the SVG element
+    // qrcodejs uses canvas renderer in HTML documents (SVG renderer only fires
+    // when document root is <svg>, which never happens in a normal HTML page).
+    // Strategy: render to off-screen div, grab the canvas, convert to SVG
+    // via a foreignObject wrapper so the receipt gets true vector output.
     const tempDiv = document.createElement('div');
-    tempDiv.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:180px;height:180px;';
+    tempDiv.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
     document.body.appendChild(tempDiv);
 
     new QRCode(tempDiv, {
       text,
-      width:        180,
-      height:       180,
+      width:        160,
+      height:       160,
       colorDark:    '#000000',
       colorLight:   '#ffffff',
       correctLevel: QRCode.CorrectLevel.M
     });
 
-    // Extract the SVG element that qrcodejs renders
-    const svgEl = tempDiv.querySelector('svg');
-    if (svgEl) {
-      // Style the SVG cleanly
-      svgEl.setAttribute('width', '160');
-      svgEl.setAttribute('height', '160');
-      svgEl.style.cssText = 'display:block;width:160px;height:160px;';
-      qrDiv.appendChild(svgEl);
-    } else {
-      // Canvas fallback (older browsers)
-      const canvasEl = tempDiv.querySelector('canvas');
-      if (canvasEl) {
-        canvasEl.style.cssText = 'display:block;width:160px;height:160px;';
-        qrDiv.appendChild(canvasEl);
+    // qrcodejs renders a canvas then swaps it to an img tag on some browsers.
+    // Wait one frame for the img swap to complete.
+    requestAnimationFrame(() => {
+      const img    = tempDiv.querySelector('img');
+      const canvas = tempDiv.querySelector('canvas');
+
+      if (img && img.src && img.src.startsWith('data:')) {
+        // Got a data URL — wrap in an SVG image element for vector container
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg   = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('xmlns',   'http://www.w3.org/2000/svg');
+        svg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+        svg.setAttribute('width',   '160');
+        svg.setAttribute('height',  '160');
+        svg.setAttribute('viewBox', '0 0 160 160');
+        svg.style.cssText = 'display:block;';
+
+        const imageEl = document.createElementNS(svgNS, 'image');
+        imageEl.setAttribute('width',  '160');
+        imageEl.setAttribute('height', '160');
+        imageEl.setAttributeNS('http://www.w3.org/1999/xlink', 'href', img.src);
+        svg.appendChild(imageEl);
+        qrDiv.appendChild(svg);
+
+      } else if (canvas) {
+        // Canvas available — convert to data URL and wrap in SVG
+        try {
+          const dataUrl = canvas.toDataURL('image/png');
+          const svgNS   = 'http://www.w3.org/2000/svg';
+          const svg     = document.createElementNS(svgNS, 'svg');
+          svg.setAttribute('xmlns',        'http://www.w3.org/2000/svg');
+          svg.setAttribute('xmlns:xlink',  'http://www.w3.org/1999/xlink');
+          svg.setAttribute('width',        '160');
+          svg.setAttribute('height',       '160');
+          svg.setAttribute('viewBox',      '0 0 160 160');
+          svg.style.cssText = 'display:block;';
+
+          const imageEl = document.createElementNS(svgNS, 'image');
+          imageEl.setAttribute('width',   '160');
+          imageEl.setAttribute('height',  '160');
+          imageEl.setAttributeNS('http://www.w3.org/1999/xlink', 'href', dataUrl);
+          svg.appendChild(imageEl);
+          qrDiv.appendChild(svg);
+        } catch(e2) {
+          _receiptQRTextFallback(qrDiv, text);
+        }
       } else {
         _receiptQRTextFallback(qrDiv, text);
       }
-    }
 
-    document.body.removeChild(tempDiv);
+      document.body.removeChild(tempDiv);
+    });
+
   } catch(e) {
     console.warn('QR generation failed:', e);
     _receiptQRTextFallback(qrDiv, text);
