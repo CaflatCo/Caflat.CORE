@@ -358,7 +358,9 @@ function buildTransactionSnapshot({ status, paymentStatus, paymentMethod, tender
   const timestamp = new Date().toISOString();
   const receiptNumber = generateReceiptNumber();
   const orderType    = APP_STATE.ui?.activeChannel || APP_STATE.ui?.orderType || 'Dine In';
-  const activeEvent  = typeof getActiveEvent === 'function' ? getActiveEvent() : null;
+  // Use explicitly selected POS event (picker) — falls back to active session for compat
+  const activeEvent  = APP_STATE.ui?.selectedPOSEvent
+    || (typeof getActiveEvent === 'function' ? getActiveEvent() : null);
 
   return {
     id: generateId(), receiptNumber, status, paymentStatus, orderType,

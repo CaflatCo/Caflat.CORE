@@ -45,7 +45,7 @@ function renderEverything() {
     'renderClientsList',
     'applySupplierModeToggle',
     'applyCoffeeCartModeToggle',
-    'applyEventSessionBanner',
+    'applyEventPickerButton',
     'renderCoffeeCartView',
     'applySupplierCartButton',
     'renderCart',

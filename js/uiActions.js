@@ -11,7 +11,8 @@ function initializeUIActions() {
   bindDelegatedActions();
   bindPOSSearch();
   bindSupplyFilters();
-  if (typeof bindLeadFilters === 'function') bindLeadFilters();
+  if (typeof bindLeadFilters         === 'function') bindLeadFilters();
+  if (typeof applyEventPickerButton  === 'function') applyEventPickerButton();
   bindSupplyDiscountInputs();
   renderCategoryTabs();
 }
@@ -41,6 +42,7 @@ function bindPrimaryButtons() {
     ['saveSupplyOrderBtn',  () => saveSupplyOrder()],
     ['saveEventBtn',        () => saveEvent()],
     ['addEventBtn',         () => openEventModal()],
+    ['eventPickerBtn',      () => openEventPickerModal()],
     ['savePackageBtn',      () => savePackage()],
     ['addPackageBtn',       () => openPackageModal()],
     ['addPackageItemBtn',   () => addPackageItemRow()],
@@ -195,6 +197,7 @@ function bindDelegatedActions() {
       case 'save-event':              saveEvent(); break;
       case 'activate-event':          activateEvent(actionEl.dataset.id || ''); break;
       case 'end-event-session':       endEventSession(); break;
+      case 'open-event-picker':       openEventPickerModal(); break;
       case 'set-channel':             setActiveChannel(actionEl.dataset.channel || 'Dine In'); break;
       // Phase 2 — Event Profitability
       case 'open-event-profitability': openEventProfitabilityModal(actionEl.dataset.id || ''); break;
@@ -263,11 +266,37 @@ function setOrderType(type) {
 function renderOrderTypeTabs() {
   const container = document.getElementById('orderTypeTabs');
   if (!container) return;
-  const types = APP_STATE.settings?.orderTypes || ['Dine In', 'Take Out', 'Delivery'];
-  const current = APP_STATE.ui?.orderType || 'Dine In';
-  container.innerHTML = types.map(t => `
-    <button type="button" class="order-type-btn${current === t ? ' active' : ''}"
-      data-action="set-order-type" data-type="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('');
+
+  const coffeeCartOn = APP_STATE.settings?.coffeeCartModeEnabled === true;
+
+  if (coffeeCartOn) {
+    // Coffee Cart Mode: show channels instead of order types
+    // Hide the old separate channel container
+    const chanSel = document.getElementById('channelSelectorContainer');
+    if (chanSel) chanSel.style.display = 'none';
+
+    const current = APP_STATE.ui?.activeChannel || APP_STATE.ui?.orderType || 'Dine In';
+    const channels = Object.keys(typeof CART_CHANNELS !== 'undefined' ? CART_CHANNELS : {});
+    const available = channels.length
+      ? channels
+      : ['Dine In', 'Take Out', 'Delivery', 'Event', 'Corporate', 'Wholesale', 'Partner Cafe'];
+
+    container.innerHTML = available.map(ch => `
+      <button type="button" class="order-type-btn${current === ch ? ' active' : ''}"
+        data-action="set-channel" data-channel="${escapeHtml(ch)}">${escapeHtml(ch)}</button>`
+    ).join('');
+  } else {
+    // Normal mode: show order types
+    const chanSel = document.getElementById('channelSelectorContainer');
+    if (chanSel) chanSel.style.display = 'none';
+
+    const types   = APP_STATE.settings?.orderTypes || ['Dine In', 'Take Out', 'Delivery'];
+    const current = APP_STATE.ui?.orderType || 'Dine In';
+    container.innerHTML = types.map(t => `
+      <button type="button" class="order-type-btn${current === t ? ' active' : ''}"
+        data-action="set-order-type" data-type="${escapeHtml(t)}">${escapeHtml(t)}</button>`
+    ).join('');
+  }
 }
 
 function renderCategoryTabs() {

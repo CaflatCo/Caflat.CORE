@@ -296,7 +296,8 @@ function renderChannelSelector() {
 
 function setActiveChannel(channel) {
   updateState('ui', current => ({ ...current, activeChannel: channel, orderType: channel }));
-  renderChannelSelector();
+  // Re-render tabs so active pill updates
+  if (typeof renderOrderTypeTabs === 'function') renderOrderTypeTabs();
 }
 
 /* ── Nav + feature toggle ── */
@@ -305,16 +306,18 @@ function applyCoffeeCartModeToggle() {
   const navBtn  = document.getElementById('navCoffeeCart');
   if (navBtn) navBtn.style.display = enabled ? '' : 'none';
 
+  // Always hide the old separate channel container — tabs are merged now
   const channelSel = document.getElementById('channelSelectorContainer');
-  if (channelSel) channelSel.style.display = enabled ? 'flex' : 'none';
+  if (channelSel) channelSel.style.display = 'none';
 
-  if (enabled) {
-    renderChannelSelector();
-  } else {
-    // If currently on the coffeecart view, redirect to POS
-    if (APP_STATE.ui?.currentView === 'coffeecart') {
-      if (typeof switchPage === 'function') switchPage('pos');
-    }
+  // Re-render order type tabs (shows channels or order types depending on mode)
+  if (typeof renderOrderTypeTabs === 'function') renderOrderTypeTabs();
+
+  // Apply event picker button visibility
+  applyEventPickerButton();
+
+  if (!enabled && APP_STATE.ui?.currentView === 'coffeecart') {
+    if (typeof switchPage === 'function') switchPage('pos');
   }
 }
 
@@ -843,3 +846,111 @@ window.getLeadKPIs                  = getLeadKPIs;
 window.renderCoffeeCartView         = renderCoffeeCartView;
 window.LEAD_STATUSES                = LEAD_STATUSES;
 window.LEAD_STATUS_LABELS           = LEAD_STATUS_LABELS;
+
+/* ═══════════════════════════════════════════════════════
+   EVENT PICKER — POS Cart Button
+   Replaces the old Active Event Session banner.
+   Cashier explicitly picks an event per cart session.
+   All sales while an event is selected are tagged to it.
+   Selecting "No Event" clears the tag.
+═══════════════════════════════════════════════════════ */
+
+function getSelectedPOSEvent() {
+  return APP_STATE.ui?.selectedPOSEvent || null;
+}
+
+function applyEventPickerButton() {
+  const btn     = document.getElementById('eventPickerBtn');
+  const enabled = APP_STATE.settings?.coffeeCartModeEnabled === true;
+  if (!btn) return;
+  btn.style.display = enabled ? 'block' : 'none';
+  _updateEventPickerLabel();
+}
+
+function _updateEventPickerLabel() {
+  const btn   = document.getElementById('eventPickerBtn');
+  if (!btn) return;
+  const event = getSelectedPOSEvent();
+  if (event) {
+    btn.textContent = `Event: ${event.name}`;
+    btn.style.borderColor    = '#000';
+    btn.style.background     = '#000';
+    btn.style.color          = '#fff';
+  } else {
+    btn.textContent          = 'Tag Event';
+    btn.style.borderColor    = '';
+    btn.style.background     = '';
+    btn.style.color          = '';
+  }
+}
+
+function openEventPickerModal() {
+  const events = getEvents();
+  const container = document.getElementById('eventPickerList');
+  if (!container) return;
+
+  const current = getSelectedPOSEvent();
+
+  container.innerHTML = '';
+
+  // "No Event" option first
+  const noneBtn = document.createElement('button');
+  noneBtn.type      = 'button';
+  noneBtn.className = `event-picker-option${!current ? ' active' : ''}`;
+  noneBtn.textContent = 'No Event — Normal Sale';
+  noneBtn.addEventListener('click', () => {
+    updateState('ui', s => ({ ...s, selectedPOSEvent: null }));
+    _updateEventPickerLabel();
+    closeModal('eventPickerModal');
+    if (typeof pushAuditEntry === 'function') {
+      pushAuditEntry({ action: 'POS_EVENT_CLEARED', outcome: 'SUCCESS', note: 'Event tag cleared' });
+    }
+  });
+  container.appendChild(noneBtn);
+
+  if (!events.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'font-size:12px;color:var(--gray-400);padding:12px 0;text-align:center;';
+    empty.textContent   = 'No events yet — create one in the Events tab';
+    container.appendChild(empty);
+  } else {
+    events.forEach(event => {
+      const isActive = current?.id === event.id;
+      const btn      = document.createElement('button');
+      btn.type        = 'button';
+      btn.className   = `event-picker-option${isActive ? ' active' : ''}`;
+
+      const rev = _getEventRevenue(event.id);
+      btn.innerHTML = `
+        <div style="font-weight:800;">${escapeHtml(event.name)}</div>
+        <div style="font-size:10px;color:${isActive ? 'rgba(255,255,255,.7)' : 'var(--gray-400)'};
+          margin-top:2px;">
+          ${event.type || 'Event'}
+          ${event.date ? ' · ' + new Date(event.date + 'T00:00:00')
+              .toLocaleDateString('en-PH',{month:'short',day:'numeric'}) : ''}
+          ${rev > 0 ? ' · ' + formatCurrency(rev) + ' tagged' : ''}
+        </div>`;
+
+      btn.addEventListener('click', () => {
+        updateState('ui', s => ({ ...s, selectedPOSEvent: { id: event.id, name: event.name } }));
+        _updateEventPickerLabel();
+        closeModal('eventPickerModal');
+        showNotification(`Sales will be tagged to "${event.name}"`, 'success');
+        if (typeof pushAuditEntry === 'function') {
+          pushAuditEntry({
+            action: 'POS_EVENT_SELECTED', outcome: 'SUCCESS',
+            note: `Event selected: ${event.name}`
+          });
+        }
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  openModal('eventPickerModal');
+}
+
+window.getSelectedPOSEvent    = getSelectedPOSEvent;
+window.applyEventPickerButton = applyEventPickerButton;
+window.openEventPickerModal   = openEventPickerModal;
+window._updateEventPickerLabel= _updateEventPickerLabel;
