@@ -591,11 +591,7 @@ function renderReceipt(transaction) {
   requestAnimationFrame(() => _generateReceiptQR(transaction));
 }
 
-function _generateReceiptQR(transaction) {
-  const container = document.getElementById('receiptQRContainer');
-  if (!container) return;
-
-  // Build compact plain-text receipt for QR encoding
+function _buildQRText(transaction) {
   const brand    = APP_STATE.settings?.brandName || 'Caflat.Co';
   const date     = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
                      .toLocaleString('en-PH');
@@ -607,7 +603,7 @@ function _generateReceiptQR(transaction) {
   const receipt  = transaction.receiptNumber || transaction.id || '';
   const footer   = APP_STATE.settings?.receiptFooter || '';
 
-  const text = [
+  return [
     brand, date,
     `Receipt: ${receipt}`,
     `Customer: ${customer}`,
@@ -618,34 +614,70 @@ function _generateReceiptQR(transaction) {
     `TOTAL: ${total}`,
     footer
   ].filter(Boolean).join('\n');
+}
 
-  // Clear previous QR
+function _generateReceiptQR(transaction) {
   const qrDiv = document.getElementById('receiptQRDiv');
-  if (qrDiv) qrDiv.innerHTML = '';
+  if (!qrDiv) return;
 
-  // qrcodejs API: new QRCode(element, { text, width, height })
-  if (typeof QRCode !== 'undefined' && qrDiv) {
-    try {
-      new QRCode(qrDiv, {
-        text,
-        width:        160,
-        height:       160,
-        colorDark:    '#000000',
-        colorLight:   '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
-      return; // success — exit early
-    } catch(e) {
-      console.warn('QR generation failed:', e);
+  // Clear any previous QR
+  qrDiv.innerHTML = '';
+
+  const text = _buildQRText(transaction);
+
+  if (typeof QRCode === 'undefined') {
+    _receiptQRTextFallback(qrDiv, text);
+    return;
+  }
+
+  try {
+    // qrcodejs auto-selects SVG renderer in browser environments
+    // Force SVG by using a fresh div and extracting the SVG element
+    const tempDiv = document.createElement('div');
+    tempDiv.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:180px;height:180px;';
+    document.body.appendChild(tempDiv);
+
+    new QRCode(tempDiv, {
+      text,
+      width:        180,
+      height:       180,
+      colorDark:    '#000000',
+      colorLight:   '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+
+    // Extract the SVG element that qrcodejs renders
+    const svgEl = tempDiv.querySelector('svg');
+    if (svgEl) {
+      // Style the SVG cleanly
+      svgEl.setAttribute('width', '160');
+      svgEl.setAttribute('height', '160');
+      svgEl.style.cssText = 'display:block;width:160px;height:160px;';
+      qrDiv.appendChild(svgEl);
+    } else {
+      // Canvas fallback (older browsers)
+      const canvasEl = tempDiv.querySelector('canvas');
+      if (canvasEl) {
+        canvasEl.style.cssText = 'display:block;width:160px;height:160px;';
+        qrDiv.appendChild(canvasEl);
+      } else {
+        _receiptQRTextFallback(qrDiv, text);
+      }
     }
-  }
 
-  // Fallback — should rarely be needed
-  if (qrDiv) {
-    qrDiv.innerHTML = `<pre style="font-size:8px;text-align:left;background:#f4f4f4;
-      padding:8px;border-radius:4px;max-height:100px;overflow:auto;
-      white-space:pre-wrap;word-break:break-all;">${escapeHtml(text)}</pre>`;
+    document.body.removeChild(tempDiv);
+  } catch(e) {
+    console.warn('QR generation failed:', e);
+    _receiptQRTextFallback(qrDiv, text);
   }
+}
+
+function _receiptQRTextFallback(container, text) {
+  container.innerHTML = `
+    <div style="font-size:9px;color:#999;margin-bottom:4px;">Receipt data:</div>
+    <pre style="font-size:8px;text-align:left;background:#f4f4f4;
+      padding:8px;border-radius:4px;max-height:80px;overflow:auto;
+      white-space:pre-wrap;word-break:break-all;margin:0;">${escapeHtml(text)}</pre>`;
 }
 
 function openSaleReceipt(saleId) {
