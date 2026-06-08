@@ -306,9 +306,16 @@ function applyCoffeeCartModeToggle() {
   if (navBtn) navBtn.style.display = enabled ? '' : 'none';
 
   const channelSel = document.getElementById('channelSelectorContainer');
-  if (channelSel) channelSel.style.display = enabled ? 'block' : 'none';
+  if (channelSel) channelSel.style.display = enabled ? 'flex' : 'none';
 
-  if (enabled) renderChannelSelector();
+  if (enabled) {
+    renderChannelSelector();
+  } else {
+    // If currently on the coffeecart view, redirect to POS
+    if (APP_STATE.ui?.currentView === 'coffeecart') {
+      if (typeof switchPage === 'function') switchPage('pos');
+    }
+  }
 }
 
 /* ── Exports ── */

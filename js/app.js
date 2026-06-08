@@ -44,6 +44,9 @@ function renderEverything() {
     'renderSupplyView',
     'renderClientsList',
     'applySupplierModeToggle',
+    'applyCoffeeCartModeToggle',
+    'applyEventSessionBanner',
+    'renderCoffeeCartView',
     'applySupplierCartButton',
     'renderCart',
     'refreshDashboard',
@@ -151,7 +154,8 @@ function switchPage(target) {
   // Trigger chart re-render on dashboard/reports switch
   if (cleanTarget === 'dashboard' && typeof refreshDashboard  === 'function') refreshDashboard();
   if (cleanTarget === 'reports'   && typeof renderReports      === 'function') renderReports();
-  if (cleanTarget === 'supply'    && typeof renderSupplyView   === 'function') renderSupplyView();
+  if (cleanTarget === 'supply'    && typeof renderSupplyView      === 'function') renderSupplyView();
+  if (cleanTarget === 'coffeecart' && typeof renderCoffeeCartView === 'function') renderCoffeeCartView();
 }
 
 function setDefaultView() {
