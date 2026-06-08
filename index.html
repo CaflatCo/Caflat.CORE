@@ -284,6 +284,19 @@
     .status-picker-btn[data-status="PAID"]:hover {
       background:#15803d; color:var(--white); border-color:#15803d;
     }
+    /* Channel selector */
+    .channel-btn {
+      padding:6px 14px; border:1.5px solid var(--gray-200);
+      background:var(--white); border-radius:var(--radius-full);
+      font-size:11px; font-weight:700; cursor:pointer;
+      transition:all .15s ease; font-family:var(--font-main);
+      white-space:nowrap;
+    }
+    .channel-btn:hover { border-color:var(--black); }
+    .channel-btn.active {
+      background:var(--black); color:var(--white); border-color:var(--black);
+    }
+    #channelSelectorContainer { display:flex; }
   </style>
 </head>
 <body>
@@ -302,6 +315,25 @@
   <!-- ═══ APP SHELL ═══ -->
   <div id="app">
 
+    <!-- Active Event Session Banner -->
+    <div id="eventSessionBanner" style="display:none;align-items:center;gap:10px;
+      padding:7px 20px;background:#f0fdf4;border-bottom:1.5px solid #bbf7d0;">
+      <span style="font-size:16px;">🎪</span>
+      <div>
+        <div style="font-size:11px;font-weight:800;color:#15803d;letter-spacing:.5px;">
+          ACTIVE EVENT: <span id="eventSessionName"></span>
+        </div>
+        <div style="font-size:10px;color:#16a34a;" id="eventSessionTime"></div>
+      </div>
+      <button type="button" data-action="end-event-session"
+        style="margin-left:auto;padding:4px 12px;font-size:10px;font-weight:800;
+          letter-spacing:1px;text-transform:uppercase;background:white;
+          border:1.5px solid #bbf7d0;border-radius:999px;cursor:pointer;
+          color:#15803d;font-family:var(--font-main);">
+        End Session
+      </button>
+    </div>
+
     <header>
       <div style="display:flex;align-items:center;gap:12px;">
         <h1 id="brandName" data-brand-name>Caflat.Co POS</h1>
@@ -317,6 +349,7 @@
         <button data-view="reports">Reports</button>
         <button data-view="settings">Settings</button>
         <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
+        <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">☕ Events</button>
       </nav>
     </header>
 
@@ -329,6 +362,8 @@
         <div class="pos-products">
           <!-- Order type tabs -->
           <div id="orderTypeTabs" class="order-type-tabs"></div>
+          <div id="channelSelectorContainer" style="display:none;padding:8px 16px 0;
+            display:none;gap:6px;flex-wrap:wrap;"></div>
 
           <!-- Category filter tabs -->
           <div class="category-tabs" id="categoryTabs"></div>
@@ -753,6 +788,100 @@
         </div>
       </section>
 
+      <!-- ═══ COFFEE CART VIEW ═══ -->
+      <section class="view" id="view-coffeecart">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>☕ Events</h2>
+            <button class="btn" id="addEventBtn" type="button">+ New Event</button>
+          </div>
+
+          <!-- KPI row -->
+          <div id="channelBreakdownContainer"
+            style="margin-bottom:24px;"></div>
+
+          <div class="section-title">Events</div>
+          <div class="table-wrapper">
+            <table id="eventsTable">
+              <thead>
+                <tr>
+                  <th>Event</th><th>Type</th><th>Date</th>
+                  <th>Location</th><th>Revenue</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Event Packages -->
+          <div class="panel-header" style="margin-top:32px;">
+            <div class="section-title" style="margin:0;">Event Packages</div>
+            <button class="btn btn-secondary" id="addPackageBtn" type="button">+ New Package</button>
+          </div>
+          <div class="table-wrapper" style="margin-top:10px;">
+            <table id="packagesTable">
+              <thead>
+                <tr>
+                  <th>Package</th><th>Price</th><th>Pax Range</th>
+                  <th>Includes</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Lead Tracker -->
+          <div class="panel-header" style="margin-top:32px;">
+            <div class="section-title" style="margin:0;">Lead Tracker</div>
+            <button class="btn btn-secondary" id="addLeadBtn" type="button">+ New Lead</button>
+          </div>
+
+          <!-- Lead KPIs -->
+          <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin:12px 0 16px;">
+            <div class="stat-card">
+              <div class="label">Total Leads</div>
+              <div class="value" id="leadKpiTotal" style="font-size:22px;">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Booked</div>
+              <div class="value" id="leadKpiBooked" style="font-size:22px;">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Conv. Rate</div>
+              <div class="value" id="leadKpiConv" style="font-size:22px;">0%</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Pipeline Value</div>
+              <div class="value" id="leadKpiPipeline" style="font-size:18px;">₱0.00</div>
+            </div>
+          </div>
+
+          <div class="filter-bar">
+            <select id="leadStatusFilter">
+              <option value="">All Statuses</option>
+              <option value="INQUIRY">Inquiry</option>
+              <option value="QUOTED">Quoted</option>
+              <option value="BOOKED">Booked</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="LOST">Lost</option>
+            </select>
+          </div>
+
+          <div class="table-wrapper">
+            <table id="leadsTable">
+              <thead>
+                <tr>
+                  <th>Client</th><th>Contact</th><th>Event Type</th>
+                  <th>Date</th><th>Pax / Budget</th><th>Package</th>
+                  <th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- ═══ SETTINGS VIEW ═══ -->
       <section class="view" id="view-settings">
         <div class="panel">
@@ -803,6 +932,21 @@
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingsSupplierMode" />
+              <div class="toggle-track"></div>
+              <div class="toggle-knob"></div>
+            </label>
+          </div>
+
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-toggle-label">☕ Coffee Cart Mode</div>
+              <div class="settings-toggle-sub">
+                Enable event management, order channels, and channel analytics.
+                Adds the Events tab to navigation.
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingsCoffeeCartMode" />
               <div class="toggle-track"></div>
               <div class="toggle-knob"></div>
             </label>
@@ -1276,6 +1420,221 @@
       </div>
     </div>
 
+    <!-- Event Profitability Modal -->
+    <div class="modal-overlay" id="eventProfitabilityModal">
+      <div class="modal" style="max-width:540px;">
+        <h3>Event Profitability — <span id="profitEventName"></span></h3>
+        <input id="profitEventId" type="hidden" />
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+          <div class="cost-preview-item">
+            <div class="cost-preview-label">Revenue</div>
+            <div class="cost-preview-value" style="color:#16a34a;" id="profitRevenue">₱0.00</div>
+          </div>
+          <div class="cost-preview-item">
+            <div class="cost-preview-label">Total Cost</div>
+            <div class="cost-preview-value" id="profitTotalCost">₱0.00</div>
+          </div>
+          <div class="cost-preview-item">
+            <div class="cost-preview-label">Net Profit</div>
+            <div class="cost-preview-value" id="profitNetProfit">₱0.00</div>
+          </div>
+          <div class="cost-preview-item">
+            <div class="cost-preview-label">Ingredient Cost</div>
+            <div class="cost-preview-value" style="font-size:13px;" id="profitIngredientCost">₱0.00</div>
+          </div>
+          <div class="cost-preview-item">
+            <div class="cost-preview-label">Expenses</div>
+            <div class="cost-preview-value" style="font-size:13px;" id="profitExpenses">₱0.00</div>
+          </div>
+          <div class="cost-preview-item">
+            <div class="cost-preview-label">Margin</div>
+            <div class="cost-preview-value" id="profitMargin">0%</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:16px;text-align:right;">
+          <span id="profitOrders">0</span> completed orders tagged to this event
+        </div>
+
+        <div class="section-title">Expenses</div>
+        <div id="eventExpensesList" style="margin-bottom:12px;"></div>
+
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <input id="expenseLabel" type="text" placeholder="Expense (venue, transport, supplies…)"
+            style="flex:2;" />
+          <input id="expenseAmount" type="number" min="0" step="0.01" placeholder="Amount"
+            style="width:120px;" />
+          <button class="btn btn-secondary" type="button"
+            data-action="add-event-expense"
+            data-event-id="">+ Add</button>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" type="button"
+            data-close-modal="eventProfitabilityModal">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Package Builder Modal -->
+    <div class="modal-overlay" id="packageModal">
+      <div class="modal" style="max-width:520px;">
+        <h3>Event Package</h3>
+        <input id="packageId" type="hidden" />
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label>Package Name <span style="color:var(--danger);">*</span></label>
+            <input id="packageName" type="text" placeholder="e.g. Basic Brew, Signature Bar Package" />
+          </div>
+          <div class="form-group">
+            <label>Price (₱) <span style="color:var(--danger);">*</span></label>
+            <input id="packagePrice" type="number" min="0" step="0.01" placeholder="0.00" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Min Pax</label>
+            <input id="packageMinPax" type="number" min="0" placeholder="e.g. 50" />
+          </div>
+          <div class="form-group">
+            <label>Max Pax</label>
+            <input id="packageMaxPax" type="number" min="0" placeholder="e.g. 150" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description / Terms</label>
+          <textarea id="packageDescription" rows="2"
+            placeholder="What's included, setup time, etc."></textarea>
+        </div>
+        <div class="section-title" style="margin-top:4px;">Included Items</div>
+        <div id="packageItemsBuilder"></div>
+        <button class="btn btn-secondary" id="addPackageItemBtn" type="button"
+          style="margin-bottom:12px;">+ Add Item</button>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="packageModal">Cancel</button>
+          <button class="btn" id="savePackageBtn" type="button">Save Package</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lead Modal -->
+    <div class="modal-overlay" id="leadModal">
+      <div class="modal" style="max-width:560px;">
+        <h3>Lead</h3>
+        <input id="leadId" type="hidden" />
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label>Client Name <span style="color:var(--danger);">*</span></label>
+            <input id="leadClientName" type="text" placeholder="Name or company" />
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="leadStatus">
+              <option value="INQUIRY">Inquiry</option>
+              <option value="QUOTED">Quoted</option>
+              <option value="BOOKED">Booked</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="LOST">Lost</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Contact / Phone</label>
+            <input id="leadContact" type="text" placeholder="+63 9XX XXX XXXX" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input id="leadEmail" type="email" placeholder="email@example.com" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Event Type</label>
+            <select id="leadEventType">
+              <option value="Event">Event</option>
+              <option value="Wedding">Wedding</option>
+              <option value="Corporate">Corporate</option>
+              <option value="Festival">Festival</option>
+              <option value="Popup">Popup</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Event Date</label>
+            <input id="leadEventDate" type="date" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Expected Pax</label>
+            <input id="leadPax" type="number" min="0" placeholder="e.g. 100" />
+          </div>
+          <div class="form-group">
+            <label>Budget (₱)</label>
+            <input id="leadBudget" type="number" min="0" step="0.01" placeholder="0.00" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Package Reference</label>
+          <select id="leadPackageRef"></select>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="leadNotes" rows="2"
+            placeholder="Special requests, follow-up notes, requirements…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="leadModal">Cancel</button>
+          <button class="btn" id="saveLeadBtn" type="button">Save Lead</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div class="modal-overlay" id="eventModal">
+      <div class="modal" style="max-width:500px;">
+        <h3>Event</h3>
+        <input id="eventId" type="hidden" />
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label>Event Name <span style="color:var(--danger);">*</span></label>
+            <input id="eventName" type="text" placeholder="e.g. Ayala Wedding, Globe Corporate" />
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="eventType">
+              <option value="Event">Event</option>
+              <option value="Wedding">Wedding</option>
+              <option value="Corporate">Corporate</option>
+              <option value="Festival">Festival</option>
+              <option value="Popup">Popup</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date</label>
+            <input id="eventDate" type="date" />
+          </div>
+          <div class="form-group" style="flex:2;">
+            <label>Location</label>
+            <input id="eventLocation" type="text" placeholder="Venue name or address" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="eventNotes" rows="2" placeholder="Package details, special requirements…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="eventModal">Cancel</button>
+          <button class="btn" id="saveEventBtn" type="button">Save Event</button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="voidModal">
       <div class="modal" style="max-width:460px;">
         <h3>Void Transaction</h3>
@@ -1383,6 +1742,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   <script src="./js/uiActions.js?v=2"></script>
   <script src="./js/integrity.js?v=2"></script>
   <script src="./js/refund.js?v=2"></script>
+  <script src="./js/coffeecart.js"></script>
   <script src="./js/void.js?v=2"></script>
   <script src="./js/supply.js?v=2"></script>
   <script src="./js/navigation.js?v=2"></script>
