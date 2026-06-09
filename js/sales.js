@@ -634,12 +634,11 @@ function _generateReceiptQR(transaction) {
   }
 
   try {
-    // Render into a hidden div, then grab the img/canvas after one rAF
-    const tempDiv = document.createElement('div');
-    tempDiv.style.cssText = 'position:fixed;left:-9999px;top:-9999px;visibility:hidden;';
-    document.body.appendChild(tempDiv);
-
-    new QRCode(tempDiv, {
+    // Render directly into the visible target div — no offscreen temp div.
+    // Offscreen/hidden canvas.toDataURL() silently returns empty on iOS Safari,
+    // which is why every previous approach failed. Rendering straight into the
+    // live (now-visible) element works on all browsers including iOS Safari.
+    new QRCode(qrDiv, {
       text,
       width:        160,
       height:       160,
@@ -647,49 +646,6 @@ function _generateReceiptQR(transaction) {
       colorLight:   '#ffffff',
       correctLevel: QRCode.CorrectLevel.M
     });
-
-    // Wait for qrcodejs to finish its internal canvas→img swap
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        const imgEl    = tempDiv.querySelector('img');
-        const canvasEl = tempDiv.querySelector('canvas');
-
-        // Prefer the img src (data URL); fall back to canvas.toDataURL
-        let dataUrl = null;
-        if (imgEl && imgEl.src && imgEl.src.startsWith('data:')) {
-          dataUrl = imgEl.src;
-        } else if (canvasEl) {
-          try { dataUrl = canvasEl.toDataURL('image/png'); } catch(e2) {}
-        }
-
-        document.body.removeChild(tempDiv);
-
-        if (dataUrl) {
-          // Wrap in SVG <image> — crisp at any resolution, true SVG container
-          const NS  = 'http://www.w3.org/2000/svg';
-          const XNS = 'http://www.w3.org/1999/xlink';
-          const svg = document.createElementNS(NS, 'svg');
-          svg.setAttribute('xmlns',       NS);
-          svg.setAttribute('xmlns:xlink', XNS);
-          svg.setAttribute('width',  '160');
-          svg.setAttribute('height', '160');
-          svg.setAttribute('viewBox', '0 0 160 160');
-          svg.style.display = 'block';
-
-          const image = document.createElementNS(NS, 'image');
-          image.setAttribute('x',      '0');
-          image.setAttribute('y',      '0');
-          image.setAttribute('width',  '160');
-          image.setAttribute('height', '160');
-          image.setAttributeNS(XNS, 'xlink:href', dataUrl);
-          svg.appendChild(image);
-          qrDiv.appendChild(svg);
-        } else {
-          _receiptQRTextFallback(qrDiv, text);
-        }
-      }, 80); // 80ms — enough for qrcodejs internal img swap on all browsers
-    });
-
   } catch(e) {
     console.warn('QR generation failed:', e);
     _receiptQRTextFallback(qrDiv, text);
