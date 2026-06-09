@@ -168,8 +168,12 @@ function renderProductsTable() {
       <td style="font-variant-numeric:tabular-nums;">${product.stock}</td>
       <td>${product.reorderLevel}</td>
       <td style="font-variant-numeric:tabular-nums;">
-        ${be ? `<span style="font-weight:800;">${be.breakEvenUnits}</span>
-          <span style="font-size:10px;color:var(--gray-400);"> units</span>` : '—'}
+        ${be && be.hasBatchContext
+          ? `<span style="font-weight:800;">${be.breakEvenUnits}</span>
+             <span style="font-size:10px;color:var(--gray-400);"> of ${be.batchYield}</span>`
+          : be
+            ? `<span style="font-size:10px;color:var(--gray-400);">Set batch yield</span>`
+            : '—'}
       </td>
       <td>${soldOut ? `<span class="badge-sold-out">Sold Out</span>` : lowStock ? `<span class="badge-low-stock">Low Stock</span>` : `<span class="badge-ok">OK</span>`}</td>
       <td>
@@ -346,8 +350,10 @@ function renderProductCostPreview() {
       return '<div style=\"margin-top:12px;padding-top:10px;border-top:1px solid var(--gray-100);\">'
         + '<div style=\"font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:6px;\">Break-Even</div>'
         + '<div style=\"display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;\">'
-        + '<div><span style=\"font-size:20px;font-weight:900;\">' + be.breakEvenUnits + '</span>'
-        + '<span style=\"font-size:11px;color:var(--gray-500);margin-left:4px;\"> units to break even</span></div>'
+        + (be.hasBatchContext
+          ? '<div><span style=\"font-size:20px;font-weight:900;\">' + be.breakEvenUnits + '</span>'
+          + '<span style=\"font-size:11px;color:var(--gray-500);margin-left:4px;\"> of ' + be.batchYield + ' units to break even</span></div>'
+          : '<div style=\"font-size:11px;color:var(--gray-400);padding:4px 0;\">Set Batch Yield > 1 to see break-even per production run</div>')
         + (be.pureProfit > 0 ? '<div><span style=\"font-size:13px;font-weight:800;color:#16a34a;\">+' + formatCurrency(be.pureProfit) + '</span>'
         + '<span style=\"font-size:11px;color:var(--gray-500);margin-left:4px;\"> pure profit per unit after</span></div>' : '')
         + '</div>'

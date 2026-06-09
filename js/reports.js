@@ -544,16 +544,17 @@ function renderBreakEvenReport(fromDate, toDate) {
   const totalPureProfit = analysis.reduce((s, p) => s + p.actualPureProfit, 0);
   const profitable      = analysis.filter(p => p.status === 'PROFITABLE').length;
   const inProgress      = analysis.filter(p => p.status === 'IN_PROGRESS').length;
-  const noSales         = analysis.filter(p => p.status === 'NO_SALES').length;
+  const noBatch         = analysis.filter(p => p.status === 'NO_BATCH').length;
+  const withBatch       = analysis.filter(p => p.hasBatchContext).length;
 
   container.innerHTML = `
     <!-- Summary KPIs -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
       ${[
-        ['Products Analysed', analysis.length, ''],
-        ['Above Break-Even',  profitable,       '#16a34a'],
-        ['Working Towards It',inProgress,       '#2563eb'],
-        ['Pure Profit Earned',formatCurrency(totalPureProfit), '#16a34a'],
+        ['Products with Batch Data', withBatch,    ''],
+        ['Above Break-Even',         profitable,   '#16a34a'],
+        ['Working Towards It',       inProgress,   '#2563eb'],
+        ['Pure Profit Earned',       formatCurrency(totalPureProfit), '#16a34a'],
       ].map(([label, val, color]) => `
         <div class="stat-card">
           <div class="label">${label}</div>
@@ -581,9 +582,12 @@ function renderBreakEvenReport(fromDate, toDate) {
         <tbody>
           ${analysis.map(p => {
             const statusColor = p.status === 'PROFITABLE' ? '#16a34a'
-                              : p.status === 'IN_PROGRESS' ? '#2563eb' : '#9ca3af';
+                              : p.status === 'IN_PROGRESS' ? '#2563eb'
+                              : p.status === 'NO_BATCH'    ? '#9ca3af'
+                              : '#9ca3af';
             const statusLabel = p.status === 'PROFITABLE' ? '✓ Above break-even'
                               : p.status === 'IN_PROGRESS' ? 'In progress'
+                              : p.status === 'NO_BATCH'    ? 'Set batch yield'
                               : 'No sales';
             return `
               <tr>
@@ -595,14 +599,18 @@ function renderBreakEvenReport(fromDate, toDate) {
                 <td style="color:${p.margin>=60?'#16a34a':p.margin>=40?'#ea580c':'#dc2626'};
                   font-weight:700;">${p.margin.toFixed(1)}%</td>
                 <td>
-                  <span style="font-size:14px;font-weight:900;">${p.breakEvenUnits}</span>
-                  <span style="font-size:10px;color:var(--gray-400);"> units</span>
+                  ${p.hasBatchContext
+                    ? `<span style="font-size:14px;font-weight:900;">${p.breakEvenUnits}</span>
+                       <span style="font-size:10px;color:var(--gray-400);"> of ${p.batchYield}</span>`
+                    : `<span style="font-size:10px;color:var(--gray-400);">
+                         Set batch yield on product</span>`}
                 </td>
                 <td style="font-variant-numeric:tabular-nums;">
                   <span style="font-weight:700;">${p.soldQty}</span>
                   <span style="font-size:10px;color:var(--gray-400);"> units</span>
                 </td>
                 <td>
+                  ${p.hasBatchContext && p.progressPct !== null ? `
                   <div style="display:flex;align-items:center;gap:6px;">
                     <div style="flex:1;height:8px;background:var(--gray-100);
                       border-radius:999px;overflow:hidden;min-width:60px;">
@@ -613,7 +621,8 @@ function renderBreakEvenReport(fromDate, toDate) {
                       white-space:nowrap;">${p.progressPct}%</span>
                   </div>
                   <div style="font-size:10px;color:${statusColor};margin-top:2px;
-                    font-weight:700;">${statusLabel}</div>
+                    font-weight:700;">${statusLabel}</div>` : `
+                  <span style="font-size:10px;color:var(--gray-400);">—</span>`}
                 </td>
                 <td style="font-variant-numeric:tabular-nums;">
                   ${p.pureProfitQty > 0

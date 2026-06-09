@@ -388,53 +388,79 @@ window.calculateProductCostFromForm = calculateProductCostFromForm;
 function calculateBreakEven(product) {
   if (!product) return null;
 
-  const cost  = calculateProductCost(
-    product.recipe      || [],
-    product.recipeMode  || 'unit',
-    product.batchYield  || 1,
+  const recipeMode = String(product.recipeMode || 'unit');
+  const batchYield = Math.max(1, Number(product.batchYield || 1));
+
+  const costPerUnit = calculateProductCost(
+    product.recipe         || [],
+    recipeMode,
+    batchYield,
     product.packagingItems || []
   );
   const price = Number(product.price || 0);
-  if (!price || !cost) return null;
+  if (!price || !costPerUnit) return null;
 
-  const profit      = price - cost;
-  const batchYield  = Math.max(1, Number(product.batchYield || 1));
-  const totalCost   = cost * batchYield;   // cost to produce one full batch
-  const breakEven   = Math.ceil(totalCost / price);
-  const pureProfit  = price - cost;        // per unit after break-even
-  const margin      = price > 0 ? (profit / price) * 100 : 0;
+  const profit = price - costPerUnit;
+  const margin = price > 0 ? (profit / price) * 100 : 0;
+
+  // For break-even to be meaningful we need a batch quantity.
+  // In batch mode, batchYield is explicitly set by the user — use it.
+  // In unit mode, batchYield is often left at 1 (meaningless).
+  // Use batchYield only when it's > 1, otherwise default to 1
+  // and show break-even as "units to recover cost of 1 unit's ingredients"
+  // which is ceil(costPerUnit / price) — always 1 when margin > 0.
+  // The meaningful number for unit-mode products is the TOTAL BATCH COST
+  // context — we need to know how many were made. Use stock + sold as proxy
+  // or just use batchYield if > 1, else show per-unit context only.
+
+  const effectiveBatch  = batchYield > 1 ? batchYield : null;
+  const totalBatchCost  = effectiveBatch ? costPerUnit * effectiveBatch : null;
+  const breakEvenUnits  = effectiveBatch
+    ? Math.ceil(totalBatchCost / price)
+    : Math.ceil(costPerUnit / price);   // always 1 when price > cost
+  const pureProfit      = profit;
+  const pureProfitBatch = effectiveBatch
+    ? Math.max(0, effectiveBatch - breakEvenUnits) * pureProfit
+    : null;
 
   return {
-    costPerUnit:   cost,
+    costPerUnit,
     price,
     profit,
     margin,
     batchYield,
-    totalBatchCost: totalCost,
-    breakEvenUnits: breakEven,
-    pureProfit,                            // per unit after break-even
-    pureProfitBatch: Math.max(0, batchYield - breakEven) * pureProfit
+    effectiveBatch,          // null when batchYield = 1
+    totalBatchCost,          // null when batchYield = 1
+    breakEvenUnits,
+    pureProfit,
+    pureProfitBatch,
+    hasBatchContext: effectiveBatch !== null
   };
 }
 
 /* ── Break-even from form (live in product modal) ── */
 function calculateBreakEvenFromForm() {
-  const recipeMode  = document.getElementById('recipeMode')?.value || 'unit';
-  const batchYield  = Math.max(1, Number(document.getElementById('batchYield')?.value || 1));
-  const price       = Number(document.getElementById('productPrice')?.value || 0);
-  const cost        = calculateProductCostFromForm();
+  const recipeMode = document.getElementById('recipeMode')?.value || 'unit';
+  const batchYield = Math.max(1, Number(document.getElementById('batchYield')?.value || 1));
+  const price      = Number(document.getElementById('productPrice')?.value || 0);
+  const cost       = calculateProductCostFromForm();
   if (!price || !cost) return null;
 
-  const totalBatchCost = cost * batchYield;
-  const breakEven      = Math.ceil(totalBatchCost / price);
-  const pureProfit     = price - cost;
+  const profit          = price - cost;
+  const effectiveBatch  = batchYield > 1 ? batchYield : null;
+  const totalBatchCost  = effectiveBatch ? cost * effectiveBatch : null;
+  const breakEvenUnits  = effectiveBatch
+    ? Math.ceil(totalBatchCost / price)
+    : Math.ceil(cost / price);
+  const pureProfit      = profit;
 
   return {
-    costPerUnit: cost, price, batchYield,
-    totalBatchCost,
-    breakEvenUnits: breakEven,
-    pureProfit,
-    pureProfitBatch: Math.max(0, batchYield - breakEven) * pureProfit
+    costPerUnit: cost, price, batchYield, effectiveBatch,
+    totalBatchCost, breakEvenUnits, pureProfit,
+    pureProfitBatch: effectiveBatch
+      ? Math.max(0, effectiveBatch - breakEvenUnits) * pureProfit
+      : null,
+    hasBatchContext: effectiveBatch !== null
   };
 }
 
