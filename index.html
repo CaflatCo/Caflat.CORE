@@ -1360,8 +1360,10 @@
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button class="btn btn-secondary" id="loadDemoBtn" type="button">Load Demo Data</button>
             <button class="btn btn-secondary" id="exportDataBtn" data-action="export-data" type="button">Export Backup</button>
-            <button class="btn btn-secondary" id="importDataBtn" type="button">Import Backup</button>
-            <input accept="application/json,.json,text/plain" id="importDataInput" style="display:none" type="file" />
+            <label class="btn btn-secondary" id="importDataBtn" style="cursor:pointer;margin:0;">
+              Import Backup
+              <input accept="application/json,.json,text/plain" id="importDataInput" style="display:none" type="file" />
+            </label>
           </div>
         </div>
       </section>
