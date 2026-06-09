@@ -1032,11 +1032,9 @@
 
             <!-- Add ingredient from catalog -->
             <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
-              <select id="labIngFromCatalog"
-                style="flex:1;padding:7px 10px;border:1px solid var(--gray-200);
-                  border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);">
-                <option value="">+ Add ingredient from catalog…</option>
-              </select>
+              <button class="btn btn-secondary" type="button"
+                data-action="open-lab-ing-picker"
+                style="flex:1;">+ Add Ingredient from Catalog</button>
               <button class="btn btn-secondary" type="button"
                 data-action="open-lab-temp-ing">+ Temp Ingredient</button>
             </div>
@@ -1970,6 +1968,22 @@
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="eventModal">Cancel</button>
           <button class="btn" id="saveEventBtn" type="button">Save Event</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab: Ingredient Picker Modal -->
+    <div class="modal-overlay" id="labIngPickerModal">
+      <div class="modal" style="max-width:520px;">
+        <h3>Add Ingredient</h3>
+        <input id="labIngPickerSearch" type="text" placeholder="Search ingredients…"
+          style="width:100%;margin-bottom:12px;" />
+        <div id="labIngPickerList"
+          style="display:grid;grid-template-columns:1fr 1fr;gap:8px;
+            max-height:380px;overflow-y:auto;"></div>
+        <div class="modal-actions" style="margin-top:12px;">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="labIngPickerModal">Done</button>
         </div>
       </div>
     </div>
