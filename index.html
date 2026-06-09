@@ -2048,6 +2048,59 @@
       </div>
     </div>
 
+    <!-- Reset Data Modal -->
+    <div class="modal-overlay" id="resetDataModal">
+      <div class="modal" style="max-width:500px;">
+        <h3>Reset Data</h3>
+
+        <!-- Standard reset option -->
+        <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+          padding:16px;margin-bottom:12px;">
+          <div style="font-weight:800;font-size:13px;margin-bottom:6px;">
+            Standard Reset
+            <span style="font-size:9px;font-weight:700;letter-spacing:1px;
+              text-transform:uppercase;background:#f0fdf4;color:#16a34a;
+              padding:2px 8px;border-radius:999px;border:1px solid #bbf7d0;
+              margin-left:8px;">Recommended</span>
+          </div>
+          <p style="font-size:12px;color:var(--gray-500);margin-bottom:12px;line-height:1.5;">
+            Wipes all products, ingredients, sales, supply orders, events, leads,
+            inventory movements, and audit log.<br>
+            <strong style="color:var(--black);">Keeps:</strong>
+            Settings, Lab category presets, and your void PIN.
+          </p>
+          <button class="btn btn-secondary" type="button"
+            data-action="confirm-standard-reset"
+            style="width:100%;">
+            Reset Business Data
+          </button>
+        </div>
+
+        <!-- Factory reset option -->
+        <div style="border:1.5px solid #fecaca;border-radius:var(--radius-lg);
+          padding:16px;margin-bottom:16px;background:#fef2f2;">
+          <div style="font-weight:800;font-size:13px;color:#dc2626;margin-bottom:6px;">
+            Full Factory Reset
+          </div>
+          <p style="font-size:12px;color:#b91c1c;margin-bottom:12px;line-height:1.5;">
+            Wipes everything — all business data plus settings, Lab presets,
+            void PIN, and all configuration. Returns system to its original
+            out-of-box state. Use when handing the system to a new owner.
+          </p>
+          <button class="btn btn-danger" type="button"
+            data-action="confirm-factory-reset"
+            style="width:100%;background:#dc2626;border-color:#dc2626;">
+            Full Factory Reset — Wipe Everything
+          </button>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="resetDataModal">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="voidModal">
       <div class="modal" style="max-width:460px;">
         <h3>Void Transaction</h3>
