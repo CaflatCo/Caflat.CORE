@@ -376,9 +376,9 @@ function _updateLabIngCatalogDropdown() {
   const sel = document.getElementById('labIngFromCatalog');
   if (!sel) return;
   const ings = APP_STATE.ingredients || [];
-  const usedIds = (LAB_SESSION?.ingredients || []).map(i => i.liveId).filter(Boolean);
+  // Never filter — user must be able to add same ingredient multiple times
   sel.innerHTML = `<option value="">+ Add ingredient from catalog…</option>` +
-    ings.map(i => `<option value="${i.id}"${usedIds.includes(i.id)?'':''}>
+    ings.map(i => `<option value="${i.id}">
       ${escapeHtml(i.name)} (${i.unit||''}) — ₱${Number(i.costPerUnit||0).toFixed(3)}/unit
     </option>`).join('');
 }
@@ -610,9 +610,17 @@ function renderLabPricing() {
             font-family:var(--font-main);text-align:center;" />
         <span style="font-size:11px;font-weight:700;">% margin</span>
       </div>
-      <div style="font-size:22px;font-weight:900;margin-bottom:4px;
-        font-variant-numeric:tabular-nums;">
-        ${formatCurrency(sc.price)}
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <span style="font-size:11px;color:${LAB_SESSION.selectedScenario===i?'rgba(255,255,255,.6)':'var(--gray-400)'};
+          white-space:nowrap;">Price ₱</span>
+        <input type="number" class="lab-price-input" data-scenario="${i}"
+          value="${sc.price.toFixed(2)}" min="0" step="0.01"
+          style="width:100px;padding:5px 8px;font-size:16px;font-weight:900;
+            border:1px solid ${LAB_SESSION.selectedScenario===i?'rgba(255,255,255,.3)':'var(--gray-200)'};
+            border-radius:var(--radius-md);
+            background:${LAB_SESSION.selectedScenario===i?'rgba(255,255,255,.1)':'var(--white)'};
+            color:${LAB_SESSION.selectedScenario===i?'white':'black'};
+            font-family:var(--font-main);font-variant-numeric:tabular-nums;" />
       </div>
       <div style="font-size:11px;margin-bottom:2px;">
         Profit/unit: <strong>${formatCurrency(sc.profitPerUnit)}</strong>
@@ -640,11 +648,26 @@ function renderLabPricing() {
       </div>
     </div>`).join('');
 
-  // Bind margin inputs
+  // Bind margin inputs (margin → price direction)
   document.querySelectorAll('.lab-margin-input').forEach(inp => {
     inp.addEventListener('input', e => {
       const i = Number(e.target.dataset.scenario);
       LAB_SESSION.marginTargets[i] = Number(e.target.value || 0);
+      _refreshLabCalcs();
+    });
+  });
+
+  // Bind price inputs (price → margin direction)
+  document.querySelectorAll('.lab-price-input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const i     = Number(e.target.dataset.scenario);
+      const price = Number(e.target.value || 0);
+      if (price > 0) {
+        // Back-calculate margin from entered price
+        const cost   = labCalcCostPerUnit();
+        const margin = cost > 0 ? ((price - cost) / price) * 100 : 0;
+        LAB_SESSION.marginTargets[i] = Math.max(0, parseFloat(margin.toFixed(2)));
+      }
       _refreshLabCalcs();
     });
   });
@@ -1432,9 +1455,14 @@ function renderLabView() {
   // Set name field
   setElementValue('labDraftName', LAB_SESSION.name || '');
 
-  // Packaging toggle state
+  // Packaging toggle — sync section visibility only, not checkbox
+  // (checkbox.checked is already set by user; re-setting it here fires change event again)
+  const pkgSection = document.getElementById('labPackagingSection');
+  if (pkgSection) pkgSection.style.display = LAB_SESSION.packagingEnabled ? 'block' : 'none';
   const pkgToggle = document.getElementById('labPackagingToggle');
-  if (pkgToggle) pkgToggle.checked = LAB_SESSION.packagingEnabled;
+  if (pkgToggle && pkgToggle.checked !== LAB_SESSION.packagingEnabled) {
+    pkgToggle.checked = LAB_SESSION.packagingEnabled;
+  }
 
   // Strategic/Launch toggles
   const strat = document.getElementById('labStrategicToggle');
@@ -1450,9 +1478,13 @@ function renderLabView() {
       'display', LAB_SESSION.launchEnabled ? 'block' : 'none');
   }
 
-  // Waste slider
+  // Waste slider — only sync if not currently being dragged
   const wasteSlider = document.getElementById('labWasteSlider');
-  if (wasteSlider) wasteSlider.value = LAB_SESSION.wastePercent;
+  if (wasteSlider && Number(wasteSlider.value) !== LAB_SESSION.wastePercent) {
+    wasteSlider.value = LAB_SESSION.wastePercent;
+  }
+  const wasteDisp = document.getElementById('labWasteDisplay');
+  if (wasteDisp) wasteDisp.textContent = LAB_SESSION.wastePercent + '%';
 }
 
 /* ── Exports ── */

@@ -162,21 +162,39 @@ function _bindLabInputs() {
 
   // Waste slider
   const wasteSlider = document.getElementById('labWasteSlider');
-  if (wasteSlider) wasteSlider.addEventListener('input', e => {
-    if (!window.LAB_SESSION) return;
-    window.LAB_SESSION.wastePercent = Number(e.target.value || 0);
-    const disp = document.getElementById('labWasteDisplay');
-    if (disp) disp.textContent = e.target.value + '%';
-    if (typeof renderLabPricing === 'function') renderLabPricing();
-    if (typeof renderLabCharts  === 'function') renderLabCharts();
-  });
+  if (wasteSlider) {
+    wasteSlider.addEventListener('input', e => {
+      if (!window.LAB_SESSION) return;
+      window.LAB_SESSION.wastePercent = Number(e.target.value || 0);
+      const disp = document.getElementById('labWasteDisplay');
+      if (disp) disp.textContent = e.target.value + '%';
+      // Targeted refresh only — don't call renderLabView
+      if (typeof renderLabPricing === 'function') renderLabPricing();
+      if (typeof renderLabCharts  === 'function') renderLabCharts();
+    });
+    // Also bind 'change' for mobile where 'input' may not fire during drag
+    wasteSlider.addEventListener('change', e => {
+      if (!window.LAB_SESSION) return;
+      window.LAB_SESSION.wastePercent = Number(e.target.value || 0);
+      const disp = document.getElementById('labWasteDisplay');
+      if (disp) disp.textContent = e.target.value + '%';
+      if (typeof renderLabPricing === 'function') renderLabPricing();
+      if (typeof renderLabCharts  === 'function') renderLabCharts();
+    });
+  }
 
   // Packaging toggle
   const pkgToggle = document.getElementById('labPackagingToggle');
   if (pkgToggle) pkgToggle.addEventListener('change', () => {
     if (!window.LAB_SESSION) return;
     window.LAB_SESSION.packagingEnabled = pkgToggle.checked;
-    if (typeof renderLabView === 'function') renderLabView();
+    // Don't call renderLabView — it resets the checkbox and causes a loop
+    // Just toggle section visibility and refresh calculations
+    const sec = document.getElementById('labPackagingSection');
+    if (sec) sec.style.display = pkgToggle.checked ? 'block' : 'none';
+    if (typeof renderLabPricing         === 'function') renderLabPricing();
+    if (typeof renderLabSupplyAssessment=== 'function') renderLabSupplyAssessment();
+    if (typeof renderLabCharts          === 'function') renderLabCharts();
   });
 
   // Strategic toggle
