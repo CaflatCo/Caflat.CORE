@@ -1540,3 +1540,9 @@ window.confirmLabConvert        = confirmLabConvert;
 window.labCalcViabilityScore    = labCalcViabilityScore;
 window.labCalcScenarios         = labCalcScenarios;
 window.LAB_SESSION              = null;
+
+function clearLabSession() {
+  LAB_SESSION = null;
+  renderLabView();
+}
+window.clearLabSession = clearLabSession;
