@@ -123,8 +123,17 @@ function importAllData(file) {
   reader.onload = event => {
     try {
       const data = JSON.parse(event.target.result);
-      if (typeof data !== 'object' || data === null ||
-          (!data.version && !data.products && !data.sales && !data.ingredients)) {
+      if (typeof data !== 'object' || data === null) {
+        showNotification('Invalid backup file — not a Caflat backup', 'error');
+        return;
+      }
+      // Accept if it has ANY recognisable Caflat field
+      const hasRecognisedField = data.products !== undefined
+        || data.ingredients !== undefined
+        || data.sales !== undefined
+        || data.settings !== undefined
+        || data.categories !== undefined;
+      if (!hasRecognisedField) {
         showNotification('Invalid backup file — not a Caflat backup', 'error');
         return;
       }
