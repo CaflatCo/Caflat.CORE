@@ -47,6 +47,8 @@ function renderEverything() {
     'applyCoffeeCartModeToggle',
     'applyEventPickerButton',
     'renderCoffeeCartView',
+    'applyProductionModeToggle',
+    'renderProductionView',
     'renderLabDraftsList',
     'renderLabPresetsList',
     'applySupplierCartButton',
@@ -159,6 +161,7 @@ function switchPage(target) {
   if (cleanTarget === 'supply'    && typeof renderSupplyView      === 'function') renderSupplyView();
   if (cleanTarget === 'coffeecart' && typeof renderCoffeeCartView === 'function') renderCoffeeCartView();
   if (cleanTarget === 'lab'        && typeof renderLabView        === 'function') renderLabView();
+  if (cleanTarget === 'production' && typeof renderProductionView === 'function') renderProductionView();
 }
 
 function setDefaultView() {

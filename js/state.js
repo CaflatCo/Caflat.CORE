@@ -14,7 +14,8 @@ const APP_STATE = {
     lowStockThreshold: 5,
     voidPin: '000000',          // Admin void PIN — changeable in Settings
     supplierModeEnabled: false, // Supplier Mode feature toggle
-    coffeeCartModeEnabled: false // Coffee Cart Mode feature toggle
+    coffeeCartModeEnabled: false, // Coffee Cart Mode feature toggle
+    productionModeEnabled: false  // Production Mode feature toggle
   },
 
   receiptCounter: 0,            // Sequential permanent counter, never resets
@@ -36,6 +37,8 @@ const APP_STATE = {
   leads: [],                    // Lead Tracker / CRM
   labDrafts: [],                // Product Lab draft analyses
   labCategoryPresets: [],       // Product Lab category presets
+  productionJobs: [],           // Production Mode jobs
+  laborPeople: [],              // Labor roster (survives reset)
   categories: ['Cookies', 'Chewy Cookies', 'Drinks'],
 
   ui: {
@@ -72,7 +75,8 @@ function resetState() {
   APP_STATE.eventPackages = [];
   APP_STATE.leads = [];
   APP_STATE.labDrafts = [];
-  // Note: labCategoryPresets intentionally NOT reset — user config
+  APP_STATE.productionJobs = [];
+  // Note: labCategoryPresets + laborPeople intentionally NOT reset — user config
   persistState();
 }
 

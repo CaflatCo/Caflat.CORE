@@ -36,7 +36,9 @@ function persistState() {
       eventPackages:       APP_STATE.eventPackages,
       leads:               APP_STATE.leads,
       labDrafts:           APP_STATE.labDrafts,
-      labCategoryPresets:  APP_STATE.labCategoryPresets
+      labCategoryPresets:  APP_STATE.labCategoryPresets,
+      productionJobs:      APP_STATE.productionJobs,
+      laborPeople:         APP_STATE.laborPeople
     }));
   } catch (error) {
     console.error('Failed to persist state', error);
@@ -79,6 +81,8 @@ function restorePersistedState() {
   APP_STATE.leads                = Array.isArray(persisted.leads)         ? persisted.leads         : [];
   APP_STATE.labDrafts            = Array.isArray(persisted.labDrafts)            ? persisted.labDrafts            : [];
   APP_STATE.labCategoryPresets   = Array.isArray(persisted.labCategoryPresets)   ? persisted.labCategoryPresets   : [];
+  APP_STATE.productionJobs       = Array.isArray(persisted.productionJobs)       ? persisted.productionJobs       : [];
+  APP_STATE.laborPeople          = Array.isArray(persisted.laborPeople)          ? persisted.laborPeople          : [];
 }
 
 /* ── Export full backup ── */
@@ -104,7 +108,9 @@ function exportAllData() {
     eventPackages:     APP_STATE.eventPackages,
     leads:             APP_STATE.leads,
     labDrafts:         APP_STATE.labDrafts,
-    labCategoryPresets:APP_STATE.labCategoryPresets
+    labCategoryPresets:APP_STATE.labCategoryPresets,
+    productionJobs:    APP_STATE.productionJobs,
+    laborPeople:       APP_STATE.laborPeople
   };
   downloadTextFile(`caflat-backup-${Date.now()}.json`, JSON.stringify(data, null, 2));
   showNotification('Backup exported', 'success');
@@ -147,6 +153,8 @@ function importAllData(file) {
       APP_STATE.leads                = Array.isArray(data.leads)               ? data.leads               : [];
       APP_STATE.labDrafts            = Array.isArray(data.labDrafts)           ? data.labDrafts           : [];
       APP_STATE.labCategoryPresets   = Array.isArray(data.labCategoryPresets)  ? data.labCategoryPresets  : [];
+      APP_STATE.productionJobs       = Array.isArray(data.productionJobs)      ? data.productionJobs      : [];
+      APP_STATE.laborPeople          = Array.isArray(data.laborPeople)         ? data.laborPeople         : [];
 
       persistState();
       if (typeof renderEverything === 'function') renderEverything();
@@ -166,12 +174,14 @@ function resetBusinessData() {
   // Restore lab presets and settings after wipe (they survive standard reset)
   const preserved = {
     settings:           APP_STATE.settings,
-    labCategoryPresets: APP_STATE.labCategoryPresets
+    labCategoryPresets: APP_STATE.labCategoryPresets,
+    laborPeople:        APP_STATE.laborPeople
   };
   localStorage.removeItem(STORAGE_KEY);
   // Re-apply preserved fields
   APP_STATE.settings           = preserved.settings;
   APP_STATE.labCategoryPresets = preserved.labCategoryPresets;
+  APP_STATE.laborPeople        = preserved.laborPeople;
   if (typeof persistState === 'function') persistState();
   if (typeof renderEverything === 'function') renderEverything();
   showNotification('Business data reset — Lab presets and settings preserved', 'info');

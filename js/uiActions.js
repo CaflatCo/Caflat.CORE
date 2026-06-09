@@ -12,6 +12,7 @@ function initializeUIActions() {
   bindPOSSearch();
   bindSupplyFilters();
   if (typeof bindLeadFilters         === 'function') bindLeadFilters();
+  if (typeof bindProductionFilters   === 'function') bindProductionFilters();
   if (typeof applyEventPickerButton  === 'function') applyEventPickerButton();
   _bindLabInputs();
   bindSupplyDiscountInputs();
@@ -43,7 +44,12 @@ function bindPrimaryButtons() {
     ['saveSupplyOrderBtn',  () => saveSupplyOrder()],
     ['saveEventBtn',        () => saveEvent()],
     ['addEventBtn',         () => openEventModal()],
-    ['labNewSessionBtn',    () => startNewLabSession()],
+    ['labNewSessionBtn',       () => startNewLabSession()],
+    ['addProdJobBtn',          () => openProductionJobModal()],
+    ['saveProdJobBtn',         () => saveProductionJob()],
+    ['saveBatchTrackingBtn',   () => saveBatchTracking()],
+    ['addLaborPersonBtn',      () => openLaborPersonModal()],
+    ['saveLaborPersonBtn',     () => saveLaborPersonFromForm()],
     ['labSaveDraftBtn',     () => saveLabDraft()],
     ['labConvertBtn',       () => openLabConvertModal()],
     ['labConfirmConvertBtn',() => confirmLabConvert()],
@@ -129,6 +135,19 @@ function bindLeadFilters() {
   const f = document.getElementById('leadStatusFilter');
   if (f) f.addEventListener('change', () => {
     if (typeof renderLeadsTable === 'function') renderLeadsTable();
+  });
+}
+
+function bindProductionFilters() {
+  const sf = document.getElementById('prodStatusFilter');
+  if (sf) sf.addEventListener('change', () => {
+    if (typeof renderProductionBoard === 'function') renderProductionBoard();
+  });
+  const ls = document.getElementById('prodJobLaborSelect');
+  if (ls) ls.addEventListener('change', e => {
+    if (e.target.value && typeof addLaborToJob === 'function') {
+      addLaborToJob(e.target.value);
+    }
   });
 }
 
@@ -429,6 +448,20 @@ function bindDelegatedActions() {
       case 'activate-event':          activateEvent(actionEl.dataset.id || ''); break;
       case 'end-event-session':       endEventSession(); break;
       case 'open-event-picker':       openEventPickerModal(); break;
+      // Production Mode
+      case 'add-prod-job':              openProductionJobModal(); break;
+      case 'edit-prod-job':             openProductionJobModal(actionEl.dataset.id||''); break;
+      case 'delete-prod-job':           deleteProductionJob(actionEl.dataset.id||''); break;
+      case 'save-prod-job':             saveProductionJob(); break;
+      case 'open-prod-status':          openProductionStatusModal(actionEl.dataset.id||''); break;
+      case 'set-production-status':     setProductionStatus(actionEl.dataset.jobId||'', actionEl.dataset.status||''); break;
+      case 'open-batch-tracking':       openBatchTrackingModal(actionEl.dataset.id||''); break;
+      case 'save-batch-tracking':       saveBatchTracking(); break;
+      // Labor Roster
+      case 'add-labor-person':          openLaborPersonModal(); break;
+      case 'edit-labor-person':         openLaborPersonModal(actionEl.dataset.id||''); break;
+      case 'delete-labor-person':       deleteLaborPerson(actionEl.dataset.id||''); break;
+      case 'save-labor-person':         saveLaborPersonFromForm(); break;
       // Product Lab
       case 'start-lab-session':        startNewLabSession(); break;
       case 'load-lab-draft':           loadLabDraft(actionEl.dataset.id||''); break;
