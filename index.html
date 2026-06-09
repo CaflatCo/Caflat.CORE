@@ -389,11 +389,11 @@
         <button data-view="inventory">Inventory</button>
         <button data-view="sales">Sales</button>
         <button data-view="reports">Reports</button>
-        <button data-view="settings">Settings</button>
         <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
         <button data-view="coffeecart"  id="navCoffeeCart"  style="display:none;">Events</button>
         <button data-view="production"  id="navProduction"  style="display:none;">Production</button>
         <button data-view="lab" id="navLab">Lab</button>
+        <button data-view="settings">Settings</button>
       </nav>
     </header>
 
@@ -1031,6 +1031,20 @@
               </div>
             </div>
 
+            <!-- Recipe mode toggle -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <span style="font-size:10px;font-weight:800;letter-spacing:2px;
+                text-transform:uppercase;color:var(--gray-400);">Recipe Mode</span>
+              <select id="labRecipeModeToggle"
+                style="padding:6px 10px;border:1px solid var(--gray-200);
+                  border-radius:var(--radius-md);font-size:12px;
+                  font-family:var(--font-main);"
+                onchange="if(window.LAB_SESSION){window.LAB_SESSION.recipeMode=this.value;if(typeof _renderLabIngredientRows==='function')_renderLabIngredientRows();if(typeof _labRefreshDebounced==='function')_labRefreshDebounced();}">
+                <option value="unit">Per Unit — qty per single item</option>
+                <option value="batch">Per Batch — qty for the whole batch</option>
+              </select>
+            </div>
+
             <!-- Add ingredient from catalog -->
             <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
               <button class="btn btn-secondary" type="button"
@@ -1232,9 +1246,8 @@
             <table id="productionJobsTable">
               <thead>
                 <tr>
-                  <th>Job / Product</th><th>Date</th><th>Quantity</th>
-                  <th>Status</th><th>Funding</th><th>Efficiency</th>
-                  <th>Waste</th><th>Actions</th>
+                  <th>Job / Products</th><th>Date</th><th>Status</th>
+                  <th>Progress</th><th>Funding</th><th>Labor</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -2250,54 +2263,47 @@
 
     <!-- Production Job Modal -->
     <div class="modal-overlay" id="productionJobModal">
-      <div class="modal" style="max-width:580px;">
+      <div class="modal" style="max-width:600px;">
         <h3>Production Job</h3>
         <input id="prodJobId" type="hidden" />
 
-        <div class="form-row">
-          <div class="form-group" style="flex:2;">
-            <label>Run Name <span style="color:var(--gray-400);font-weight:400;">
-              (e.g. "Ayala Wedding Batch", "Weekend Market")</span></label>
-            <input id="prodJobName" type="text"
-              placeholder="Name this production run…" />
-          </div>
+        <!-- Production Name -->
+        <div class="form-group">
+          <label>Production Name</label>
+          <input id="prodJobName" type="text"
+            placeholder="e.g. Ayala Wedding Batch, Weekend Market June 14" />
         </div>
 
-        <div class="form-row">
-          <div class="form-group" style="flex:2;">
-            <label>Product <span style="color:var(--danger);">*</span></label>
-            <select id="prodJobProductId"></select>
-          </div>
-          <div class="form-group">
-            <label>Target Qty <span style="color:var(--danger);">*</span></label>
-            <input id="prodJobTargetQty" type="number" min="1" placeholder="0" />
-          </div>
-          <div class="form-group">
-            <label>Batch Size</label>
-            <input id="prodJobBatchSize" type="number" min="1" placeholder="24" />
-          </div>
+        <!-- Products checklist -->
+        <div class="section-title" style="margin-top:4px;">Products
+          <span style="font-size:10px;font-weight:400;color:var(--gray-400);
+            margin-left:6px;">Add all products for this production run</span>
         </div>
+        <select id="prodJobProductPicker"
+          style="width:100%;padding:7px 10px;border:1px solid var(--gray-200);
+            border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);
+            margin-bottom:10px;">
+          <option value="">+ Add product to this job…</option>
+        </select>
+        <div id="prodJobProductLines" style="margin-bottom:12px;"></div>
 
+        <!-- Scheduled Date — own row -->
         <div class="form-row">
           <div class="form-group">
             <label>Scheduled Date</label>
             <input id="prodJobScheduledDate" type="date" />
           </div>
-          <div class="form-group" style="flex:2;">
-            <label>Funding Type</label>
-            <select id="prodJobFundingType"
-              onchange="_toggleFundingFields(this.value);">
-              <option value="RETAIL">Retail / Restock</option>
-              <option value="CLIENT">Client Order</option>
-              <option value="PENDING">Pending Funding</option>
-            </select>
-          </div>
         </div>
 
-        <!-- Event link (Coffee Cart Mode) -->
-        <div id="prodJobEventRow" style="display:none;" class="form-group">
-          <label>Link to Event</label>
-          <select id="prodJobEventId"></select>
+        <!-- Funding Type — own full-width row -->
+        <div class="form-group">
+          <label>Funding Type</label>
+          <select id="prodJobFundingType"
+            onchange="_toggleFundingFields(this.value);">
+            <option value="RETAIL">Retail / Restock</option>
+            <option value="CLIENT">Client Order</option>
+            <option value="PENDING">Pending Funding</option>
+          </select>
         </div>
 
         <!-- Client fields -->
@@ -2331,16 +2337,21 @@
           </div>
         </div>
 
-        <!-- Labor Assignment -->
+        <!-- Event link -->
+        <div id="prodJobEventRow" style="display:none;" class="form-group">
+          <label>Link to Event</label>
+          <select id="prodJobEventId"></select>
+        </div>
+
+        <!-- Labor -->
         <div class="section-title" style="margin-top:8px;">Labor Assignment</div>
         <div id="prodJobLaborList" style="margin-bottom:8px;"></div>
-        <div style="display:flex;gap:8px;margin-bottom:4px;">
-          <select id="prodJobLaborSelect"
-            style="flex:1;padding:7px 10px;border:1px solid var(--gray-200);
-              border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);">
-            <option value="">+ Assign person…</option>
-          </select>
-        </div>
+        <select id="prodJobLaborSelect"
+          style="width:100%;padding:7px 10px;border:1px solid var(--gray-200);
+            border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);
+            margin-bottom:6px;">
+          <option value="">+ Assign person…</option>
+        </select>
         <div style="font-size:11px;color:var(--gray-500);margin-bottom:12px;">
           Total Labor: <strong id="prodJobLaborTotal">₱0.00</strong>
         </div>
@@ -2359,19 +2370,20 @@
       </div>
     </div>
 
-    <!-- Production Status Modal -->
-    <div class="modal-overlay" id="productionStatusModal">
+    <!-- Product Line Status Modal -->
+    <div class="modal-overlay" id="prodLineStatusModal">
       <div class="modal" style="max-width:420px;">
-        <h3>Set Status</h3>
+        <h3>Set Product Status</h3>
         <div style="font-size:12px;color:var(--gray-500);margin-bottom:14px;"
-          id="prodStatusJobInfo"></div>
-        <input id="prodStatusJobId" type="hidden" />
-        <div id="prodStatusOptions"
+          id="prodLineStatusInfo"></div>
+        <input id="prodLineStatusJobId"  type="hidden" />
+        <input id="prodLineStatusLineId" type="hidden" />
+        <div id="prodLineStatusOptions"
           style="display:grid;grid-template-columns:1fr 1fr;gap:8px;
             margin-bottom:16px;"></div>
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button"
-            data-close-modal="productionStatusModal">Cancel</button>
+            data-close-modal="prodLineStatusModal">Cancel</button>
         </div>
       </div>
     </div>
