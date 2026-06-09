@@ -13,6 +13,20 @@
    [Optional] Strategic + Launch toggles
 ═══════════════════════════════════════════════════════ */
 
+/* ── Debounce helper for keyboard-friendly inputs ── */
+function _labDebounce(fn, delay) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+const _labRefreshDebounced = _labDebounce(() => {
+  if (typeof renderLabPricing          === 'function') renderLabPricing();
+  if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
+  if (typeof renderLabCharts           === 'function') renderLabCharts();
+}, 400);
+
 /* ── Default category presets ── */
 const LAB_DEFAULT_PRESETS = [
   {
@@ -84,6 +98,7 @@ function _newSession() {
     ingredients:  [],   // { id, name, unit, qty, costPerUnit, scarcity, isTemp, tempCost }
     packaging:    [],   // { id, name, cost }
     packagingEnabled: false,
+    recipeMode:   'unit',   // unit | batch
     batchSize:    24,
     wastePercent: 0,
     marginTargets:[55, 65, 75],
@@ -249,8 +264,13 @@ function applyLabPreset(category) {
 
 function labCalcIngredientCost() {
   if (!LAB_SESSION) return 0;
-  return LAB_SESSION.ingredients.reduce((s, ing) =>
-    s + Number(ing.qty || 0) * Number(ing.costPerUnit || 0), 0);
+  const batchSize = Math.max(1, LAB_SESSION.batchSize || 1);
+  return LAB_SESSION.ingredients.reduce((s, ing) => {
+    const qty = LAB_SESSION.recipeMode === 'batch'
+      ? Number(ing.qty || 0) / batchSize   // per-batch qty ÷ batch size = per unit
+      : Number(ing.qty || 0);              // already per unit
+    return s + qty * Number(ing.costPerUnit || 0);
+  }, 0);
 }
 
 function labCalcPackagingCost() {
@@ -370,6 +390,17 @@ function renderLabRecipeBuilder() {
   _updateLabCategorySelect();
   _syncBatchSizeInput();
   _updateLabIngCatalogDropdown();
+  _syncRecipeModeToggle();
+}
+
+function _syncRecipeModeToggle() {
+  const toggle = document.getElementById('labRecipeModeToggle');
+  if (toggle && LAB_SESSION) toggle.value = LAB_SESSION.recipeMode || 'unit';
+  // Update qty labels
+  const label = LAB_SESSION?.recipeMode === 'batch' ? 'Qty/batch' : 'Qty/unit';
+  document.querySelectorAll('[id^="labQtyLabel_"]').forEach(el => {
+    el.textContent = label;
+  });
 }
 
 function openLabIngPickerModal() {
@@ -458,18 +489,22 @@ function _renderLabIngredientRows() {
         <span style="font-size:10px;color:var(--gray-400);margin-left:4px;">${escapeHtml(ing.unit)}</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
-        <label style="font-size:10px;color:var(--gray-400);">Qty/unit</label>
-        <input type="number" value="${ing.qty}" min="0" step="0.01"
+        <label style="font-size:10px;color:var(--gray-400);" id="labQtyLabel_${idx}">
+          ${LAB_SESSION.recipeMode==='batch'?'Qty/batch':'Qty/unit'}
+        </label>
+        <input type="number" value="${ing.qty||''}" min="0" step="0.01"
+          placeholder="0"
           style="width:80px;padding:5px 8px;border:1px solid var(--gray-200);
             border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
-          oninput="LAB_SESSION.ingredients[${idx}].qty=Number(this.value||0);_refreshLabCalcs();" />
+          oninput="LAB_SESSION.ingredients[${idx}].qty=Number(this.value||0);_labRefreshDebounced();" />
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <label style="font-size:10px;color:var(--gray-400);">Cost/unit ₱</label>
-        <input type="number" value="${ing.costPerUnit}" min="0" step="0.001"
+        <input type="number" value="${ing.costPerUnit||''}" min="0" step="0.001"
+          placeholder="0.000"
           style="width:90px;padding:5px 8px;border:1px solid var(--gray-200);
             border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
-          oninput="LAB_SESSION.ingredients[${idx}].costPerUnit=Number(this.value||0);_refreshLabCalcs();" />
+          oninput="LAB_SESSION.ingredients[${idx}].costPerUnit=Number(this.value||0);_labRefreshDebounced();" />
       </div>
       <div style="font-size:11px;font-weight:800;width:70px;text-align:right;
         font-variant-numeric:tabular-nums;">${formatCurrency(lineCost)}</div>

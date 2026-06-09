@@ -453,9 +453,9 @@ function bindDelegatedActions() {
       case 'edit-prod-job':             openProductionJobModal(actionEl.dataset.id||''); break;
       case 'delete-prod-job':           deleteProductionJob(actionEl.dataset.id||''); break;
       case 'save-prod-job':             saveProductionJob(); break;
-      case 'open-prod-status':          openProductionStatusModal(actionEl.dataset.id||''); break;
-      case 'set-production-status':     setProductionStatus(actionEl.dataset.jobId||'', actionEl.dataset.status||''); break;
-      case 'open-batch-tracking':       openBatchTrackingModal(actionEl.dataset.id||''); break;
+      case 'open-prod-line-status':     openProductLineStatusModal(actionEl.dataset.jobId||'', actionEl.dataset.lineId||''); break;
+      case 'set-product-line-status':   setProductLineStatus(actionEl.dataset.jobId||'', actionEl.dataset.lineId||'', actionEl.dataset.status||''); break;
+      case 'open-batch-tracking':       openBatchTrackingModal(actionEl.dataset.jobId||'', actionEl.dataset.lineId||''); break;
       case 'save-batch-tracking':       saveBatchTracking(); break;
       // Labor Roster
       case 'add-labor-person':          openLaborPersonModal(); break;
