@@ -52,6 +52,11 @@ function saveIngredient() {
   closeModal('ingredientModal');
   clearIngredientForm();
   showNotification('Ingredient saved successfully', 'success');
+
+  // Refresh all product cost previews and tables since costPerUnit changed
+  if (typeof renderProductsTable      === 'function') renderProductsTable();
+  if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+  if (typeof renderPOSProducts        === 'function') renderPOSProducts();
 }
 
 function clearIngredientForm() {
