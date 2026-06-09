@@ -34,7 +34,9 @@ function persistState() {
       events:              APP_STATE.events,
       activeEvent:         APP_STATE.activeEvent,
       eventPackages:       APP_STATE.eventPackages,
-      leads:               APP_STATE.leads
+      leads:               APP_STATE.leads,
+      labDrafts:           APP_STATE.labDrafts,
+      labCategoryPresets:  APP_STATE.labCategoryPresets
     }));
   } catch (error) {
     console.error('Failed to persist state', error);
@@ -75,6 +77,8 @@ function restorePersistedState() {
   APP_STATE.activeEvent          = persisted.activeEvent || null;
   APP_STATE.eventPackages        = Array.isArray(persisted.eventPackages) ? persisted.eventPackages : [];
   APP_STATE.leads                = Array.isArray(persisted.leads)         ? persisted.leads         : [];
+  APP_STATE.labDrafts            = Array.isArray(persisted.labDrafts)            ? persisted.labDrafts            : [];
+  APP_STATE.labCategoryPresets   = Array.isArray(persisted.labCategoryPresets)   ? persisted.labCategoryPresets   : [];
 }
 
 /* ── Export full backup ── */
@@ -98,7 +102,9 @@ function exportAllData() {
     events:            APP_STATE.events,
     activeEvent:       APP_STATE.activeEvent,
     eventPackages:     APP_STATE.eventPackages,
-    leads:             APP_STATE.leads
+    leads:             APP_STATE.leads,
+    labDrafts:         APP_STATE.labDrafts,
+    labCategoryPresets:APP_STATE.labCategoryPresets
   };
   downloadTextFile(`caflat-backup-${Date.now()}.json`, JSON.stringify(data, null, 2));
   showNotification('Backup exported', 'success');
@@ -135,10 +141,12 @@ function importAllData(file) {
       APP_STATE.supplyInvoiceCounter = Number(data.supplyInvoiceCounter || 0);
       APP_STATE.stockReservations    = Array.isArray(data.stockReservations)
         ? data.stockReservations : [];
-      APP_STATE.events               = Array.isArray(data.events)        ? data.events        : [];
+      APP_STATE.events               = Array.isArray(data.events)              ? data.events              : [];
       APP_STATE.activeEvent          = data.activeEvent || null;
-      APP_STATE.eventPackages        = Array.isArray(data.eventPackages) ? data.eventPackages : [];
-      APP_STATE.leads                = Array.isArray(data.leads)         ? data.leads         : [];
+      APP_STATE.eventPackages        = Array.isArray(data.eventPackages)       ? data.eventPackages       : [];
+      APP_STATE.leads                = Array.isArray(data.leads)               ? data.leads               : [];
+      APP_STATE.labDrafts            = Array.isArray(data.labDrafts)           ? data.labDrafts           : [];
+      APP_STATE.labCategoryPresets   = Array.isArray(data.labCategoryPresets)  ? data.labCategoryPresets  : [];
 
       persistState();
       if (typeof renderEverything === 'function') renderEverything();
@@ -151,11 +159,42 @@ function importAllData(file) {
 }
 
 /* ── Reset business data ── */
+
+// Standard reset — wipes business data, keeps Lab presets + settings
 function resetBusinessData() {
   if (typeof resetState === 'function') resetState();
+  // Restore lab presets and settings after wipe (they survive standard reset)
+  const preserved = {
+    settings:           APP_STATE.settings,
+    labCategoryPresets: APP_STATE.labCategoryPresets
+  };
+  localStorage.removeItem(STORAGE_KEY);
+  // Re-apply preserved fields
+  APP_STATE.settings           = preserved.settings;
+  APP_STATE.labCategoryPresets = preserved.labCategoryPresets;
+  if (typeof persistState === 'function') persistState();
+  if (typeof renderEverything === 'function') renderEverything();
+  showNotification('Business data reset — Lab presets and settings preserved', 'info');
+}
+
+// Full factory reset — wipes absolutely everything
+function fullFactoryReset() {
+  if (typeof resetState === 'function') resetState();
+  APP_STATE.labCategoryPresets = [];
+  APP_STATE.settings = {
+    brandName:            'Caflat.Co POS',
+    taxRate:              0,
+    receiptFooter:        'Thank you for choosing Caflat.Co',
+    currency:             'PHP',
+    orderTypes:           ['Dine In', 'Take Out', 'Delivery'],
+    lowStockThreshold:    5,
+    voidPin:              '000000',
+    supplierModeEnabled:  false,
+    coffeeCartModeEnabled:false
+  };
   localStorage.removeItem(STORAGE_KEY);
   if (typeof renderEverything === 'function') renderEverything();
-  showNotification('All data reset', 'info');
+  showNotification('Full factory reset complete', 'info');
 }
 
 window.getPersistedState    = getPersistedState;
@@ -164,3 +203,4 @@ window.restorePersistedState= restorePersistedState;
 window.exportAllData        = exportAllData;
 window.importAllData        = importAllData;
 window.resetBusinessData    = resetBusinessData;
+window.fullFactoryReset     = fullFactoryReset;

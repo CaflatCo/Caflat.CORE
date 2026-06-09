@@ -13,6 +13,7 @@ function initializeUIActions() {
   bindSupplyFilters();
   if (typeof bindLeadFilters         === 'function') bindLeadFilters();
   if (typeof applyEventPickerButton  === 'function') applyEventPickerButton();
+  _bindLabInputs();
   bindSupplyDiscountInputs();
   renderCategoryTabs();
 }
@@ -25,7 +26,7 @@ function bindPrimaryButtons() {
     ['saveProductBtn',    () => saveProduct()],
     ['saveIngredientBtn', () => saveIngredient()],
     ['saveSettingsBtn',   () => saveSettings()],
-    ['resetDataBtn',      () => { if (prompt('Type RESET to clear all data') === 'RESET') resetBusinessData(); }],
+    ['resetDataBtn',      () => openModal('resetDataModal')],
     ['logoutBtn',         () => logout()],
     ['loadDemoBtn',       () => loadDemoData()],
     ['loadDemoBtnProducts', () => loadDemoData()],
@@ -42,6 +43,12 @@ function bindPrimaryButtons() {
     ['saveSupplyOrderBtn',  () => saveSupplyOrder()],
     ['saveEventBtn',        () => saveEvent()],
     ['addEventBtn',         () => openEventModal()],
+    ['labNewSessionBtn',    () => startNewLabSession()],
+    ['labSaveDraftBtn',     () => saveLabDraft()],
+    ['labConvertBtn',       () => openLabConvertModal()],
+    ['labConfirmConvertBtn',() => confirmLabConvert()],
+    ['labSavePresetBtn',    () => saveLabPresetFromForm()],
+    ['labAddTempIngBtn',    () => addLabTempIngredient()],
     ['eventPickerBtn',      () => openEventPickerModal()],
     ['savePackageBtn',      () => savePackage()],
     ['addPackageBtn',       () => openPackageModal()],
@@ -125,6 +132,82 @@ function bindLeadFilters() {
   });
 }
 
+function _bindLabInputs() {
+  // Category select
+  const catSel = document.getElementById('labCategorySelect');
+  if (catSel) catSel.addEventListener('change', e => {
+    if (!window.LAB_SESSION) return;
+    window.LAB_SESSION.category = e.target.value;
+    if (e.target.value && typeof applyLabPreset === 'function') applyLabPreset(e.target.value);
+  });
+
+  // Batch size
+  const batchInp = document.getElementById('labBatchSize');
+  if (batchInp) batchInp.addEventListener('input', e => {
+    if (!window.LAB_SESSION) return;
+    window.LAB_SESSION.batchSize = Math.max(1, Number(e.target.value||1));
+    if (typeof renderLabView === 'function') { renderLabView(); }
+  });
+
+  // Batch presets
+  document.querySelectorAll('.lab-batch-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!window.LAB_SESSION) return;
+      window.LAB_SESSION.batchSize = Number(btn.dataset.size);
+      const inp = document.getElementById('labBatchSize');
+      if (inp) inp.value = window.LAB_SESSION.batchSize;
+      if (typeof renderLabView === 'function') renderLabView();
+    });
+  });
+
+  // Waste slider
+  const wasteSlider = document.getElementById('labWasteSlider');
+  if (wasteSlider) wasteSlider.addEventListener('input', e => {
+    if (!window.LAB_SESSION) return;
+    window.LAB_SESSION.wastePercent = Number(e.target.value || 0);
+    const disp = document.getElementById('labWasteDisplay');
+    if (disp) disp.textContent = e.target.value + '%';
+    if (typeof renderLabPricing === 'function') renderLabPricing();
+    if (typeof renderLabCharts  === 'function') renderLabCharts();
+  });
+
+  // Packaging toggle
+  const pkgToggle = document.getElementById('labPackagingToggle');
+  if (pkgToggle) pkgToggle.addEventListener('change', () => {
+    if (!window.LAB_SESSION) return;
+    window.LAB_SESSION.packagingEnabled = pkgToggle.checked;
+    if (typeof renderLabView === 'function') renderLabView();
+  });
+
+  // Strategic toggle
+  const stratToggle = document.getElementById('labStrategicToggle');
+  if (stratToggle) stratToggle.addEventListener('change', () => {
+    if (!window.LAB_SESSION) return;
+    window.LAB_SESSION.strategicEnabled = stratToggle.checked;
+    const sec = document.getElementById('labStrategicSection');
+    if (sec) sec.style.display = stratToggle.checked ? 'block' : 'none';
+  });
+
+  // Launch toggle
+  const launchToggle = document.getElementById('labLaunchToggle');
+  if (launchToggle) launchToggle.addEventListener('change', () => {
+    if (!window.LAB_SESSION) return;
+    window.LAB_SESSION.launchEnabled = launchToggle.checked;
+    const sec = document.getElementById('labLaunchSection');
+    if (sec) sec.style.display = launchToggle.checked ? 'block' : 'none';
+  });
+
+  // Ingredient from catalog selector
+  const ingSelector = document.getElementById('labIngFromCatalog');
+  if (ingSelector) ingSelector.addEventListener('change', e => {
+    if (!e.target.value || !window.LAB_SESSION) return;
+    if (typeof addLabIngredientFromCatalog === 'function') {
+      addLabIngredientFromCatalog(e.target.value);
+    }
+    e.target.value = '';
+  });
+}
+
 function bindSupplyFilters() {
   ['supplyStatusFilter','supplyClientFilter','supplyFromDate','supplyToDate'].forEach(id => {
     const el = document.getElementById(id);
@@ -190,6 +273,18 @@ function bindDelegatedActions() {
       case 'cancel-pending-sale':   cancelPendingSale(actionEl.dataset.id || ''); break;
       case 'open-sale-receipt':     openSaleReceipt(actionEl.dataset.id || ''); break;
       case 'open-void-modal':         openVoidModal(actionEl.dataset.id || ''); break;
+      case 'confirm-standard-reset':
+        if (typeof resetBusinessData === 'function') {
+          closeModal('resetDataModal');
+          resetBusinessData();
+        }
+        break;
+      case 'confirm-factory-reset':
+        if (typeof fullFactoryReset === 'function') {
+          closeModal('resetDataModal');
+          fullFactoryReset();
+        }
+        break;
       // Coffee Cart Mode actions
       case 'add-event':               openEventModal(); break;
       case 'edit-event':              openEventModal(actionEl.dataset.id || ''); break;
@@ -198,6 +293,20 @@ function bindDelegatedActions() {
       case 'activate-event':          activateEvent(actionEl.dataset.id || ''); break;
       case 'end-event-session':       endEventSession(); break;
       case 'open-event-picker':       openEventPickerModal(); break;
+      // Product Lab
+      case 'start-lab-session':        startNewLabSession(); break;
+      case 'load-lab-draft':           loadLabDraft(actionEl.dataset.id||''); break;
+      case 'delete-lab-draft':         deleteLabDraft(actionEl.dataset.id||''); break;
+      case 'save-lab-draft':           saveLabDraft(); break;
+      case 'open-lab-convert':         openLabConvertModal(); break;
+      case 'confirm-lab-convert':      confirmLabConvert(); break;
+      case 'edit-lab-preset':          openLabPresetModal(actionEl.dataset.id||''); break;
+      case 'delete-lab-preset':        deleteLabCategoryPreset(actionEl.dataset.id||''); break;
+      case 'save-lab-preset':          saveLabPresetFromForm(); break;
+      case 'add-lab-preset':           openLabPresetModal(); break;
+      case 'open-lab-temp-ing':        openModal('labTempIngModal'); break;
+      case 'add-lab-temp-ing':         addLabTempIngredient(); break;
+      case 'add-lab-packaging':        addLabPackagingItem(); break;
       case 'set-channel':             setActiveChannel(actionEl.dataset.channel || 'Dine In'); break;
       // Phase 2 — Event Profitability
       case 'open-event-profitability': openEventProfitabilityModal(actionEl.dataset.id || ''); break;

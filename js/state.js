@@ -34,6 +34,8 @@ const APP_STATE = {
   activeEvent: null,            // Currently active event session
   eventPackages: [],            // Event Package Builder
   leads: [],                    // Lead Tracker / CRM
+  labDrafts: [],                // Product Lab draft analyses
+  labCategoryPresets: []        // Product Lab category presets
   categories: ['Cookies', 'Chewy Cookies', 'Drinks'],
 
   ui: {
@@ -69,6 +71,8 @@ function resetState() {
   APP_STATE.activeEvent = null;
   APP_STATE.eventPackages = [];
   APP_STATE.leads = [];
+  APP_STATE.labDrafts = [];
+  // Note: labCategoryPresets intentionally NOT reset — user config
   persistState();
 }
 
