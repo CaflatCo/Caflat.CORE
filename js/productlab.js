@@ -460,35 +460,7 @@ function _renderLabIngredientRows() {
 }
 
 function _bindIngredientRowEvents() {
-  document.querySelectorAll('.lab-ing-qty').forEach(inp => {
-    inp.addEventListener('input', e => {
-      const idx = Number(e.target.dataset.idx);
-      LAB_SESSION.ingredients[idx].qty = Number(e.target.value || 0);
-      _refreshLabCalcs();
-    });
-  });
-  document.querySelectorAll('.lab-ing-cost').forEach(inp => {
-    inp.addEventListener('input', e => {
-      const idx = Number(e.target.dataset.idx);
-      LAB_SESSION.ingredients[idx].costPerUnit = Number(e.target.value || 0);
-      _refreshLabCalcs();
-    });
-  });
-  document.querySelectorAll('.lab-ing-scarcity').forEach(sel => {
-    sel.addEventListener('change', e => {
-      const idx = Number(e.target.dataset.idx);
-      LAB_SESSION.ingredients[idx].scarcity = e.target.value;
-      _refreshLabCalcs();
-    });
-  });
-  document.querySelectorAll('.lab-remove-ing').forEach(btn => {
-    btn.addEventListener('click', e => {
-      const idx = Number(e.target.dataset.idx);
-      LAB_SESSION.ingredients.splice(idx, 1);
-      _renderLabIngredientRows();
-      _refreshLabCalcs();
-    });
-  });
+  // Event delegation on #view-lab handles all row events — this is now a no-op
 }
 
 function _renderLabPackagingRows() {
@@ -514,24 +486,7 @@ function _renderLabPackagingRows() {
         data-idx="${idx}">✕</button>`;
     container.appendChild(row);
   });
-  document.querySelectorAll('.lab-pkg-name').forEach(inp => {
-    inp.addEventListener('input', e => {
-      LAB_SESSION.packaging[Number(e.target.dataset.idx)].name = e.target.value;
-    });
-  });
-  document.querySelectorAll('.lab-pkg-cost').forEach(inp => {
-    inp.addEventListener('input', e => {
-      LAB_SESSION.packaging[Number(e.target.dataset.idx)].cost = Number(e.target.value || 0);
-      _refreshLabCalcs();
-    });
-  });
-  document.querySelectorAll('.lab-remove-pkg').forEach(btn => {
-    btn.addEventListener('click', e => {
-      LAB_SESSION.packaging.splice(Number(e.target.dataset.idx), 1);
-      _renderLabPackagingRows();
-      _refreshLabCalcs();
-    });
-  });
+  // Event delegation on #view-lab handles packaging row events
 }
 
 function addLabIngredientFromCatalog(ingredientId) {
@@ -648,37 +603,7 @@ function renderLabPricing() {
       </div>
     </div>`).join('');
 
-  // Bind margin inputs (margin → price direction)
-  document.querySelectorAll('.lab-margin-input').forEach(inp => {
-    inp.addEventListener('input', e => {
-      const i = Number(e.target.dataset.scenario);
-      LAB_SESSION.marginTargets[i] = Number(e.target.value || 0);
-      _refreshLabCalcs();
-    });
-  });
-
-  // Bind price inputs (price → margin direction)
-  document.querySelectorAll('.lab-price-input').forEach(inp => {
-    inp.addEventListener('input', e => {
-      const i     = Number(e.target.dataset.scenario);
-      const price = Number(e.target.value || 0);
-      if (price > 0) {
-        // Back-calculate margin from entered price
-        const cost   = labCalcCostPerUnit();
-        const margin = cost > 0 ? ((price - cost) / price) * 100 : 0;
-        LAB_SESSION.marginTargets[i] = Math.max(0, parseFloat(margin.toFixed(2)));
-      }
-      _refreshLabCalcs();
-    });
-  });
-
-  // Bind select buttons
-  document.querySelectorAll('.lab-select-scenario').forEach(btn => {
-    btn.addEventListener('click', e => {
-      LAB_SESSION.selectedScenario = Number(e.target.dataset.scenario);
-      renderLabPricing();
-    });
-  });
+  // Event delegation on #view-lab handles scenario inputs
 
   // Waste display
   const wasteEl = document.getElementById('labWastePercent');
@@ -1489,6 +1414,9 @@ function renderLabView() {
 
 /* ── Exports ── */
 window.getLabCategoryPresets    = getLabCategoryPresets;
+window._renderLabIngredientRows  = _renderLabIngredientRows;
+window._renderLabPackagingRows   = _renderLabPackagingRows;
+window._refreshLabCalcs          = _refreshLabCalcs;
 window.saveLabCategoryPreset    = saveLabCategoryPreset;
 window.deleteLabCategoryPreset  = deleteLabCategoryPreset;
 window.openLabPresetModal       = openLabPresetModal;

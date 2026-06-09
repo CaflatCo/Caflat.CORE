@@ -133,97 +133,215 @@ function bindLeadFilters() {
 }
 
 function _bindLabInputs() {
-  // Category select
-  const catSel = document.getElementById('labCategorySelect');
-  if (catSel) catSel.addEventListener('change', e => {
+  // Use event delegation on the lab view container for ALL lab inputs
+  // This survives innerHTML replacements and works regardless of render order
+  const labView = document.getElementById('view-lab');
+  if (!labView || labView._labBound) return; // bind once only
+  labView._labBound = true;
+
+  // ── Delegated: change events ──
+  labView.addEventListener('change', e => {
     if (!window.LAB_SESSION) return;
-    window.LAB_SESSION.category = e.target.value;
-    if (e.target.value && typeof applyLabPreset === 'function') applyLabPreset(e.target.value);
+    const t = e.target;
+
+    // Category select
+    if (t.id === 'labCategorySelect') {
+      window.LAB_SESSION.category = t.value;
+      if (t.value && typeof applyLabPreset === 'function') applyLabPreset(t.value);
+      return;
+    }
+
+    // Ingredient from catalog
+    if (t.id === 'labIngFromCatalog') {
+      if (!t.value) return;
+      if (typeof addLabIngredientFromCatalog === 'function') {
+        addLabIngredientFromCatalog(t.value);
+      }
+      t.value = '';
+      return;
+    }
+
+    // Packaging toggle
+    if (t.id === 'labPackagingToggle') {
+      window.LAB_SESSION.packagingEnabled = t.checked;
+      const sec = document.getElementById('labPackagingSection');
+      if (sec) sec.style.display = t.checked ? 'block' : 'none';
+      if (typeof renderLabPricing          === 'function') renderLabPricing();
+      if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
+      if (typeof renderLabCharts           === 'function') renderLabCharts();
+      return;
+    }
+
+    // Strategic toggle
+    if (t.id === 'labStrategicToggle') {
+      window.LAB_SESSION.strategicEnabled = t.checked;
+      const sec = document.getElementById('labStrategicSection');
+      if (sec) sec.style.display = t.checked ? 'block' : 'none';
+      return;
+    }
+
+    // Launch toggle
+    if (t.id === 'labLaunchToggle') {
+      window.LAB_SESSION.launchEnabled = t.checked;
+      const sec = document.getElementById('labLaunchSection');
+      if (sec) sec.style.display = t.checked ? 'block' : 'none';
+      return;
+    }
+
+    // Ingredient scarcity dropdowns
+    if (t.classList.contains('lab-ing-scarcity')) {
+      const idx = Number(t.dataset.idx);
+      if (window.LAB_SESSION.ingredients[idx]) {
+        window.LAB_SESSION.ingredients[idx].scarcity = t.value;
+        if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
+        if (typeof renderLabCharts           === 'function') renderLabCharts();
+      }
+      return;
+    }
   });
 
-  // Batch size
-  const batchInp = document.getElementById('labBatchSize');
-  if (batchInp) batchInp.addEventListener('input', e => {
+  // ── Delegated: input events ──
+  labView.addEventListener('input', e => {
     if (!window.LAB_SESSION) return;
-    window.LAB_SESSION.batchSize = Math.max(1, Number(e.target.value||1));
-    if (typeof renderLabView === 'function') { renderLabView(); }
+    const t = e.target;
+
+    // Batch size
+    if (t.id === 'labBatchSize') {
+      window.LAB_SESSION.batchSize = Math.max(1, Number(t.value || 1));
+      if (typeof renderLabPricing          === 'function') renderLabPricing();
+      if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
+      if (typeof renderLabCharts           === 'function') renderLabCharts();
+      if (typeof _renderLabIngredientRows  === 'function') _renderLabIngredientRows();
+      return;
+    }
+
+    // Waste slider
+    if (t.id === 'labWasteSlider') {
+      window.LAB_SESSION.wastePercent = Number(t.value || 0);
+      const disp = document.getElementById('labWasteDisplay');
+      if (disp) disp.textContent = t.value + '%';
+      if (typeof renderLabPricing === 'function') renderLabPricing();
+      if (typeof renderLabCharts  === 'function') renderLabCharts();
+      return;
+    }
+
+    // Ingredient qty
+    if (t.classList.contains('lab-ing-qty')) {
+      const idx = Number(t.dataset.idx);
+      if (window.LAB_SESSION.ingredients[idx]) {
+        window.LAB_SESSION.ingredients[idx].qty = Number(t.value || 0);
+        if (typeof _refreshLabCalcs === 'function') _refreshLabCalcs();
+      }
+      return;
+    }
+
+    // Ingredient cost
+    if (t.classList.contains('lab-ing-cost')) {
+      const idx = Number(t.dataset.idx);
+      if (window.LAB_SESSION.ingredients[idx]) {
+        window.LAB_SESSION.ingredients[idx].costPerUnit = Number(t.value || 0);
+        if (typeof _refreshLabCalcs === 'function') _refreshLabCalcs();
+      }
+      return;
+    }
+
+    // Packaging name
+    if (t.classList.contains('lab-pkg-name')) {
+      const idx = Number(t.dataset.idx);
+      if (window.LAB_SESSION.packaging[idx]) {
+        window.LAB_SESSION.packaging[idx].name = t.value;
+      }
+      return;
+    }
+
+    // Packaging cost
+    if (t.classList.contains('lab-pkg-cost')) {
+      const idx = Number(t.dataset.idx);
+      if (window.LAB_SESSION.packaging[idx]) {
+        window.LAB_SESSION.packaging[idx].cost = Number(t.value || 0);
+        if (typeof _refreshLabCalcs === 'function') _refreshLabCalcs();
+      }
+      return;
+    }
+
+    // Margin input
+    if (t.classList.contains('lab-margin-input')) {
+      const i = Number(t.dataset.scenario);
+      window.LAB_SESSION.marginTargets[i] = Number(t.value || 0);
+      if (typeof _refreshLabCalcs === 'function') _refreshLabCalcs();
+      return;
+    }
+
+    // Price input (reverse: price → margin)
+    if (t.classList.contains('lab-price-input')) {
+      const i     = Number(t.dataset.scenario);
+      const price = Number(t.value || 0);
+      if (price > 0 && typeof labCalcCostPerUnit === 'function') {
+        const cost   = labCalcCostPerUnit();
+        const margin = cost > 0 ? ((price - cost) / price) * 100 : 0;
+        window.LAB_SESSION.marginTargets[i] = Math.max(0, parseFloat(margin.toFixed(2)));
+      }
+      if (typeof _refreshLabCalcs === 'function') _refreshLabCalcs();
+      return;
+    }
   });
 
-  // Batch presets
-  document.querySelectorAll('.lab-batch-preset').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (!window.LAB_SESSION) return;
-      window.LAB_SESSION.batchSize = Number(btn.dataset.size);
+  // ── Delegated: click events ──
+  labView.addEventListener('click', e => {
+    if (!window.LAB_SESSION) return;
+    const t = e.target.closest('button, [data-action]');
+    if (!t) return;
+
+    // Batch presets
+    if (t.classList.contains('lab-batch-preset')) {
+      window.LAB_SESSION.batchSize = Number(t.dataset.size);
       const inp = document.getElementById('labBatchSize');
       if (inp) inp.value = window.LAB_SESSION.batchSize;
-      if (typeof renderLabView === 'function') renderLabView();
-    });
-  });
-
-  // Waste slider
-  const wasteSlider = document.getElementById('labWasteSlider');
-  if (wasteSlider) {
-    wasteSlider.addEventListener('input', e => {
-      if (!window.LAB_SESSION) return;
-      window.LAB_SESSION.wastePercent = Number(e.target.value || 0);
-      const disp = document.getElementById('labWasteDisplay');
-      if (disp) disp.textContent = e.target.value + '%';
-      // Targeted refresh only — don't call renderLabView
-      if (typeof renderLabPricing === 'function') renderLabPricing();
-      if (typeof renderLabCharts  === 'function') renderLabCharts();
-    });
-    // Also bind 'change' for mobile where 'input' may not fire during drag
-    wasteSlider.addEventListener('change', e => {
-      if (!window.LAB_SESSION) return;
-      window.LAB_SESSION.wastePercent = Number(e.target.value || 0);
-      const disp = document.getElementById('labWasteDisplay');
-      if (disp) disp.textContent = e.target.value + '%';
-      if (typeof renderLabPricing === 'function') renderLabPricing();
-      if (typeof renderLabCharts  === 'function') renderLabCharts();
-    });
-  }
-
-  // Packaging toggle
-  const pkgToggle = document.getElementById('labPackagingToggle');
-  if (pkgToggle) pkgToggle.addEventListener('change', () => {
-    if (!window.LAB_SESSION) return;
-    window.LAB_SESSION.packagingEnabled = pkgToggle.checked;
-    // Don't call renderLabView — it resets the checkbox and causes a loop
-    // Just toggle section visibility and refresh calculations
-    const sec = document.getElementById('labPackagingSection');
-    if (sec) sec.style.display = pkgToggle.checked ? 'block' : 'none';
-    if (typeof renderLabPricing         === 'function') renderLabPricing();
-    if (typeof renderLabSupplyAssessment=== 'function') renderLabSupplyAssessment();
-    if (typeof renderLabCharts          === 'function') renderLabCharts();
-  });
-
-  // Strategic toggle
-  const stratToggle = document.getElementById('labStrategicToggle');
-  if (stratToggle) stratToggle.addEventListener('change', () => {
-    if (!window.LAB_SESSION) return;
-    window.LAB_SESSION.strategicEnabled = stratToggle.checked;
-    const sec = document.getElementById('labStrategicSection');
-    if (sec) sec.style.display = stratToggle.checked ? 'block' : 'none';
-  });
-
-  // Launch toggle
-  const launchToggle = document.getElementById('labLaunchToggle');
-  if (launchToggle) launchToggle.addEventListener('change', () => {
-    if (!window.LAB_SESSION) return;
-    window.LAB_SESSION.launchEnabled = launchToggle.checked;
-    const sec = document.getElementById('labLaunchSection');
-    if (sec) sec.style.display = launchToggle.checked ? 'block' : 'none';
-  });
-
-  // Ingredient from catalog selector
-  const ingSelector = document.getElementById('labIngFromCatalog');
-  if (ingSelector) ingSelector.addEventListener('change', e => {
-    if (!e.target.value || !window.LAB_SESSION) return;
-    if (typeof addLabIngredientFromCatalog === 'function') {
-      addLabIngredientFromCatalog(e.target.value);
+      if (typeof renderLabPricing          === 'function') renderLabPricing();
+      if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
+      if (typeof renderLabCharts           === 'function') renderLabCharts();
+      if (typeof _renderLabIngredientRows  === 'function') _renderLabIngredientRows();
+      return;
     }
-    e.target.value = '';
+
+    // Remove ingredient
+    if (t.classList.contains('lab-remove-ing')) {
+      const idx = Number(t.dataset.idx);
+      window.LAB_SESSION.ingredients.splice(idx, 1);
+      if (typeof _renderLabIngredientRows === 'function') _renderLabIngredientRows();
+      if (typeof _refreshLabCalcs         === 'function') _refreshLabCalcs();
+      return;
+    }
+
+    // Remove packaging
+    if (t.classList.contains('lab-remove-pkg')) {
+      const idx = Number(t.dataset.idx);
+      window.LAB_SESSION.packaging.splice(idx, 1);
+      if (typeof _renderLabPackagingRows === 'function') _renderLabPackagingRows();
+      if (typeof _refreshLabCalcs        === 'function') _refreshLabCalcs();
+      return;
+    }
+
+    // Select scenario
+    if (t.classList.contains('lab-select-scenario')) {
+      window.LAB_SESSION.selectedScenario = Number(t.dataset.scenario);
+      if (typeof renderLabPricing === 'function') renderLabPricing();
+      if (typeof renderLabCharts  === 'function') renderLabCharts();
+      return;
+    }
   });
+
+  // Waste slider also needs 'change' for iOS Safari (fires on release)
+  labView.addEventListener('change', e => {
+    if (e.target.id === 'labWasteSlider' && window.LAB_SESSION) {
+      window.LAB_SESSION.wastePercent = Number(e.target.value || 0);
+      const disp = document.getElementById('labWasteDisplay');
+      if (disp) disp.textContent = e.target.value + '%';
+      if (typeof renderLabPricing === 'function') renderLabPricing();
+      if (typeof renderLabCharts  === 'function') renderLabCharts();
+    }
+  });
+
 }
 
 function bindSupplyFilters() {
