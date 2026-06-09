@@ -256,6 +256,7 @@ function applyLabPreset(category) {
   });
 
   renderLabRecipeBuilder();
+  _renderInlineDraftsList();
   renderLabPricing();
   showNotification(`${category} preset applied — all values editable`, 'success');
 }
@@ -1213,19 +1214,30 @@ function _renderScenariosBar(container) {
 
 function saveLabDraft() {
   if (!LAB_SESSION) return;
-  const name = sanitizeText(document.getElementById('labDraftName')?.value || '') ||
-    `Draft — ${new Date().toLocaleDateString()}`;
-  LAB_SESSION.name      = name;
+
+  // Build a meaningful auto-name if blank
+  const inputName = sanitizeText(document.getElementById('labDraftName')?.value || '');
+  const autoName  = inputName
+    || (LAB_SESSION.ingredients?.length
+        ? `${LAB_SESSION.category || 'Lab'} — ${LAB_SESSION.ingredients.slice(0,2).map(i=>i.name).join(', ')}`
+        : `Draft — ${new Date().toLocaleDateString()}`);
+
+  LAB_SESSION.name      = autoName;
   LAB_SESSION.updatedAt = new Date().toISOString();
 
-  const drafts  = Array.isArray(APP_STATE.labDrafts) ? APP_STATE.labDrafts : [];
-  const idx     = drafts.findIndex(d => d.id === LAB_SESSION.id);
+  // Sync name back to input field
+  setElementValue('labDraftName', autoName);
+
+  const drafts = Array.isArray(APP_STATE.labDrafts) ? APP_STATE.labDrafts : [];
+  const idx    = drafts.findIndex(d => d.id === LAB_SESSION.id);
   if (idx >= 0) drafts[idx] = { ...LAB_SESSION };
   else          drafts.push({ ...LAB_SESSION });
 
   updateState('labDrafts', () => drafts);
+  // Render drafts list in both landing and the inline panel (if visible)
   renderLabDraftsList();
-  showNotification(`Draft "${name}" saved`, 'success');
+  _renderInlineDraftsList();
+  showNotification(`Draft "${autoName}" saved`, 'success');
 }
 
 function loadLabDraft(draftId) {
@@ -1233,6 +1245,8 @@ function loadLabDraft(draftId) {
   if (!draft) return;
   LAB_SESSION = { ...draft };
   renderLabView();
+  // Sync name field after render
+  setTimeout(() => setElementValue('labDraftName', draft.name || ''), 50);
   showNotification(`Draft "${draft.name}" loaded`, 'success');
 }
 
@@ -1243,6 +1257,39 @@ function deleteLabDraft(draftId) {
   showNotification('Draft deleted', 'success');
 }
 
+function _draftCard(d) {
+  const perUnit = d.ingredients
+    ? d.ingredients.reduce((s,i) => s + Number(i.qty||0)*Number(i.costPerUnit||0), 0) /
+      Math.max(1, d.batchSize||1)
+    : 0;
+  const isActive = LAB_SESSION && LAB_SESSION.id === d.id;
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;
+      padding:10px 14px;border:1.5px solid ${isActive?'var(--black)':'var(--gray-200)'};
+      border-radius:var(--radius-lg);margin-bottom:8px;
+      background:${isActive?'var(--gray-50)':'var(--white)'};">
+      <div>
+        <div style="font-weight:800;font-size:13px;">
+          ${escapeHtml(d.name || 'Untitled')}
+          ${isActive?'<span style="font-size:9px;color:var(--gray-400);margin-left:6px;">CURRENT</span>':''}
+        </div>
+        <div style="font-size:11px;color:var(--gray-400);">
+          ${d.category||'—'} · ₱${perUnit.toFixed(2)}/unit ·
+          <span style="color:${d.status==='converted'?'#16a34a':'var(--gray-400)'};font-weight:700;">
+            ${d.status==='converted' ? `Converted → ${d.convertedProductName||'Product'}` : 'Draft'}
+          </span>
+          · ${new Date(d.updatedAt||d.createdAt).toLocaleDateString()}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        ${!isActive ? `<button class="btn btn-sm" data-action="load-lab-draft"
+          data-id="${d.id}">Open</button>` : ''}
+        <button class="btn btn-sm btn-secondary" data-action="delete-lab-draft"
+          data-id="${d.id}">Delete</button>
+      </div>
+    </div>`;
+}
+
 function renderLabDraftsList() {
   const container = document.getElementById('labDraftsList');
   if (!container) return;
@@ -1251,31 +1298,19 @@ function renderLabDraftsList() {
     container.innerHTML = `<div class="cost-preview-empty">No saved drafts yet</div>`;
     return;
   }
-  container.innerHTML = drafts.slice().reverse().map(d => {
-    const perUnit = d.ingredients
-      ? d.ingredients.reduce((s,i) => s + Number(i.qty||0)*Number(i.costPerUnit||0), 0) /
-        Math.max(1, d.batchSize||1)
-      : 0;
-    return `
-      <div style="display:flex;align-items:center;justify-content:space-between;
-        padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
-        margin-bottom:8px;background:var(--white);">
-        <div>
-          <div style="font-weight:800;font-size:13px;">${escapeHtml(d.name || 'Untitled')}</div>
-          <div style="font-size:11px;color:var(--gray-400);">
-            ${d.category||'—'} · ₱${perUnit.toFixed(2)}/unit ·
-            <span style="color:${d.status==='converted'?'#16a34a':'var(--gray-400)'};font-weight:700;">
-              ${d.status==='converted' ? `Converted → ${d.convertedProductName||'Product'}` : 'Draft'}
-            </span>
-          </div>
-        </div>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-sm" data-action="load-lab-draft" data-id="${d.id}">Open</button>
-          <button class="btn btn-sm btn-secondary" data-action="delete-lab-draft"
-            data-id="${d.id}">Delete</button>
-        </div>
-      </div>`;
-  }).join('');
+  container.innerHTML = drafts.slice().reverse().map(d => _draftCard(d)).join('');
+}
+
+function _renderInlineDraftsList() {
+  // Renders the drafts list inside the active session view (labInlineDraftsList)
+  const container = document.getElementById('labInlineDraftsList');
+  if (!container) return;
+  const drafts = APP_STATE.labDrafts || [];
+  if (!drafts.length) {
+    container.innerHTML = `<div class="cost-preview-empty" style="font-size:11px;">No drafts yet</div>`;
+    return;
+  }
+  container.innerHTML = drafts.slice().reverse().map(d => _draftCard(d)).join('');
 }
 
 function openLabConvertModal() {
@@ -1418,6 +1453,7 @@ function renderLabView() {
   if (landing) landing.style.display = 'none';
 
   renderLabRecipeBuilder();
+  _renderInlineDraftsList();
   renderLabPricing();
   renderLabSupplyAssessment();
   renderLabChartSelector();
@@ -1498,6 +1534,7 @@ window.saveLabDraft             = saveLabDraft;
 window.loadLabDraft             = loadLabDraft;
 window.deleteLabDraft           = deleteLabDraft;
 window.renderLabDraftsList      = renderLabDraftsList;
+window._renderInlineDraftsList  = _renderInlineDraftsList;
 window.openLabConvertModal      = openLabConvertModal;
 window.confirmLabConvert        = confirmLabConvert;
 window.labCalcViabilityScore    = labCalcViabilityScore;

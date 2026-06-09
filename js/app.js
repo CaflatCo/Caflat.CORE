@@ -160,7 +160,16 @@ function switchPage(target) {
   if (cleanTarget === 'reports'   && typeof renderReports      === 'function') renderReports();
   if (cleanTarget === 'supply'    && typeof renderSupplyView      === 'function') renderSupplyView();
   if (cleanTarget === 'coffeecart' && typeof renderCoffeeCartView === 'function') renderCoffeeCartView();
-  if (cleanTarget === 'lab'        && typeof renderLabView        === 'function') renderLabView();
+  if (cleanTarget === 'lab') {
+    if (typeof renderLabView === 'function') renderLabView();
+    // Update Products "Open Lab" button state
+    const openLabBtn = document.getElementById('openLabBtn');
+    if (openLabBtn) openLabBtn.textContent = '← Back to Products';
+  }
+  if (cleanTarget === 'products') {
+    const openLabBtn = document.getElementById('openLabBtn');
+    if (openLabBtn) openLabBtn.textContent = 'Open Lab ↗';
+  }
   if (cleanTarget === 'production' && typeof renderProductionView === 'function') renderProductionView();
 }
 
