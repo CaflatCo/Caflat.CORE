@@ -35,7 +35,7 @@ const APP_STATE = {
   eventPackages: [],            // Event Package Builder
   leads: [],                    // Lead Tracker / CRM
   labDrafts: [],                // Product Lab draft analyses
-  labCategoryPresets: []        // Product Lab category presets
+  labCategoryPresets: [],       // Product Lab category presets
   categories: ['Cookies', 'Chewy Cookies', 'Drinks'],
 
   ui: {
