@@ -535,6 +535,7 @@ async function completeSale(forceStatus = 'COMPLETED') {
   closeModal('checkoutModal');
   renderReceipt(transaction);
   openModal('receiptModal');
+  requestAnimationFrame(() => _generateReceiptQR(transaction));
   showNotification(isPending ? 'Order marked pending' : 'Sale completed! 🎉', 'success');
   renderSalesTable();
   renderHeldOrdersBadge();
@@ -593,8 +594,6 @@ function renderReceipt(transaction) {
     </div>
   `;
 
-  // Generate QR after DOM renders
-  requestAnimationFrame(() => _generateReceiptQR(transaction));
 }
 
 function _buildQRText(transaction) {
@@ -710,6 +709,7 @@ function openSaleReceipt(saleId) {
   if (!sale) return;
   renderReceipt(sale);
   openModal('receiptModal');
+  requestAnimationFrame(() => _generateReceiptQR(sale));
 }
 
 /* ── Sales table ── */
@@ -856,6 +856,7 @@ async function completePendingSale(saleId) {
   if (typeof refreshDashboard === 'function') refreshDashboard();
   renderReceipt(sale);
   openModal('receiptModal');
+  requestAnimationFrame(() => _generateReceiptQR(sale));
   showNotification('Pending sale completed', 'success');
 }
 
