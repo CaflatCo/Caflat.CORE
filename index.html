@@ -327,6 +327,37 @@
       background:var(--black); color:var(--white);
       border-color:var(--black);
     }
+
+    /* ── Product Lab ── */
+    .lab-ingredient-row {
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      padding:10px 14px; border:1px solid var(--gray-100);
+      border-radius:var(--radius-md); margin-bottom:8px;
+      background:var(--gray-50);
+    }
+    .lab-ing-name { min-width:140px; }
+    .lab-temp-badge {
+      font-size:8px; font-weight:800; letter-spacing:1px;
+      padding:1px 6px; border-radius:999px;
+      background:#fff7ed; color:#c2410c; border:1px solid #fed7aa;
+    }
+    .lab-scenario-card {
+      border:1.5px solid var(--gray-200); border-radius:var(--radius-lg);
+      padding:16px; background:var(--white); cursor:pointer;
+      transition:all .15s ease;
+    }
+    .lab-scenario-card.active {
+      background:var(--black); color:var(--white); border-color:var(--black);
+    }
+    .lab-chart-wrapper {
+      border:1.5px solid var(--gray-200); border-radius:var(--radius-lg);
+      padding:16px; background:var(--white);
+    }
+    .lab-chart-title {
+      font-size:10px; font-weight:800; letter-spacing:2px;
+      text-transform:uppercase; color:var(--gray-400); margin-bottom:12px;
+    }
+    .lab-chart-inner { min-height:160px; }
   </style>
 </head>
 <body>
@@ -361,6 +392,7 @@
         <button data-view="settings">Settings</button>
         <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
         <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">Events</button>
+        <button data-view="lab" id="navLab">Lab</button>
       </nav>
     </header>
 
@@ -919,6 +951,239 @@
         </div>
       </section>
 
+      <!-- ═══ PRODUCT LAB VIEW ═══ -->
+      <section class="view" id="view-lab">
+        <div class="panel">
+
+          <!-- LANDING (no active session) -->
+          <div id="labLandingContent">
+            <div class="panel-header">
+              <h2>Product Lab</h2>
+              <button class="btn" id="labNewSessionBtn" type="button">+ New Analysis</button>
+            </div>
+            <p style="font-size:13px;color:var(--gray-500);margin-bottom:20px;line-height:1.6;">
+              Model a new product before committing it to your catalog. Analyze costs,
+              pricing, supply risk, and profitability — all in a safe sandbox.
+            </p>
+
+            <!-- Saved Drafts -->
+            <div class="section-title">Saved Drafts</div>
+            <div id="labDraftsList" style="margin-bottom:24px;"></div>
+
+            <!-- Category Presets -->
+            <div class="panel-header" style="margin-top:8px;">
+              <div class="section-title" style="margin:0;">Category Presets</div>
+              <button class="btn btn-secondary" type="button"
+                data-action="add-lab-preset">+ Add Preset</button>
+            </div>
+            <p style="font-size:12px;color:var(--gray-400);margin-bottom:10px;">
+              Presets auto-fill your Lab when you pick a category. Fully editable.
+            </p>
+            <div id="labPresetsList"></div>
+          </div>
+
+          <!-- MAIN LAB SESSION -->
+          <div id="labMainContent" style="display:none;">
+
+            <!-- Header -->
+            <div class="panel-header">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <button class="btn btn-secondary" type="button"
+                  onclick="window.LAB_SESSION=null;renderLabView();">← Drafts</button>
+                <input id="labDraftName" type="text" placeholder="Analysis name…"
+                  style="font-size:15px;font-weight:800;border:none;outline:none;
+                    font-family:var(--font-main);background:transparent;width:220px;" />
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-secondary" id="labSaveDraftBtn" type="button">Save Draft</button>
+                <button class="btn" id="labConvertBtn" type="button">Convert to Product →</button>
+              </div>
+            </div>
+
+            <!-- SECTION 1: Recipe Builder -->
+            <div class="section-title" style="margin-top:16px;">
+              Section 1 — Recipe Builder
+            </div>
+
+            <!-- Category + Preset -->
+            <div class="form-row" style="margin-bottom:12px;">
+              <div class="form-group">
+                <label>Category</label>
+                <select id="labCategorySelect" style="font-weight:700;"></select>
+              </div>
+              <div class="form-group">
+                <label>Batch Size</label>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <input id="labBatchSize" type="number" min="1" placeholder="24"
+                    style="width:80px;" />
+                  <div style="display:flex;gap:4px;">
+                    ${[12,24,48,96].map(s =>
+                      `<button class="template-chip lab-batch-preset" data-size="${s}"
+                        style="padding:4px 10px;font-size:10px;">${s}</button>`
+                    ).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Add ingredient from catalog -->
+            <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+              <select id="labIngFromCatalog"
+                style="flex:1;padding:7px 10px;border:1px solid var(--gray-200);
+                  border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);">
+                <option value="">+ Add ingredient from catalog…</option>
+              </select>
+              <button class="btn btn-secondary" type="button"
+                data-action="open-lab-temp-ing">+ Temp Ingredient</button>
+            </div>
+
+            <!-- Ingredient rows -->
+            <div id="labIngredientRows"></div>
+
+            <!-- Packaging toggle -->
+            <div class="settings-toggle-row" style="margin:16px 0 8px;">
+              <div>
+                <div class="settings-toggle-label">Packaging Costs</div>
+                <div class="settings-toggle-sub">Optional — add boxes, bags, stickers, etc.</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="labPackagingToggle" />
+                <div class="toggle-track"></div>
+                <div class="toggle-knob"></div>
+              </label>
+            </div>
+            <div id="labPackagingSection" style="display:none;">
+              <div id="labPackagingRows"></div>
+              <button class="btn btn-secondary" type="button"
+                data-action="add-lab-packaging"
+                style="margin-bottom:12px;">+ Add Packaging Item</button>
+            </div>
+
+            <!-- SECTION 2: Cost & Pricing -->
+            <div class="section-title" style="margin-top:24px;">Section 2 — Cost & Pricing</div>
+
+            <!-- Cost summary -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+              margin-bottom:16px;">
+              <div class="cost-preview-item">
+                <div class="cost-preview-label">Ingredient Cost</div>
+                <div class="cost-preview-value" id="labIngCostTotal">₱0.00</div>
+              </div>
+              <div class="cost-preview-item">
+                <div class="cost-preview-label">Packaging Cost</div>
+                <div class="cost-preview-value" id="labPkgCostTotal">₱0.00</div>
+              </div>
+              <div class="cost-preview-item">
+                <div class="cost-preview-label">Total Cost</div>
+                <div class="cost-preview-value" id="labTotalCost">₱0.00</div>
+              </div>
+              <div class="cost-preview-item">
+                <div class="cost-preview-label">Cost per Unit</div>
+                <div class="cost-preview-value" id="labCostPerUnit">₱0.00</div>
+              </div>
+            </div>
+
+            <!-- Waste slider -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+              <label style="font-size:10px;font-weight:800;letter-spacing:2px;
+                text-transform:uppercase;color:var(--gray-400);white-space:nowrap;">
+                Expected Waste
+              </label>
+              <input type="range" id="labWasteSlider" min="0" max="40" step="5" value="0"
+                style="flex:1;" />
+              <span id="labWasteDisplay" style="font-size:12px;font-weight:800;
+                width:32px;text-align:right;">0%</span>
+            </div>
+
+            <!-- Pricing scenarios -->
+            <div id="labScenariosContainer"
+              style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+                margin-bottom:8px;"></div>
+
+            <!-- SECTION 3: Supply Assessment -->
+            <div class="section-title" style="margin-top:24px;">
+              Section 3 — Supply Assessment
+            </div>
+            <div id="labSupplyContainer"></div>
+
+            <!-- SECTION 4: Analysis Charts -->
+            <div class="section-title" style="margin-top:24px;">
+              Section 4 — Analysis Output
+            </div>
+
+            <!-- Chart selector -->
+            <div class="cost-preview-card" style="margin-bottom:16px;">
+              <div id="labChartSelector"></div>
+            </div>
+
+            <!-- Charts output -->
+            <div id="labChartsOutput"
+              style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+                gap:20px;margin-bottom:24px;"></div>
+
+            <!-- Strategic section (toggle) -->
+            <div class="settings-toggle-row" style="margin-bottom:8px;">
+              <div>
+                <div class="settings-toggle-label">Strategic Analysis</div>
+                <div class="settings-toggle-sub">
+                  Portfolio fit, cannibalization check, margin mix impact
+                </div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="labStrategicToggle" />
+                <div class="toggle-track"></div>
+                <div class="toggle-knob"></div>
+              </label>
+            </div>
+            <div id="labStrategicSection" style="display:none;">
+              <div class="cost-preview-card">
+                <div id="labStrategicContent">
+                  <div class="cost-preview-empty">Strategic analysis — coming in next phase</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Launch section (toggle) -->
+            <div class="settings-toggle-row" style="margin-top:12px;margin-bottom:8px;">
+              <div>
+                <div class="settings-toggle-label">Launch Checklist</div>
+                <div class="settings-toggle-sub">
+                  Readiness checklist, customer persona, channel decision
+                </div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="labLaunchToggle" />
+                <div class="toggle-track"></div>
+                <div class="toggle-knob"></div>
+              </label>
+            </div>
+            <div id="labLaunchSection" style="display:none;">
+              <div class="cost-preview-card">
+                <div style="display:grid;gap:8px;">
+                  ${[
+                    'Recipe finalised and tested',
+                    'Ingredient costs confirmed with suppliers',
+                    'Pricing approved',
+                    'Minimum batch size determined',
+                    'Packaging sourced and costed',
+                    'Photos ready',
+                    'Sales channel decided',
+                    'Initial stock quantity planned',
+                  ].map((item, i) => `
+                    <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
+                      <input type="checkbox" id="labCheck_${i}"
+                        style="width:16px;height:16px;" />
+                      ${item}
+                    </label>`).join('')}
+                </div>
+              </div>
+            </div>
+
+          </div><!-- end labMainContent -->
+        </div>
+      </section>
+
+      <!-- ═══ SETTINGS VIEW ═══ -->
       <!-- ═══ SETTINGS VIEW ═══ -->
       <section class="view" id="view-settings">
         <div class="panel">
@@ -1688,6 +1953,101 @@
       </div>
     </div>
 
+    <!-- Lab: Temp Ingredient Modal -->
+    <div class="modal-overlay" id="labTempIngModal">
+      <div class="modal" style="max-width:420px;">
+        <h3>Add Temporary Ingredient</h3>
+        <p style="font-size:12px;color:var(--gray-500);margin-bottom:14px;">
+          Not in your catalog — exists only in this Lab session.
+        </p>
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label>Ingredient Name</label>
+            <input id="labTempIngName" type="text" placeholder="e.g. Matcha Powder" />
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <input id="labTempIngUnit" type="text" placeholder="g" style="width:60px;" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Cost per unit (₱)</label>
+          <input id="labTempIngCost" type="number" min="0" step="0.001" placeholder="0.000" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="labTempIngModal">Cancel</button>
+          <button class="btn" id="labAddTempIngBtn" type="button">Add Ingredient</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab: Category Preset Modal -->
+    <div class="modal-overlay" id="labPresetModal">
+      <div class="modal" style="max-width:480px;">
+        <h3>Category Preset</h3>
+        <input id="labPresetId" type="hidden" />
+        <div class="form-group">
+          <label>Category Name</label>
+          <input id="labPresetCategory" type="text" placeholder="e.g. Chewy Cookies" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Default Batch Size</label>
+            <input id="labPresetBatch" type="number" min="1" placeholder="24" />
+          </div>
+          <div class="form-group">
+            <label>Shelf Life (days)</label>
+            <input id="labPresetShelf" type="number" min="1" placeholder="7" />
+          </div>
+        </div>
+        <div class="section-title" style="margin-top:4px;">Default Margin Targets</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Conservative %</label>
+            <input id="labPresetM0" type="number" min="0" max="99" placeholder="55" />
+          </div>
+          <div class="form-group">
+            <label>Target %</label>
+            <input id="labPresetM1" type="number" min="0" max="99" placeholder="65" />
+          </div>
+          <div class="form-group">
+            <label>Premium %</label>
+            <input id="labPresetM2" type="number" min="0" max="99" placeholder="75" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="labPresetModal">Cancel</button>
+          <button class="btn" id="labSavePresetBtn" type="button">Save Preset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab: Convert to Product Modal -->
+    <div class="modal-overlay" id="labConvertModal">
+      <div class="modal" style="max-width:500px;">
+        <h3>Convert to Product</h3>
+        <p style="font-size:12px;color:var(--gray-500);margin-bottom:14px;">
+          Choose a price scenario. The Add Product modal will open pre-filled — you can
+          review and make final adjustments before saving.
+        </p>
+        <div class="form-group">
+          <label>Product Name</label>
+          <input id="labConvertName" type="text" placeholder="Product name" />
+        </div>
+        <div class="section-title" style="margin-top:4px;">Select Price Scenario</div>
+        <div id="labConvertScenarios" style="margin-bottom:16px;"></div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="labConvertModal">Cancel</button>
+          <button class="btn" id="labConfirmConvertBtn" type="button">
+            Open Product Form →
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="voidModal">
       <div class="modal" style="max-width:460px;">
         <h3>Void Transaction</h3>
@@ -1795,6 +2155,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   <script src="./js/uiActions.js?v=2"></script>
   <script src="./js/integrity.js?v=2"></script>
   <script src="./js/refund.js?v=2"></script>
+  <script src="./js/productlab.js"></script>
   <script src="./js/coffeecart.js"></script>
   <script src="./js/void.js?v=2"></script>
   <script src="./js/supply.js?v=2"></script>
