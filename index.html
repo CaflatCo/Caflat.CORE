@@ -1017,10 +1017,14 @@
                   <input id="labBatchSize" type="number" min="1" placeholder="24"
                     style="width:80px;" />
                   <div style="display:flex;gap:4px;">
-                    ${[12,24,48,96].map(s =>
-                      `<button class="template-chip lab-batch-preset" data-size="${s}"
-                        style="padding:4px 10px;font-size:10px;">${s}</button>`
-                    ).join('')}
+                    <button class="template-chip lab-batch-preset" data-size="12"
+                      style="padding:4px 10px;font-size:10px;">12</button>
+                    <button class="template-chip lab-batch-preset" data-size="24"
+                      style="padding:4px 10px;font-size:10px;">24</button>
+                    <button class="template-chip lab-batch-preset" data-size="48"
+                      style="padding:4px 10px;font-size:10px;">48</button>
+                    <button class="template-chip lab-batch-preset" data-size="96"
+                      style="padding:4px 10px;font-size:10px;">96</button>
                   </div>
                 </div>
               </div>
@@ -1160,21 +1164,38 @@
             <div id="labLaunchSection" style="display:none;">
               <div class="cost-preview-card">
                 <div style="display:grid;gap:8px;">
-                  ${[
-                    'Recipe finalised and tested',
-                    'Ingredient costs confirmed with suppliers',
-                    'Pricing approved',
-                    'Minimum batch size determined',
-                    'Packaging sourced and costed',
-                    'Photos ready',
-                    'Sales channel decided',
-                    'Initial stock quantity planned',
-                  ].map((item, i) => `
-                    <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
-                      <input type="checkbox" id="labCheck_${i}"
-                        style="width:16px;height:16px;" />
-                      ${item}
-                    </label>`).join('')}
+                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
+                    <input type="checkbox" id="labCheck_0" style="width:16px;height:16px;" />
+                    Recipe finalised and tested
+                  </label>
+                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
+                    <input type="checkbox" id="labCheck_1" style="width:16px;height:16px;" />
+                    Ingredient costs confirmed with suppliers
+                  </label>
+                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
+                    <input type="checkbox" id="labCheck_2" style="width:16px;height:16px;" />
+                    Pricing approved
+                  </label>
+                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
+                    <input type="checkbox" id="labCheck_3" style="width:16px;height:16px;" />
+                    Minimum batch size determined
+                  </label>
+                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
+                    <input type="checkbox" id="labCheck_4" style="width:16px;height:16px;" />
+                    Packaging sourced and costed
+                  </label>
+                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
+                    <input type="checkbox" id="labCheck_5" style="width:16px;height:16px;" />
+                    Photos ready
+                  </label>
+                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
+                    <input type="checkbox" id="labCheck_6" style="width:16px;height:16px;" />
+                    Sales channel decided
+                  </label>
+                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
+                    <input type="checkbox" id="labCheck_7" style="width:16px;height:16px;" />
+                    Initial stock quantity planned
+                  </label>
                 </div>
               </div>
             </div>
