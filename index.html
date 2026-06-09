@@ -392,7 +392,6 @@
         <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
         <button data-view="coffeecart"  id="navCoffeeCart"  style="display:none;">Events</button>
         <button data-view="production"  id="navProduction"  style="display:none;">Production</button>
-        <button data-view="lab" id="navLab">Lab</button>
         <button data-view="settings">Settings</button>
       </nav>
     </header>
@@ -549,6 +548,10 @@
               <button class="btn" id="addProductBtn" type="button">+ Add Product</button>
               <button class="btn btn-secondary" id="exportDataBtnProducts" type="button">Export Data</button>
               <button class="btn btn-secondary" id="loadDemoBtnProducts" type="button">Load Demo</button>
+              <button class="btn btn-secondary" id="openLabBtn" type="button"
+                onclick="if(typeof switchPage==='function')switchPage('lab');">
+                Open Lab ↗
+              </button>
             </div>
           </div>
           <div class="filter-bar">
@@ -995,7 +998,7 @@
             <div class="panel-header">
               <div style="display:flex;align-items:center;gap:12px;">
                 <button class="btn btn-secondary" type="button"
-                  onclick="window.LAB_SESSION=null;renderLabView();">← Drafts</button>
+                  onclick="window.LAB_SESSION=null;renderLabView();">← All Drafts</button>
                 <input id="labDraftName" type="text" placeholder="Analysis name…"
                   style="font-size:15px;font-weight:800;border:none;outline:none;
                     font-family:var(--font-main);background:transparent;width:220px;" />
@@ -1006,8 +1009,19 @@
               </div>
             </div>
 
+            <!-- Inline Drafts Panel -->
+            <div style="margin-bottom:16px;padding:12px 14px;
+              background:var(--gray-50);border-radius:var(--radius-lg);
+              border:1px solid var(--gray-200);">
+              <div style="font-size:10px;font-weight:800;letter-spacing:2px;
+                text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">
+                Saved Drafts
+              </div>
+              <div id="labInlineDraftsList"></div>
+            </div>
+
             <!-- SECTION 1: Recipe Builder -->
-            <div class="section-title" style="margin-top:16px;">
+            <div class="section-title" style="margin-top:4px;">
               Section 1 — Recipe Builder
             </div>
 
