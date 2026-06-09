@@ -22,10 +22,12 @@ function _labDebounce(fn, delay) {
   };
 }
 const _labRefreshDebounced = _labDebounce(() => {
+  // Only refresh calculations — never re-render ingredient rows
+  // Re-rendering rows destroys the focused input and kills the keyboard
   if (typeof renderLabPricing          === 'function') renderLabPricing();
   if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
   if (typeof renderLabCharts           === 'function') renderLabCharts();
-}, 400);
+}, 500);
 
 /* ── Default category presets ── */
 const LAB_DEFAULT_PRESETS = [
@@ -351,17 +353,12 @@ function labCalcViabilityScore() {
   const ings           = LAB_SESSION.ingredients;
   const total          = ings.length || 1;
   const commonCount    = ings.filter(i => i.scarcity === 'common').length;
-  const sufficientCount= ings.filter(i => {
-    const liveIng = (APP_STATE.ingredients||[]).find(x => x.id === i.liveId);
-    if (!liveIng) return false;
-    const needed = Number(i.qty||0) * (LAB_SESSION.batchSize||1);
-    return Number(liveIng.stock||0) >= needed;
-  }).length;
   const scarCount    = ings.filter(i => i.scarcity === 'hard').length;
+  const seasonCount  = ings.filter(i => i.scarcity === 'seasonal').length;
+  // Supply score based only on scarcity — no live inventory check in Lab
   const supplyScore  = Math.min(100, Math.max(0,
-    ((commonCount / total) * 50) +
-    ((sufficientCount / total) * 50) -
-    (scarCount * 10)));
+    ((commonCount / total) * 100) -
+    (scarCount * 20) - (seasonCount * 10)));
 
   // Production Risk (based on ingredient count + temp ingredients)
   const tempCount      = ings.filter(i => i.isTemp).length;
@@ -441,9 +438,7 @@ function _renderLabIngPickerList(query) {
       <div style="font-weight:800;font-size:12px;">${escapeHtml(i.name)}</div>
       <div style="font-size:10px;color:var(--gray-400);margin-top:2px;">
         ${escapeHtml(i.unit||'')} · ₱${Number(i.costPerUnit||0).toFixed(3)}/unit
-        ${Number(i.stock||0) > 0
-          ? `<span style="color:#16a34a;"> · ${i.stock} on hand</span>`
-          : `<span style="color:#dc2626;"> · out of stock</span>`}
+  
       </div>
     </button>`).join('');
 }
@@ -471,13 +466,7 @@ function _renderLabIngredientRows() {
   if (!container || !LAB_SESSION) return;
   container.innerHTML = '';
   LAB_SESSION.ingredients.forEach((ing, idx) => {
-    const liveIng = ing.liveId
-      ? (APP_STATE.ingredients||[]).find(i => i.id === ing.liveId)
-      : null;
-    const stock      = liveIng ? Number(liveIng.stock || 0) : null;
-    const needed     = Number(ing.qty || 0) * (LAB_SESSION.batchSize || 1);
-    const sufficient = stock !== null ? stock >= needed : null;
-    const lineCost   = Number(ing.qty || 0) * Number(ing.costPerUnit || 0);
+    const lineCost = Number(ing.qty || 0) * Number(ing.costPerUnit || 0);
 
     const row = document.createElement('div');
     row.className = 'lab-ingredient-row';
@@ -496,7 +485,10 @@ function _renderLabIngredientRows() {
           placeholder="0"
           style="width:80px;padding:5px 8px;border:1px solid var(--gray-200);
             border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
-          oninput="LAB_SESSION.ingredients[${idx}].qty=Number(this.value||0);_labRefreshDebounced();" />
+          oninput="LAB_SESSION.ingredients[${idx}].qty=Number(this.value||0);
+            const lc=this.closest('.lab-ingredient-row').querySelector('.lab-line-cost');
+            if(lc){const q=Number(this.value||0),c=Number(LAB_SESSION.ingredients[${idx}].costPerUnit||0);lc.textContent='₱'+(q*c).toFixed(2);}
+            _labRefreshDebounced();" />
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <label style="font-size:10px;color:var(--gray-400);">Cost/unit ₱</label>
@@ -504,10 +496,14 @@ function _renderLabIngredientRows() {
           placeholder="0.000"
           style="width:90px;padding:5px 8px;border:1px solid var(--gray-200);
             border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
-          oninput="LAB_SESSION.ingredients[${idx}].costPerUnit=Number(this.value||0);_labRefreshDebounced();" />
+          oninput="LAB_SESSION.ingredients[${idx}].costPerUnit=Number(this.value||0);
+            const lc=this.closest('.lab-ingredient-row').querySelector('.lab-line-cost');
+            if(lc){const q=Number(LAB_SESSION.ingredients[${idx}].qty||0),c=Number(this.value||0);lc.textContent='₱'+(q*c).toFixed(2);}
+            _labRefreshDebounced();" />
       </div>
-      <div style="font-size:11px;font-weight:800;width:70px;text-align:right;
-        font-variant-numeric:tabular-nums;">${formatCurrency(lineCost)}</div>
+      <span class="lab-line-cost" style="font-size:11px;font-weight:800;
+        width:70px;text-align:right;font-variant-numeric:tabular-nums;display:block;">
+        ${formatCurrency(lineCost)}</span>
       <select
         style="padding:5px 8px;border:1px solid var(--gray-200);
           border-radius:var(--radius-md);font-size:11px;font-family:var(--font-main);"
@@ -516,10 +512,7 @@ function _renderLabIngredientRows() {
         <option value="seasonal" ${ing.scarcity==='seasonal' ?'selected':''}>Seasonal</option>
         <option value="hard"     ${ing.scarcity==='hard'     ?'selected':''}>Hard to Source</option>
       </select>
-      ${stock !== null
-        ? `<div style="font-size:10px;${sufficient?'color:#16a34a;':'color:#dc2626;font-weight:700;'}
-            white-space:nowrap;">${sufficient?'✓':'⚠'} ${stock.toFixed(0)} ${ing.unit} on hand</div>`
-        : `<div style="font-size:10px;color:var(--gray-400);">Not in inventory</div>`}
+
       <button type="button" class="btn btn-sm btn-secondary"
         onclick="LAB_SESSION.ingredients.splice(${idx},1);_renderLabIngredientRows();_refreshLabCalcs();">
         ✕</button>`;
@@ -698,27 +691,23 @@ function renderLabSupplyAssessment() {
 
   const batchSize = LAB_SESSION.batchSize || 1;
   const rows = ings.map(ing => {
-    const liveIng = ing.liveId
-      ? (APP_STATE.ingredients||[]).find(i => i.id === ing.liveId)
-      : null;
-    const needed     = Number(ing.qty || 0) * batchSize;
-    const onHand     = liveIng ? Number(liveIng.stock || 0) : null;
-    const sufficient = onHand !== null ? onHand >= needed : null;
-    const shortfall  = onHand !== null ? Math.max(0, needed - onHand) : null;
-
-    const scarColor = ing.scarcity==='hard' ? '#dc2626'
-                    : ing.scarcity==='seasonal' ? '#ea580c' : '#16a34a';
-    const scarLabel = ing.scarcity==='hard' ? 'Hard to Source'
-                    : ing.scarcity==='seasonal' ? 'Seasonal' : 'Common';
+    const scarColor = ing.scarcity==='hard'     ? '#dc2626'
+                    : ing.scarcity==='seasonal'  ? '#ea580c' : '#16a34a';
+    const scarLabel = ing.scarcity==='hard'     ? 'Hard to Source'
+                    : ing.scarcity==='seasonal'  ? 'Seasonal' : 'Common';
+    const qty = LAB_SESSION.recipeMode === 'batch'
+      ? Number(ing.qty||0) / Math.max(1, batchSize)
+      : Number(ing.qty||0);
+    const batchTotal = qty * batchSize;
 
     return `
-      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.5fr;
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;
         gap:10px;align-items:center;padding:10px 12px;
         border-bottom:1px solid var(--gray-100);font-size:12px;">
         <div>
           <div style="font-weight:700;">${escapeHtml(ing.name)}</div>
           <div style="font-size:10px;color:var(--gray-400);">
-            ${ing.isTemp ? 'Temporary ingredient' : `${ing.unit}`}
+            ${ing.isTemp ? 'Temporary' : ing.unit}
           </div>
         </div>
         <div style="text-align:center;">
@@ -728,38 +717,20 @@ function renderLabSupplyAssessment() {
             ${scarLabel}
           </span>
         </div>
-        <div style="text-align:right;font-variant-numeric:tabular-nums;">
-          ${needed.toFixed(2)} ${ing.unit}<br>
-          <span style="font-size:10px;color:var(--gray-400);">needed</span>
-        </div>
-        <div style="text-align:right;font-variant-numeric:tabular-nums;">
-          ${onHand !== null ? `${onHand.toFixed(2)} ${ing.unit}` : '—'}<br>
-          <span style="font-size:10px;color:var(--gray-400);">on hand</span>
-        </div>
-        <div style="text-align:right;">
-          ${ing.isTemp
-            ? `<span style="font-size:10px;color:var(--gray-400);">Not in catalog</span>`
-            : sufficient
-              ? `<span style="color:#16a34a;font-weight:700;font-size:11px;">✓ Sufficient</span>`
-              : `<span style="color:#dc2626;font-weight:700;font-size:11px;">
-                  ⚠ Short ${shortfall?.toFixed(2)} ${ing.unit}</span>`}
+        <div style="text-align:right;color:var(--gray-500);font-size:11px;">
+          ${batchTotal.toFixed(2)} ${ing.unit} per batch
         </div>
       </div>`;
   }).join('');
 
   // Overall risk
-  const hardCount    = ings.filter(i => i.scarcity === 'hard').length;
-  const seasonCount  = ings.filter(i => i.scarcity === 'seasonal').length;
-  const shortCount   = ings.filter(i => {
-    const l = i.liveId ? (APP_STATE.ingredients||[]).find(x => x.id===i.liveId) : null;
-    if (!l) return false;
-    return Number(l.stock||0) < Number(i.qty||0) * batchSize;
-  }).length;
-  const tempCount    = ings.filter(i => i.isTemp).length;
+  const hardCount   = ings.filter(i => i.scarcity === 'hard').length;
+  const seasonCount = ings.filter(i => i.scarcity === 'seasonal').length;
+  const tempCount   = ings.filter(i => i.isTemp).length;
 
-  const riskLevel  = (hardCount > 0 || shortCount > 2) ? 'HIGH'
-                   : (seasonCount > 0 || shortCount > 0 || tempCount > 0) ? 'MEDIUM'
-                   : 'LOW';
+  const riskLevel = hardCount > 0 ? 'HIGH'
+                  : (seasonCount > 0 || tempCount > 1) ? 'MEDIUM'
+                  : 'LOW';
   const riskColor  = riskLevel==='HIGH' ? '#dc2626'
                    : riskLevel==='MEDIUM' ? '#ea580c' : '#16a34a';
 
@@ -772,24 +743,22 @@ function renderLabSupplyAssessment() {
           text-transform:uppercase;color:${riskColor};">Overall Supply Risk</div>
         <div style="font-size:12px;color:var(--gray-600);margin-top:2px;">
           ${hardCount} hard-to-source · ${seasonCount} seasonal ·
-          ${shortCount} with insufficient stock · ${tempCount} not in catalog
+          ${tempCount} temporary ingredient${tempCount!==1?'s':''}
         </div>
       </div>
       <span style="font-size:16px;font-weight:900;color:${riskColor};">${riskLevel}</span>
     </div>
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.5fr;
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;
       gap:10px;padding:8px 12px;background:var(--black);border-radius:var(--radius-md)
         var(--radius-md) 0 0;">
       <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;
         text-transform:uppercase;color:rgba(255,255,255,.7);">Ingredient</div>
       <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;
-        text-transform:uppercase;color:rgba(255,255,255,.7);text-align:center;">Risk</div>
+        text-transform:uppercase;color:rgba(255,255,255,.7);text-align:center;">
+        Availability Risk</div>
       <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;
-        text-transform:uppercase;color:rgba(255,255,255,.7);text-align:right;">Needed</div>
-      <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;
-        text-transform:uppercase;color:rgba(255,255,255,.7);text-align:right;">On Hand</div>
-      <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;
-        text-transform:uppercase;color:rgba(255,255,255,.7);text-align:right;">Status</div>
+        text-transform:uppercase;color:rgba(255,255,255,.7);text-align:right;">
+        Qty per Batch</div>
     </div>
     <div style="border:1.5px solid var(--gray-200);border-top:none;
       border-radius:0 0 var(--radius-md) var(--radius-md);">${rows}</div>`;
@@ -1420,10 +1389,11 @@ function confirmLabConvert() {
 ═══════════════════════════════════════════════════════ */
 
 function _refreshLabCalcs() {
+  // Do NOT re-render ingredient rows here — that kills keyboard focus
+  // Only update calculated outputs
   renderLabPricing();
   renderLabSupplyAssessment();
   renderLabCharts();
-  _renderLabIngredientRows();
 }
 
 function renderLabView() {
