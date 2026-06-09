@@ -614,17 +614,26 @@ function _generateReceiptQR(transaction) {
 
   const text = _buildQRText(transaction);
 
-  // CaflatQR is a pure SVG generator — no canvas, no toDataURL, works on iOS Safari
-  if (typeof CaflatQR !== 'undefined') {
-    try {
-      qrDiv.innerHTML = CaflatQR.generateSVG(text, { size: 160, ecLevel: 'M' });
-      return;
-    } catch(e) {
-      console.warn('CaflatQR failed:', e);
-    }
+  if (typeof QRCode === 'undefined') {
+    _receiptQRTextFallback(qrDiv, text);
+    return;
   }
 
-  _receiptQRTextFallback(qrDiv, text);
+  try {
+    // qrcode.min.js is patched to always use its SVG renderer (no canvas, no toDataURL)
+    // SVG renders as pure <svg><use> elements — works on all browsers including iOS Safari
+    new QRCode(qrDiv, {
+      text,
+      width:        160,
+      height:       160,
+      colorDark:    '#000000',
+      colorLight:   '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {
+    console.warn('QR generation failed:', e);
+    _receiptQRTextFallback(qrDiv, text);
+  }
 }
 
 function _receiptQRTextFallback(container, text) {
