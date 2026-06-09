@@ -343,24 +343,54 @@ function renderProductCostPreview() {
 
     ${(() => {
       const be = typeof calculateBreakEvenFromForm === 'function' ? calculateBreakEvenFromForm() : null;
-      if (!be || !be.breakEvenUnits) return '';
-      const batchYield = be.batchYield || 1;
-      const barPct = batchYield > 1 ? Math.min(100, Math.round((be.breakEvenUnits / batchYield) * 100)) : 0;
-      const pureProfitUnits = Math.max(0, batchYield - be.breakEvenUnits);
-      return '<div style=\"margin-top:12px;padding-top:10px;border-top:1px solid var(--gray-100);\">'
-        + '<div style=\"font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:6px;\">Break-Even</div>'
-        + '<div style=\"display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;\">'
-        + (be.hasBatchContext
-          ? '<div><span style=\"font-size:20px;font-weight:900;\">' + be.breakEvenUnits + '</span>'
-          + '<span style=\"font-size:11px;color:var(--gray-500);margin-left:4px;\"> of ' + be.batchYield + ' units to break even</span></div>'
-          : '<div style=\"font-size:11px;color:var(--gray-400);padding:4px 0;\">Set Batch Yield > 1 to see break-even per production run</div>')
-        + (be.pureProfit > 0 ? '<div><span style=\"font-size:13px;font-weight:800;color:#16a34a;\">+' + formatCurrency(be.pureProfit) + '</span>'
-        + '<span style=\"font-size:11px;color:var(--gray-500);margin-left:4px;\"> pure profit per unit after</span></div>' : '')
+      if (!be) return '';
+      const batchYield      = be.batchYield || 1;
+      const breakEvenUnits  = be.breakEvenUnits || 0;
+      const pureProfitUnits = Math.max(0, batchYield - breakEvenUnits);
+      const costBarPct      = be.hasBatchContext && batchYield > 0
+        ? Math.min(100, Math.round((breakEvenUnits / batchYield) * 100)) : 0;
+      const profitBarPct    = 100 - costBarPct;
+
+      const _s  = function(css){ return 'style="'+css+'"'; };
+      const sec = _s('margin-top:14px;padding:14px 16px;border-radius:12px;background:#f9fafb;border:1.5px solid #e5e7eb;');
+      const ttl = _s('font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:#9ca3af;margin-bottom:12px;');
+      const grd = _s('display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;');
+      const crd = _s('background:white;border-radius:8px;padding:12px 14px;border:1px solid #e5e7eb;text-align:center;');
+      const lbl = _s('font-size:10px;color:#9ca3af;margin-bottom:4px;');
+      const big = _s('font-size:28px;font-weight:900;line-height:1;');
+      const grn = _s('font-size:28px;font-weight:900;line-height:1;color:#16a34a;');
+      const sub = _s('font-size:11px;color:#9ca3af;margin-top:2px;');
+      const sg  = _s('font-size:11px;color:#16a34a;margin-top:2px;');
+
+      if (!be.hasBatchContext) {
+        return '<div '+sec+'>'
+          + '<div '+ttl+'>Break-Even</div>'
+          + '<div '+_s('font-size:12px;color:#6b7280;')+'>Set <strong>Batch Yield &gt; 1</strong> in the recipe section to see break-even per production run.</div>'
+          + '</div>';
+      }
+
+      return '<div '+sec+'>'
+        + '<div '+ttl+'>Break-Even</div>'
+        + '<div '+grd+'>'
+          + '<div '+crd+'>'
+            + '<div '+lbl+'>Sell to break even</div>'
+            + '<div '+big+'>'+breakEvenUnits+'</div>'
+            + '<div '+sub+'>of '+batchYield+' units</div>'
+          + '</div>'
+          + '<div '+crd+'>'
+            + '<div '+lbl+'>Pure profit units</div>'
+            + '<div '+grn+'>'+pureProfitUnits+'</div>'
+            + '<div '+sg+'>+'+formatCurrency(be.pureProfit)+' each</div>'
+          + '</div>'
         + '</div>'
-        + (batchYield > 1 ? '<div style=\"height:8px;background:var(--gray-100);border-radius:999px;overflow:hidden;\">'
-        + '<div style=\"height:100%;width:' + barPct + '%;background:#2563eb;border-radius:999px;\"></div></div>'
-        + '<div style=\"font-size:10px;color:var(--gray-400);margin-top:3px;\">'
-        + be.breakEvenUnits + ' of ' + batchYield + ' per batch to break even · ' + pureProfitUnits + ' pure profit units per batch</div>' : '')
+        + '<div '+_s('height:14px;display:flex;border-radius:999px;overflow:hidden;margin-bottom:6px;')+'>'
+          + '<div '+_s('width:'+costBarPct+'%;background:#2563eb;height:100%;')+'></div>'
+          + '<div '+_s('width:'+profitBarPct+'%;background:#bbf7d0;height:100%;')+'></div>'
+        + '</div>'
+        + '<div '+_s('display:flex;justify-content:space-between;font-size:10px;font-weight:700;')+'>'
+          + '<span '+_s('color:#2563eb;')+'>'+breakEvenUnits+' cost recovery</span>'
+          + '<span '+_s('color:#16a34a;')+'>'+pureProfitUnits+' pure profit</span>'
+        + '</div>'
         + '</div>';
     })()}
     </div>` : ''}`;

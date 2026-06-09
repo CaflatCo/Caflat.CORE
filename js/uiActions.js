@@ -224,13 +224,14 @@ function _bindLabInputs() {
     if (!window.LAB_SESSION) return;
     const t = e.target;
 
-    // Batch size
+    // Batch size — DO NOT re-render rows (kills keyboard focus)
     if (t.id === 'labBatchSize') {
-      window.LAB_SESSION.batchSize = Math.max(1, Number(t.value || 1));
+      const val = Number(t.value || 1);
+      window.LAB_SESSION.batchSize = Math.max(1, val);
+      // Only refresh calculations, never re-render ingredient rows
       if (typeof renderLabPricing          === 'function') renderLabPricing();
       if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
       if (typeof renderLabCharts           === 'function') renderLabCharts();
-      if (typeof _renderLabIngredientRows  === 'function') _renderLabIngredientRows();
       return;
     }
 
@@ -316,10 +317,10 @@ function _bindLabInputs() {
       window.LAB_SESSION.batchSize = Number(t.dataset.size);
       const inp = document.getElementById('labBatchSize');
       if (inp) inp.value = window.LAB_SESSION.batchSize;
+      // Recalc only — no row re-render
       if (typeof renderLabPricing          === 'function') renderLabPricing();
       if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
       if (typeof renderLabCharts           === 'function') renderLabCharts();
-      if (typeof _renderLabIngredientRows  === 'function') _renderLabIngredientRows();
       return;
     }
 

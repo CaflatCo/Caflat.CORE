@@ -49,7 +49,7 @@ function restorePersistedState() {
   const persisted = getPersistedState();
   if (!persisted) return;
 
-  // Merge settings carefully so new keys (voidPin) get defaults if missing
+  // Merge settings carefully so new keys get defaults if missing from older backups
   APP_STATE.settings = Object.assign({
     brandName: 'Caflat.Co POS',
     taxRate: 0,
@@ -59,7 +59,8 @@ function restorePersistedState() {
     lowStockThreshold: 5,
     voidPin: '000000',
     supplierModeEnabled:   false,
-    coffeeCartModeEnabled: false
+    coffeeCartModeEnabled: false,
+    productionModeEnabled: false
   }, persisted.settings || {});
 
   APP_STATE.receiptCounter     = Number(persisted.receiptCounter || 0);
@@ -122,8 +123,9 @@ function importAllData(file) {
   reader.onload = event => {
     try {
       const data = JSON.parse(event.target.result);
-      if (!data.products && !data.sales) {
-        showNotification('Invalid backup file', 'error');
+      if (typeof data !== 'object' || data === null ||
+          (!data.version && !data.products && !data.sales && !data.ingredients)) {
+        showNotification('Invalid backup file — not a Caflat backup', 'error');
         return;
       }
       if (!confirm('This will replace all current data. Continue?')) return;
@@ -132,7 +134,10 @@ function importAllData(file) {
         brandName: 'Caflat.Co POS', taxRate: 0,
         receiptFooter: 'Thank you for choosing Caflat.Co',
         currency: 'PHP', orderTypes: ['Dine In', 'Take Out', 'Delivery'],
-        lowStockThreshold: 5, voidPin: '000000', supplierModeEnabled: false
+        lowStockThreshold: 5, voidPin: '000000',
+        supplierModeEnabled:   false,
+        coffeeCartModeEnabled: false,
+        productionModeEnabled: false
       }, data.settings || {});
       APP_STATE.receiptCounter     = Number(data.receiptCounter || 0);
       APP_STATE.products           = Array.isArray(data.products)           ? data.products           : [];
@@ -200,7 +205,8 @@ function fullFactoryReset() {
     lowStockThreshold:    5,
     voidPin:              '000000',
     supplierModeEnabled:  false,
-    coffeeCartModeEnabled:false
+    coffeeCartModeEnabled: false,
+    productionModeEnabled: false
   };
   localStorage.removeItem(STORAGE_KEY);
   if (typeof renderEverything === 'function') renderEverything();

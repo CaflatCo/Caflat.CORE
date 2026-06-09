@@ -101,7 +101,7 @@ function _newSession() {
     packaging:    [],   // { id, name, cost }
     packagingEnabled: false,
     recipeMode:   'unit',   // unit | batch
-    batchSize:    24,
+    batchSize:    1,        // user sets this — no forced default
     wastePercent: 0,
     marginTargets:[55, 65, 75],
     selectedScenario: 1,  // index 0,1,2 or 3=custom
@@ -458,7 +458,11 @@ function _updateLabCategorySelect() {
 
 function _syncBatchSizeInput() {
   const inp = document.getElementById('labBatchSize');
-  if (inp && LAB_SESSION) inp.value = LAB_SESSION.batchSize;
+  // Only sync if not focused — don't interrupt user typing
+  if (inp && LAB_SESSION && document.activeElement !== inp) {
+    inp.value = LAB_SESSION.batchSize > 1 ? LAB_SESSION.batchSize : '';
+    inp.placeholder = '24';
+  }
 }
 
 function _renderLabIngredientRows() {
