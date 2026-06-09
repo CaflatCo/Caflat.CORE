@@ -597,28 +597,14 @@ function renderReceipt(transaction) {
 }
 
 function _buildQRText(transaction) {
-  const brand    = APP_STATE.settings?.brandName || 'Caflat.Co';
-  const date     = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
-                     .toLocaleString('en-PH');
-  const items    = (transaction.items || [])
-    .map(i => `${i.name} x${i.quantity}  ${formatCurrency(i.total)}`).join('\n');
-  const total    = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
-  const customer = transaction.customer?.name || transaction.customerName || 'Walk-in';
-  const payment  = (transaction.payment?.method || transaction.paymentMethod || 'cash').toUpperCase();
-  const receipt  = transaction.receiptNumber || transaction.id || '';
-  const footer   = APP_STATE.settings?.receiptFooter || '';
-
-  return [
-    brand, date,
-    `Receipt: ${receipt}`,
-    `Customer: ${customer}`,
-    `Payment: ${payment}`,
-    '---',
-    items,
-    '---',
-    `TOTAL: ${total}`,
-    footer
-  ].filter(Boolean).join('\n');
+  // Keep QR payload minimal so it never exceeds the encoder capacity.
+  // The receipt number is all a scanner needs to pull up the full record.
+  const brand   = APP_STATE.settings?.brandName || 'Caflat.Co';
+  const receipt = transaction.receiptNumber || transaction.id || '';
+  const total   = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
+  const date    = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
+                    .toLocaleDateString('en-PH');
+  return `${brand}\n${receipt}\n${total}\n${date}`;
 }
 
 function _generateReceiptQR(transaction) {
@@ -628,28 +614,17 @@ function _generateReceiptQR(transaction) {
 
   const text = _buildQRText(transaction);
 
-  if (typeof QRCode === 'undefined') {
-    _receiptQRTextFallback(qrDiv, text);
-    return;
+  // CaflatQR is a pure SVG generator — no canvas, no toDataURL, works on iOS Safari
+  if (typeof CaflatQR !== 'undefined') {
+    try {
+      qrDiv.innerHTML = CaflatQR.generateSVG(text, { size: 160, ecLevel: 'M' });
+      return;
+    } catch(e) {
+      console.warn('CaflatQR failed:', e);
+    }
   }
 
-  try {
-    // Render directly into the visible target div — no offscreen temp div.
-    // Offscreen/hidden canvas.toDataURL() silently returns empty on iOS Safari,
-    // which is why every previous approach failed. Rendering straight into the
-    // live (now-visible) element works on all browsers including iOS Safari.
-    new QRCode(qrDiv, {
-      text,
-      width:        160,
-      height:       160,
-      colorDark:    '#000000',
-      colorLight:   '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-  } catch(e) {
-    console.warn('QR generation failed:', e);
-    _receiptQRTextFallback(qrDiv, text);
-  }
+  _receiptQRTextFallback(qrDiv, text);
 }
 
 function _receiptQRTextFallback(container, text) {
