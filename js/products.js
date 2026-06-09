@@ -160,12 +160,17 @@ function renderProductsTable() {
     if (soldOut) row.classList.add('sold-out-row');
     else if (lowStock) row.classList.add('low-stock-row');
 
+    const be = typeof calculateBreakEven === 'function' ? calculateBreakEven(product) : null;
     row.innerHTML = `
       <td style="font-weight:700;">${escapeHtml(product.name)}</td>
       <td>${escapeHtml(product.category)}</td>
       <td>${formatCurrency(product.price)}</td>
       <td style="font-variant-numeric:tabular-nums;">${product.stock}</td>
       <td>${product.reorderLevel}</td>
+      <td style="font-variant-numeric:tabular-nums;">
+        ${be ? `<span style="font-weight:800;">${be.breakEvenUnits}</span>
+          <span style="font-size:10px;color:var(--gray-400);"> units</span>` : '—'}
+      </td>
       <td>${soldOut ? `<span class="badge-sold-out">Sold Out</span>` : lowStock ? `<span class="badge-low-stock">Low Stock</span>` : `<span class="badge-ok">OK</span>`}</td>
       <td>
         <div class="table-actions">
@@ -296,6 +301,10 @@ function renderProductCostPreview() {
     return;
   }
 
+  // Break-even calculation
+  const be = typeof calculateBreakEvenFromForm === 'function'
+    ? calculateBreakEvenFromForm() : null;
+
   container.innerHTML = `
     <div class="cost-preview-grid" style="margin-bottom:12px;">
       <div class="cost-preview-item">
@@ -327,6 +336,27 @@ function renderProductCostPreview() {
       <div style="font-size:11px;color:var(--gray-500);">
         Packaging: <span style="font-weight:700;">${formatCurrency(packagingCost)}</span>
       </div>
+
+    ${(() => {
+      const be = typeof calculateBreakEvenFromForm === 'function' ? calculateBreakEvenFromForm() : null;
+      if (!be || !be.breakEvenUnits) return '';
+      const batchYield = be.batchYield || 1;
+      const barPct = batchYield > 1 ? Math.min(100, Math.round((be.breakEvenUnits / batchYield) * 100)) : 0;
+      const pureProfitUnits = Math.max(0, batchYield - be.breakEvenUnits);
+      return '<div style=\"margin-top:12px;padding-top:10px;border-top:1px solid var(--gray-100);\">'
+        + '<div style=\"font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:6px;\">Break-Even</div>'
+        + '<div style=\"display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;\">'
+        + '<div><span style=\"font-size:20px;font-weight:900;\">' + be.breakEvenUnits + '</span>'
+        + '<span style=\"font-size:11px;color:var(--gray-500);margin-left:4px;\"> units to break even</span></div>'
+        + (be.pureProfit > 0 ? '<div><span style=\"font-size:13px;font-weight:800;color:#16a34a;\">+' + formatCurrency(be.pureProfit) + '</span>'
+        + '<span style=\"font-size:11px;color:var(--gray-500);margin-left:4px;\"> pure profit per unit after</span></div>' : '')
+        + '</div>'
+        + (batchYield > 1 ? '<div style=\"height:8px;background:var(--gray-100);border-radius:999px;overflow:hidden;\">'
+        + '<div style=\"height:100%;width:' + barPct + '%;background:#2563eb;border-radius:999px;\"></div></div>'
+        + '<div style=\"font-size:10px;color:var(--gray-400);margin-top:3px;\">'
+        + be.breakEvenUnits + ' of ' + batchYield + ' per batch to break even · ' + pureProfitUnits + ' pure profit units per batch</div>' : '')
+        + '</div>';
+    })()}
     </div>` : ''}`;
 }
 

@@ -383,6 +383,115 @@ function getDailyDiscrepancies() {
 
 window.calculateProductCost         = calculateProductCost;
 window.calculateProductCostFromForm = calculateProductCostFromForm;
+
+/* ── Break-even calculation ── */
+function calculateBreakEven(product) {
+  if (!product) return null;
+
+  const cost  = calculateProductCost(
+    product.recipe      || [],
+    product.recipeMode  || 'unit',
+    product.batchYield  || 1,
+    product.packagingItems || []
+  );
+  const price = Number(product.price || 0);
+  if (!price || !cost) return null;
+
+  const profit      = price - cost;
+  const batchYield  = Math.max(1, Number(product.batchYield || 1));
+  const totalCost   = cost * batchYield;   // cost to produce one full batch
+  const breakEven   = Math.ceil(totalCost / price);
+  const pureProfit  = price - cost;        // per unit after break-even
+  const margin      = price > 0 ? (profit / price) * 100 : 0;
+
+  return {
+    costPerUnit:   cost,
+    price,
+    profit,
+    margin,
+    batchYield,
+    totalBatchCost: totalCost,
+    breakEvenUnits: breakEven,
+    pureProfit,                            // per unit after break-even
+    pureProfitBatch: Math.max(0, batchYield - breakEven) * pureProfit
+  };
+}
+
+/* ── Break-even from form (live in product modal) ── */
+function calculateBreakEvenFromForm() {
+  const recipeMode  = document.getElementById('recipeMode')?.value || 'unit';
+  const batchYield  = Math.max(1, Number(document.getElementById('batchYield')?.value || 1));
+  const price       = Number(document.getElementById('productPrice')?.value || 0);
+  const cost        = calculateProductCostFromForm();
+  if (!price || !cost) return null;
+
+  const totalBatchCost = cost * batchYield;
+  const breakEven      = Math.ceil(totalBatchCost / price);
+  const pureProfit     = price - cost;
+
+  return {
+    costPerUnit: cost, price, batchYield,
+    totalBatchCost,
+    breakEvenUnits: breakEven,
+    pureProfit,
+    pureProfitBatch: Math.max(0, batchYield - breakEven) * pureProfit
+  };
+}
+
+/* ── Break-even analysis for all products (Reports) ── */
+function getBreakEvenAnalysis(fromDate, toDate) {
+  const products = APP_STATE.products || [];
+  const sales    = typeof getCompletedSales === 'function'
+    ? getCompletedSales(fromDate, toDate) : [];
+
+  // Units sold per product in period
+  const soldMap = {};
+  sales.forEach(sale => {
+    (sale.items || []).forEach(item => {
+      const qty = Number(item.quantity || 0) * Number(item.multiplier || 1);
+      soldMap[item.productId] = (soldMap[item.productId] || 0) + qty;
+    });
+  });
+
+  return products
+    .map(product => {
+      const be = calculateBreakEven(product);
+      if (!be) return null;
+      const soldQty       = soldMap[product.id] || 0;
+      const hitBreakEven  = soldQty >= be.breakEvenUnits;
+      const pureProfitQty = Math.max(0, soldQty - be.breakEvenUnits);
+      const actualPureProfit = pureProfitQty * be.pureProfit;
+      const progressPct   = be.breakEvenUnits > 0
+        ? Math.min(100, Math.round((soldQty / be.breakEvenUnits) * 100)) : 100;
+
+      return {
+        id:             product.id,
+        name:           product.name,
+        category:       product.category || '',
+        price:          be.price,
+        costPerUnit:    be.costPerUnit,
+        margin:         be.margin,
+        batchYield:     be.batchYield,
+        breakEvenUnits: be.breakEvenUnits,
+        pureProfit:     be.pureProfit,
+        soldQty,
+        hitBreakEven,
+        pureProfitQty,
+        actualPureProfit,
+        progressPct,
+        status: soldQty === 0       ? 'NO_SALES'
+              : hitBreakEven        ? 'PROFITABLE'
+              : soldQty > 0         ? 'IN_PROGRESS'
+              : 'NO_SALES'
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.actualPureProfit - a.actualPureProfit);
+}
+
+window.calculateBreakEven          = calculateBreakEven;
+window.calculateBreakEvenFromForm  = calculateBreakEvenFromForm;
+window.getBreakEvenAnalysis        = getBreakEvenAnalysis;
 window.getSupplyRevenue_            = getSupplyRevenue_;
 window.getSupplyOrderCount_         = getSupplyOrderCount_;
 window.getOutstandingReceivables    = getOutstandingReceivables;

@@ -28,6 +28,7 @@ function renderReports() {
   renderPaymentBreakdown(fromDate, toDate);
   renderChannelBreakdownReport(fromDate, toDate);
   renderReportProductsTable(fromDate, toDate);
+  renderBreakEvenReport(fromDate, toDate);
   renderCategoryPerformance(fromDate, toDate);
   renderIngredientUsageTable(fromDate, toDate);
   renderReportInsightsTable(fromDate, toDate);
@@ -524,6 +525,114 @@ function renderCategoryPerformance(fromDate, toDate) {
       });
     });
   });
+}
+
+/* ── Break-even analysis report ── */
+function renderBreakEvenReport(fromDate, toDate) {
+  const container = document.getElementById('reportBreakEvenContainer');
+  if (!container) return;
+
+  const analysis = typeof getBreakEvenAnalysis === 'function'
+    ? getBreakEvenAnalysis(fromDate, toDate) : [];
+
+  if (!analysis.length) {
+    container.innerHTML = `<div class="empty-state">
+      No products with pricing and recipe data</div>`;
+    return;
+  }
+
+  const totalPureProfit = analysis.reduce((s, p) => s + p.actualPureProfit, 0);
+  const profitable      = analysis.filter(p => p.status === 'PROFITABLE').length;
+  const inProgress      = analysis.filter(p => p.status === 'IN_PROGRESS').length;
+  const noSales         = analysis.filter(p => p.status === 'NO_SALES').length;
+
+  container.innerHTML = `
+    <!-- Summary KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+      ${[
+        ['Products Analysed', analysis.length, ''],
+        ['Above Break-Even',  profitable,       '#16a34a'],
+        ['Working Towards It',inProgress,       '#2563eb'],
+        ['Pure Profit Earned',formatCurrency(totalPureProfit), '#16a34a'],
+      ].map(([label, val, color]) => `
+        <div class="stat-card">
+          <div class="label">${label}</div>
+          <div class="value" style="font-size:20px;${color?'color:'+color+';':''}">
+            ${val}</div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Per-product breakdown -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Cost/Unit</th>
+            <th>Margin</th>
+            <th>Break-Even</th>
+            <th>Sold (period)</th>
+            <th>Progress</th>
+            <th>Pure Profit Units</th>
+            <th>Pure Profit Earned</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${analysis.map(p => {
+            const statusColor = p.status === 'PROFITABLE' ? '#16a34a'
+                              : p.status === 'IN_PROGRESS' ? '#2563eb' : '#9ca3af';
+            const statusLabel = p.status === 'PROFITABLE' ? '✓ Above break-even'
+                              : p.status === 'IN_PROGRESS' ? 'In progress'
+                              : 'No sales';
+            return `
+              <tr>
+                <td style="font-weight:700;">${escapeHtml(p.name)}
+                  <div style="font-size:10px;color:var(--gray-400);">${escapeHtml(p.category)}</div>
+                </td>
+                <td>${formatCurrency(p.price)}</td>
+                <td>${formatCurrency(p.costPerUnit)}</td>
+                <td style="color:${p.margin>=60?'#16a34a':p.margin>=40?'#ea580c':'#dc2626'};
+                  font-weight:700;">${p.margin.toFixed(1)}%</td>
+                <td>
+                  <span style="font-size:14px;font-weight:900;">${p.breakEvenUnits}</span>
+                  <span style="font-size:10px;color:var(--gray-400);"> units</span>
+                </td>
+                <td style="font-variant-numeric:tabular-nums;">
+                  <span style="font-weight:700;">${p.soldQty}</span>
+                  <span style="font-size:10px;color:var(--gray-400);"> units</span>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <div style="flex:1;height:8px;background:var(--gray-100);
+                      border-radius:999px;overflow:hidden;min-width:60px;">
+                      <div style="height:100%;width:${p.progressPct}%;
+                        background:${statusColor};border-radius:999px;"></div>
+                    </div>
+                    <span style="font-size:10px;font-weight:800;color:${statusColor};
+                      white-space:nowrap;">${p.progressPct}%</span>
+                  </div>
+                  <div style="font-size:10px;color:${statusColor};margin-top:2px;
+                    font-weight:700;">${statusLabel}</div>
+                </td>
+                <td style="font-variant-numeric:tabular-nums;">
+                  ${p.pureProfitQty > 0
+                    ? `<span style="font-weight:800;color:#16a34a;">${p.pureProfitQty} units</span>
+                       <div style="font-size:10px;color:var(--gray-400);">
+                         +${formatCurrency(p.pureProfit)}/unit</div>`
+                    : '<span style="color:var(--gray-400);">—</span>'}
+                </td>
+                <td style="font-variant-numeric:tabular-nums;">
+                  ${p.actualPureProfit > 0
+                    ? `<span style="font-weight:900;color:#16a34a;font-size:14px;">
+                        ${formatCurrency(p.actualPureProfit)}</span>`
+                    : '<span style="color:var(--gray-400);">—</span>'}
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
 }
 
 window.renderReports              = renderReports;
