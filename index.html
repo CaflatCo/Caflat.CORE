@@ -391,7 +391,8 @@
         <button data-view="reports">Reports</button>
         <button data-view="settings">Settings</button>
         <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
-        <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">Events</button>
+        <button data-view="coffeecart"  id="navCoffeeCart"  style="display:none;">Events</button>
+        <button data-view="production"  id="navProduction"  style="display:none;">Production</button>
         <button data-view="lab" id="navLab">Lab</button>
       </nav>
     </header>
@@ -1202,6 +1203,66 @@
         </div>
       </section>
 
+      <!-- ═══ PRODUCTION VIEW ═══ -->
+      <section class="view" id="view-production">
+        <div class="panel">
+
+          <!-- Header -->
+          <div class="panel-header">
+            <h2>Production</h2>
+            <button class="btn" id="addProdJobBtn" type="button">+ New Job</button>
+          </div>
+
+          <!-- Filter -->
+          <div class="filter-bar" style="margin-bottom:16px;">
+            <select id="prodStatusFilter">
+              <option value="">All Statuses</option>
+              <option value="PLANNED">Planned</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="DONE">Done</option>
+              <option value="QC">Quality Check</option>
+              <option value="PACKED">Packed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          </div>
+
+          <!-- Production Board -->
+          <div class="section-title">Production Board</div>
+          <div class="table-wrapper" style="margin-bottom:28px;">
+            <table id="productionJobsTable">
+              <thead>
+                <tr>
+                  <th>Job / Product</th><th>Date</th><th>Quantity</th>
+                  <th>Status</th><th>Funding</th><th>Efficiency</th>
+                  <th>Waste</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- Ingredient Forecast -->
+          <div class="section-title">Ingredient Forecast
+            <span style="font-size:10px;font-weight:400;color:var(--gray-400);
+              margin-left:8px;">Based on active jobs</span>
+          </div>
+          <div id="prodForecastContainer" style="margin-bottom:28px;"></div>
+
+          <!-- Labor Roster -->
+          <div class="panel-header" style="margin-top:8px;">
+            <div class="section-title" style="margin:0;">Labor Roster</div>
+            <button class="btn btn-secondary" id="addLaborPersonBtn"
+              type="button">+ Add Person</button>
+          </div>
+          <div id="laborRosterContainer" style="margin-bottom:28px;"></div>
+
+          <!-- Analytics -->
+          <div class="section-title">Production Analytics</div>
+          <div id="prodAnalyticsContainer"></div>
+
+        </div>
+      </section>
+
       <!-- ═══ SETTINGS VIEW ═══ -->
       <!-- ═══ SETTINGS VIEW ═══ -->
       <section class="view" id="view-settings">
@@ -1268,6 +1329,20 @@
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingsCoffeeCartMode" />
+              <div class="toggle-track"></div>
+              <div class="toggle-knob"></div>
+            </label>
+          </div>
+
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-toggle-label">Production Mode</div>
+              <div class="settings-toggle-sub">
+                Production board, ingredient forecasting, batch tracking, and labor costing.
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingsProductionMode" />
               <div class="toggle-track"></div>
               <div class="toggle-knob"></div>
             </label>
@@ -2136,6 +2211,202 @@
       </div>
     </div>
 
+    <!-- Labor Person Modal -->
+    <div class="modal-overlay" id="laborPersonModal">
+      <div class="modal" style="max-width:440px;">
+        <h3>Team Member</h3>
+        <input id="laborPersonId" type="hidden" />
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label>Name <span style="color:var(--danger);">*</span></label>
+            <input id="laborPersonName" type="text" placeholder="e.g. Maria Santos" />
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <input id="laborPersonRole" type="text" placeholder="Baker, Packager…" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type</label>
+            <select id="laborPersonType">
+              <option value="hired">Hired — rate applies</option>
+              <option value="owner">Owner — no cost</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Hourly Rate (₱)</label>
+            <input id="laborPersonRate" type="number" min="0" step="0.01"
+              placeholder="0.00" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="laborPersonModal">Cancel</button>
+          <button class="btn" id="saveLaborPersonBtn" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Production Job Modal -->
+    <div class="modal-overlay" id="productionJobModal">
+      <div class="modal" style="max-width:580px;">
+        <h3>Production Job</h3>
+        <input id="prodJobId" type="hidden" />
+
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label>Run Name <span style="color:var(--gray-400);font-weight:400;">
+              (e.g. "Ayala Wedding Batch", "Weekend Market")</span></label>
+            <input id="prodJobName" type="text"
+              placeholder="Name this production run…" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label>Product <span style="color:var(--danger);">*</span></label>
+            <select id="prodJobProductId"></select>
+          </div>
+          <div class="form-group">
+            <label>Target Qty <span style="color:var(--danger);">*</span></label>
+            <input id="prodJobTargetQty" type="number" min="1" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>Batch Size</label>
+            <input id="prodJobBatchSize" type="number" min="1" placeholder="24" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Scheduled Date</label>
+            <input id="prodJobScheduledDate" type="date" />
+          </div>
+          <div class="form-group" style="flex:2;">
+            <label>Funding Type</label>
+            <select id="prodJobFundingType"
+              onchange="_toggleFundingFields(this.value);">
+              <option value="RETAIL">Retail / Restock</option>
+              <option value="CLIENT">Client Order</option>
+              <option value="PENDING">Pending Funding</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Event link (Coffee Cart Mode) -->
+        <div id="prodJobEventRow" style="display:none;" class="form-group">
+          <label>Link to Event</label>
+          <select id="prodJobEventId"></select>
+        </div>
+
+        <!-- Client fields -->
+        <div id="prodJobClientFields" style="display:none;">
+          <div class="form-row">
+            <div class="form-group" style="flex:2;">
+              <label>Client Name</label>
+              <input id="prodJobClientName" type="text" placeholder="Client or company" />
+            </div>
+            <div class="form-group">
+              <label>Total Value (₱)</label>
+              <input id="prodJobTotalValue" type="number" min="0" step="0.01"
+                placeholder="0.00" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment fields -->
+        <div id="prodJobPaymentFields" style="display:none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Down Payment Received (₱)</label>
+              <input id="prodJobDownPayment" type="number" min="0" step="0.01"
+                placeholder="0.00" />
+            </div>
+            <div class="form-group">
+              <label>Full Payment Received (₱)</label>
+              <input id="prodJobFullPayment" type="number" min="0" step="0.01"
+                placeholder="0.00" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Labor Assignment -->
+        <div class="section-title" style="margin-top:8px;">Labor Assignment</div>
+        <div id="prodJobLaborList" style="margin-bottom:8px;"></div>
+        <div style="display:flex;gap:8px;margin-bottom:4px;">
+          <select id="prodJobLaborSelect"
+            style="flex:1;padding:7px 10px;border:1px solid var(--gray-200);
+              border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);">
+            <option value="">+ Assign person…</option>
+          </select>
+        </div>
+        <div style="font-size:11px;color:var(--gray-500);margin-bottom:12px;">
+          Total Labor: <strong id="prodJobLaborTotal">₱0.00</strong>
+        </div>
+
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="prodJobNotes" rows="2"
+            placeholder="Special instructions, requirements…"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="productionJobModal">Cancel</button>
+          <button class="btn" id="saveProdJobBtn" type="button">Save Job</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Production Status Modal -->
+    <div class="modal-overlay" id="productionStatusModal">
+      <div class="modal" style="max-width:420px;">
+        <h3>Set Status</h3>
+        <div style="font-size:12px;color:var(--gray-500);margin-bottom:14px;"
+          id="prodStatusJobInfo"></div>
+        <input id="prodStatusJobId" type="hidden" />
+        <div id="prodStatusOptions"
+          style="display:grid;grid-template-columns:1fr 1fr;gap:8px;
+            margin-bottom:16px;"></div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="productionStatusModal">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Batch Tracking Modal -->
+    <div class="modal-overlay" id="batchTrackingModal">
+      <div class="modal" style="max-width:500px;">
+        <h3>Batch Tracking</h3>
+        <input id="batchJobId" type="hidden" />
+        <div style="font-size:12px;color:var(--gray-500);margin-bottom:14px;"
+          id="batchJobInfo"></div>
+
+        <div class="form-group">
+          <label>Actual Yield (units produced)</label>
+          <input id="batchActualYield" type="number" min="0"
+            placeholder="How many units were actually produced?" />
+        </div>
+
+        <div class="section-title" style="margin-top:4px;">Waste Log</div>
+        <div id="batchWasteLog"></div>
+
+        <div class="form-group" style="margin-top:12px;">
+          <label>Notes</label>
+          <textarea id="batchNotes" rows="2"
+            placeholder="Any notes about this batch…"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="batchTrackingModal">Cancel</button>
+          <button class="btn" id="saveBatchTrackingBtn" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="voidModal">
       <div class="modal" style="max-width:460px;">
         <h3>Void Transaction</h3>
@@ -2243,6 +2514,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   <script src="./js/uiActions.js?v=2"></script>
   <script src="./js/integrity.js?v=2"></script>
   <script src="./js/refund.js?v=2"></script>
+  <script src="./js/production.js"></script>
   <script src="./js/productlab.js"></script>
   <script src="./js/coffeecart.js"></script>
   <script src="./js/void.js?v=2"></script>
