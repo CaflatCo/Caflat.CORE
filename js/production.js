@@ -717,8 +717,8 @@ function renderProductionBoard() {
 }
 
 function _renderProductionJobsTable() {
-  const tbody = document.querySelector('#productionJobsTable tbody');
-  if (!tbody) return;
+  const container = document.getElementById('prodJobCards');
+  if (!container) return;
 
   const statusFilter = document.getElementById('prodStatusFilter')?.value||'';
   let jobs = getProductionJobs();
@@ -726,91 +726,147 @@ function _renderProductionJobsTable() {
   jobs = jobs.slice().sort((a,b)=>
     new Date(a.scheduledDate||0)-new Date(b.scheduledDate||0));
 
-  tbody.innerHTML='';
+  container.innerHTML='';
+
   if (!jobs.length) {
-    tbody.innerHTML=`<tr><td colspan="7" class="empty-state">
-      No production jobs yet</td></tr>`;
+    container.innerHTML=`<div class="empty-state" style="padding:32px 0;">
+      No production jobs yet — create your first job</div>`;
     return;
   }
 
   jobs.forEach(job=>{
-    const progress   = _calcJobProgress(job);
-    const statusColor= PRODUCTION_STATUS_COLORS[job.status]||'#888';
-    const statusLabel= PRODUCTION_STATUS_LABELS[job.status]||job.status;
-    const laborCost  = _calcLaborCost(job.laborAssignments, getLaborPeople());
-    const event      = job.eventId
+    const progress      = _calcJobProgress(job);
+    const statusColor   = PRODUCTION_STATUS_COLORS[job.status]||'#888';
+    const statusLabel   = PRODUCTION_STATUS_LABELS[job.status]||job.status;
+    const laborCost     = _calcLaborCost(job.laborAssignments, getLaborPeople());
+    const event         = job.eventId
       ? (APP_STATE.events||[]).find(e=>e.id===job.eventId) : null;
     const progressColor = progress>=100?'#16a34a':progress>=50?'#2563eb':'#ea580c';
+    const isComplete    = progress>=100;
+    const dateStr       = job.scheduledDate
+      ? new Date(job.scheduledDate+'T00:00:00')
+          .toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})
+      : '—';
 
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>
-        <div style="font-weight:800;">${escapeHtml(job.name||'Unnamed Job')}</div>
-        ${event?`<div style="font-size:10px;color:#2563eb;">${escapeHtml(event.name)}</div>`:''}
-        <div style="margin-top:6px;">
-          ${(job.products||[]).map(line=>{
-            const c = PRODUCTION_STATUS_COLORS[line.status]||'#888';
-            const l = PRODUCTION_STATUS_LABELS[line.status]||line.status;
-            return `
-              <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-                <span style="font-size:11px;">${escapeHtml(line.productName)}</span>
-                <span style="font-size:10px;color:var(--gray-400);">×${line.targetQty}</span>
-                <button type="button"
-                  data-action="open-prod-line-status"
-                  data-job-id="${job.id}" data-line-id="${line.id}"
-                  style="font-size:9px;font-weight:800;padding:1px 7px;
-                    border-radius:999px;border:1px solid ${c}40;
-                    background:${c}15;color:${c};cursor:pointer;
-                    font-family:var(--font-main);">${l}</button>
-                <button type="button"
-                  data-action="open-batch-tracking"
-                  data-job-id="${job.id}" data-line-id="${line.id}"
-                  style="font-size:9px;padding:1px 7px;border-radius:999px;
-                    border:1px solid var(--gray-200);background:var(--white);
-                    cursor:pointer;font-family:var(--font-main);
-                    color:var(--gray-500);">Batch</button>
-              </div>`;
-          }).join('')}
-        </div>
-      </td>
-      <td>${job.scheduledDate
-        ?new Date(job.scheduledDate+'T00:00:00')
-          .toLocaleDateString('en-PH',{month:'short',day:'numeric'}):'—'}</td>
-      <td>
-        <span style="font-size:10px;font-weight:700;padding:2px 8px;
-          border-radius:999px;background:${statusColor}20;color:${statusColor};
-          border:1px solid ${statusColor}40;">${statusLabel}</span>
-      </td>
-      <td>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <div style="flex:1;height:8px;background:var(--gray-100);
-            border-radius:999px;overflow:hidden;min-width:60px;">
-            <div style="height:100%;width:${progress}%;background:${progressColor};
-              border-radius:999px;transition:width .3s ease;"></div>
+    const card = document.createElement('div');
+    card.style.cssText = `
+      border:1.5px solid var(--gray-200);border-radius:16px;
+      margin-bottom:16px;overflow:hidden;background:var(--white);
+      box-shadow:0 1px 4px rgba(0,0,0,.06);`;
+
+    // ── Job header ──
+    const fundingInfo = job.fundingType==='CLIENT'
+      ? `<span style="font-weight:800;">${formatCurrency(job.totalValue||0)}</span>
+         <span style="color:${job.paymentStatus==='PAID'?'#16a34a':
+           job.paymentStatus==='PARTIAL'?'#ea580c':'#dc2626'};
+           font-size:10px;font-weight:800;margin-left:6px;">
+           ${job.paymentStatus||'UNPAID'}</span>`
+      : `<span style="color:var(--gray-400);">
+           ${FUNDING_TYPES[job.fundingType]?.label||job.fundingType}</span>`;
+
+    card.innerHTML = `
+      <!-- Header -->
+      <div style="padding:16px 20px;border-bottom:1px solid var(--gray-100);
+        background:var(--gray-50);">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;
+          gap:12px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:16px;font-weight:900;margin-bottom:4px;
+              white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${escapeHtml(job.name||'Unnamed Job')}
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+              font-size:12px;color:var(--gray-500);">
+              <span>${dateStr}</span>
+              <span style="font-size:10px;font-weight:800;padding:3px 10px;
+                border-radius:999px;background:${statusColor}20;
+                color:${statusColor};border:1px solid ${statusColor}40;">
+                ${statusLabel}</span>
+              ${event?`<span style="color:#2563eb;font-size:11px;font-weight:700;">
+                ${escapeHtml(event.name)}</span>`:''}
+              <span>${fundingInfo}</span>
+              ${laborCost>0?`<span>Labor: <strong>${formatCurrency(laborCost)}</strong></span>`:''}
+            </div>
           </div>
-          <span style="font-size:11px;font-weight:800;color:${progressColor};
-            white-space:nowrap;">${progress}%</span>
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+            <button class="btn btn-sm btn-secondary"
+              data-action="edit-prod-job" data-id="${job.id}">Edit</button>
+            <button class="btn btn-sm btn-secondary"
+              data-action="delete-prod-job" data-id="${job.id}">Delete</button>
+          </div>
         </div>
-      </td>
-      <td style="font-size:11px;">
-        ${job.fundingType==='CLIENT'
-          ?`<div>${formatCurrency(job.totalValue||0)}</div>
-            <div style="color:${job.paymentStatus==='PAID'?'#16a34a':
-              job.paymentStatus==='PARTIAL'?'#ea580c':'#dc2626'};font-size:10px;
-              font-weight:700;">${job.paymentStatus||'UNPAID'}</div>`
-          :`<span style="color:var(--gray-400);">
-            ${FUNDING_TYPES[job.fundingType]?.label||job.fundingType}</span>`}
-      </td>
-      <td>${laborCost>0?formatCurrency(laborCost):'—'}</td>
-      <td>
-        <div class="table-actions">
-          <button class="btn btn-sm btn-secondary"
-            data-action="edit-prod-job" data-id="${job.id}">Edit</button>
-          <button class="btn btn-sm btn-secondary"
-            data-action="delete-prod-job" data-id="${job.id}">Delete</button>
+
+        <!-- Progress bar -->
+        <div style="margin-top:12px;">
+          <div style="display:flex;justify-content:space-between;
+            align-items:center;margin-bottom:5px;">
+            <span style="font-size:10px;letter-spacing:1.5px;
+              text-transform:uppercase;font-weight:800;color:var(--gray-400);">
+              Progress</span>
+            <span style="font-size:13px;font-weight:900;color:${progressColor};">
+              ${progress}%${isComplete?' ✓':''}</span>
+          </div>
+          <div style="height:10px;background:var(--gray-200);
+            border-radius:999px;overflow:hidden;">
+            <div style="height:100%;width:${progress}%;
+              background:${progressColor};border-radius:999px;
+              transition:width .4s ease;"></div>
+          </div>
         </div>
-      </td>`;
-    tbody.appendChild(row);
+      </div>
+
+      <!-- Product lines -->
+      <div style="padding:8px 0;">
+        ${(job.products||[]).map(line=>{
+          const lc = PRODUCTION_STATUS_COLORS[line.status]||'#888';
+          const ll = PRODUCTION_STATUS_LABELS[line.status]||line.status;
+          const isDone = ['DONE','QC','PACKED'].includes(line.status);
+          const actualStr = line.actualYield!=null
+            ? ` → ${line.actualYield} actual` : '';
+          const effStr = line.efficiency!=null
+            ? ` · ${line.efficiency}% efficiency` : '';
+          const waste = (line.wasteLog||[]).reduce((s,w)=>s+Number(w.qty||0),0);
+          return `
+            <div style="display:flex;align-items:center;gap:12px;
+              padding:12px 20px;border-bottom:1px solid var(--gray-50);
+              ${isDone?'opacity:.7;':''}">
+              <!-- Product info -->
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:700;
+                  ${isDone?'text-decoration:line-through;color:var(--gray-500);':''}">
+                  ${escapeHtml(line.productName)}</div>
+                <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+                  Target: ${line.targetQty} units${actualStr}${effStr}
+                  ${waste>0?` · <span style="color:#dc2626;">
+                    ${waste} wasted</span>`:''}
+                </div>
+              </div>
+              <!-- Status button -->
+              <button type="button"
+                data-action="open-prod-line-status"
+                data-job-id="${job.id}" data-line-id="${line.id}"
+                style="padding:8px 16px;border:1.5px solid ${lc};
+                  border-radius:var(--radius-lg);background:${lc}15;
+                  color:${lc};font-size:11px;font-weight:800;cursor:pointer;
+                  font-family:var(--font-main);white-space:nowrap;
+                  min-width:110px;text-align:center;">
+                ${ll} ▾
+              </button>
+              <!-- Batch button -->
+              <button type="button"
+                data-action="open-batch-tracking"
+                data-job-id="${job.id}" data-line-id="${line.id}"
+                style="padding:8px 16px;border:1.5px solid var(--gray-200);
+                  border-radius:var(--radius-lg);background:var(--white);
+                  color:var(--gray-600);font-size:11px;font-weight:700;
+                  cursor:pointer;font-family:var(--font-main);white-space:nowrap;">
+                Batch
+              </button>
+            </div>`;
+        }).join('')}
+      </div>`;
+
+    container.appendChild(card);
   });
 }
 
