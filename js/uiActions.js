@@ -441,6 +441,7 @@ function bindDelegatedActions() {
       case 'save-lab-preset':          saveLabPresetFromForm(); break;
       case 'add-lab-preset':           openLabPresetModal(); break;
       case 'open-lab-temp-ing':        openModal('labTempIngModal'); break;
+      case 'open-lab-ing-picker':       if(typeof openLabIngPickerModal==='function') openLabIngPickerModal(); break;
       case 'add-lab-temp-ing':         addLabTempIngredient(); break;
       case 'add-lab-packaging':        addLabPackagingItem(); break;
       case 'set-channel':             setActiveChannel(actionEl.dataset.channel || 'Dine In'); break;

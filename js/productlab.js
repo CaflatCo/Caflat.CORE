@@ -372,15 +372,53 @@ function renderLabRecipeBuilder() {
   _updateLabIngCatalogDropdown();
 }
 
+function openLabIngPickerModal() {
+  if (!LAB_SESSION) return;
+  _renderLabIngPickerList('');
+  openModal('labIngPickerModal');
+  // Bind search
+  const search = document.getElementById('labIngPickerSearch');
+  if (search) {
+    search.value = '';
+    search.oninput = () => _renderLabIngPickerList(search.value);
+    setTimeout(() => search.focus(), 100);
+  }
+}
+
+function _renderLabIngPickerList(query) {
+  const container = document.getElementById('labIngPickerList');
+  if (!container) return;
+  const ings = (APP_STATE.ingredients || [])
+    .filter(i => !query || i.name.toLowerCase().includes(query.toLowerCase()));
+
+  if (!ings.length) {
+    container.innerHTML = `<div class="cost-preview-empty" style="grid-column:1/-1;">
+      No ingredients found</div>`;
+    return;
+  }
+
+  container.innerHTML = ings.map(i => `
+    <button type="button"
+      style="padding:12px 14px;border:1.5px solid var(--gray-200);
+        border-radius:var(--radius-lg);background:var(--white);cursor:pointer;
+        text-align:left;font-family:var(--font-main);transition:all .15s ease;"
+      onmouseover="this.style.borderColor='#000'"
+      onmouseout="this.style.borderColor='var(--gray-200)'"
+      onclick="addLabIngredientFromCatalog('${i.id}');
+        document.getElementById('labIngPickerSearch').value='';
+        _renderLabIngPickerList('');">
+      <div style="font-weight:800;font-size:12px;">${escapeHtml(i.name)}</div>
+      <div style="font-size:10px;color:var(--gray-400);margin-top:2px;">
+        ${escapeHtml(i.unit||'')} · ₱${Number(i.costPerUnit||0).toFixed(3)}/unit
+        ${Number(i.stock||0) > 0
+          ? `<span style="color:#16a34a;"> · ${i.stock} on hand</span>`
+          : `<span style="color:#dc2626;"> · out of stock</span>`}
+      </div>
+    </button>`).join('');
+}
+
 function _updateLabIngCatalogDropdown() {
-  const sel = document.getElementById('labIngFromCatalog');
-  if (!sel) return;
-  const ings = APP_STATE.ingredients || [];
-  // Never filter — user must be able to add same ingredient multiple times
-  sel.innerHTML = `<option value="">+ Add ingredient from catalog…</option>` +
-    ings.map(i => `<option value="${i.id}">
-      ${escapeHtml(i.name)} (${i.unit||''}) — ₱${Number(i.costPerUnit||0).toFixed(3)}/unit
-    </option>`).join('');
+  // No-op — replaced by openLabIngPickerModal
 }
 
 function _updateLabCategorySelect() {
@@ -415,45 +453,41 @@ function _renderLabIngredientRows() {
     row.dataset.idx = idx;
     row.innerHTML = `
       <div class="lab-ing-name">
-        ${ing.isTemp
-          ? `<span class="lab-temp-badge">TEMP</span> `
-          : ''}
+        ${ing.isTemp ? '<span class="lab-temp-badge">TEMP</span> ' : ''}
         <span style="font-weight:700;font-size:12px;">${escapeHtml(ing.name)}</span>
         <span style="font-size:10px;color:var(--gray-400);margin-left:4px;">${escapeHtml(ing.unit)}</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <label style="font-size:10px;color:var(--gray-400);">Qty/unit</label>
-        <input type="number" class="lab-ing-qty" value="${ing.qty}"
-          min="0" step="0.01" data-idx="${idx}"
+        <input type="number" value="${ing.qty}" min="0" step="0.01"
           style="width:80px;padding:5px 8px;border:1px solid var(--gray-200);
-            border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
+            border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
+          oninput="LAB_SESSION.ingredients[${idx}].qty=Number(this.value||0);_refreshLabCalcs();" />
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <label style="font-size:10px;color:var(--gray-400);">Cost/unit ₱</label>
-        <input type="number" class="lab-ing-cost" value="${ing.costPerUnit}"
-          min="0" step="0.001" data-idx="${idx}"
+        <input type="number" value="${ing.costPerUnit}" min="0" step="0.001"
           style="width:90px;padding:5px 8px;border:1px solid var(--gray-200);
-            border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
+            border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
+          oninput="LAB_SESSION.ingredients[${idx}].costPerUnit=Number(this.value||0);_refreshLabCalcs();" />
       </div>
       <div style="font-size:11px;font-weight:800;width:70px;text-align:right;
-        font-variant-numeric:tabular-nums;">
-        ${formatCurrency(lineCost)}
-      </div>
-      <select class="lab-ing-scarcity" data-idx="${idx}"
+        font-variant-numeric:tabular-nums;">${formatCurrency(lineCost)}</div>
+      <select
         style="padding:5px 8px;border:1px solid var(--gray-200);
-          border-radius:var(--radius-md);font-size:11px;font-family:var(--font-main);">
+          border-radius:var(--radius-md);font-size:11px;font-family:var(--font-main);"
+        onchange="LAB_SESSION.ingredients[${idx}].scarcity=this.value;_refreshLabCalcs();">
         <option value="common"   ${ing.scarcity==='common'   ?'selected':''}>Common</option>
         <option value="seasonal" ${ing.scarcity==='seasonal' ?'selected':''}>Seasonal</option>
         <option value="hard"     ${ing.scarcity==='hard'     ?'selected':''}>Hard to Source</option>
       </select>
-      ${stock !== null ? `
-        <div style="font-size:10px;${sufficient?'color:#16a34a;':'color:#dc2626;font-weight:700;'}
-          white-space:nowrap;">
-          ${sufficient ? '✓' : '⚠'} ${stock.toFixed(0)} ${ing.unit} on hand
-        </div>` : `
-        <div style="font-size:10px;color:var(--gray-400);">Not in inventory</div>`}
-      <button type="button" class="btn btn-sm btn-secondary lab-remove-ing"
-        data-idx="${idx}">✕</button>`;
+      ${stock !== null
+        ? `<div style="font-size:10px;${sufficient?'color:#16a34a;':'color:#dc2626;font-weight:700;'}
+            white-space:nowrap;">${sufficient?'✓':'⚠'} ${stock.toFixed(0)} ${ing.unit} on hand</div>`
+        : `<div style="font-size:10px;color:var(--gray-400);">Not in inventory</div>`}
+      <button type="button" class="btn btn-sm btn-secondary"
+        onclick="LAB_SESSION.ingredients.splice(${idx},1);_renderLabIngredientRows();_refreshLabCalcs();">
+        ✕</button>`;
     container.appendChild(row);
   });
   _bindIngredientRowEvents();
@@ -474,16 +508,19 @@ function _renderLabPackagingRows() {
     const row = document.createElement('div');
     row.className = 'packaging-row';
     row.innerHTML = `
-      <input type="text" class="packaging-name lab-pkg-name" placeholder="e.g. Cookie Box"
-        value="${escapeHtml(pkg.name)}" data-idx="${idx}"
+      <input type="text" placeholder="e.g. Cookie Box"
+        value="${escapeHtml(pkg.name)}"
         style="flex:2;padding:7px 10px;border:1px solid var(--gray-200);
-          border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
-      <input type="number" class="packaging-cost lab-pkg-cost" placeholder="Cost ₱"
-        value="${pkg.cost}" min="0" step="0.01" data-idx="${idx}"
+          border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
+        oninput="LAB_SESSION.packaging[${idx}].name=this.value;" />
+      <input type="number" placeholder="Cost ₱"
+        value="${pkg.cost}" min="0" step="0.01"
         style="width:110px;padding:7px 10px;border:1px solid var(--gray-200);
-          border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
-      <button type="button" class="btn btn-sm btn-secondary lab-remove-pkg"
-        data-idx="${idx}">✕</button>`;
+          border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
+        oninput="LAB_SESSION.packaging[${idx}].cost=Number(this.value||0);_refreshLabCalcs();" />
+      <button type="button" class="btn btn-sm btn-secondary"
+        onclick="LAB_SESSION.packaging.splice(${idx},1);_renderLabPackagingRows();_refreshLabCalcs();">
+        ✕</button>`;
     container.appendChild(row);
   });
   // Event delegation on #view-lab handles packaging row events
@@ -1380,13 +1417,21 @@ function renderLabView() {
   // Set name field
   setElementValue('labDraftName', LAB_SESSION.name || '');
 
-  // Packaging toggle — sync section visibility only, not checkbox
-  // (checkbox.checked is already set by user; re-setting it here fires change event again)
+  // Packaging toggle — wire direct handler every render
   const pkgSection = document.getElementById('labPackagingSection');
   if (pkgSection) pkgSection.style.display = LAB_SESSION.packagingEnabled ? 'block' : 'none';
   const pkgToggle = document.getElementById('labPackagingToggle');
-  if (pkgToggle && pkgToggle.checked !== LAB_SESSION.packagingEnabled) {
+  if (pkgToggle) {
     pkgToggle.checked = LAB_SESSION.packagingEnabled;
+    pkgToggle.onchange = function() {
+      LAB_SESSION.packagingEnabled = this.checked;
+      const sec = document.getElementById('labPackagingSection');
+      if (sec) sec.style.display = this.checked ? 'block' : 'none';
+      _renderLabPackagingRows();
+      if (typeof renderLabPricing          === 'function') renderLabPricing();
+      if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
+      if (typeof renderLabCharts           === 'function') renderLabCharts();
+    };
   }
 
   // Strategic/Launch toggles
@@ -1403,10 +1448,18 @@ function renderLabView() {
       'display', LAB_SESSION.launchEnabled ? 'block' : 'none');
   }
 
-  // Waste slider — only sync if not currently being dragged
+  // Waste slider — set value and wire direct handlers
   const wasteSlider = document.getElementById('labWasteSlider');
-  if (wasteSlider && Number(wasteSlider.value) !== LAB_SESSION.wastePercent) {
+  if (wasteSlider) {
     wasteSlider.value = LAB_SESSION.wastePercent;
+    wasteSlider.oninput = function() {
+      LAB_SESSION.wastePercent = Number(this.value || 0);
+      const d = document.getElementById('labWasteDisplay');
+      if (d) d.textContent = this.value + '%';
+      if (typeof renderLabPricing === 'function') renderLabPricing();
+      if (typeof renderLabCharts  === 'function') renderLabCharts();
+    };
+    wasteSlider.onchange = wasteSlider.oninput; // iOS Safari
   }
   const wasteDisp = document.getElementById('labWasteDisplay');
   if (wasteDisp) wasteDisp.textContent = LAB_SESSION.wastePercent + '%';
@@ -1415,6 +1468,8 @@ function renderLabView() {
 /* ── Exports ── */
 window.getLabCategoryPresets    = getLabCategoryPresets;
 window._renderLabIngredientRows  = _renderLabIngredientRows;
+window.openLabIngPickerModal     = openLabIngPickerModal;
+window._renderLabIngPickerList   = _renderLabIngPickerList;
 window._renderLabPackagingRows   = _renderLabPackagingRows;
 window._refreshLabCalcs          = _refreshLabCalcs;
 window.saveLabCategoryPreset    = saveLabCategoryPreset;
