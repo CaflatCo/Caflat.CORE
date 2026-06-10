@@ -69,7 +69,8 @@ function restorePersistedState() {
     supplierModeEnabled:   false,
     coffeeCartModeEnabled: false,
     productionModeEnabled: false,
-    receiptBaseUrl: ''
+    receiptBaseUrl: '',
+    backupEmail:    ''
   }, persisted.settings || {});
 
   APP_STATE.receiptCounter     = Number(persisted.receiptCounter || 0);
@@ -157,7 +158,8 @@ function importAllData(file) {
         supplierModeEnabled:   false,
         coffeeCartModeEnabled: false,
         productionModeEnabled: false,
-    receiptBaseUrl: ''
+    receiptBaseUrl: '',
+    backupEmail:    ''
       }, data.settings || {});
       APP_STATE.receiptCounter     = Number(data.receiptCounter || 0);
       APP_STATE.products           = Array.isArray(data.products)           ? data.products           : [];
@@ -227,7 +229,8 @@ function fullFactoryReset() {
     supplierModeEnabled:  false,
     coffeeCartModeEnabled: false,
     productionModeEnabled: false,
-    receiptBaseUrl: ''
+    receiptBaseUrl: '',
+    backupEmail:    ''
   };
   localStorage.removeItem(STORAGE_KEY);
   if (typeof renderEverything === 'function') renderEverything();

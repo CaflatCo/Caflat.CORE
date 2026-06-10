@@ -13,9 +13,11 @@ const APP_STATE = {
     orderTypes: ['Dine In', 'Take Out', 'Delivery'],
     lowStockThreshold: 5,
     voidPin: '000000',          // Admin void PIN — changeable in Settings
-    supplierModeEnabled: false, // Supplier Mode feature toggle
+    supplierModeEnabled:   false, // Supplier Mode feature toggle
     coffeeCartModeEnabled: false, // Coffee Cart Mode feature toggle
-    productionModeEnabled: false  // Production Mode feature toggle
+    productionModeEnabled: false, // Production Mode feature toggle
+    backupEmail:           '',    // Email for backup reminders
+    receiptBaseUrl:        ''     // Base URL for QR receipt links
   },
 
   receiptCounter: 0,            // Sequential permanent counter, never resets
