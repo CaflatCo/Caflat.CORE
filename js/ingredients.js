@@ -103,13 +103,23 @@ function renderIngredientsTable() {
   const tableBody = document.querySelector('#ingredientsTable tbody');
   if (!tableBody) return;
 
-  const ingredients = getIngredients();
+  const search = String(document.getElementById('ingredientSearch')?.value || '').toLowerCase().trim();
+  let ingredients = getIngredients();
+
+  if (search) {
+    ingredients = ingredients.filter(i =>
+      (i.name || '').toLowerCase().includes(search) ||
+      (i.unit || '').toLowerCase().includes(search) ||
+      (i.category || '').toLowerCase().includes(search)
+    );
+  }
+
   tableBody.innerHTML = '';
 
   if (!ingredients.length) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="8" class="empty-state">No ingredients found</td>
+        <td colspan="8" class="empty-state">${search ? 'No ingredients match "' + escapeHtml(search) + '"' : 'No ingredients found'}</td>
       </tr>
     `;
     return;

@@ -133,13 +133,22 @@ function renderInventoryTable() {
   const tableBody = document.querySelector('#inventoryTable tbody');
   if (!tableBody) return;
 
-  const ingredients = getIngredients();
+  const search = String(document.getElementById('inventorySearch')?.value || '').toLowerCase().trim();
+  let ingredients = getIngredients();
+
+  if (search) {
+    ingredients = ingredients.filter(i =>
+      (i.name || '').toLowerCase().includes(search) ||
+      (i.unit || '').toLowerCase().includes(search)
+    );
+  }
+
   tableBody.innerHTML = '';
 
   if (!ingredients.length) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="8" class="empty-state">No inventory found</td>
+        <td colspan="8" class="empty-state">${search ? 'No items match "' + escapeHtml(search) + '"' : 'No inventory found'}</td>
       </tr>
     `;
     return;

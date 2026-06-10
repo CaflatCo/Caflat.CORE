@@ -108,14 +108,16 @@ function bindGlobalEvents() {
 
 function bindSearchFilters() {
   const filters = [
-    ['productSearch', 'input'],
-    ['productCategoryFilter', 'change']
+    ['productSearch',          'input',  'renderProductsTable'],
+    ['productCategoryFilter',  'change', 'renderProductsTable'],
+    ['ingredientSearch',       'input',  'renderIngredientsTable'],
+    ['inventorySearch',        'input',  'renderInventoryTable'],
   ];
-  filters.forEach(([id, evt]) => {
+  filters.forEach(([id, evt, fn]) => {
     const el = document.getElementById(id);
     if (!el) return;
     el.addEventListener(evt, () => {
-      if (typeof renderProductsTable === 'function') renderProductsTable();
+      if (typeof window[fn] === 'function') window[fn]();
     });
   });
 }
