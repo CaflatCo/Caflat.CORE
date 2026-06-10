@@ -601,7 +601,13 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Ingredients</h2>
-            <button class="btn" id="addIngredientBtn" type="button">+ Add Ingredient</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input id="ingredientSearch" type="text" placeholder="Search ingredients…"
+                style="border:1.5px solid var(--gray-200);border-radius:8px;padding:7px 12px;
+                font-size:12px;outline:none;width:200px;font-family:inherit;"
+                oninput="renderIngredientsTable()" />
+              <button class="btn" id="addIngredientBtn" type="button">+ Add Ingredient</button>
+            </div>
           </div>
           <div class="table-wrapper">
             <table id="ingredientsTable">
@@ -622,10 +628,13 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Inventory</h2>
-            <span style="font-size:11px;color:var(--gray-400);">Ingredient stock levels</span>
+            <input id="inventorySearch" type="text" placeholder="Search stock…"
+              style="border:1.5px solid var(--gray-200);border-radius:8px;padding:7px 12px;
+              font-size:12px;outline:none;width:200px;font-family:inherit;"
+              oninput="renderInventoryTable()" />
           </div>
+          <div id="inventoryValueContainer" style="margin-bottom:24px;"></div>
           <div class="table-wrapper">
-            <div id="inventoryValueContainer" style="margin-bottom:28px;"></div>
           <div class="section-title" style="margin-bottom:12px;">Stock Levels</div>
           <table id="inventoryTable">
               <thead>
