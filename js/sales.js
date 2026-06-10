@@ -599,28 +599,47 @@ function renderReceipt(transaction) {
 function _buildQRText(transaction) {
   // Encode a URL so phones open a real receipt page when scanned.
   // All data is in the URL params — no server needed.
-  const base    = (APP_STATE.settings?.receiptBaseUrl || '').replace(/\/$/, '');
-  const brand   = encodeURIComponent(APP_STATE.settings?.brandName || 'Caflat.Co');
-  const receipt = encodeURIComponent(transaction.receiptNumber || transaction.id || '');
-  const total   = encodeURIComponent(String(transaction.totals?.total ?? transaction.total ?? 0));
-  const date    = encodeURIComponent(
-    new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
-      .toLocaleDateString('en-PH')
-  );
-  const items   = encodeURIComponent(
-    (transaction.items || []).map(i => `${i.name} x${i.quantity}|${i.total}`).join(',')
-  );
-  const payment = encodeURIComponent(
-    (transaction.payment?.method || transaction.paymentMethod || 'cash').toUpperCase()
-  );
-  const status  = encodeURIComponent(transaction.status || 'COMPLETED');
+  const base     = (APP_STATE.settings?.receiptBaseUrl || '').replace(/\/$/, '');
+  const enc      = encodeURIComponent;
+  const tot      = transaction.totals || {};
 
-  // Build URL — falls back to plain text if no base URL is configured
+  const brand    = enc(APP_STATE.settings?.brandName || 'Caflat.Co');
+  const footer   = enc(APP_STATE.settings?.receiptFooter || '');
+  const receipt  = enc(transaction.receiptNumber || transaction.id || '');
+  const status   = enc(transaction.status || 'COMPLETED');
+  const datetime = enc(
+    new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
+      .toLocaleString('en-PH')
+  );
+  const customer = enc(transaction.customer?.name || transaction.customerName || 'Walk-in');
+  const orderType= enc(transaction.orderType || '');
+  const payment  = enc((transaction.payment?.method || transaction.paymentMethod || 'cash').toUpperCase());
+  const ref      = enc(transaction.payment?.referenceNumber || transaction.referenceNumber || '');
+  const subtotal = enc(String(tot.subtotal ?? transaction.subtotal ?? 0));
+  const discount = enc(String(tot.discount ?? transaction.discount ?? 0));
+  const tax      = enc(String(tot.tax ?? transaction.tax ?? 0));
+  const total    = enc(String(tot.total ?? transaction.total ?? 0));
+  const tendered = enc(String(transaction.payment?.tendered ?? transaction.tendered ?? 0));
+  const change   = enc(String(transaction.payment?.change ?? transaction.change ?? 0));
+  const items    = enc(
+    (transaction.items || []).map(i =>
+      `${i.name}~${i.quantity}~${i.price}~${i.total}`
+    ).join('|')
+  );
+
+  // Falls back to plain text if no base URL configured
   if (!base) {
-    return `${decodeURIComponent(brand)}\n${decodeURIComponent(receipt)}\n${decodeURIComponent(total)}\n${decodeURIComponent(date)}`;
+    return `${decodeURIComponent(brand)}\n${decodeURIComponent(receipt)}\n${decodeURIComponent(total)}\n${decodeURIComponent(datetime)}`;
   }
 
-  return `${base}/receipt.html?r=${receipt}&t=${total}&d=${date}&b=${brand}&p=${payment}&s=${status}&i=${items}`;
+  return `${base}/receipt.html`
+    + `?r=${receipt}&s=${status}&dt=${datetime}`
+    + `&b=${brand}&ft=${footer}`
+    + `&c=${customer}&ot=${orderType}`
+    + `&pm=${payment}&ref=${ref}`
+    + `&sub=${subtotal}&disc=${discount}&tx=${tax}&tot=${total}`
+    + `&tnd=${tendered}&chg=${change}`
+    + `&i=${items}`;
 }
 
 function _generateReceiptQR(transaction) {

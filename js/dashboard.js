@@ -454,7 +454,7 @@ function _renderAnalyticsChart(trend) {
       datasets: [{
         data: trend.values,
         backgroundColor: trend.values.map((v, i) =>
-          i === trend.values.length - 1 ? '#000' : '#e8e8e8'),
+          i === trend.values.length - 1 ? '#000' : '#b0b0b0'),
         borderRadius: 4,
         borderSkipped: false,
       }]
