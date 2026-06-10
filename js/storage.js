@@ -476,7 +476,7 @@ function checkBackupReminder() {
 
   const daysSince = lastBackup === 0 ? null : Math.floor((now - lastBackup) / (24 * 60 * 60 * 1000));
   const msg = lastBackup === 0
-    ? 'You haven't backed up yet.'
+    ? "You haven't backed up yet."
     : `Last backup was ${daysSince} day${daysSince !== 1 ? 's' : ''} ago.`;
 
   const banner = document.createElement('div');
