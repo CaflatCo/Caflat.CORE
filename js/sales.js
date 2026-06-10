@@ -597,14 +597,30 @@ function renderReceipt(transaction) {
 }
 
 function _buildQRText(transaction) {
-  // Keep QR payload minimal so it never exceeds the encoder capacity.
-  // The receipt number is all a scanner needs to pull up the full record.
-  const brand   = APP_STATE.settings?.brandName || 'Caflat.Co';
-  const receipt = transaction.receiptNumber || transaction.id || '';
-  const total   = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
-  const date    = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
-                    .toLocaleDateString('en-PH');
-  return `${brand}\n${receipt}\n${total}\n${date}`;
+  // Encode a URL so phones open a real receipt page when scanned.
+  // All data is in the URL params — no server needed.
+  const base    = (APP_STATE.settings?.receiptBaseUrl || '').replace(/\/$/, '');
+  const brand   = encodeURIComponent(APP_STATE.settings?.brandName || 'Caflat.Co');
+  const receipt = encodeURIComponent(transaction.receiptNumber || transaction.id || '');
+  const total   = encodeURIComponent(String(transaction.totals?.total ?? transaction.total ?? 0));
+  const date    = encodeURIComponent(
+    new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
+      .toLocaleDateString('en-PH')
+  );
+  const items   = encodeURIComponent(
+    (transaction.items || []).map(i => `${i.name} x${i.quantity}|${i.total}`).join(',')
+  );
+  const payment = encodeURIComponent(
+    (transaction.payment?.method || transaction.paymentMethod || 'cash').toUpperCase()
+  );
+  const status  = encodeURIComponent(transaction.status || 'COMPLETED');
+
+  // Build URL — falls back to plain text if no base URL is configured
+  if (!base) {
+    return `${decodeURIComponent(brand)}\n${decodeURIComponent(receipt)}\n${decodeURIComponent(total)}\n${decodeURIComponent(date)}`;
+  }
+
+  return `${base}/receipt.html?r=${receipt}&t=${total}&d=${date}&b=${brand}&p=${payment}&s=${status}&i=${items}`;
 }
 
 function _generateReceiptQR(transaction) {

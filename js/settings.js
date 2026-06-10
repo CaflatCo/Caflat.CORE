@@ -89,7 +89,8 @@ function saveSettings() {
   const coffeeCartModeEnabled  = document.getElementById('settingsCoffeeCartMode')?.checked  === true;
   const productionModeEnabled  = document.getElementById('settingsProductionMode')?.checked  === true;
 
-  const backupEmail = sanitizeText(getElementValue('settingsBackupEmail')).toLowerCase();
+  const backupEmail    = sanitizeText(getElementValue('settingsBackupEmail')).toLowerCase();
+  const receiptBaseUrl = sanitizeText(getElementValue('settingsReceiptBaseUrl')).replace(/\/+$/, '');
 
   updateState('settings', current => ({
     ...current,
@@ -99,7 +100,8 @@ function saveSettings() {
     supplierModeEnabled,
     coffeeCartModeEnabled,
     productionModeEnabled,
-    backupEmail: backupEmail || current.backupEmail || '',
+    backupEmail:    backupEmail    || current.backupEmail    || '',
+    receiptBaseUrl: receiptBaseUrl !== undefined ? receiptBaseUrl : (current.receiptBaseUrl || ''),
     ...(voidPin ? { voidPin } : {})
   }));
 
@@ -123,6 +125,9 @@ function renderBranding() {
 
   const backupEmailInput = document.getElementById('settingsBackupEmail');
   if (backupEmailInput) backupEmailInput.value = APP_STATE.settings?.backupEmail || '';
+
+  const receiptBaseUrlInput = document.getElementById('settingsReceiptBaseUrl');
+  if (receiptBaseUrlInput) receiptBaseUrlInput.value = APP_STATE.settings?.receiptBaseUrl || '';
 
   // Void PIN — show placeholder only, never expose stored value
   const voidPinInput = document.getElementById('settingsVoidPin');

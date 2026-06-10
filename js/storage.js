@@ -68,7 +68,8 @@ function restorePersistedState() {
     voidPin: '000000',
     supplierModeEnabled:   false,
     coffeeCartModeEnabled: false,
-    productionModeEnabled: false
+    productionModeEnabled: false,
+    receiptBaseUrl: ''
   }, persisted.settings || {});
 
   APP_STATE.receiptCounter     = Number(persisted.receiptCounter || 0);
@@ -155,7 +156,8 @@ function importAllData(file) {
         lowStockThreshold: 5, voidPin: '000000',
         supplierModeEnabled:   false,
         coffeeCartModeEnabled: false,
-        productionModeEnabled: false
+        productionModeEnabled: false,
+    receiptBaseUrl: ''
       }, data.settings || {});
       APP_STATE.receiptCounter     = Number(data.receiptCounter || 0);
       APP_STATE.products           = Array.isArray(data.products)           ? data.products           : [];
@@ -224,7 +226,8 @@ function fullFactoryReset() {
     voidPin:              '000000',
     supplierModeEnabled:  false,
     coffeeCartModeEnabled: false,
-    productionModeEnabled: false
+    productionModeEnabled: false,
+    receiptBaseUrl: ''
   };
   localStorage.removeItem(STORAGE_KEY);
   if (typeof renderEverything === 'function') renderEverything();
