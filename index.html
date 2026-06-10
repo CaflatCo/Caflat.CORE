@@ -484,6 +484,7 @@
             <span style="font-size:11px;color:var(--gray-400);">All-time overview</span>
           </div>
 
+          <!-- Row 1: Revenue | Orders | Items Sold -->
           <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
             <div class="stat-card dark">
               <div class="label">Total Revenue</div>
@@ -501,30 +502,13 @@
               <div class="sub">Units moved</div>
             </div>
           </div>
-          <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px;">
+
+          <!-- Row 2: Avg Order | Raw Materials | Finished Goods -->
+          <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px;" id="dashboardInventoryValueGrid">
             <div class="stat-card">
               <div class="label">Avg Order</div>
               <div class="value" id="dashboardAverageOrder">₱0.00</div>
               <div class="sub">Per transaction</div>
-            </div>
-            <div class="stat-card" id="dashboardPendingCard">
-              <div class="label">Pending Orders</div>
-              <div class="value" id="dashboardPendingOrders">0</div>
-              <div class="sub">Awaiting completion</div>
-            </div>
-            <div class="stat-card" id="dashboardStockCard">
-              <div class="label">Stock Alerts</div>
-              <div class="value" id="dashboardLowStockCount">0</div>
-              <div class="sub">Items at reorder level</div>
-            </div>
-          </div>
-
-          <!-- Inventory Value Row -->
-          <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px;" id="dashboardInventoryValueGrid">
-            <div class="stat-card dark">
-              <div class="label">Total Inventory Value</div>
-              <div class="value" id="dashboardInventoryTotal">₱0.00</div>
-              <div class="sub">Capital tied up in stock</div>
             </div>
             <div class="stat-card">
               <div class="label">Raw Materials</div>
@@ -538,11 +522,13 @@
             </div>
           </div>
 
+          <!-- Sales Trend Chart -->
           <div class="section-title">Sales Trend (last 14 days)</div>
           <div class="chart-container">
             <canvas id="dashboardChart"></canvas>
           </div>
 
+          <!-- Top Products + Stock Alerts -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
             <div>
               <div class="section-title">Top Selling Products</div>
@@ -556,6 +542,7 @@
             </div>
           </div>
 
+          <!-- Revenue by Channel -->
           <div class="section-title">Revenue by Channel</div>
           <div id="dashboardChannelBreakdown"
             style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
@@ -563,9 +550,27 @@
             <div class="cost-preview-empty">No channel data yet</div>
           </div>
 
+          <!-- Analytics Panel -->
           <div style="margin-top:28px;">
             <div id="analyticsPanel"></div>
           </div>
+
+          <!-- Bottom Left: Pending Orders + Stock Alerts counts -->
+          <div class="stats-grid" style="grid-template-columns:repeat(2,1fr);margin-top:28px;max-width:480px;">
+            <div class="stat-card" id="dashboardPendingCard">
+              <div class="label">Pending Orders</div>
+              <div class="value" id="dashboardPendingOrders">0</div>
+              <div class="sub">Awaiting completion</div>
+            </div>
+            <div class="stat-card" id="dashboardStockCard">
+              <div class="label">Stock Alerts</div>
+              <div class="value" id="dashboardLowStockCount">0</div>
+              <div class="sub">Items at reorder level</div>
+            </div>
+          </div>
+
+          <!-- Hidden: Total Inventory Value (kept for JS compatibility) -->
+          <div id="dashboardInventoryTotal" style="display:none;">₱0.00</div>
         </div>
       </section>
 
