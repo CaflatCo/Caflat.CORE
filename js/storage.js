@@ -4,6 +4,14 @@
 
 const STORAGE_KEY = 'caflat_pos_v1';
 
+/* ── Storage caps — prevents localStorage overflow ── */
+const CAP_SALES      = 500;   // Keep most recent 500 sales in localStorage
+const CAP_AUDIT      = 1000;  // Keep most recent 1000 audit log entries
+const CAP_MOVEMENTS  = 1000;  // Keep most recent 1000 inventory movements
+
+/* ── Tail helper — returns the last N items of an array ── */
+const _tail = (arr, n) => Array.isArray(arr) && arr.length > n ? arr.slice(-n) : (arr || []);
+
 function getPersistedState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -22,11 +30,11 @@ function persistState() {
       receiptCounter:     APP_STATE.receiptCounter,
       products:           APP_STATE.products,
       ingredients:        APP_STATE.ingredients,
-      sales:              APP_STATE.sales,
+      sales:              _tail(APP_STATE.sales,              CAP_SALES),
       categories:         APP_STATE.categories,
       heldOrders:         APP_STATE.heldOrders,
-      inventoryMovements: APP_STATE.inventoryMovements,
-      auditLog:           APP_STATE.auditLog,
+      inventoryMovements: _tail(APP_STATE.inventoryMovements, CAP_MOVEMENTS),
+      auditLog:           _tail(APP_STATE.auditLog,           CAP_AUDIT),
       supplyOrders:        APP_STATE.supplyOrders,
       supplierClients:     APP_STATE.supplierClients,
       supplyInvoiceCounter:APP_STATE.supplyInvoiceCounter,
@@ -222,6 +230,72 @@ function fullFactoryReset() {
   showNotification('Full factory reset complete', 'info');
 }
 
+/* ── Storage usage ── */
+function getStorageUsage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || '';
+    const bytes = new Blob([raw]).size;
+    const limitBytes = 5 * 1024 * 1024; // 5MB
+    const pct = Math.min(100, Math.round((bytes / limitBytes) * 100));
+    return {
+      usedBytes:  bytes,
+      limitBytes: limitBytes,
+      usedMB:     (bytes / (1024 * 1024)).toFixed(2),
+      limitMB:    '5.00',
+      pct:        pct,
+      // Counts for info display
+      salesCount:     (APP_STATE.sales || []).length,
+      auditCount:     (APP_STATE.auditLog || []).length,
+      movementCount:  (APP_STATE.inventoryMovements || []).length,
+      salesCapped:    (APP_STATE.sales || []).length >= CAP_SALES,
+      auditCapped:    (APP_STATE.auditLog || []).length >= CAP_AUDIT,
+      movementCapped: (APP_STATE.inventoryMovements || []).length >= CAP_MOVEMENTS,
+    };
+  } catch {
+    return { usedBytes: 0, limitBytes: 5242880, usedMB: '0.00', limitMB: '5.00', pct: 0 };
+  }
+}
+
+function renderStorageUsage() {
+  const container = document.getElementById('storageUsageContainer');
+  if (!container) return;
+
+  const u = getStorageUsage();
+  const barColor = u.pct >= 80 ? '#dc2626' : u.pct >= 60 ? '#f59e0b' : '#16a34a';
+
+  container.innerHTML = `
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+        <span style="font-size:12px;font-weight:700;">Local Storage</span>
+        <span style="font-size:12px;font-variant-numeric:tabular-nums;">
+          ${u.usedMB} MB <span style="color:var(--gray-400);">/ ${u.limitMB} MB</span>
+        </span>
+      </div>
+      <div style="height:6px;background:var(--gray-100);border-radius:999px;overflow:hidden;">
+        <div style="width:${u.pct}%;height:100%;background:${barColor};
+          border-radius:999px;transition:width 0.3s;"></div>
+      </div>
+      ${u.pct >= 70 ? `
+        <div style="margin-top:8px;font-size:11px;color:${barColor};font-weight:600;">
+          ${u.pct >= 80
+            ? '⚠️ Storage is getting full — export a backup soon.'
+            : 'Storage is filling up — consider exporting a backup.'}
+        </div>` : ''}
+      <div style="margin-top:10px;display:flex;gap:16px;flex-wrap:wrap;">
+        <span style="font-size:11px;color:var(--gray-400);">
+          ${u.salesCount} sales${u.salesCapped ? ` <span style="color:#f59e0b;">(capped at ${CAP_SALES})</span>` : ''}
+        </span>
+        <span style="font-size:11px;color:var(--gray-400);">
+          ${u.auditCount} audit entries${u.auditCapped ? ` <span style="color:#f59e0b;">(capped at ${CAP_AUDIT})</span>` : ''}
+        </span>
+        <span style="font-size:11px;color:var(--gray-400);">
+          ${u.movementCount} stock movements${u.movementCapped ? ` <span style="color:#f59e0b;">(capped at ${CAP_MOVEMENTS})</span>` : ''}
+        </span>
+      </div>
+    </div>
+  `;
+}
+
 window.getPersistedState    = getPersistedState;
 window.persistState         = persistState;
 window.restorePersistedState= restorePersistedState;
@@ -229,3 +303,5 @@ window.exportAllData        = exportAllData;
 window.importAllData        = importAllData;
 window.resetBusinessData    = resetBusinessData;
 window.fullFactoryReset     = fullFactoryReset;
+window.getStorageUsage       = getStorageUsage;
+window.renderStorageUsage    = renderStorageUsage;

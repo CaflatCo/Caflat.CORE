@@ -34,6 +34,7 @@ function renderEverything() {
     'renderIngredientsTable',
     'renderInventoryValue',
     'renderInventoryTable',
+    'renderStorageUsage',
     'renderSalesTable',
     'renderCategories',
     'renderCategoryOptions',
