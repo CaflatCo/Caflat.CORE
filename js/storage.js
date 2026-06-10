@@ -122,6 +122,7 @@ function exportAllData() {
     laborPeople:       APP_STATE.laborPeople
   };
   downloadTextFile(`caflat-backup-${Date.now()}.json`, JSON.stringify(data, null, 2));
+  localStorage.setItem(BACKUP_REMINDER_KEY, Date.now().toString());
   showNotification('Backup exported', 'success');
 }
 
@@ -297,131 +298,18 @@ function renderStorageUsage() {
 }
 
 
-
-/* ── Storage warning banner ── */
-function checkStorageWarning() {
-  const u = getStorageUsage();
-  const existing = document.getElementById('storageWarningBanner');
-
-  // Remove banner if usage is fine
-  if (u.pct < 80) {
-    if (existing) existing.remove();
-    return;
-  }
-
-  // Don't add duplicate
-  if (existing) {
-    existing.querySelector('#storageWarningPct').textContent = u.pct + '%';
-    return;
-  }
-
-  const banner = document.createElement('div');
-  banner.id = 'storageWarningBanner';
-  banner.style.cssText = `
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 99998;
-    background: ${u.pct >= 95 ? '#dc2626' : '#f59e0b'};
-    color: #fff;
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 12px;
-    font-weight: 700;
-    gap: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  `;
-  banner.innerHTML = `
-    <span>
-      ${u.pct >= 95
-        ? '🔴 Storage is almost full (' + u.pct + '%) — export a backup and clear history now to prevent data loss.'
-        : '⚠️ Storage is ' + u.pct + '% full — export a backup soon.'}
-      <span id="storageWarningPct" style="display:none;">${u.pct}</span>
-    </span>
-    <div style="display:flex;gap:8px;flex-shrink:0;">
-      <button onclick="exportAllData()"
-        style="background:rgba(255,255,255,0.25);color:#fff;border:1.5px solid rgba(255,255,255,0.5);
-          padding:5px 12px;border-radius:6px;font-size:11px;font-weight:800;
-          cursor:pointer;font-family:inherit;">
-        Export Backup
-      </button>
-      ${u.pct >= 90 ? `
-      <button onclick="openArchiveConfirmModal()"
-        style="background:#fff;color:#000;border:none;
-          padding:5px 12px;border-radius:6px;font-size:11px;font-weight:800;
-          cursor:pointer;font-family:inherit;">
-        Archive & Clear
-      </button>` : ''}
-      <button onclick="this.closest('#storageWarningBanner').remove()"
-        style="background:transparent;color:rgba(255,255,255,0.8);border:none;
-          font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
-    </div>
-  `;
-
-  // Insert at top of body, below any fixed headers
-  document.body.prepend(banner);
-}
-
-function openArchiveConfirmModal() {
-  const existing = document.getElementById('archiveConfirmModal');
-  if (existing) existing.remove();
-
-  const overlay = document.createElement('div');
-  overlay.id = 'archiveConfirmModal';
-  overlay.className = 'modal-overlay';
-  overlay.style.zIndex = '100000';
-
-  const u = getStorageUsage();
-
-  overlay.innerHTML = `
-    <div class="modal" style="max-width:420px;">
-      <h3>Archive & Clear History</h3>
-      <p style="font-size:13px;color:var(--gray-500);margin:14px 0;line-height:1.6;">
-        Your storage is <strong>${u.pct}% full</strong> (${u.usedMB} MB of ${u.limitMB} MB).
-      </p>
-      <div style="background:var(--gray-50);border:1.5px solid var(--gray-200);
-        border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:12px;line-height:1.7;">
-        <div style="font-weight:800;margin-bottom:6px;">This will:</div>
-        <div>✅ Export a full backup file automatically</div>
-        <div>✅ Clear ${u.salesCount} sales records</div>
-        <div>✅ Clear ${u.auditCount} audit log entries</div>
-        <div>✅ Clear ${u.movementCount} stock movement records</div>
-        <div style="margin-top:6px;">🔒 Keep all products, ingredients, settings, and configuration</div>
-      </div>
-      <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;
-        padding:12px 16px;margin-bottom:20px;font-size:12px;color:#dc2626;font-weight:600;">
-        Save the exported backup file. Once cleared, old history cannot be recovered without it.
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" type="button"
-          onclick="document.getElementById('archiveConfirmModal').remove()">
-          Cancel
-        </button>
-        <button class="btn" type="button"
-          onclick="archiveAndClearHistory();document.getElementById('archiveConfirmModal').remove();">
-          Export & Clear History
-        </button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-  overlay.classList.add('active');
-}
-
 /* ═══════════════════════════════════════════════════════
-   ARCHIVE & CLEAR HISTORY
-   Exports full backup first, then wipes only the
-   three arrays that cause storage bloat.
-   Products, ingredients, settings — all preserved.
+   BACKUP EMAIL + REMINDER
+   Opens mail app with backup JSON attached (base64).
+   Reminder fires every 7 days if email is set.
 ═══════════════════════════════════════════════════════ */
-function archiveAndClearHistory() {
-  // Step 1: Always export a full backup first
-  const data = {
+
+const BACKUP_REMINDER_KEY = 'caflat_last_backup';
+
+function _getBackupData() {
+  return {
     exportedAt:           new Date().toISOString(),
     version:              'v1B',
-    archiveNote:          'Auto-archived before history clear',
     settings:             APP_STATE.settings,
     receiptCounter:       APP_STATE.receiptCounter,
     products:             APP_STATE.products,
@@ -444,26 +332,192 @@ function archiveAndClearHistory() {
     productionJobs:       APP_STATE.productionJobs,
     laborPeople:          APP_STATE.laborPeople
   };
+}
 
-  const timestamp = new Date().toISOString().slice(0,10);
-  downloadTextFile(`caflat-archive-${timestamp}.json`, JSON.stringify(data, null, 2));
+/* ── Export modal — Save to Device or Send via Email ── */
+function exportAndEmail() {
+  openExportModal();
+}
 
-  // Step 2: Clear only history arrays
-  APP_STATE.sales              = [];
-  APP_STATE.auditLog           = [];
-  APP_STATE.inventoryMovements = [];
-  APP_STATE.receiptCounter     = 0;
+function openExportModal() {
+  const existing = document.getElementById('exportBackupModal');
+  if (existing) existing.remove();
 
-  // Step 3: Persist the cleared state
-  persistState();
+  const email    = APP_STATE.settings?.backupEmail || '';
+  const hasEmail = email.length > 0;
 
-  // Step 4: Re-render
-  if (typeof renderEverything === 'function') renderEverything();
+  const overlay = document.createElement('div');
+  overlay.id = 'exportBackupModal';
+  overlay.className = 'modal-overlay';
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.remove();
+  });
 
-  showNotification(
-    'Archive exported and history cleared. Your products and settings are unchanged.',
-    'success'
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:360px;">
+      <h3>Export Backup</h3>
+      <p style="font-size:12px;color:var(--gray-400);margin:10px 0 20px;">
+        Choose how to save your backup file.
+      </p>
+
+      <button id="_exportSaveDeviceBtn"
+        style="width:100%;padding:14px 16px;border:1.5px solid var(--gray-200);
+          border-radius:12px;background:#fff;text-align:left;cursor:pointer;
+          margin-bottom:10px;font-family:inherit;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:22px;">📥</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;">Save to Device</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+            Downloads to your Files app or Downloads folder
+          </div>
+        </div>
+      </button>
+
+      <button id="_exportEmailBtn"
+        style="width:100%;padding:14px 16px;border:1.5px solid var(--gray-200);
+          border-radius:12px;background:#fff;text-align:left;cursor:pointer;
+          margin-bottom:20px;font-family:inherit;display:flex;align-items:center;gap:12px;
+          ${!hasEmail ? 'opacity:0.45;cursor:not-allowed;' : ''}">
+        <span style="font-size:22px;">📧</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;">Send via Email</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+            ${hasEmail
+              ? `Opens mail app to ${email}`
+              : 'Set a backup email in Settings first'}
+          </div>
+        </div>
+      </button>
+
+      <button id="_exportCancelBtn"
+        style="width:100%;padding:10px;border:1.5px solid var(--gray-200);
+          border-radius:10px;background:#fff;cursor:pointer;
+          font-family:inherit;font-size:12px;color:var(--gray-500);">
+        Cancel
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  overlay.classList.add('active');
+
+  const close = () => overlay.remove();
+
+  document.getElementById('_exportSaveDeviceBtn').onclick = () => {
+    close();
+    _doSaveToDevice();
+  };
+
+  document.getElementById('_exportEmailBtn').onclick = () => {
+    if (!hasEmail) return;
+    close();
+    _doSendEmail();
+  };
+
+  document.getElementById('_exportCancelBtn').onclick = close;
+}
+
+function _doSaveToDevice() {
+  const date     = new Date().toISOString().slice(0, 10);
+  const filename = `caflat-backup-${date}.json`;
+  const json     = JSON.stringify(_getBackupData(), null, 2);
+  downloadTextFile(filename, json);
+  localStorage.setItem(BACKUP_REMINDER_KEY, Date.now().toString());
+  showNotification('Backup saved to device', 'success');
+}
+
+function _doSendEmail() {
+  const email    = APP_STATE.settings?.backupEmail || '';
+  const brand    = APP_STATE.settings?.brandName   || 'Caflat.CORE';
+  const date     = new Date().toISOString().slice(0, 10);
+  const filename = `caflat-backup-${date}.json`;
+
+  // Download file first so it exists on device to attach
+  downloadTextFile(filename, JSON.stringify(_getBackupData(), null, 2));
+  localStorage.setItem(BACKUP_REMINDER_KEY, Date.now().toString());
+
+  const subject = encodeURIComponent(`${brand} — Backup ${date}`);
+  const body    = encodeURIComponent(
+    `Your Caflat.CORE backup from ${date} has been downloaded to your device.
+
+` +
+    `File name: ${filename}
+
+` +
+    `Attach the downloaded file to this email and send it to yourself for safekeeping.
+
+` +
+    `— Caflat.CORE`
   );
+
+  setTimeout(() => {
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  }, 600);
+
+  showNotification('Backup downloaded — opening mail app', 'success');
+}
+function checkBackupReminder() {
+  const email = APP_STATE.settings?.backupEmail || '';
+  if (!email) return; // No reminder without an email set
+
+  const lastBackup = parseInt(localStorage.getItem(BACKUP_REMINDER_KEY) || '0', 10);
+  const sevenDays  = 7 * 24 * 60 * 60 * 1000;
+  const now        = Date.now();
+
+  if (now - lastBackup < sevenDays) return; // Not due yet
+
+  // Don't show on first launch (no data yet)
+  const salesCount = (APP_STATE.sales || []).length;
+  if (salesCount === 0) return;
+
+  // Show reminder banner
+  const existing = document.getElementById('backupReminderBanner');
+  if (existing) return; // Already showing
+
+  const daysSince = lastBackup === 0 ? null : Math.floor((now - lastBackup) / (24 * 60 * 60 * 1000));
+  const msg = lastBackup === 0
+    ? 'You haven't backed up yet.'
+    : `Last backup was ${daysSince} day${daysSince !== 1 ? 's' : ''} ago.`;
+
+  const banner = document.createElement('div');
+  banner.id = 'backupReminderBanner';
+  banner.style.cssText = `
+    position: fixed;
+    bottom: 20px; right: 20px;
+    z-index: 99997;
+    background: #000;
+    color: #fff;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    max-width: 320px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  `;
+  banner.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+      <span>💾 ${msg} Back up your data to keep it safe.</span>
+      <button onclick="this.closest('#backupReminderBanner').remove()"
+        style="background:transparent;color:rgba(255,255,255,0.6);border:none;
+          font-size:16px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="document.getElementById('backupReminderBanner')?.remove();openExportModal();"
+        style="flex:1;background:#fff;color:#000;border:none;padding:8px 12px;
+          border-radius:7px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;">
+        Export Backup
+      </button>
+      <button onclick="localStorage.setItem('caflat_last_backup', Date.now());document.getElementById('backupReminderBanner')?.remove();"
+        style="background:transparent;color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.2);
+          padding:8px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;">
+        Remind later
+      </button>
+    </div>
+  `;
+  document.body.appendChild(banner);
 }
 
 window.getPersistedState    = getPersistedState;
@@ -475,6 +529,6 @@ window.resetBusinessData    = resetBusinessData;
 window.fullFactoryReset     = fullFactoryReset;
 window.getStorageUsage       = getStorageUsage;
 window.renderStorageUsage    = renderStorageUsage;
-window.archiveAndClearHistory  = archiveAndClearHistory;
-window.checkStorageWarning     = checkStorageWarning;
-window.openArchiveConfirmModal = openArchiveConfirmModal;
+window.exportAndEmail         = exportAndEmail;
+window.openExportModal        = openExportModal;
+window.checkBackupReminder    = checkBackupReminder;

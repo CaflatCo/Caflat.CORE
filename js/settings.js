@@ -89,6 +89,8 @@ function saveSettings() {
   const coffeeCartModeEnabled  = document.getElementById('settingsCoffeeCartMode')?.checked  === true;
   const productionModeEnabled  = document.getElementById('settingsProductionMode')?.checked  === true;
 
+  const backupEmail = sanitizeText(getElementValue('settingsBackupEmail')).toLowerCase();
+
   updateState('settings', current => ({
     ...current,
     brandName: brandName || current.brandName,
@@ -97,6 +99,7 @@ function saveSettings() {
     supplierModeEnabled,
     coffeeCartModeEnabled,
     productionModeEnabled,
+    backupEmail: backupEmail || current.backupEmail || '',
     ...(voidPin ? { voidPin } : {})
   }));
 
@@ -117,6 +120,9 @@ function renderBranding() {
   if (taxInput) taxInput.value = APP_STATE.settings?.taxRate ?? 0;
   const footerInput = document.getElementById('settingsReceiptFooter');
   if (footerInput) footerInput.value = APP_STATE.settings?.receiptFooter || '';
+
+  const backupEmailInput = document.getElementById('settingsBackupEmail');
+  if (backupEmailInput) backupEmailInput.value = APP_STATE.settings?.backupEmail || '';
 
   // Void PIN — show placeholder only, never expose stored value
   const voidPinInput = document.getElementById('settingsVoidPin');

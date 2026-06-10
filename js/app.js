@@ -5,10 +5,6 @@
 function initializeApp() {
   try {
     if (typeof restorePersistedState === 'function') restorePersistedState();
-  // Check storage health on every app load
-  setTimeout(() => {
-    if (typeof checkStorageWarning === 'function') checkStorageWarning();
-  }, 1500); // Delay so auth screen loads first
     if (typeof initializeAuth === 'function') initializeAuth();
     if (typeof initializeUIActions === 'function') initializeUIActions();
     if (typeof initializeSales === 'function') initializeSales();
@@ -21,6 +17,12 @@ function initializeApp() {
     bindModalClose();
     bindSearchFilters();
     setDefaultView();
+
+    // Check storage health + backup reminder after app fully loads
+    setTimeout(() => {
+      if (typeof checkStorageWarning === 'function') checkStorageWarning();
+      if (typeof checkBackupReminder === 'function') checkBackupReminder();
+    }, 1500);
 
     console.log('Caflat.Co POS v1 initialized');
   } catch (error) {
@@ -74,11 +76,6 @@ function renderEverything() {
   // Re-apply role access after every full render
   if (typeof applyRoleAccess === 'function') {
     applyRoleAccess(APP_STATE.currentUserRole || 'STAFF');
-  }
-
-  // Check storage and show warning banner if getting full
-  if (typeof checkStorageWarning === 'function') {
-    checkStorageWarning();
   }
 }
 
