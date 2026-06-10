@@ -365,18 +365,7 @@
   <!-- ═══ LOGIN ═══ -->
   <div class="login-screen" id="loginScreen">
     <div class="login-card" id="loginCard">
-      <div style="text-align:center;margin-bottom:28px;">
-        <h2 style="text-align:center;">Caflat.CORE</h2>
-        <div class="login-subtitle" style="margin-bottom:0;">Operations Platform</div>
-      </div>
-      <input id="loginUsername" placeholder="Username" type="text" autocomplete="username" />
-      <input id="loginPassword" placeholder="Password" type="password" autocomplete="current-password" />
-      <div id="loginError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;
-        border-radius:8px;padding:10px 14px;margin-bottom:12px;
-        font-size:12px;font-weight:600;color:#dc2626;text-align:center;">
-        Incorrect username or password
-      </div>
-      <button id="loginBtn" type="button">Sign In</button>
+      <!-- Rendered dynamically by auth.js -->
     </div>
   </div>
 
@@ -1408,6 +1397,12 @@
               <div class="toggle-track"></div>
               <div class="toggle-knob"></div>
             </label>
+          </div>
+
+          <div class="section-title">Security</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
+            <button class="btn btn-secondary" type="button"
+              onclick="openChangePasswordModal()">Change Password</button>
           </div>
 
           <div class="section-title">Data Management</div>
