@@ -87,7 +87,10 @@ function renderDashboardChart() {
         data: values,
         backgroundColor: '#000',
         borderRadius: 4,
-        borderSkipped: false
+        borderSkipped: false,
+        maxBarThickness: 48,
+        barPercentage: 0.6,
+        categoryPercentage: 0.7
       }]
     },
     options: {
