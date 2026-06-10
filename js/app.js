@@ -32,6 +32,7 @@ function renderEverything() {
     'renderProductsTable',
     'renderPOSProducts',
     'renderIngredientsTable',
+    'renderInventoryValue',
     'renderInventoryTable',
     'renderSalesTable',
     'renderCategories',
@@ -54,6 +55,7 @@ function renderEverything() {
     'applySupplierCartButton',
     'renderCart',
     'refreshDashboard',
+    'renderAnalyticsPanel',
     'renderReports'
   ];
 

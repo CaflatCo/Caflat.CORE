@@ -254,10 +254,32 @@ function login() {
     user.password !== password
   ) {
 
-    showNotification(
-      'Invalid username or password',
-      'error'
-    );
+    // Show inline error with shake animation
+    const errEl = document.getElementById('loginError');
+    const card  = document.getElementById('loginCard');
+    const passEl = document.getElementById('loginPassword');
+
+    if (errEl) {
+      errEl.style.display = 'block';
+      // Auto-hide after 4 seconds
+      clearTimeout(window._loginErrTimer);
+      window._loginErrTimer = setTimeout(() => {
+        errEl.style.display = 'none';
+      }, 4000);
+    }
+
+    // Shake the card
+    if (card) {
+      card.classList.remove('login-shake');
+      void card.offsetWidth; // force reflow to restart animation
+      card.classList.add('login-shake');
+    }
+
+    // Clear password field and re-focus
+    if (passEl) {
+      passEl.value = '';
+      passEl.focus();
+    }
 
     return;
 
@@ -338,8 +360,13 @@ function initializeAuth() {
 
     };
 
+  // Hide error on any keystroke
+  const _hideLoginErr = () => {
+    const e = document.getElementById('loginError');
+    if (e) e.style.display = 'none';
+  };
   if (loginUsername) {
-
+    loginUsername.addEventListener('input', _hideLoginErr);
     loginUsername.addEventListener(
       'keydown',
       handleEnter
@@ -348,7 +375,7 @@ function initializeAuth() {
   }
 
   if (loginPassword) {
-
+    loginPassword.addEventListener('input', _hideLoginErr);
     loginPassword.addEventListener(
       'keydown',
       handleEnter

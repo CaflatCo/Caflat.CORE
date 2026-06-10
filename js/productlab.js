@@ -231,10 +231,13 @@ function applyLabPreset(category) {
   const preset = getPresetForCategory(category);
   if (!preset) return;
 
-  LAB_SESSION.category     = category;
-  LAB_SESSION.presetId     = preset.id;
-  LAB_SESSION.batchSize    = preset.batchSize;
-  LAB_SESSION.marginTargets= [...preset.marginTargets];
+  LAB_SESSION.category      = category;
+  LAB_SESSION.presetId      = preset.id;
+  // Only set batchSize from preset if user hasn't entered one yet
+  if (!LAB_SESSION.batchSize || LAB_SESSION.batchSize <= 1) {
+    LAB_SESSION.batchSize   = preset.batchSize;
+  }
+  LAB_SESSION.marginTargets = [...preset.marginTargets];
 
   // Pre-fill ingredients from preset, matching to live catalog first
   LAB_SESSION.ingredients = preset.ingredients.map(pi => {
@@ -459,9 +462,14 @@ function _updateLabCategorySelect() {
 
 function _syncBatchSizeInput() {
   const inp = document.getElementById('labBatchSize');
-  // Only sync if not focused — don't interrupt user typing
-  if (inp && LAB_SESSION && document.activeElement !== inp) {
-    inp.value = LAB_SESSION.batchSize > 1 ? LAB_SESSION.batchSize : '';
+  if (!inp || !LAB_SESSION) return;
+  // Never overwrite if user is focused on the field
+  if (document.activeElement === inp) return;
+  // Only sync if the displayed value differs from state
+  const currentDisplay = Number(inp.value || 0);
+  const stateVal       = LAB_SESSION.batchSize || 1;
+  if (currentDisplay !== stateVal) {
+    inp.value       = stateVal > 1 ? stateVal : '';
     inp.placeholder = '24';
   }
 }

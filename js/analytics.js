@@ -522,4 +522,189 @@ window.getSupplyRevenue_            = getSupplyRevenue_;
 window.getSupplyOrderCount_         = getSupplyOrderCount_;
 window.getOutstandingReceivables    = getOutstandingReceivables;
 window.getCollectionRate            = getCollectionRate;
+
+/* ═══════════════════════════════════════════════════════
+   PERIOD-BASED ANALYTICS
+   Supports: daily, weekly, monthly, yearly
+═══════════════════════════════════════════════════════ */
+
+function getPeriodDateRange(period) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let from, to, prev_from, prev_to;
+
+  switch (period) {
+    case 'daily':
+      from = new Date(today);
+      to   = new Date(today); to.setHours(23,59,59,999);
+      prev_from = new Date(today); prev_from.setDate(prev_from.getDate() - 1);
+      prev_to   = new Date(prev_from); prev_to.setHours(23,59,59,999);
+      break;
+    case 'weekly':
+      // Monday-based week
+      const dow = (today.getDay() + 6) % 7; // 0=Mon
+      from = new Date(today); from.setDate(today.getDate() - dow);
+      to   = new Date(from); to.setDate(from.getDate() + 6); to.setHours(23,59,59,999);
+      prev_from = new Date(from); prev_from.setDate(from.getDate() - 7);
+      prev_to   = new Date(from); prev_to.setDate(from.getDate() - 1); prev_to.setHours(23,59,59,999);
+      break;
+    case 'monthly':
+      from = new Date(today.getFullYear(), today.getMonth(), 1);
+      to   = new Date(today.getFullYear(), today.getMonth() + 1, 0); to.setHours(23,59,59,999);
+      prev_from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      prev_to   = new Date(today.getFullYear(), today.getMonth(), 0); prev_to.setHours(23,59,59,999);
+      break;
+    case 'yearly':
+      from = new Date(today.getFullYear(), 0, 1);
+      to   = new Date(today.getFullYear(), 11, 31); to.setHours(23,59,59,999);
+      prev_from = new Date(today.getFullYear() - 1, 0, 1);
+      prev_to   = new Date(today.getFullYear() - 1, 11, 31); prev_to.setHours(23,59,59,999);
+      break;
+    default:
+      from = null; to = null; prev_from = null; prev_to = null;
+  }
+  return { from, to, prev_from, prev_to };
+}
+
+function getPeriodTrend(period) {
+  const sales = getCompletedSales();
+  const labels = [], values = [], orders = [];
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  if (period === 'daily') {
+    // Last 24 hours by hour
+    for (let h = 0; h < 24; h++) {
+      labels.push(h === 0 ? '12am' : h < 12 ? h + 'am' : h === 12 ? '12pm' : (h-12) + 'pm');
+      values.push(0); orders.push(0);
+    }
+    sales.forEach(s => {
+      const d = new Date(s.audit?.completedAt || s.completedAt || s.createdAt || 0);
+      if (d.toDateString() === today.toDateString()) {
+        const h = d.getHours();
+        values[h]  += Number(s.total ?? s.totals?.total ?? 0);
+        orders[h]  += 1;
+      }
+    });
+
+  } else if (period === 'weekly') {
+    // Last 7 days
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today); d.setDate(today.getDate() - i);
+      labels.push(d.toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric' }));
+      values.push(0); orders.push(0);
+    }
+    sales.forEach(s => {
+      const d = new Date(s.audit?.completedAt || s.completedAt || s.createdAt || 0);
+      for (let i = 6; i >= 0; i--) {
+        const ref = new Date(today); ref.setDate(today.getDate() - i);
+        if (d.toDateString() === ref.toDateString()) {
+          const idx = 6 - i;
+          values[idx]  += Number(s.total ?? s.totals?.total ?? 0);
+          orders[idx]  += 1;
+          break;
+        }
+      }
+    });
+
+  } else if (period === 'monthly') {
+    // Each day of current month
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      labels.push(String(d));
+      values.push(0); orders.push(0);
+    }
+    sales.forEach(s => {
+      const d = new Date(s.audit?.completedAt || s.completedAt || s.createdAt || 0);
+      if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()) {
+        const idx = d.getDate() - 1;
+        values[idx]  += Number(s.total ?? s.totals?.total ?? 0);
+        orders[idx]  += 1;
+      }
+    });
+
+  } else if (period === 'yearly') {
+    // Each month of current year
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    for (let m = 0; m < 12; m++) {
+      labels.push(monthNames[m]);
+      values.push(0); orders.push(0);
+    }
+    sales.forEach(s => {
+      const d = new Date(s.audit?.completedAt || s.completedAt || s.createdAt || 0);
+      if (d.getFullYear() === today.getFullYear()) {
+        const idx = d.getMonth();
+        values[idx]  += Number(s.total ?? s.totals?.total ?? 0);
+        orders[idx]  += 1;
+      }
+    });
+  }
+
+  return { labels, values, orders };
+}
+
+function getPeriodKPIs(period) {
+  const { from, to, prev_from, prev_to } = getPeriodDateRange(period);
+  const curr = getCompletedSales(from, to);
+  const prev = getCompletedSales(prev_from, prev_to);
+
+  const sum  = arr => arr.reduce((s, sale) => s + Number(sale.total ?? sale.totals?.total ?? 0), 0);
+  const items = arr => arr.reduce((s, sale) =>
+    s + (Array.isArray(sale.items) ? sale.items.reduce((ss, i) =>
+      ss + Number(i.quantity || 0) * Number(i.multiplier || 1), 0) : 0), 0);
+
+  const currRev   = sum(curr);
+  const prevRev   = sum(prev);
+  const currOrd   = curr.length;
+  const prevOrd   = prev.length;
+  const currItems = items(curr);
+  const prevItems = items(prev);
+  const currAvg   = currOrd ? currRev / currOrd : 0;
+  const prevAvg   = prevOrd ? prevRev / prevOrd : 0;
+
+  const delta = (curr, prev) => {
+    if (!prev) return curr > 0 ? '+100%' : '—';
+    const pct = ((curr - prev) / prev * 100);
+    return (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+  };
+  const up = (curr, prev) => curr >= prev;
+
+  return {
+    revenue:      currRev,
+    orders:       currOrd,
+    items:        currItems,
+    avgTicket:    currAvg,
+    revDelta:     delta(currRev, prevRev),
+    ordDelta:     delta(currOrd, prevOrd),
+    itemsDelta:   delta(currItems, prevItems),
+    avgDelta:     delta(currAvg, prevAvg),
+    revUp:        up(currRev, prevRev),
+    ordUp:        up(currOrd, prevOrd),
+    itemsUp:      up(currItems, prevItems),
+    avgUp:        up(currAvg, prevAvg),
+  };
+}
+
+function getPeriodTopProducts(period, limit) {
+  const { from, to } = getPeriodDateRange(period);
+  return getTopProducts(limit || 5, from, to);
+}
+
+function getPeriodPaymentBreakdown(period) {
+  const { from, to } = getPeriodDateRange(period);
+  return getPaymentBreakdown(from, to);
+}
+
+function getPeriodCategoryBreakdown(period) {
+  const { from, to } = getPeriodDateRange(period);
+  return getCategoryPerformance(from, to);
+}
+
 window.getDailyDiscrepancies        = getDailyDiscrepancies;
+window.getPeriodDateRange         = getPeriodDateRange;
+window.getPeriodTrend             = getPeriodTrend;
+window.getPeriodKPIs              = getPeriodKPIs;
+window.getPeriodTopProducts       = getPeriodTopProducts;
+window.getPeriodPaymentBreakdown  = getPeriodPaymentBreakdown;
+window.getPeriodCategoryBreakdown = getPeriodCategoryBreakdown;
