@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Receipt — Caflat.CORE</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px 48px;
+    }
+
+    .receipt {
+      background: #fff;
+      width: 100%;
+      max-width: 360px;
+      border-radius: 4px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      overflow: hidden;
+      animation: fadeUp 0.3s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Header ── */
+    .r-header {
+      background: #000;
+      color: #fff;
+      padding: 28px 24px 24px;
+      text-align: center;
+    }
+
+    .r-brand {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .r-number {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 4px;
+    }
+
+    .r-date {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .r-status {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* ── Body ── */
+    .r-body {
+      padding: 0 24px;
+    }
+
+    .r-divider {
+      border: none;
+      border-top: 1px dashed #d8d8d8;
+      margin: 14px 0;
+    }
+
+    .r-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 5px 0;
+      font-size: 12px;
+      gap: 8px;
+    }
+
+    .r-row .label {
+      color: #888;
+      flex-shrink: 0;
+    }
+
+    .r-row .value {
+      color: #333;
+      text-align: right;
+    }
+
+    /* ── Items ── */
+    .r-items {
+      padding: 6px 0;
+    }
+
+    .r-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 12px;
+      border-bottom: 1px solid #f4f4f4;
+      gap: 8px;
+    }
+
+    .r-item:last-child { border-bottom: none; }
+
+    .r-item .item-name {
+      color: #222;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .r-item .item-total {
+      color: #333;
+      flex-shrink: 0;
+    }
+
+    /* ── Total ── */
+    .r-total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .r-total-row .label { color: #000; }
+    .r-total-row .value { color: #000; }
+
+    /* ── Footer ── */
+    .r-footer {
+      padding: 16px 24px 24px;
+      text-align: center;
+    }
+
+    .r-footer-text {
+      font-size: 10px;
+      color: #aaa;
+      letter-spacing: 0.04em;
+      line-height: 1.6;
+    }
+
+    .r-powered {
+      margin-top: 16px;
+      font-size: 9px;
+      color: #ccc;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .r-powered span {
+      color: #999;
+      font-weight: 700;
+    }
+
+    /* ── Error state ── */
+    .r-error {
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .r-error-icon { font-size: 32px; margin-bottom: 12px; }
+    .r-error-title { font-size: 14px; font-weight: 700; color: #333; margin-bottom: 8px; font-family: -apple-system, sans-serif; }
+    .r-error-desc  { font-size: 12px; color: #999; font-family: -apple-system, sans-serif; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div class="receipt" id="receipt">
+  <div style="padding:32px;text-align:center;font-family:-apple-system,sans-serif;color:#999;font-size:12px;">
+    Loading receipt…
+  </div>
+</div>
+
+<script>
+  function getParam(name) {
+    const url = new URL(window.location.href);
+    const val = url.searchParams.get(name);
+    return val ? decodeURIComponent(val) : '';
+  }
+
+  function escHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function formatCurrency(val) {
+    const n = parseFloat(val);
+    if (isNaN(n)) return val;
+    return '\u20B1' + n.toLocaleString('en-PH', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function render() {
+    const brand   = getParam('b');
+    const receipt = getParam('r');
+    const total   = getParam('t');
+    const date    = getParam('d');
+    const payment = getParam('p');
+    const status  = getParam('s') || 'COMPLETED';
+    const itemsRaw = getParam('i');
+
+    // Validate — need at least a receipt number
+    if (!receipt) {
+      document.getElementById('receipt').innerHTML = `
+        <div class="r-error">
+          <div class="r-error-icon">🧾</div>
+          <div class="r-error-title">Receipt not found</div>
+          <div class="r-error-desc">This QR code doesn't contain valid receipt data.<br>Please ask the cashier for a printed receipt.</div>
+        </div>`;
+      return;
+    }
+
+    // Parse items
+    const items = [];
+    if (itemsRaw) {
+      itemsRaw.split(',').forEach(entry => {
+        const parts = entry.split('|');
+        if (parts.length >= 2) {
+          const name  = parts[0].trim();
+          const price = parseFloat(parts[1]) || 0;
+          // Extract qty from name if format is "Name xN"
+          const qtyMatch = name.match(/^(.+)\s+x(\d+)$/);
+          if (qtyMatch) {
+            items.push({ name: qtyMatch[1], qty: parseInt(qtyMatch[2]), total: price });
+          } else {
+            items.push({ name, qty: 1, total: price });
+          }
+        }
+      });
+    }
+
+    // Update page title
+    document.title = `Receipt ${receipt} — ${brand || 'Caflat.CORE'}`;
+
+    // Build HTML
+    const itemsHtml = items.length > 0 ? `
+      <hr class="r-divider">
+      <div class="r-items">
+        ${items.map(item => `
+          <div class="r-item">
+            <span class="item-name">${escHtml(item.name)} <span style="color:#aaa;font-weight:400;">×${item.qty}</span></span>
+            <span class="item-total">${formatCurrency(item.total)}</span>
+          </div>`).join('')}
+      </div>` : '';
+
+    const paymentHtml = payment ? `
+      <div class="r-row">
+        <span class="label">Payment</span>
+        <span class="value">${escHtml(payment)}</span>
+      </div>` : '';
+
+    document.getElementById('receipt').innerHTML = `
+      <div class="r-header">
+        <div class="r-brand">${escHtml(brand || 'Caflat.CORE')}</div>
+        <div class="r-number">${escHtml(receipt)}</div>
+        <div class="r-date">${escHtml(date)}</div>
+        <div class="r-status">${escHtml(status)}</div>
+      </div>
+
+      <div class="r-body">
+        <hr class="r-divider">
+        ${paymentHtml}
+        ${itemsHtml}
+        <hr class="r-divider">
+
+        <div class="r-total-row">
+          <span class="label">TOTAL</span>
+          <span class="value">${formatCurrency(total)}</span>
+        </div>
+      </div>
+
+      <div class="r-footer">
+        <hr class="r-divider">
+        <div class="r-footer-text">
+          Thank you for your purchase.<br>
+          Keep this receipt for your records.
+        </div>
+        <div class="r-powered">
+          Powered by <span>Caflat.CORE</span>
+        </div>
+      </div>
+    `;
+  }
+
+  render();
+</script>
+</body>
+</html>
