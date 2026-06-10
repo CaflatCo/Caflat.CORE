@@ -20,7 +20,7 @@
     .receipt {
       background: #fff;
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
       border-radius: 4px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.10);
       overflow: hidden;
@@ -36,7 +36,7 @@
     .r-header {
       background: #000;
       color: #fff;
-      padding: 28px 24px 24px;
+      padding: 28px 24px 22px;
       text-align: center;
     }
 
@@ -45,42 +45,40 @@
       font-weight: 700;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+    }
+
+    .r-datetime {
+      font-size: 11px;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 4px;
     }
 
     .r-number {
       font-size: 12px;
       letter-spacing: 0.08em;
-      color: rgba(255,255,255,0.6);
-      margin-bottom: 4px;
-    }
-
-    .r-date {
-      font-size: 11px;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 10px;
     }
 
     .r-status {
       display: inline-block;
-      margin-top: 10px;
       font-size: 9px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      padding: 3px 10px;
-      border: 1px solid rgba(255,255,255,0.25);
+      padding: 3px 12px;
+      border: 1px solid rgba(255,255,255,0.22);
       border-radius: 20px;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.6);
     }
 
     /* ── Body ── */
-    .r-body {
-      padding: 0 24px;
-    }
+    .r-body { padding: 0 24px; }
 
     .r-divider {
       border: none;
       border-top: 1px dashed #d8d8d8;
-      margin: 14px 0;
+      margin: 12px 0;
     }
 
     .r-row {
@@ -92,133 +90,146 @@
       gap: 8px;
     }
 
-    .r-row .label {
-      color: #888;
-      flex-shrink: 0;
-    }
-
-    .r-row .value {
-      color: #333;
-      text-align: right;
-    }
+    .r-row .label { color: #888; flex-shrink: 0; }
+    .r-row .value { color: #333; text-align: right; word-break: break-all; }
 
     /* ── Items ── */
-    .r-items {
-      padding: 6px 0;
-    }
+    .r-items { padding: 4px 0 2px; }
 
     .r-item {
       display: flex;
       justify-content: space-between;
-      padding: 5px 0;
+      padding: 6px 0;
       font-size: 12px;
       border-bottom: 1px solid #f4f4f4;
       gap: 8px;
+      align-items: baseline;
     }
 
     .r-item:last-child { border-bottom: none; }
 
-    .r-item .item-name {
-      color: #222;
-      font-weight: 600;
-      flex: 1;
+    .r-item .item-left { flex: 1; }
+    .r-item .item-name { color: #111; font-weight: 600; }
+    .r-item .item-qty  { color: #aaa; font-size: 11px; font-weight: 400; }
+    .r-item .item-unit { color: #bbb; font-size: 10px; margin-top: 1px; }
+    .r-item .item-total { color: #333; flex-shrink: 0; font-weight: 600; }
+
+    /* ── Totals ── */
+    .r-subtotal-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 12px;
+      color: #888;
     }
 
-    .r-item .item-total {
-      color: #333;
-      flex-shrink: 0;
-    }
-
-    /* ── Total ── */
     .r-total-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
-      font-size: 15px;
-      font-weight: 700;
+      padding: 8px 0 4px;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
     }
 
     .r-total-row .label { color: #000; }
     .r-total-row .value { color: #000; }
 
+    .r-tendered-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 12px;
+      color: #888;
+    }
+
     /* ── Footer ── */
     .r-footer {
-      padding: 16px 24px 24px;
+      padding: 14px 24px 24px;
       text-align: center;
     }
 
     .r-footer-text {
       font-size: 10px;
       color: #aaa;
-      letter-spacing: 0.04em;
-      line-height: 1.6;
+      letter-spacing: 0.03em;
+      line-height: 1.7;
+      margin-bottom: 14px;
     }
 
     .r-powered {
-      margin-top: 16px;
       font-size: 9px;
       color: #ccc;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
-    .r-powered span {
-      color: #999;
-      font-weight: 700;
-    }
+    .r-powered span { color: #999; font-weight: 700; }
 
-    /* ── Error state ── */
+    /* ── Error ── */
     .r-error {
-      padding: 40px 24px;
+      padding: 48px 24px;
       text-align: center;
+      font-family: -apple-system, sans-serif;
     }
 
-    .r-error-icon { font-size: 32px; margin-bottom: 12px; }
-    .r-error-title { font-size: 14px; font-weight: 700; color: #333; margin-bottom: 8px; font-family: -apple-system, sans-serif; }
-    .r-error-desc  { font-size: 12px; color: #999; font-family: -apple-system, sans-serif; line-height: 1.5; }
+    .r-error-icon  { font-size: 36px; margin-bottom: 14px; }
+    .r-error-title { font-size: 15px; font-weight: 700; color: #333; margin-bottom: 8px; }
+    .r-error-desc  { font-size: 12px; color: #999; line-height: 1.6; }
   </style>
 </head>
 <body>
 <div class="receipt" id="receipt">
-  <div style="padding:32px;text-align:center;font-family:-apple-system,sans-serif;color:#999;font-size:12px;">
-    Loading receipt…
+  <div style="padding:40px;text-align:center;font-family:-apple-system,sans-serif;color:#bbb;font-size:12px;">
+    Loading…
   </div>
 </div>
 
 <script>
-  function getParam(name) {
-    const url = new URL(window.location.href);
-    const val = url.searchParams.get(name);
-    return val ? decodeURIComponent(val) : '';
+  function p(name) {
+    const v = new URL(location.href).searchParams.get(name);
+    return v ? decodeURIComponent(v) : '';
   }
 
-  function escHtml(str) {
-    return String(str || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+  function esc(s) {
+    return String(s||'')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function formatCurrency(val) {
-    const n = parseFloat(val);
-    if (isNaN(n)) return val;
-    return '\u20B1' + n.toLocaleString('en-PH', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
+  function cur(v) {
+    const n = parseFloat(v);
+    if (isNaN(n) || n === 0) return null;
+    return '\u20B1' + n.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function row(label, value, opts) {
+    if (!value) return '';
+    const cls = opts && opts.bold ? 'style="font-weight:700;color:#111;"' : '';
+    return `<div class="r-row">
+      <span class="label">${esc(label)}</span>
+      <span class="value" ${cls}>${esc(value)}</span>
+    </div>`;
   }
 
   function render() {
-    const brand   = getParam('b');
-    const receipt = getParam('r');
-    const total   = getParam('t');
-    const date    = getParam('d');
-    const payment = getParam('p');
-    const status  = getParam('s') || 'COMPLETED';
-    const itemsRaw = getParam('i');
+    const brand    = p('b');
+    const receipt  = p('r');
+    const status   = p('s') || 'COMPLETED';
+    const datetime = p('dt');
+    const customer = p('c');
+    const orderType= p('ot');
+    const payment  = p('pm');
+    const ref      = p('ref');
+    const subtotal = p('sub');
+    const discount = p('disc');
+    const tax      = p('tx');
+    const total    = p('tot');
+    const tendered = p('tnd');
+    const change   = p('chg');
+    const footer   = p('ft');
+    const itemsRaw = p('i');
 
-    // Validate — need at least a receipt number
     if (!receipt) {
       document.getElementById('receipt').innerHTML = `
         <div class="r-error">
@@ -229,74 +240,102 @@
       return;
     }
 
-    // Parse items
+    document.title = `${receipt} — ${brand || 'Caflat.CORE'}`;
+
+    // Parse items  (format: name~qty~price~total|name~qty~price~total)
     const items = [];
     if (itemsRaw) {
-      itemsRaw.split(',').forEach(entry => {
-        const parts = entry.split('|');
+      itemsRaw.split('|').forEach(entry => {
+        const parts = entry.split('~');
         if (parts.length >= 2) {
-          const name  = parts[0].trim();
-          const price = parseFloat(parts[1]) || 0;
-          // Extract qty from name if format is "Name xN"
-          const qtyMatch = name.match(/^(.+)\s+x(\d+)$/);
-          if (qtyMatch) {
-            items.push({ name: qtyMatch[1], qty: parseInt(qtyMatch[2]), total: price });
-          } else {
-            items.push({ name, qty: 1, total: price });
-          }
+          items.push({
+            name:  parts[0] || '',
+            qty:   parseInt(parts[1]) || 1,
+            price: parseFloat(parts[2]) || 0,
+            total: parseFloat(parts[3]) || 0,
+          });
         }
       });
     }
 
-    // Update page title
-    document.title = `Receipt ${receipt} — ${brand || 'Caflat.CORE'}`;
-
-    // Build HTML
+    // Items HTML
     const itemsHtml = items.length > 0 ? `
       <hr class="r-divider">
       <div class="r-items">
-        ${items.map(item => `
+        ${items.map(it => `
           <div class="r-item">
-            <span class="item-name">${escHtml(item.name)} <span style="color:#aaa;font-weight:400;">×${item.qty}</span></span>
-            <span class="item-total">${formatCurrency(item.total)}</span>
+            <div class="item-left">
+              <div class="item-name">${esc(it.name)} <span class="item-qty">×${it.qty}</span></div>
+              ${it.price > 0 ? `<div class="item-unit">${cur(it.price)} each</div>` : ''}
+            </div>
+            <span class="item-total">${cur(it.total) || ''}</span>
           </div>`).join('')}
       </div>` : '';
 
-    const paymentHtml = payment ? `
-      <div class="r-row">
-        <span class="label">Payment</span>
-        <span class="value">${escHtml(payment)}</span>
-      </div>` : '';
+    // Totals HTML
+    const sub  = parseFloat(subtotal) || 0;
+    const disc = parseFloat(discount) || 0;
+    const tx   = parseFloat(tax)      || 0;
+    const tot  = parseFloat(total)    || 0;
+    const tend = parseFloat(tendered) || 0;
+    const chg  = parseFloat(change)   || 0;
+
+    const totalsHtml = `
+      <hr class="r-divider">
+      ${sub > 0 && sub !== tot ? `
+        <div class="r-subtotal-row">
+          <span>Subtotal</span>
+          <span>${cur(sub)}</span>
+        </div>` : ''}
+      ${disc > 0 ? `
+        <div class="r-subtotal-row">
+          <span>Discount</span>
+          <span>-${cur(disc)}</span>
+        </div>` : ''}
+      ${tx > 0 ? `
+        <div class="r-subtotal-row">
+          <span>Tax</span>
+          <span>${cur(tx)}</span>
+        </div>` : ''}
+      <div class="r-total-row">
+        <span class="label">TOTAL</span>
+        <span class="value">${cur(tot) || '\u20B10.00'}</span>
+      </div>
+      ${tend > 0 ? `
+        <div class="r-tendered-row">
+          <span>Tendered</span>
+          <span>${cur(tend)}</span>
+        </div>` : ''}
+      ${chg > 0 ? `
+        <div class="r-tendered-row">
+          <span>Change</span>
+          <span>${cur(chg)}</span>
+        </div>` : ''}`;
 
     document.getElementById('receipt').innerHTML = `
       <div class="r-header">
-        <div class="r-brand">${escHtml(brand || 'Caflat.CORE')}</div>
-        <div class="r-number">${escHtml(receipt)}</div>
-        <div class="r-date">${escHtml(date)}</div>
-        <div class="r-status">${escHtml(status)}</div>
+        <div class="r-brand">${esc(brand || 'Caflat.CORE')}</div>
+        <div class="r-datetime">${esc(datetime)}</div>
+        <div class="r-number">${esc(receipt)}</div>
+        <div class="r-status">${esc(status)}</div>
       </div>
 
       <div class="r-body">
         <hr class="r-divider">
-        ${paymentHtml}
+        ${row('Customer', customer)}
+        ${row('Order Type', orderType)}
+        ${row('Payment', payment)}
+        ${ref ? row('Reference', ref) : ''}
         ${itemsHtml}
-        <hr class="r-divider">
-
-        <div class="r-total-row">
-          <span class="label">TOTAL</span>
-          <span class="value">${formatCurrency(total)}</span>
-        </div>
+        ${totalsHtml}
       </div>
 
       <div class="r-footer">
         <hr class="r-divider">
         <div class="r-footer-text">
-          Thank you for your purchase.<br>
-          Keep this receipt for your records.
+          ${footer ? esc(footer) : 'Thank you for your purchase.<br>Keep this receipt for your records.'}
         </div>
-        <div class="r-powered">
-          Powered by <span>Caflat.CORE</span>
-        </div>
+        <div class="r-powered">Powered by <span>Caflat.CORE</span></div>
       </div>
     `;
   }
