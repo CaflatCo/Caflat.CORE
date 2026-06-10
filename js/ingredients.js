@@ -130,8 +130,8 @@ function renderIngredientsTable() {
       <td>${ingredient.reorderLevel}</td>
       <td>
         <div class="table-actions">
-          <button type="button" class="btn btn-sm" data-action="edit-ingredient" data-id="${ingredient.id}">Edit</button>
-          <button type="button" class="btn btn-sm btn-secondary" data-action="delete-ingredient" data-id="${ingredient.id}">Delete</button>
+          ${!window._staffMode ? `<button type="button" class="btn btn-sm" data-action="edit-ingredient" data-id="${ingredient.id}">Edit</button>` : ''}
+          ${!window._staffMode ? `<button type="button" class="btn btn-sm btn-secondary" data-action="delete-ingredient" data-id="${ingredient.id}">Delete</button>` : ''}
         </div>
       </td>
     `;

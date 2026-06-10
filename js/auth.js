@@ -101,12 +101,77 @@ function showLoginShell() {
   }
 }
 
+
+/* ═══════════════════════════════════════════════════════
+   ROLE-BASED ACCESS CONTROL
+   Called after every login. Hides/shows UI based on role.
+═══════════════════════════════════════════════════════ */
+function applyRoleAccess(role) {
+  const isAdmin = role === 'ADMIN';
+
+  /* ── Helper to show/hide elements by ID or selector ── */
+  const show = id => { const el = typeof id === 'string' && id.startsWith('[')
+    ? document.querySelector(id) : document.getElementById(id);
+    if (el) el.style.display = ''; };
+  const hide = id => { const el = typeof id === 'string' && id.startsWith('[')
+    ? document.querySelector(id) : document.getElementById(id);
+    if (el) el.style.display = 'none'; };
+  const showEl = el => { if (el) el.style.display = ''; };
+  const hideEl = el => { if (el) el.style.display = 'none'; };
+
+  /* ── Nav tabs ── */
+  // Staff sees: POS, Dashboard, Inventory, Sales, Production
+  // Admin sees: everything (mode toggles control Supply/Events/Production)
+  const staffHideNav = ['reports', 'ingredients', 'settings'];
+  document.querySelectorAll('nav [data-view]').forEach(btn => {
+    const view = btn.dataset.view;
+    if (!isAdmin && staffHideNav.includes(view)) {
+      btn.style.display = 'none';
+    } else {
+      // Don't override mode-toggle visibility (navSupply etc) — only reset staff-hidden ones
+      if (staffHideNav.includes(view)) btn.style.display = '';
+    }
+  });
+
+  /* ── Products page ── */
+  // Staff can VIEW products but not add/edit/delete/export/lab
+  ['addProductBtn', 'exportDataBtnProducts', 'loadDemoBtnProducts', 'openLabBtn'].forEach(
+    id => isAdmin ? show(id) : hide(id)
+  );
+  // Edit/Delete buttons in product table — re-render handles this via renderProductsTable
+  // We set a flag that renderProductsTable reads
+  window._staffMode = !isAdmin;
+
+  /* ── Ingredients page ── */
+  // Staff has no access — nav hidden above, but guard the add button too
+  if (!isAdmin) hide('addIngredientBtn');
+  else show('addIngredientBtn');
+
+  /* ── Settings page ── */
+  // Staff can't reach settings (nav hidden), but guard reset button too
+  ['resetDataBtn', 'loadDemoBtn', 'exportDataBtn', 'importDataBtn'].forEach(
+    id => isAdmin ? show(id) : hide(id)
+  );
+
+  /* ── Reports nav already hidden for staff above ── */
+
+  /* ── Supply/Events/Production nav ── */
+  // These are controlled by mode toggles — only additionally restrict for staff
+  // Staff CAN use Production (log batches) but not Supply
+  if (!isAdmin) {
+    const navSupply = document.getElementById('navSupply');
+    if (navSupply && navSupply.style.display !== 'none') navSupply.style.display = 'none';
+  }
+}
+
 function applyAuth(role) {
   showAppShell();
   const roleBadge = document.getElementById('roleBadge');
   if (roleBadge) roleBadge.textContent = String(role || 'STAFF').toUpperCase();
-  if (typeof switchPage   === 'function') switchPage('pos');
+  if (typeof switchPage     === 'function') switchPage('pos');
   if (typeof renderBranding === 'function') renderBranding();
+  // Apply role access after DOM is ready
+  requestAnimationFrame(() => applyRoleAccess(role));
 }
 
 /* ── Login error helpers ── */
@@ -595,6 +660,7 @@ function initializeAuth() {
   bindLoginEvents();
 }
 
+window.applyRoleAccess         = applyRoleAccess;
 window.login                   = login;
 window.logout                  = logout;
 window.applyAuth               = applyAuth;

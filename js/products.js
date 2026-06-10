@@ -178,9 +178,9 @@ function renderProductsTable() {
       <td>${soldOut ? `<span class="badge-sold-out">Sold Out</span>` : lowStock ? `<span class="badge-low-stock">Low Stock</span>` : `<span class="badge-ok">OK</span>`}</td>
       <td>
         <div class="table-actions">
-          <button type="button" class="btn btn-sm" data-action="edit-product" data-id="${product.id}">Edit</button>
-          <button type="button" class="btn btn-sm btn-secondary" data-action="clone-product" data-id="${product.id}">Clone</button>
-          <button type="button" class="btn btn-sm btn-secondary" data-action="delete-product" data-id="${product.id}">Delete</button>
+          ${!window._staffMode ? `<button type="button" class="btn btn-sm" data-action="edit-product" data-id="${product.id}">Edit</button>` : ''}
+          ${!window._staffMode ? `<button type="button" class="btn btn-sm btn-secondary" data-action="clone-product" data-id="${product.id}">Clone</button>` : ''}
+          ${!window._staffMode ? `<button type="button" class="btn btn-sm btn-secondary" data-action="delete-product" data-id="${product.id}">Delete</button>` : ''}
         </div>
       </td>`;
     tableBody.appendChild(row);

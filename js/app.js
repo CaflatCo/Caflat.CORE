@@ -65,6 +65,11 @@ function renderEverything() {
       catch (e) { console.error(`Failed: ${fn}`, e); }
     }
   });
+
+  // Re-apply role access after every full render
+  if (typeof applyRoleAccess === 'function') {
+    applyRoleAccess(APP_STATE.currentUserRole || 'STAFF');
+  }
 }
 
 function bindGlobalEvents() {
