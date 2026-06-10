@@ -520,6 +520,165 @@ function checkBackupReminder() {
   document.body.appendChild(banner);
 }
 
+
+
+/* ── Storage warning banner ── */
+function checkStorageWarning() {
+  const u = getStorageUsage();
+  const existing = document.getElementById('storageWarningBanner');
+
+  if (u.pct < 80) {
+    if (existing) existing.remove();
+    return;
+  }
+
+  if (existing) {
+    const pctEl = existing.querySelector('#storageWarningPct');
+    if (pctEl) pctEl.textContent = u.pct + '%';
+    return;
+  }
+
+  const banner = document.createElement('div');
+  banner.id = 'storageWarningBanner';
+  banner.style.cssText = `
+    position:fixed;top:0;left:0;right:0;z-index:99998;
+    background:${u.pct >= 95 ? '#dc2626' : '#f59e0b'};
+    color:#fff;padding:10px 20px;display:flex;align-items:center;
+    justify-content:space-between;font-size:12px;font-weight:700;
+    gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  `;
+  banner.innerHTML = `
+    <span>
+      ${u.pct >= 95
+        ? '🔴 Storage almost full (' + u.pct + '%) — archive and clear history now to prevent data loss.'
+        : '⚠️ Storage is ' + u.pct + '% full — export a backup soon.'}
+      <span id="storageWarningPct" style="display:none;">${u.pct}</span>
+    </span>
+    <div style="display:flex;gap:8px;flex-shrink:0;">
+      <button onclick="openExportModal()"
+        style="background:rgba(255,255,255,0.25);color:#fff;border:1.5px solid rgba(255,255,255,0.5);
+          padding:5px 12px;border-radius:6px;font-size:11px;font-weight:800;
+          cursor:pointer;font-family:inherit;">
+        Export Backup
+      </button>
+      ${u.pct >= 90 ? `
+      <button onclick="openArchiveConfirmModal()"
+        style="background:#fff;color:#000;border:none;padding:5px 12px;
+          border-radius:6px;font-size:11px;font-weight:800;
+          cursor:pointer;font-family:inherit;">
+        Archive &amp; Clear
+      </button>` : ''}
+      <button onclick="this.closest('#storageWarningBanner').remove()"
+        style="background:transparent;color:rgba(255,255,255,0.8);border:none;
+          font-size:16px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
+    </div>
+  `;
+  document.body.prepend(banner);
+}
+
+/* ═══════════════════════════════════════════════════════
+   ARCHIVE & CLEAR HISTORY
+   Exports full backup first, then wipes only the
+   three arrays that cause storage bloat.
+   Products, ingredients, settings — all preserved.
+═══════════════════════════════════════════════════════ */
+function openArchiveConfirmModal() {
+  const existing = document.getElementById('archiveConfirmModal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'archiveConfirmModal';
+  overlay.className = 'modal-overlay';
+  overlay.style.zIndex = '100000';
+
+  const u = getStorageUsage();
+
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:420px;">
+      <h3>Archive &amp; Clear History</h3>
+      <p style="font-size:13px;color:var(--gray-500);margin:14px 0;line-height:1.6;">
+        Your storage is <strong>${u.pct}% full</strong> (${u.usedMB} MB of ${u.limitMB} MB).
+      </p>
+      <div style="background:var(--gray-50);border:1.5px solid var(--gray-200);
+        border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:12px;line-height:1.7;">
+        <div style="font-weight:800;margin-bottom:6px;">This will:</div>
+        <div>✅ Export a full backup file automatically</div>
+        <div>✅ Clear ${u.salesCount} sales records</div>
+        <div>✅ Clear ${u.auditCount} audit log entries</div>
+        <div>✅ Clear ${u.movementCount} stock movement records</div>
+        <div style="margin-top:6px;">🔒 Keep all products, ingredients, settings, and configuration</div>
+      </div>
+      <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;
+        padding:12px 16px;margin-bottom:20px;font-size:12px;color:#dc2626;font-weight:600;">
+        Save the exported backup file. Once cleared, old history cannot be recovered without it.
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button"
+          onclick="document.getElementById('archiveConfirmModal').remove()">
+          Cancel
+        </button>
+        <button class="btn" type="button"
+          onclick="archiveAndClearHistory();document.getElementById('archiveConfirmModal').remove();">
+          Export &amp; Clear History
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  overlay.classList.add('active');
+}
+
+function archiveAndClearHistory() {
+  // Step 1: Always export a full backup first
+  const date     = new Date().toISOString().slice(0, 10);
+  const filename = `caflat-archive-${date}.json`;
+  const data = {
+    exportedAt:           new Date().toISOString(),
+    version:              'v1B',
+    archiveNote:          'Auto-archived before history clear',
+    settings:             APP_STATE.settings,
+    receiptCounter:       APP_STATE.receiptCounter,
+    products:             APP_STATE.products,
+    ingredients:          APP_STATE.ingredients,
+    sales:                APP_STATE.sales,
+    categories:           APP_STATE.categories,
+    heldOrders:           APP_STATE.heldOrders,
+    inventoryMovements:   APP_STATE.inventoryMovements,
+    auditLog:             APP_STATE.auditLog,
+    supplyOrders:         APP_STATE.supplyOrders,
+    supplierClients:      APP_STATE.supplierClients,
+    supplyInvoiceCounter: APP_STATE.supplyInvoiceCounter,
+    stockReservations:    APP_STATE.stockReservations,
+    events:               APP_STATE.events,
+    activeEvent:          APP_STATE.activeEvent,
+    eventPackages:        APP_STATE.eventPackages,
+    leads:                APP_STATE.leads,
+    labDrafts:            APP_STATE.labDrafts,
+    labCategoryPresets:   APP_STATE.labCategoryPresets,
+    productionJobs:       APP_STATE.productionJobs,
+    laborPeople:          APP_STATE.laborPeople
+  };
+
+  downloadTextFile(filename, JSON.stringify(data, null, 2));
+  localStorage.setItem(BACKUP_REMINDER_KEY, Date.now().toString());
+
+  // Step 2: Clear only history arrays — keep everything else
+  APP_STATE.sales              = [];
+  APP_STATE.auditLog           = [];
+  APP_STATE.inventoryMovements = [];
+  APP_STATE.receiptCounter     = 0;
+
+  // Step 3: Persist and re-render
+  persistState();
+  if (typeof renderEverything === 'function') renderEverything();
+
+  showNotification(
+    'Archive exported and history cleared. Products and settings unchanged.',
+    'success'
+  );
+}
+
 window.getPersistedState    = getPersistedState;
 window.persistState         = persistState;
 window.restorePersistedState= restorePersistedState;
@@ -532,3 +691,6 @@ window.renderStorageUsage    = renderStorageUsage;
 window.exportAndEmail         = exportAndEmail;
 window.openExportModal        = openExportModal;
 window.checkBackupReminder    = checkBackupReminder;
+window.checkStorageWarning     = checkStorageWarning;
+window.openArchiveConfirmModal = openArchiveConfirmModal;
+window.archiveAndClearHistory  = archiveAndClearHistory;
