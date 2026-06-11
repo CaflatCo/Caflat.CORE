@@ -487,14 +487,21 @@ async function completeSale(forceStatus = 'COMPLETED') {
     return;
   }
 
-  // Stock validation
+  // Stock validation — FG products check finishedGoods available, direct check product.stock
   for (const product of getProducts()) {
     const requiredUnits = cart.reduce((sum, line) => {
       if (String(line.productId) !== String(product.id)) return sum;
       return sum + Number(line.quantity || 0) * Number(line.multiplier || 1);
     }, 0);
-    if (requiredUnits > Number(product.stock || 0)) {
-      showNotification(`${product.name}: insufficient stock`, 'error');
+    if (!requiredUnits) continue;
+
+    const isFG = typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product);
+    const available = isFG && typeof getFGAvailable === 'function'
+      ? getFGAvailable(product.id)
+      : Number(product.stock || 0);
+
+    if (requiredUnits > available) {
+      showNotification(`${product.name}: insufficient ${isFG ? 'finished goods ' : ''}stock`, 'error');
       return;
     }
   }
@@ -801,6 +808,23 @@ async function completePendingSale(saleId) {
       outcome: 'SUCCESS',
       note: `Pending order completed · ${sale.payment?.method || 'cash'} · ${formatCurrency(sale.totals?.total ?? sale.total ?? 0)}`
     });
+  }
+
+  // Deduct inventory now that pending sale is completed
+  // (inventory was NOT deducted when the sale was first created as pending)
+  const saleCart = sale.items || [];
+  if (saleCart.length) {
+    const fgItems     = saleCart.filter(line => {
+      const prod = (APP_STATE.products||[]).find(p=>String(p.id)===String(line.productId));
+      return typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(prod);
+    });
+    const directItems = saleCart.filter(line => {
+      const prod = (APP_STATE.products||[]).find(p=>String(p.id)===String(line.productId));
+      return !(typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(prod));
+    });
+    if (typeof deductProductStockForCart === 'function') deductProductStockForCart(saleCart);
+    if (directItems.length && typeof deductInventoryForCart === 'function') deductInventoryForCart(directItems);
+    if (fgItems.length && typeof deductFGForCart === 'function') deductFGForCart(fgItems);
   }
 
   renderSalesTable();

@@ -382,6 +382,10 @@ function saveProductionJob() {
   if (existing>=0) jobs[existing] = _editingJob;
   else jobs.push(_editingJob);
 
+  // Soft-reserve ingredients for all PLANNED product lines
+  // This lets the inventory view show Available = Stock - Reserved
+  _syncProductionIngredientReservations();
+
   updateState('productionJobs',()=>jobs);
   closeModal('productionJobModal');
   _editingJob = null;
@@ -969,6 +973,43 @@ function renderProductionView() {
 }
 
 /* ── Exports ── */
+/* ── Ingredient reservation sync ── */
+function _syncProductionIngredientReservations() {
+  // Recalculate all ingredient reservations from active production jobs
+  // Active = PLANNED or IN_PROGRESS (not DONE/PACKED/CANCELLED)
+  const activeJobs = getProductionJobs().filter(j =>
+    ['PLANNED','IN_PROGRESS'].includes(j.status));
+
+  const reserveMap = new Map(); // ingredientId → totalReserved
+
+  activeJobs.forEach(job => {
+    (job.products || []).filter(l => !['DONE','PACKED','CANCELLED'].includes(l.status))
+    .forEach(line => {
+      const product = (APP_STATE.products || []).find(p => p.id === line.productId);
+      if (!product || !Array.isArray(product.recipe)) return;
+      // Skip FG mode — ingredients deduct at DONE, not reserved here
+      if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) return;
+      const batchYield = Math.max(1, Number(product.batchYield || 1));
+      const mode       = String(product.recipeMode || 'unit');
+      product.recipe.forEach(ri => {
+        const perUnit = mode === 'batch'
+          ? Number(ri.quantity||0) / batchYield
+          : Number(ri.quantity||0);
+        const total = perUnit * Number(line.targetQty || 0);
+        reserveMap.set(ri.ingredientId, (reserveMap.get(ri.ingredientId) || 0) + total);
+      });
+    });
+  });
+
+  // Write to stockReservations — production reservations keyed by type
+  const existing = (APP_STATE.stockReservations || []).filter(r => r.type !== 'production');
+  reserveMap.forEach((qty, ingredientId) => {
+    existing.push({ type: 'production', ingredientId, qty });
+  });
+  updateState('stockReservations', () => existing);
+}
+window._syncProductionIngredientReservations = _syncProductionIngredientReservations;
+
 window.getLaborPeople              = getLaborPeople;
 window.openLaborPersonModal        = openLaborPersonModal;
 window.saveLaborPersonFromForm     = saveLaborPersonFromForm;

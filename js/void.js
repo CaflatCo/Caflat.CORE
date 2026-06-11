@@ -178,9 +178,16 @@ function restoreProductStockForSale(sale) {
 function restoreIngredientStockForSale(sale) {
   const ingredientReturns = new Map();
 
+  let hasFGItems = false;
   (sale.items || []).forEach(line => {
     const product = (APP_STATE.products || []).find(p => String(p.id) === String(line.productId));
     if (!product || !Array.isArray(product.recipe)) return;
+
+    // FG-mode products: restore finished goods stock, not ingredients
+    if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+      hasFGItems = true;
+      return; // Ingredients were consumed at production — don't restore them on void
+    }
 
     const batchYield  = Math.max(1, Number(product.batchYield || 1));
     const recipeMode  = String(product.recipeMode || 'unit');
@@ -194,6 +201,17 @@ function restoreIngredientStockForSale(sale) {
       ingredientReturns.set(key, (ingredientReturns.get(key) || 0) + restoreQty);
     });
   });
+
+  // Restore FG stock for finished goods products
+  if (hasFGItems && typeof _setFGRecord === 'function') {
+    (sale.items || []).forEach(line => {
+      const product = (APP_STATE.products || []).find(p => String(p.id) === String(line.productId));
+      if (!product || !(typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product))) return;
+      const units = Number(line.quantity || 0) * Number(line.multiplier || 1);
+      _setFGRecord(product.id, product.name, units, 0,
+        `Void restored: ${sale.receiptNumber}`, 'void-restore');
+    });
+  }
 
   if (!ingredientReturns.size) return;
 

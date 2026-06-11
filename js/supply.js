@@ -590,9 +590,8 @@ function _deductSupplyStock(order) {
     const product = (APP_STATE.products || []).find(p => String(p.id) === String(line.productId));
     if (!product || !Array.isArray(product.recipe)) return;
     // Skip FG-mode products — their ingredients were consumed at production, not supply
+    // FG deduction handled separately below after the loop (not per-line to avoid duplicate calls)
     if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
-      // Instead deduct from finished goods stock
-      if (typeof deductFGForSupply === 'function') deductFGForSupply(order);
       return;
     }
     const batchYield = Math.max(1, Number(product.batchYield || 1));
@@ -614,6 +613,13 @@ function _deductSupplyStock(order) {
     });
     updateState('ingredients', () => updatedIngredients);
   }
+
+  // Deduct from Finished Goods stock for FG-mode products (once per order, not per line)
+  const hasFGItems = (order.items || []).some(item => {
+    const prod = (APP_STATE.products || []).find(p => String(p.id) === String(item.productId));
+    return typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(prod);
+  });
+  if (hasFGItems && typeof deductFGForSupply === 'function') deductFGForSupply(order);
 
   // Release reservation now that stock is hard-deducted
   if (order.stockDeducted) { _restoreSupplyStock(order); order.stockDeducted = false; }
@@ -662,15 +668,22 @@ function _checkSupplyStockAvailability(order) {
     const product = (APP_STATE.products || []).find(p => String(p.id) === String(item.productId));
     if (!product) return;
 
-    // Total reserved by OTHER orders (not this one)
-    const alreadyReserved = reservations
-      .filter(r => String(r.productId) === String(item.productId) &&
-                   String(r.orderId) !== String(order.id))
-      .reduce((s, r) => s + Number(r.qty || 0), 0);
+    let available;
+    if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+      // FG products — check finished goods available stock
+      available = typeof getFGAvailable === 'function'
+        ? getFGAvailable(product.id)
+        : Number(product.stock || 0);
+    } else {
+      // Direct products — check ingredient-backed product stock minus reservations
+      const alreadyReserved = reservations
+        .filter(r => String(r.productId) === String(item.productId) &&
+                     String(r.orderId) !== String(order.id))
+        .reduce((s, r) => s + Number(r.qty || 0), 0);
+      available = Number(product.stock || 0) - alreadyReserved;
+    }
 
-    const available = Number(product.stock || 0) - alreadyReserved;
     const requested = Number(item.qty || 0);
-
     if (requested > available) {
       errors.push(`${product.name}: need ${requested}, only ${available} available`);
     }

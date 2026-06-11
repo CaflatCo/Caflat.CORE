@@ -38,7 +38,7 @@ const APP_STATE = {
   labDrafts: [],                // Product Lab draft analyses
   labCategoryPresets: [],
   finishedGoods: [],            // { productId, productName, stock, reserved }
-  fgMovements: [],              // Finished goods movement log       // Product Lab category presets
+  fgMovements: [],              // Finished goods movement log
   productionJobs: [],           // Production Mode jobs
   laborPeople: [],              // Labor roster (survives reset)
   categories: [

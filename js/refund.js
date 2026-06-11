@@ -130,6 +130,17 @@ function _refundRestoreIngredientStock(sale) {
   (sale.items || []).forEach(line => {
     const product = (APP_STATE.products || []).find(p => String(p.id) === String(line.productId));
     if (!product || !Array.isArray(product.recipe)) return;
+
+    // FG-mode products: restore finished goods stock, not ingredients
+    if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+      const units = Number(line.quantity || 0) * Number(line.multiplier || 1);
+      if (typeof _setFGRecord === 'function') {
+        _setFGRecord(product.id, product.name, units, 0,
+          `Refund restored: ${sale.receiptNumber}`, 'refund-restore');
+      }
+      return; // Ingredients consumed at production — don't restore on refund
+    }
+
     const batchYield = Math.max(1, Number(product.batchYield || 1));
     const recipeMode = String(product.recipeMode || 'unit');
     const lineUnits  = Number(line.quantity || 0) * Number(line.multiplier || 1);
