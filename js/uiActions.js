@@ -27,7 +27,9 @@ function bindPrimaryButtons() {
     ['saveProductBtn',    () => saveProduct()],
     ['saveIngredientBtn', () => saveIngredient()],
     ['saveSettingsBtn',   () => saveSettings()],
-    ['resetDataBtn',      () => openModal('resetDataModal')],
+    ['saveFeaturesBtn',   () => saveFeatureSettings()],
+    ['factoryResetBtn',   () => factoryReset()],
+    ['resetDataBtn',      () => archiveAndReset()],
     ['logoutBtn',         () => logout()],
     ['loadDemoBtn',       () => loadDemoData()],
     ['loadDemoBtnProducts', () => loadDemoData()],
@@ -533,6 +535,8 @@ function bindDelegatedActions() {
       case 'save-client':            saveSupplierClient(); break;
       case 'delete-category':       deleteCategory(actionEl.dataset.id || ''); break;
       case 'toggle-category-mode':   toggleCategoryMode(actionEl.dataset.id || ''); break;
+      case 'open-change-pin':        if(typeof openChangePinModal==='function') openChangePinModal(); break;
+      case 'save-new-pin':           if(typeof saveNewPin==='function') saveNewPin(); break;
       // Finished Goods
       case 'open-fg-adjustment':     if(typeof openFGAdjustmentModal==='function') openFGAdjustmentModal(actionEl.dataset.id||''); break;
       case 'save-fg-adjustment':     if(typeof saveFGAdjustment==='function') saveFGAdjustment(); break;

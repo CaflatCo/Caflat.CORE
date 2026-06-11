@@ -138,54 +138,107 @@ function renderCategoryOptions() {
 }
 
 /* ── Settings ── */
+
+// Save business profile (brand name, tax rate, receipt footer)
 function saveSettings() {
-  const brandName    = sanitizeText(getElementValue('settingsBrandName'));
-  const taxRate      = safeNumber(getElementValue('settingsTaxRate'));
+  const brandName     = sanitizeText(getElementValue('settingsBrandName'));
+  const taxRate       = safeNumber(getElementValue('settingsTaxRate'));
   const receiptFooter = sanitizeText(getElementValue('settingsReceiptFooter'));
-
-  const voidPin = String(getElementValue('settingsVoidPin') || '').trim();
-  if (voidPin && (voidPin.length !== 6 || !/^\d{6}$/.test(voidPin))) {
-    showNotification('Void PIN must be exactly 6 digits', 'error');
-    return;
-  }
-
-  const supplierModeEnabled   = document.getElementById('settingsSupplierMode')?.checked   === true;
-  const coffeeCartModeEnabled  = document.getElementById('settingsCoffeeCartMode')?.checked  === true;
-  const productionModeEnabled  = document.getElementById('settingsProductionMode')?.checked  === true;
 
   updateState('settings', current => ({
     ...current,
     brandName: brandName || current.brandName,
     taxRate,
-    receiptFooter,
-    supplierModeEnabled,
-    coffeeCartModeEnabled,
-    productionModeEnabled,
-    ...(voidPin ? { voidPin } : {})
+    receiptFooter
   }));
 
   renderBranding();
-  if (typeof applySupplierModeToggle    === 'function') applySupplierModeToggle();
-  if (typeof applySupplierCartButton   === 'function') applySupplierCartButton();
-  if (typeof applyCoffeeCartModeToggle  === 'function') applyCoffeeCartModeToggle();
-  if (typeof applyProductionModeToggle  === 'function') applyProductionModeToggle();
   showNotification('Settings saved', 'success');
+}
+
+// Save feature toggles separately
+function saveFeatureSettings() {
+  const supplierModeEnabled  = document.getElementById('settingsSupplierMode')?.checked  === true;
+  const coffeeCartModeEnabled= document.getElementById('settingsCoffeeCartMode')?.checked === true;
+  const productionModeEnabled= document.getElementById('settingsProductionMode')?.checked === true;
+
+  updateState('settings', current => ({
+    ...current,
+    supplierModeEnabled,
+    coffeeCartModeEnabled,
+    productionModeEnabled
+  }));
+
+  if (typeof applySupplierModeToggle   === 'function') applySupplierModeToggle();
+  if (typeof applySupplierCartButton   === 'function') applySupplierCartButton();
+  if (typeof applyCoffeeCartModeToggle === 'function') applyCoffeeCartModeToggle();
+  if (typeof applyProductionModeToggle === 'function') applyProductionModeToggle();
+  showNotification('Features saved', 'success');
+}
+
+// Change PIN via modal
+function openChangePinModal() {
+  setElementValue('newPinInput',     '');
+  setElementValue('confirmPinInput', '');
+  openModal('changePinModal');
+}
+
+function saveNewPin() {
+  const pin1 = String(getElementValue('newPinInput')     || '').trim();
+  const pin2 = String(getElementValue('confirmPinInput') || '').trim();
+
+  if (!pin1 || pin1.length !== 6 || !/^\d{6}$/.test(pin1)) {
+    showNotification('PIN must be exactly 6 digits', 'error'); return;
+  }
+  if (pin1 !== pin2) {
+    showNotification('PINs do not match', 'error'); return;
+  }
+
+  updateState('settings', current => ({ ...current, voidPin: pin1 }));
+  closeModal('changePinModal');
+  showNotification('PIN updated', 'success');
+}
+
+// Archive & Reset — export backup first then reset
+function archiveAndReset() {
+  if (!confirm('This will export a backup and then wipe all business data. Settings and categories will be kept. Continue?')) return;
+  // Export first
+  if (typeof exportAllData === 'function') exportAllData();
+  // Then reset after short delay to let download trigger
+  setTimeout(() => {
+    if (typeof resetBusinessData === 'function') resetBusinessData();
+    showNotification('Data archived and reset', 'success');
+    if (typeof renderEverything === 'function') renderEverything();
+  }, 800);
+}
+
+// Factory Reset — wipe everything
+function factoryReset() {
+  if (!confirm('Factory reset will wipe ALL data including settings. This cannot be undone. Are you sure?')) return;
+  if (!confirm('Final confirmation — delete everything?')) return;
+  localStorage.clear();
+  window.location.reload();
 }
 
 function renderBranding() {
   const brandName = APP_STATE.settings?.brandName || 'Caflat.Co POS';
   document.querySelectorAll('[data-brand-name]').forEach(el => { el.textContent = brandName; });
+
   const brandInput = document.getElementById('settingsBrandName');
   if (brandInput) brandInput.value = brandName;
+
   const taxInput = document.getElementById('settingsTaxRate');
   if (taxInput) taxInput.value = APP_STATE.settings?.taxRate ?? 0;
+
   const footerInput = document.getElementById('settingsReceiptFooter');
   if (footerInput) footerInput.value = APP_STATE.settings?.receiptFooter || '';
 
-  // Void PIN — show placeholder only, never expose stored value
-  const voidPinInput = document.getElementById('settingsVoidPin');
-  if (voidPinInput) voidPinInput.value = '';
-  voidPinInput && voidPinInput.setAttribute('placeholder', '••••••  (enter new PIN to change)');
+  // PIN status — show dots, never expose stored value
+  const pinDots = document.getElementById('pinStatusDots');
+  if (pinDots) {
+    pinDots.textContent = APP_STATE.settings?.voidPin ? '● ● ● ● ● ●' : '○ ○ ○ ○ ○ ○';
+    pinDots.style.color = APP_STATE.settings?.voidPin ? 'var(--black)' : 'var(--gray-300)';
+  }
 
   const supplierToggle = document.getElementById('settingsSupplierMode');
   if (supplierToggle) supplierToggle.checked = APP_STATE.settings?.supplierModeEnabled === true;
@@ -267,12 +320,21 @@ function loadDemoData() {
   showNotification('Demo data loaded', 'success');
 }
 
-window.getCategories       = getCategories;
-window.setCategories       = setCategories;
-window.addCategory         = addCategory;
-window.deleteCategory      = deleteCategory;
-window.renderCategories    = renderCategories;
+window.getCategories         = getCategories;
+window.getCategoryByName     = getCategoryByName;
+window.getCategoryMode       = getCategoryMode;
+window.isFinishedGoodsProduct= isFinishedGoodsProduct;
+window.setCategories         = setCategories;
+window.addCategory           = addCategory;
+window.deleteCategory        = deleteCategory;
+window.toggleCategoryMode    = toggleCategoryMode;
+window.renderCategories      = renderCategories;
 window.renderCategoryOptions = renderCategoryOptions;
-window.saveSettings        = saveSettings;
-window.renderBranding      = renderBranding;
-window.loadDemoData        = loadDemoData;
+window.saveSettings          = saveSettings;
+window.saveFeatureSettings   = saveFeatureSettings;
+window.openChangePinModal    = openChangePinModal;
+window.saveNewPin            = saveNewPin;
+window.archiveAndReset       = archiveAndReset;
+window.factoryReset          = factoryReset;
+window.renderBranding        = renderBranding;
+window.loadDemoData          = loadDemoData;
