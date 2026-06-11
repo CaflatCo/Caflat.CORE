@@ -1373,12 +1373,13 @@
             <div id="categoryList" style="margin-bottom:10px;"></div>
             <div style="display:flex;gap:8px;align-items:center;">
               <input id="newCategoryInput" placeholder="New category name" type="text"
-                style="flex:1;" />
+                style="flex:1;max-width:280px;" />
               <select id="newCategoryMode"
                 style="padding:7px 10px;border:1px solid var(--gray-200);
-                  border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);">
-                <option value="direct">⚡ Direct</option>
-                <option value="finished_goods">📦 Finished Goods</option>
+                  border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);
+                  width:160px;">
+                <option value="direct">Direct</option>
+                <option value="finished_goods">Finished Goods</option>
               </select>
               <button class="btn btn-secondary" id="addCategoryBtn" type="button">Add</button>
             </div>
