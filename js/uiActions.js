@@ -393,6 +393,14 @@ function bindPOSSearch() {
 }
 
 function bindDelegatedActions() {
+  // Handle checkbox change events (category mode toggles)
+  document.addEventListener('change', event => {
+    const t = event.target;
+    if (t.dataset && t.dataset.action === 'toggle-category-mode' && t.dataset.id) {
+      if (typeof toggleCategoryMode === 'function') toggleCategoryMode(t.dataset.id);
+    }
+  });
+
   document.addEventListener('click', event => {
     const actionEl = event.target.closest('[data-action]');
     if (!actionEl) return;

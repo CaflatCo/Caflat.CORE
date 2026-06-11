@@ -67,48 +67,63 @@ function renderCategories() {
   const container = document.getElementById('categoryList');
   if (!container) return;
   container.innerHTML = '';
-  getCategories().forEach(cat => {
-    const isFG = cat.inventoryMode === 'finished_goods';
-    const item = document.createElement('div');
-    item.style.cssText =
-      'display:flex;align-items:center;justify-content:space-between;' +
-      'padding:10px 14px;border-bottom:1px solid var(--gray-100);gap:12px;';
-    item.innerHTML =
-      // Name + mode pill
-      '<div style="display:flex;align-items:center;gap:10px;flex:1;">' +
-        '<span style="font-size:13px;font-weight:700;">' + escapeHtml(cat.name) + '</span>' +
-        '<span style="font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 8px;' +
-          'border-radius:999px;border:1px solid ' + (isFG ? '#2563eb40' : 'var(--gray-200)') + ';' +
-          'color:' + (isFG ? '#2563eb' : 'var(--gray-400)') + ';' +
-          'background:' + (isFG ? '#2563eb10' : 'transparent') + ';">' +
-          (isFG ? 'FINISHED GOODS' : 'DIRECT') +
-        '</span>' +
-      '</div>' +
-      // Actions — minimal icon-style
-      '<div style="display:flex;gap:4px;align-items:center;">' +
-        '<button type="button" ' +
-          'data-action="toggle-category-mode" data-id="' + cat.id + '" ' +
-          'title="' + (isFG ? 'Switch to Direct' : 'Switch to Finished Goods') + '" ' +
-          'style="font-size:10px;color:var(--gray-400);background:none;border:none;' +
-            'cursor:pointer;padding:4px 8px;border-radius:var(--radius-md);' +
-            'font-family:var(--font-main);white-space:nowrap;">' +
-          (isFG ? '→ Direct' : '→ FG') +
-        '</button>' +
-        '<button type="button" ' +
-          'data-action="delete-category" data-id="' + cat.id + '" ' +
-          'title="Delete category" ' +
-          'style="font-size:11px;color:var(--gray-300);background:none;border:none;' +
-            'cursor:pointer;padding:4px 6px;font-family:var(--font-main);">✕</button>' +
-      '</div>';
-    container.appendChild(item);
-  });
+  container.style.cssText = 'margin-bottom:10px;';
 
-  // Wrap in a light bordered box
-  if (container.children.length) {
-    container.style.cssText =
-      'border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);' +
-      'overflow:hidden;margin-bottom:12px;';
+  const cats = getCategories();
+  if (!cats.length) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--gray-400);padding:8px 0;">No categories yet</div>';
+    return;
   }
+
+  cats.forEach(cat => {
+    const isFG  = cat.inventoryMode === 'finished_goods';
+    const card  = document.createElement('div');
+    card.style.cssText =
+      'border:1.5px solid var(--gray-200);border-radius:12px;padding:14px 16px;' +
+      'margin-bottom:8px;background:var(--white);';
+
+    // Top row: name + delete
+    const topRow = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
+      '<span style="font-size:14px;font-weight:800;">' + escapeHtml(cat.name) + '</span>' +
+      '<button type="button" data-action="delete-category" data-id="' + cat.id + '" ' +
+        'style="background:none;border:none;cursor:pointer;font-size:14px;' +
+          'color:var(--gray-300);padding:2px 4px;font-family:var(--font-main);" ' +
+        'title="Delete">✕</button>' +
+    '</div>';
+
+    // Toggle row: label + description + toggle switch
+    const toggleRow =
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+        '<div>' +
+          '<div style="font-size:12px;font-weight:700;">' +
+            (isFG ? 'Finished Goods' : 'Direct') +
+          '</div>' +
+          '<div style="font-size:11px;color:var(--gray-400);margin-top:1px;">' +
+            (isFG
+              ? 'Sells from produced stock — ingredients deduct at production'
+              : 'Ingredients deduct at sale — no production step required') +
+          '</div>' +
+        '</div>' +
+        // Toggle switch — clicking it calls toggleCategoryMode
+        '<label style="position:relative;display:inline-block;width:44px;height:24px;' +
+          'flex-shrink:0;cursor:pointer;">' +
+          '<input type="checkbox" ' +
+            (isFG ? 'checked' : '') + ' ' +
+            'data-action="toggle-category-mode" data-id="' + cat.id + '" ' +
+            'style="opacity:0;width:0;height:0;position:absolute;" />' +
+          '<div style="position:absolute;top:0;left:0;right:0;bottom:0;' +
+            'background:' + (isFG ? 'var(--black)' : 'var(--gray-200)') + ';' +
+            'border-radius:999px;transition:background .2s;"></div>' +
+          '<div style="position:absolute;top:3px;' +
+            'left:' + (isFG ? '23px' : '3px') + ';' +
+            'width:18px;height:18px;background:white;border-radius:50%;' +
+            'transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>' +
+        '</label>' +
+      '</div>';
+
+    card.innerHTML = topRow + toggleRow;
+    container.appendChild(card);
+  });
 }
 
 function renderCategoryOptions() {
