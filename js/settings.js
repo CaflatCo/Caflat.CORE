@@ -145,7 +145,7 @@ function renderCategoryOptions() {
     categories.forEach(cat => {
       const opt = document.createElement('option');
       opt.value = cat.name; opt.textContent = cat.name +
-        (cat.inventoryMode === 'finished_goods' ? ' 📦' : '');
+        (cat.inventoryMode === 'finished_goods' ? ' ·  FG' : '');
       if (current === cat.name) opt.selected = true;
       select.appendChild(opt);
     });
