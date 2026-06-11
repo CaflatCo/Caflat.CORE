@@ -2,8 +2,22 @@
    SETTINGS.JS — Categories, branding, settings, demo data
 ═══════════════════════════════════════════════════════ */
 
+/* ── Category helpers ── */
 function getCategories() {
   return Array.isArray(APP_STATE.categories) ? APP_STATE.categories : [];
+}
+
+function getCategoryByName(name) {
+  return getCategories().find(c => c.name === name) || null;
+}
+
+function getCategoryMode(productCategoryName) {
+  const cat = getCategoryByName(productCategoryName);
+  return cat?.inventoryMode || 'direct';
+}
+
+function isFinishedGoodsProduct(product) {
+  return getCategoryMode(product?.category) === 'finished_goods';
 }
 
 function setCategories(categories) {
@@ -15,23 +29,38 @@ function setCategories(categories) {
 
 function addCategory() {
   const input = document.getElementById('newCategoryInput');
+  const mode  = document.getElementById('newCategoryMode')?.value || 'direct';
   if (!input) return;
   const value = sanitizeText(input.value);
   if (!value) { showNotification('Category name is required', 'error'); return; }
   const categories = getCategories();
-  if (categories.some(c => c.toLowerCase() === value.toLowerCase())) {
+  if (categories.some(c => c.name.toLowerCase() === value.toLowerCase())) {
     showNotification('Category already exists', 'error'); return;
   }
-  categories.push(value);
+  categories.push({
+    id: 'cat-' + Date.now(),
+    name: value,
+    inventoryMode: mode
+  });
   setCategories(categories);
   input.value = '';
   showNotification('Category added', 'success');
 }
 
-function deleteCategory(categoryName) {
-  if (!confirm(`Delete "${categoryName}"?`)) return;
-  setCategories(getCategories().filter(c => c !== categoryName));
+function deleteCategory(categoryId) {
+  const cat = getCategories().find(c => c.id === categoryId);
+  if (!cat) return;
+  if (!confirm('Delete "' + cat.name + '"?')) return;
+  setCategories(getCategories().filter(c => c.id !== categoryId));
   showNotification('Category deleted', 'success');
+}
+
+function toggleCategoryMode(categoryId) {
+  const cats = getCategories();
+  const cat  = cats.find(c => c.id === categoryId);
+  if (!cat) return;
+  cat.inventoryMode = cat.inventoryMode === 'finished_goods' ? 'direct' : 'finished_goods';
+  setCategories(cats);
 }
 
 function renderCategories() {
@@ -39,11 +68,27 @@ function renderCategories() {
   if (!container) return;
   container.innerHTML = '';
   getCategories().forEach(cat => {
-    const item = document.createElement('div');
+    const isFG   = cat.inventoryMode === 'finished_goods';
+    const item   = document.createElement('div');
     item.className = 'category-chip';
-    item.innerHTML = `
-      <span>${escapeHtml(cat)}</span>
-      <button type="button" data-action="delete-category" data-category="${escapeHtml(cat)}" title="Delete">×</button>`;
+    item.style.cssText = 'display:flex;align-items:center;justify-content:space-between;' +
+      'padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);' +
+      'margin-bottom:6px;background:var(--white);gap:10px;';
+    item.innerHTML =
+      '<div style="flex:1;">' +
+        '<div style="font-weight:700;font-size:13px;">' + escapeHtml(cat.name) + '</div>' +
+        '<div style="font-size:10px;color:' + (isFG ? '#2563eb' : 'var(--gray-400)') + ';margin-top:1px;">' +
+          (isFG ? '📦 Finished Goods — sells from produced stock' : '⚡ Direct — ingredients deduct at sale') +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;align-items:center;">' +
+        '<button type="button" class="btn btn-sm btn-secondary" ' +
+          'data-action="toggle-category-mode" data-id="' + cat.id + '">' +
+          (isFG ? 'Switch to Direct' : 'Switch to FG') +
+        '</button>' +
+        '<button type="button" class="btn btn-sm btn-secondary" ' +
+          'data-action="delete-category" data-id="' + cat.id + '">Delete</button>' +
+      '</div>';
     container.appendChild(item);
   });
 }
@@ -66,8 +111,9 @@ function renderCategoryOptions() {
     }
     categories.forEach(cat => {
       const opt = document.createElement('option');
-      opt.value = cat; opt.textContent = cat;
-      if (current === cat) opt.selected = true;
+      opt.value = cat.name; opt.textContent = cat.name +
+        (cat.inventoryMode === 'finished_goods' ? ' 📦' : '');
+      if (current === cat.name) opt.selected = true;
       select.appendChild(opt);
     });
   });
@@ -89,9 +135,6 @@ function saveSettings() {
   const coffeeCartModeEnabled  = document.getElementById('settingsCoffeeCartMode')?.checked  === true;
   const productionModeEnabled  = document.getElementById('settingsProductionMode')?.checked  === true;
 
-  const backupEmail    = sanitizeText(getElementValue('settingsBackupEmail')).toLowerCase();
-  const receiptBaseUrl = sanitizeText(getElementValue('settingsReceiptBaseUrl')).replace(/\/+$/, '');
-
   updateState('settings', current => ({
     ...current,
     brandName: brandName || current.brandName,
@@ -100,8 +143,6 @@ function saveSettings() {
     supplierModeEnabled,
     coffeeCartModeEnabled,
     productionModeEnabled,
-    backupEmail:    backupEmail    || current.backupEmail    || '',
-    receiptBaseUrl: receiptBaseUrl !== undefined ? receiptBaseUrl : (current.receiptBaseUrl || ''),
     ...(voidPin ? { voidPin } : {})
   }));
 
@@ -122,12 +163,6 @@ function renderBranding() {
   if (taxInput) taxInput.value = APP_STATE.settings?.taxRate ?? 0;
   const footerInput = document.getElementById('settingsReceiptFooter');
   if (footerInput) footerInput.value = APP_STATE.settings?.receiptFooter || '';
-
-  const backupEmailInput = document.getElementById('settingsBackupEmail');
-  if (backupEmailInput) backupEmailInput.value = APP_STATE.settings?.backupEmail || '';
-
-  const receiptBaseUrlInput = document.getElementById('settingsReceiptBaseUrl');
-  if (receiptBaseUrlInput) receiptBaseUrlInput.value = APP_STATE.settings?.receiptBaseUrl || '';
 
   // Void PIN — show placeholder only, never expose stored value
   const voidPinInput = document.getElementById('settingsVoidPin');
@@ -206,7 +241,7 @@ function loadDemoData() {
     }
   ];
 
-  if (!APP_STATE.categories.includes('Drinks')) APP_STATE.categories.push('Drinks');
+  if (!APP_STATE.categories.some(c => c.name === 'Drinks')) APP_STATE.categories.push({ id: 'cat-drinks', name: 'Drinks', inventoryMode: 'direct' });
 
   APP_STATE.sales = [];
   persistState();

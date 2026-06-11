@@ -517,7 +517,18 @@ async function completeSale(forceStatus = 'COMPLETED') {
 
   pushSale(transaction);
   deductProductStockForCart(cart);
-  deductInventoryForCart(cart);
+
+  // Split cart by inventory mode — FG products deduct from finishedGoods, direct from ingredients
+  const fgItems     = cart.filter(line => {
+    const prod = (APP_STATE.products||[]).find(p=>String(p.id)===String(line.productId));
+    return typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(prod);
+  });
+  const directItems = cart.filter(line => {
+    const prod = (APP_STATE.products||[]).find(p=>String(p.id)===String(line.productId));
+    return !(typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(prod));
+  });
+  if (directItems.length) deductInventoryForCart(directItems);
+  if (fgItems.length && typeof deductFGForCart==='function') deductFGForCart(fgItems);
 
   // Audit trail entry for this sale
   if (typeof pushAuditEntry === 'function') {
@@ -597,49 +608,14 @@ function renderReceipt(transaction) {
 }
 
 function _buildQRText(transaction) {
-  // Encode a URL so phones open a real receipt page when scanned.
-  // All data is in the URL params — no server needed.
-  const base     = (APP_STATE.settings?.receiptBaseUrl || '').replace(/\/$/, '');
-  const enc      = encodeURIComponent;
-  const tot      = transaction.totals || {};
-
-  const brand    = enc(APP_STATE.settings?.brandName || 'Caflat.Co');
-  const footer   = enc(APP_STATE.settings?.receiptFooter || '');
-  const receipt  = enc(transaction.receiptNumber || transaction.id || '');
-  const status   = enc(transaction.status || 'COMPLETED');
-  const datetime = enc(
-    new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
-      .toLocaleString('en-PH')
-  );
-  const customer = enc(transaction.customer?.name || transaction.customerName || 'Walk-in');
-  const orderType= enc(transaction.orderType || '');
-  const payment  = enc((transaction.payment?.method || transaction.paymentMethod || 'cash').toUpperCase());
-  const ref      = enc(transaction.payment?.referenceNumber || transaction.referenceNumber || '');
-  const subtotal = enc(String(tot.subtotal ?? transaction.subtotal ?? 0));
-  const discount = enc(String(tot.discount ?? transaction.discount ?? 0));
-  const tax      = enc(String(tot.tax ?? transaction.tax ?? 0));
-  const total    = enc(String(tot.total ?? transaction.total ?? 0));
-  const tendered = enc(String(transaction.payment?.tendered ?? transaction.tendered ?? 0));
-  const change   = enc(String(transaction.payment?.change ?? transaction.change ?? 0));
-  const items    = enc(
-    (transaction.items || []).map(i =>
-      `${i.name}~${i.quantity}~${i.price}~${i.total}`
-    ).join('|')
-  );
-
-  // Falls back to plain text if no base URL configured
-  if (!base) {
-    return `${decodeURIComponent(brand)}\n${decodeURIComponent(receipt)}\n${decodeURIComponent(total)}\n${decodeURIComponent(datetime)}`;
-  }
-
-  return `${base}/receipt.html`
-    + `?r=${receipt}&s=${status}&dt=${datetime}`
-    + `&b=${brand}&ft=${footer}`
-    + `&c=${customer}&ot=${orderType}`
-    + `&pm=${payment}&ref=${ref}`
-    + `&sub=${subtotal}&disc=${discount}&tx=${tax}&tot=${total}`
-    + `&tnd=${tendered}&chg=${change}`
-    + `&i=${items}`;
+  // Keep QR payload minimal so it never exceeds the encoder capacity.
+  // The receipt number is all a scanner needs to pull up the full record.
+  const brand   = APP_STATE.settings?.brandName || 'Caflat.Co';
+  const receipt = transaction.receiptNumber || transaction.id || '';
+  const total   = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
+  const date    = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
+                    .toLocaleDateString('en-PH');
+  return `${brand}\n${receipt}\n${total}\n${date}`;
 }
 
 function _generateReceiptQR(transaction) {

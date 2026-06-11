@@ -448,9 +448,20 @@ function setProductLineStatus(jobId, lineId, newStatus) {
   line.statusHistory = [...(line.statusHistory||[]),
     {status:newStatus, changedAt:new Date().toISOString()}];
 
-  // Deduct ingredients at DONE
+  // At DONE: deduct ingredients (direct mode) OR credit finished goods (FG mode)
   if (newStatus==='DONE' && !line.ingredientsDeducted) {
-    _deductLineIngredients(job, line);
+    const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
+    const isFG = typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(product);
+    if (isFG) {
+      // Credit finished goods stock, deduct ingredients
+      const unitsProduced = line.actualYield ?? line.targetQty;
+      _deductLineIngredients(job, line);
+      if (typeof creditFinishedGoods==='function') {
+        creditFinishedGoods(line.productId, line.productName, unitsProduced, job.name);
+      }
+    } else {
+      _deductLineIngredients(job, line);
+    }
     line.ingredientsDeducted = true;
   }
   if (newStatus==='CANCELLED' && line.ingredientsDeducted) {

@@ -13,11 +13,9 @@ const APP_STATE = {
     orderTypes: ['Dine In', 'Take Out', 'Delivery'],
     lowStockThreshold: 5,
     voidPin: '000000',          // Admin void PIN — changeable in Settings
-    supplierModeEnabled:   false, // Supplier Mode feature toggle
+    supplierModeEnabled: false, // Supplier Mode feature toggle
     coffeeCartModeEnabled: false, // Coffee Cart Mode feature toggle
-    productionModeEnabled: false, // Production Mode feature toggle
-    backupEmail:           '',    // Email for backup reminders
-    receiptBaseUrl:        ''     // Base URL for QR receipt links
+    productionModeEnabled: false  // Production Mode feature toggle
   },
 
   receiptCounter: 0,            // Sequential permanent counter, never resets
@@ -38,10 +36,16 @@ const APP_STATE = {
   eventPackages: [],            // Event Package Builder
   leads: [],                    // Lead Tracker / CRM
   labDrafts: [],                // Product Lab draft analyses
-  labCategoryPresets: [],       // Product Lab category presets
+  labCategoryPresets: [],
+  finishedGoods: [],            // { productId, productName, stock, reserved }
+  fgMovements: [],              // Finished goods movement log       // Product Lab category presets
   productionJobs: [],           // Production Mode jobs
   laborPeople: [],              // Labor roster (survives reset)
-  categories: ['Cookies', 'Chewy Cookies', 'Drinks'],
+  categories: [
+    { id: 'cat-cookies',  name: 'Cookies',       inventoryMode: 'finished_goods' },
+    { id: 'cat-chewy',   name: 'Chewy Cookies',  inventoryMode: 'finished_goods' },
+    { id: 'cat-drinks',  name: 'Drinks',          inventoryMode: 'direct' }
+  ],
 
   ui: {
     currentView: 'pos',
@@ -67,7 +71,11 @@ function resetState() {
   APP_STATE.inventoryMovements = [];
   APP_STATE.auditLog = [];
   APP_STATE.receiptCounter = 0;
-  APP_STATE.categories = ['Cookies', 'Chewy Cookies', 'Drinks'];
+  APP_STATE.categories = [
+    { id: 'cat-cookies',  name: 'Cookies',       inventoryMode: 'finished_goods' },
+    { id: 'cat-chewy',   name: 'Chewy Cookies',  inventoryMode: 'finished_goods' },
+    { id: 'cat-drinks',  name: 'Drinks',          inventoryMode: 'direct' }
+  ];
   APP_STATE.supplyOrders = [];
   APP_STATE.supplierClients = [];
   APP_STATE.supplyInvoiceCounter = 0;
@@ -76,8 +84,10 @@ function resetState() {
   APP_STATE.activeEvent = null;
   APP_STATE.eventPackages = [];
   APP_STATE.leads = [];
-  APP_STATE.labDrafts = [];
+  APP_STATE.labDrafts     = [];
   APP_STATE.productionJobs = [];
+  APP_STATE.finishedGoods = [];
+  APP_STATE.fgMovements   = [];
   // Note: labCategoryPresets + laborPeople intentionally NOT reset — user config
   persistState();
 }

@@ -531,7 +531,11 @@ function bindDelegatedActions() {
       case 'edit-client':            openClientModal(actionEl.dataset.id || ''); break;
       case 'delete-client':          deleteSupplierClient(actionEl.dataset.id || ''); break;
       case 'save-client':            saveSupplierClient(); break;
-      case 'delete-category':       deleteCategory(actionEl.dataset.category || ''); break;
+      case 'delete-category':       deleteCategory(actionEl.dataset.id || ''); break;
+      case 'toggle-category-mode':   toggleCategoryMode(actionEl.dataset.id || ''); break;
+      // Finished Goods
+      case 'open-fg-adjustment':     if(typeof openFGAdjustmentModal==='function') openFGAdjustmentModal(actionEl.dataset.id||''); break;
+      case 'save-fg-adjustment':     if(typeof saveFGAdjustment==='function') saveFGAdjustment(); break;
       case 'quick-amount':          setQuickAmount(Number(actionEl.dataset.amount)); break;
       default: break;
     }
@@ -602,12 +606,13 @@ function renderCategoryTabs() {
   container.appendChild(allBtn);
 
   categories.forEach(cat => {
+    const catName = typeof cat === 'object' ? cat.name : cat;
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.textContent = cat;
+    btn.textContent = catName;
     btn.dataset.action = 'filter-category';
-    btn.dataset.category = cat;
-    if (String(active) === String(cat)) btn.classList.add('active');
+    btn.dataset.category = catName;
+    if (String(active) === String(catName)) btn.classList.add('active');
     container.appendChild(btn);
   });
 }

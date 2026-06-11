@@ -18,12 +18,6 @@ function initializeApp() {
     bindSearchFilters();
     setDefaultView();
 
-    // Check storage health + backup reminder after app fully loads
-    setTimeout(() => {
-      if (typeof checkStorageWarning === 'function') checkStorageWarning();
-      if (typeof checkBackupReminder === 'function') checkBackupReminder();
-    }, 1500);
-
     console.log('Caflat.Co POS v1 initialized');
   } catch (error) {
     console.error('Initialization failed', error);
@@ -38,9 +32,9 @@ function renderEverything() {
     'renderProductsTable',
     'renderPOSProducts',
     'renderIngredientsTable',
-    'renderInventoryValue',
     'renderInventoryTable',
-    'renderStorageUsage',
+    'renderFinishedGoodsTable',
+    'renderInventoryMovementLog',
     'renderSalesTable',
     'renderCategories',
     'renderCategoryOptions',
@@ -62,7 +56,6 @@ function renderEverything() {
     'applySupplierCartButton',
     'renderCart',
     'refreshDashboard',
-    'renderAnalyticsPanel',
     'renderReports'
   ];
 
@@ -72,11 +65,6 @@ function renderEverything() {
       catch (e) { console.error(`Failed: ${fn}`, e); }
     }
   });
-
-  // Re-apply role access after every full render
-  if (typeof applyRoleAccess === 'function') {
-    applyRoleAccess(APP_STATE.currentUserRole || 'STAFF');
-  }
 }
 
 function bindGlobalEvents() {
@@ -108,16 +96,14 @@ function bindGlobalEvents() {
 
 function bindSearchFilters() {
   const filters = [
-    ['productSearch',          'input',  'renderProductsTable'],
-    ['productCategoryFilter',  'change', 'renderProductsTable'],
-    ['ingredientSearch',       'input',  'renderIngredientsTable'],
-    ['inventorySearch',        'input',  'renderInventoryTable'],
+    ['productSearch', 'input'],
+    ['productCategoryFilter', 'change']
   ];
-  filters.forEach(([id, evt, fn]) => {
+  filters.forEach(([id, evt]) => {
     const el = document.getElementById(id);
     if (!el) return;
     el.addEventListener(evt, () => {
-      if (typeof window[fn] === 'function') window[fn]();
+      if (typeof renderProductsTable === 'function') renderProductsTable();
     });
   });
 }
