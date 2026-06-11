@@ -163,6 +163,7 @@ function saveFGAdjustment() {
 
   closeModal('fgAdjustmentModal');
   renderFinishedGoodsTable();
+  if (typeof renderInventoryMovementLog === 'function') renderInventoryMovementLog();
   showNotification('Adjustment saved', 'success');
 }
 
@@ -346,6 +347,7 @@ function renderInventoryMovementLog() {
 }
 
 /* ── Exports ── */
+window._setFGRecord               = _setFGRecord;   // exposed for manual sync
 window.getFinishedGoods           = getFinishedGoods;
 window.getFGMovements             = getFGMovements;
 window.getFGRecord                = getFGRecord;

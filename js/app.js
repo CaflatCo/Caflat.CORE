@@ -173,6 +173,12 @@ function switchPage(target) {
     if (openLabBtn) openLabBtn.textContent = 'Open Lab ↗';
   }
   if (cleanTarget === 'production' && typeof renderProductionView === 'function') renderProductionView();
+  if (cleanTarget === 'inventory') {
+    if (typeof renderInventoryTable      === 'function') renderInventoryTable();
+    if (typeof renderFinishedGoodsTable  === 'function') renderFinishedGoodsTable();
+    if (typeof renderInventoryMovementLog=== 'function') renderInventoryMovementLog();
+    if (typeof renderLowStockAlerts      === 'function') renderLowStockAlerts();
+  }
 }
 
 function setDefaultView() {

@@ -73,11 +73,38 @@ function saveProduct() {
   if (!data.category) { showNotification('Category is required', 'error'); return; }
 
   const products = getProducts();
+  const existing = products.find(p => String(p.id) === String(data.id));
   const idx = products.findIndex(p => String(p.id) === String(data.id));
   if (idx >= 0) products[idx] = data;
   else products.push(data);
 
   setProducts(products);
+
+  // If this product is in Finished Goods mode and has a stock value set,
+  // sync that stock to the finishedGoods inventory as an opening/manual entry.
+  // Only sync when stock actually changed or it's a new product.
+  if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(data)) {
+    const newStock    = Number(data.stock || 0);
+    const prevStock   = Number(existing?.stock || 0);
+    const isNew       = !existing;
+
+    if (isNew && newStock > 0) {
+      // New FG product — set opening stock in finishedGoods
+      if (typeof _setFGRecord === 'function') {
+        _setFGRecord(data.id, data.name, newStock, 0,
+          'Opening stock — set on product creation', 'manual-entry');
+      }
+    } else if (!isNew && newStock !== prevStock) {
+      // Existing product — stock was manually adjusted
+      const delta = newStock - prevStock;
+      if (typeof _setFGRecord === 'function') {
+        _setFGRecord(data.id, data.name, delta, 0,
+          'Manual stock adjustment via Products', 'manual-entry');
+      }
+    }
+    if (typeof renderFinishedGoodsTable === 'function') renderFinishedGoodsTable();
+  }
+
   closeModal('productModal');
   clearProductForm();
   showNotification('Product saved', 'success');

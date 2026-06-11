@@ -127,6 +127,7 @@ function saveRestockMovement() {
   showNotification('Ingredient restocked', 'success');
   renderInventoryTable();
   renderLowStockAlerts();
+  if (typeof renderInventoryMovementLog === 'function') renderInventoryMovementLog();
 }
 
 function renderInventoryTable() {
