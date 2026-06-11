@@ -479,9 +479,14 @@ function saveSupplyOrder() {
 function deleteSupplyOrder(orderId) {
   if (!confirm('Delete this supply order?')) return;
   const order = getSupplyOrderById(orderId);
-  // Release any reservation before deleting
-  if (order?.reservedStock) if (order.stockDeducted) { _restoreSupplyStock(order); order.stockDeducted = false; }
+  // Release any reservation and restore stock before deleting
+  if (order?.stockDeducted) {
+    _restoreSupplyStock(order);
+    order.stockDeducted = false;
+  }
   _releaseSupplyReservation(order);
+  // Also release FG reservations if applicable
+  if (typeof releaseFGReserveForSupply === 'function') releaseFGReserveForSupply(order);
   updateState('supplyOrders', () => getSupplyOrders().filter(o => String(o.id) !== String(orderId)));
   renderSupplyTable();
   showNotification('Order deleted', 'success');
@@ -551,6 +556,10 @@ function _restoreSupplyStock(order) {
       return sum + Number(line.quantity || 0);
     }, 0);
     if (!units) return product;
+    // For FG-mode products, also restore finished goods stock
+    if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+      if (typeof releaseFGReserveForSupply === 'function') releaseFGReserveForSupply(order);
+    }
     return { ...product, stock: Number(product.stock || 0) + units };
   });
   updateState('products', () => updatedProducts);
@@ -574,11 +583,18 @@ function _deductSupplyStock(order) {
   });
   updateState('products', () => updatedProducts);
 
-  // Deduct ingredient stock via recipe
+  // Deduct ingredient stock via recipe — DIRECT mode products only
+  // Finished Goods mode products deduct from finishedGoods[], not ingredients
   const ingredientDeltas = new Map();
   cart.forEach(line => {
     const product = (APP_STATE.products || []).find(p => String(p.id) === String(line.productId));
     if (!product || !Array.isArray(product.recipe)) return;
+    // Skip FG-mode products — their ingredients were consumed at production, not supply
+    if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+      // Instead deduct from finished goods stock
+      if (typeof deductFGForSupply === 'function') deductFGForSupply(order);
+      return;
+    }
     const batchYield = Math.max(1, Number(product.batchYield || 1));
     const recipeMode = String(product.recipeMode || 'unit');
     product.recipe.forEach(ri => {
