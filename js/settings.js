@@ -68,29 +68,47 @@ function renderCategories() {
   if (!container) return;
   container.innerHTML = '';
   getCategories().forEach(cat => {
-    const isFG   = cat.inventoryMode === 'finished_goods';
-    const item   = document.createElement('div');
-    item.className = 'category-chip';
-    item.style.cssText = 'display:flex;align-items:center;justify-content:space-between;' +
-      'padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);' +
-      'margin-bottom:6px;background:var(--white);gap:10px;';
+    const isFG = cat.inventoryMode === 'finished_goods';
+    const item = document.createElement('div');
+    item.style.cssText =
+      'display:flex;align-items:center;justify-content:space-between;' +
+      'padding:10px 14px;border-bottom:1px solid var(--gray-100);gap:12px;';
     item.innerHTML =
-      '<div style="flex:1;">' +
-        '<div style="font-weight:700;font-size:13px;">' + escapeHtml(cat.name) + '</div>' +
-        '<div style="font-size:10px;color:' + (isFG ? '#2563eb' : 'var(--gray-400)') + ';margin-top:1px;">' +
-          (isFG ? '📦 Finished Goods — sells from produced stock' : '⚡ Direct — ingredients deduct at sale') +
-        '</div>' +
+      // Name + mode pill
+      '<div style="display:flex;align-items:center;gap:10px;flex:1;">' +
+        '<span style="font-size:13px;font-weight:700;">' + escapeHtml(cat.name) + '</span>' +
+        '<span style="font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 8px;' +
+          'border-radius:999px;border:1px solid ' + (isFG ? '#2563eb40' : 'var(--gray-200)') + ';' +
+          'color:' + (isFG ? '#2563eb' : 'var(--gray-400)') + ';' +
+          'background:' + (isFG ? '#2563eb10' : 'transparent') + ';">' +
+          (isFG ? 'FINISHED GOODS' : 'DIRECT') +
+        '</span>' +
       '</div>' +
-      '<div style="display:flex;gap:6px;align-items:center;">' +
-        '<button type="button" class="btn btn-sm btn-secondary" ' +
-          'data-action="toggle-category-mode" data-id="' + cat.id + '">' +
-          (isFG ? 'Switch to Direct' : 'Switch to FG') +
+      // Actions — minimal icon-style
+      '<div style="display:flex;gap:4px;align-items:center;">' +
+        '<button type="button" ' +
+          'data-action="toggle-category-mode" data-id="' + cat.id + '" ' +
+          'title="' + (isFG ? 'Switch to Direct' : 'Switch to Finished Goods') + '" ' +
+          'style="font-size:10px;color:var(--gray-400);background:none;border:none;' +
+            'cursor:pointer;padding:4px 8px;border-radius:var(--radius-md);' +
+            'font-family:var(--font-main);white-space:nowrap;">' +
+          (isFG ? '→ Direct' : '→ FG') +
         '</button>' +
-        '<button type="button" class="btn btn-sm btn-secondary" ' +
-          'data-action="delete-category" data-id="' + cat.id + '">Delete</button>' +
+        '<button type="button" ' +
+          'data-action="delete-category" data-id="' + cat.id + '" ' +
+          'title="Delete category" ' +
+          'style="font-size:11px;color:var(--gray-300);background:none;border:none;' +
+            'cursor:pointer;padding:4px 6px;font-family:var(--font-main);">✕</button>' +
       '</div>';
     container.appendChild(item);
   });
+
+  // Wrap in a light bordered box
+  if (container.children.length) {
+    container.style.cssText =
+      'border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);' +
+      'overflow:hidden;margin-bottom:12px;';
+  }
 }
 
 function renderCategoryOptions() {
