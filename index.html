@@ -1316,102 +1316,176 @@
       <!-- ═══ SETTINGS VIEW ═══ -->
       <section class="view" id="view-settings">
         <div class="panel">
+
           <div class="panel-header">
             <h2>Settings</h2>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn" id="saveSettingsBtn" type="button">Save Settings</button>
-              <button class="btn btn-secondary" id="resetDataBtn" type="button">Reset Data</button>
-              <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
-            </div>
           </div>
 
-          <div class="form-group">
-            <label>Brand Name</label>
-            <input id="settingsBrandName" type="text" />
-          </div>
-          <div class="form-row">
+          <!-- ── 1. BUSINESS PROFILE ── -->
+          <div class="section-title">Business Profile</div>
+          <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+            padding:20px;margin-bottom:24px;">
             <div class="form-group">
-              <label>Tax Rate (%)</label>
-              <input id="settingsTaxRate" type="number" step="0.01" />
+              <label>Brand Name</label>
+              <input id="settingsBrandName" type="text" placeholder="Your business name" />
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="max-width:140px;">
+                <label>Tax Rate (%)</label>
+                <input id="settingsTaxRate" type="number" step="0.01" min="0" placeholder="0" />
+              </div>
+              <div class="form-group">
+                <label>Receipt Footer</label>
+                <input id="settingsReceiptFooter" type="text"
+                  placeholder="Thank you for your purchase!" />
+              </div>
+            </div>
+            <div style="margin-top:4px;">
+              <button class="btn" id="saveSettingsBtn" type="button">Save</button>
             </div>
           </div>
-          <div class="form-group">
-            <label>Receipt Footer</label>
-            <textarea id="settingsReceiptFooter" rows="2"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Void / Refund PIN (6 digits)</label>
-            <input id="settingsVoidPin" type="password" maxlength="6"
-              placeholder="••••••  (enter new PIN to change)"
-              autocomplete="new-password" style="letter-spacing:4px;font-size:16px;" />
+
+          <!-- ── 2. SECURITY ── -->
+          <div class="section-title">Security</div>
+          <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+            padding:16px 20px;margin-bottom:24px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div>
+                <div style="font-weight:700;font-size:13px;">Void / Refund PIN</div>
+                <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+                  6-digit PIN required to void or refund transactions
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span id="pinStatusDots" style="font-size:18px;letter-spacing:4px;
+                  color:var(--gray-400);">
+                  ● ● ● ● ● ●
+                </span>
+                <button class="btn btn-secondary" type="button"
+                  data-action="open-change-pin">Change</button>
+              </div>
+            </div>
           </div>
 
+          <!-- ── 3. CATEGORIES ── -->
           <div class="section-title">Categories</div>
-          <div id="categoryList"></div>
-          <div class="filter-bar" style="margin-top:8px;">
-            <input id="newCategoryInput" placeholder="New category name" type="text" style="flex:1;" />
-            <select id="newCategoryMode"
-              style="padding:7px 10px;border:1px solid var(--gray-200);
-                border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);">
-              <option value="direct">⚡ Direct</option>
-              <option value="finished_goods">📦 Finished Goods</option>
-            </select>
-            <button class="btn btn-secondary" id="addCategoryBtn" type="button">Add</button>
+          <div style="margin-bottom:24px;">
+            <div id="categoryList"
+              style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+                overflow:hidden;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input id="newCategoryInput" placeholder="New category name" type="text"
+                style="flex:1;" />
+              <select id="newCategoryMode"
+                style="padding:7px 10px;border:1px solid var(--gray-200);
+                  border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);">
+                <option value="direct">⚡ Direct</option>
+                <option value="finished_goods">📦 Finished Goods</option>
+              </select>
+              <button class="btn btn-secondary" id="addCategoryBtn" type="button">Add</button>
+            </div>
           </div>
 
+          <!-- ── 4. FEATURES ── -->
           <div class="section-title">Features</div>
-          <div class="settings-toggle-row">
-            <div>
-              <div class="settings-toggle-label">Supplier Mode</div>
-              <div class="settings-toggle-sub">
-                Enable supply order tracking for B2B clients. Adds the Supply tab to navigation.
+          <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+            overflow:hidden;margin-bottom:24px;">
+            <div class="settings-toggle-row" style="border-bottom:1px solid var(--gray-100);">
+              <div>
+                <div class="settings-toggle-label">Supplier Mode</div>
+                <div class="settings-toggle-sub">
+                  Supply order tracking for B2B clients. Adds the Supply tab.
+                </div>
               </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settingsSupplierMode" />
+                <div class="toggle-track"></div>
+                <div class="toggle-knob"></div>
+              </label>
             </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="settingsSupplierMode" />
-              <div class="toggle-track"></div>
-              <div class="toggle-knob"></div>
-            </label>
+            <div class="settings-toggle-row" style="border-bottom:1px solid var(--gray-100);">
+              <div>
+                <div class="settings-toggle-label">Coffee Cart Mode</div>
+                <div class="settings-toggle-sub">
+                  Event management and order channels. Adds the Events tab.
+                </div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settingsCoffeeCartMode" />
+                <div class="toggle-track"></div>
+                <div class="toggle-knob"></div>
+              </label>
+            </div>
+            <div class="settings-toggle-row">
+              <div>
+                <div class="settings-toggle-label">Production Mode</div>
+                <div class="settings-toggle-sub">
+                  Production board, batch tracking, and labor costing.
+                </div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settingsProductionMode" />
+                <div class="toggle-track"></div>
+                <div class="toggle-knob"></div>
+              </label>
+            </div>
+          </div>
+          <div style="margin-bottom:24px;">
+            <button class="btn" id="saveFeaturesBtn" type="button">Save</button>
           </div>
 
-          <div class="settings-toggle-row">
-            <div>
-              <div class="settings-toggle-label">Coffee Cart Mode</div>
-              <div class="settings-toggle-sub">
-                Enable event management, order channels, and channel analytics.
-                Adds the Events tab to navigation.
-              </div>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="settingsCoffeeCartMode" />
-              <div class="toggle-track"></div>
-              <div class="toggle-knob"></div>
-            </label>
-          </div>
-
-          <div class="settings-toggle-row">
-            <div>
-              <div class="settings-toggle-label">Production Mode</div>
-              <div class="settings-toggle-sub">
-                Production board, ingredient forecasting, batch tracking, and labor costing.
-              </div>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="settingsProductionMode" />
-              <div class="toggle-track"></div>
-              <div class="toggle-knob"></div>
-            </label>
-          </div>
-
+          <!-- ── 5. DATA MANAGEMENT ── -->
           <div class="section-title">Data Management</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btn-secondary" id="loadDemoBtn" type="button">Load Demo Data</button>
-            <button class="btn btn-secondary" id="exportDataBtn" data-action="export-data" type="button">Export Backup</button>
-            <label class="btn btn-secondary" id="importDataBtn" style="cursor:pointer;margin:0;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px;">
+            <button class="btn btn-secondary" id="exportDataBtn"
+              data-action="export-data" type="button">Export Backup</button>
+            <label class="btn btn-secondary" id="importDataBtn"
+              style="cursor:pointer;margin:0;">
               Import Backup
-              <input accept="application/json,.json,text/plain" id="importDataInput" style="display:none" type="file" />
+              <input accept="application/json,.json,text/plain"
+                id="importDataInput" style="display:none" type="file" />
             </label>
+            <button class="btn btn-secondary" id="loadDemoBtn"
+              type="button">Load Demo Data</button>
           </div>
+
+          <!-- ── 6. DANGER ZONE ── -->
+          <div style="border-top:2px solid var(--gray-100);padding-top:24px;margin-top:8px;">
+            <div style="font-size:9px;font-weight:800;letter-spacing:2px;
+              text-transform:uppercase;color:#dc2626;margin-bottom:16px;">
+              Danger Zone
+            </div>
+            <div style="border:1.5px solid #fecaca;border-radius:var(--radius-lg);
+              overflow:hidden;">
+              <div style="display:flex;align-items:center;justify-content:space-between;
+                padding:14px 18px;border-bottom:1px solid #fecaca;">
+                <div>
+                  <div style="font-weight:700;font-size:13px;">Archive &amp; Reset</div>
+                  <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+                    Export a backup then wipe all business data. Settings and categories kept.
+                  </div>
+                </div>
+                <button class="btn btn-secondary" id="resetDataBtn" type="button"
+                  style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;">
+                  Archive &amp; Reset
+                </button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;
+                padding:14px 18px;">
+                <div>
+                  <div style="font-weight:700;font-size:13px;">Factory Reset</div>
+                  <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+                    Wipe everything including settings. Cannot be undone.
+                  </div>
+                </div>
+                <button class="btn btn-secondary" id="factoryResetBtn" type="button"
+                  style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;">
+                  Factory Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -2508,6 +2582,33 @@
             data-close-modal="fgAdjustmentModal">Cancel</button>
           <button class="btn" type="button"
             data-action="save-fg-adjustment">Save Adjustment</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change PIN Modal -->
+    <div class="modal-overlay" id="changePinModal">
+      <div class="modal" style="max-width:360px;">
+        <h3>Change PIN</h3>
+        <div class="form-group">
+          <label>New 6-Digit PIN</label>
+          <input id="newPinInput" type="password" maxlength="6"
+            placeholder="Enter 6 digits"
+            autocomplete="new-password"
+            style="letter-spacing:8px;font-size:20px;text-align:center;" />
+        </div>
+        <div class="form-group">
+          <label>Confirm PIN</label>
+          <input id="confirmPinInput" type="password" maxlength="6"
+            placeholder="Repeat PIN"
+            autocomplete="new-password"
+            style="letter-spacing:8px;font-size:20px;text-align:center;" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="changePinModal">Cancel</button>
+          <button class="btn" type="button"
+            data-action="save-new-pin">Save PIN</button>
         </div>
       </div>
     </div>
