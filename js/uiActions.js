@@ -237,6 +237,19 @@ function _bindLabInputs() {
       }
       return;
     }
+
+    // Batch size — 'change' fires on iOS Safari when user taps away from number input
+    if (t.id === 'labBatchSize') {
+      const val = Number(t.value || 0);
+      if (val > 0) {
+        window.LAB_SESSION.batchSize = val;
+        if (typeof _renderLabIngredientRows  === 'function') _renderLabIngredientRows();
+        if (typeof renderLabPricing          === 'function') renderLabPricing();
+        if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
+        if (typeof renderLabCharts           === 'function') renderLabCharts();
+      }
+      return;
+    }
   });
 
   // ── Delegated: input events ──
