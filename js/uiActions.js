@@ -411,11 +411,32 @@ function bindPOSSearch() {
 }
 
 function bindDelegatedActions() {
-  // Handle checkbox change events (category mode toggles)
+  // Handle checkbox + input change events
   document.addEventListener('change', event => {
     const t = event.target;
+    // Category mode toggle
     if (t.dataset && t.dataset.action === 'toggle-category-mode' && t.dataset.id) {
       if (typeof toggleCategoryMode === 'function') toggleCategoryMode(t.dataset.id);
+    }
+    // Category rename
+    if (t.dataset && t.dataset.catRenameId) {
+      if (typeof renameCategory === 'function') renameCategory(t.dataset.catRenameId, t.value);
+    }
+  });
+
+  // Category rename on blur too
+  document.addEventListener('blur', event => {
+    const t = event.target;
+    if (t.dataset && t.dataset.catRenameId) {
+      if (typeof renameCategory === 'function') renameCategory(t.dataset.catRenameId, t.value);
+    }
+  }, true);
+
+  // Category rename on Enter key
+  document.addEventListener('keydown', event => {
+    const t = event.target;
+    if (event.key === 'Enter' && t.dataset && t.dataset.catRenameId) {
+      t.blur();
     }
   });
 

@@ -7,7 +7,7 @@
 ═══════════════════════════════════════════════════════ */
 
 const RC_CATEGORIES = ['Cookies', 'Filling', 'Coating', 'Dough', 'Sauce', 'Drink', 'Other'];
-const RC_TAGS       = ['Signature', 'Seasonal', 'In Progress', 'Retired', 'Bestseller', 'New'];
+// Tags removed per user request
 
 function getRecipeCatalog() {
   return Array.isArray(APP_STATE.recipeCatalog) ? APP_STATE.recipeCatalog : [];
@@ -43,10 +43,7 @@ function renderRecipeCatalog() {
   }
 
   container.innerHTML = recipes.map(r => {
-    const tags = (r.tags || []).map(t =>
-      `<span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:999px;
-        background:var(--gray-100);color:var(--gray-600);">${escapeHtml(t)}</span>`
-    ).join(' ');
+    const tags = '';
     const ingCount  = (r.ingredients || []).length;
     const stepCount = (r.steps || []).length;
 
@@ -63,7 +60,7 @@ function renderRecipeCatalog() {
               · ${ingCount} ingredient${ingCount !== 1 ? 's' : ''}
               ${r.showSteps && stepCount > 0 ? ` · ${stepCount} step${stepCount !== 1 ? 's' : ''}` : ''}
             </div>
-            ${tags ? `<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">${tags}</div>` : ''}
+
           </div>
           <div style="font-size:18px;color:var(--gray-200);">›</div>
         </div>
@@ -84,10 +81,7 @@ function openRecipeDetail(recipeId) {
   if (titleEl) titleEl.textContent = recipe.name;
 
   if (container) {
-    const tags = (recipe.tags || []).map(t =>
-      `<span style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:999px;
-        background:var(--gray-100);color:var(--gray-600);">${escapeHtml(t)}</span>`
-    ).join(' ');
+    const tags = '';
 
     container.innerHTML = `
       <!-- Meta -->
@@ -97,7 +91,7 @@ function openRecipeDetail(recipeId) {
         ${recipe.yieldAmt ? `<span><strong>Yield:</strong> ${escapeHtml(recipe.yieldAmt)}</span>` : ''}
         ${recipe.updatedAt ? `<span>Updated ${new Date(recipe.updatedAt).toLocaleDateString()}</span>` : ''}
       </div>
-      ${tags ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;">${tags}</div>` : ''}
+
 
       <!-- Ingredients -->
       ${(recipe.ingredients || []).length > 0 ? `
@@ -171,10 +165,7 @@ function openRecipeForm(recipeId = null) {
   setElementValue('rcFormYield',    recipe?.yieldAmt || '');
   setElementValue('rcFormNotes',    recipe?.notes    || '');
 
-  // Tags
-  document.querySelectorAll('.rc-tag-check').forEach(cb => {
-    cb.checked = (recipe?.tags || []).includes(cb.value);
-  });
+  // Tags removed
 
   // Steps toggle
   const stepsToggle = document.getElementById('rcFormShowSteps');
@@ -258,7 +249,7 @@ function saveRecipeForm() {
   const yieldAmt = sanitizeText(getElementValue('rcFormYield'));
   const notes    = sanitizeText(getElementValue('rcFormNotes'));
   const showSteps= document.getElementById('rcFormShowSteps')?.checked !== false;
-  const tags     = [...document.querySelectorAll('.rc-tag-check:checked')].map(cb => cb.value);
+  const tags     = [];
 
   if (!name) { showNotification('Recipe name required', 'error'); return; }
 
@@ -321,6 +312,6 @@ window.closeRecipeForm           = closeRecipeForm;
 window.deleteRecipe              = deleteRecipe;
 window.applyRecipeCatalogToggle  = applyRecipeCatalogToggle;
 window.RC_CATEGORIES             = RC_CATEGORIES;
-window.RC_TAGS                   = RC_TAGS;
+
 window._rcEditIngredients        = _rcEditIngredients;
 window._rcEditSteps              = _rcEditSteps;

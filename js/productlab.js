@@ -454,7 +454,7 @@ function _updateLabIngCatalogDropdown() {
 function _updateLabCategorySelect() {
   const sel = document.getElementById('labCategorySelect');
   if (!sel || !LAB_SESSION) return;
-  const cats = APP_STATE.categories || [];
+  const cats = (APP_STATE.categories || []).map(c => typeof c === 'object' ? c.name : c);
   sel.innerHTML = `<option value="">Select Category</option>` +
     cats.map(c => `<option value="${escapeHtml(c)}"
       ${LAB_SESSION.category === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('');
@@ -470,7 +470,7 @@ function _syncBatchSizeInput() {
   const stateVal       = LAB_SESSION.batchSize || 1;
   if (currentDisplay !== stateVal) {
     inp.value       = stateVal > 1 ? stateVal : '';
-    inp.placeholder = '24';
+    inp.placeholder = 'e.g. 24';
   }
 }
 

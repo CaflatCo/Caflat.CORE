@@ -4,7 +4,14 @@
 
 /* ── Category helpers ── */
 function getCategories() {
-  return Array.isArray(APP_STATE.categories) ? APP_STATE.categories : [];
+  const raw = Array.isArray(APP_STATE.categories) ? APP_STATE.categories : [];
+  // Migrate any legacy string categories to objects
+  return raw.map(c => {
+    if (typeof c === 'string') {
+      return { id: 'cat-' + c.toLowerCase().replace(/[^a-z0-9]/g, '-'), name: c, inventoryMode: 'direct' };
+    }
+    return c;
+  });
 }
 
 function getCategoryByName(name) {
@@ -63,6 +70,30 @@ function toggleCategoryMode(categoryId) {
   setCategories(cats);
 }
 
+function renameCategory(catId, newName) {
+  const trimmed = (newName || '').trim();
+  if (!trimmed) { renderCategories(); return; }
+  const cats = getCategories();
+  const existing = cats.find(c => c.id === catId);
+  if (!existing) return;
+  if (existing.name === trimmed) return;
+  if (cats.some(c => c.id !== catId && c.name.toLowerCase() === trimmed.toLowerCase())) {
+    showNotification('Category name already exists', 'error');
+    renderCategories(); return;
+  }
+  // Update products using old name
+  const updatedProducts = (APP_STATE.products || []).map(p =>
+    p.category === existing.name ? { ...p, category: trimmed } : p
+  );
+  updateState('products', () => updatedProducts);
+  // Update category name
+  updateState('categories', () => cats.map(c =>
+    c.id !== catId ? c : { ...c, name: trimmed }
+  ));
+  renderCategories();
+  renderCategoryOptions();
+  showNotification('Category renamed', 'success');
+}
 function renderCategories() {
   const container = document.getElementById('categoryList');
   if (!container) return;
@@ -82,12 +113,18 @@ function renderCategories() {
       'border:1.5px solid var(--gray-200);border-radius:12px;padding:14px 16px;' +
       'margin-bottom:8px;background:var(--white);';
 
-    // Top row: name + delete
-    const topRow = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
-      '<span style="font-size:14px;font-weight:800;">' + escapeHtml(cat.name) + '</span>' +
+    // Top row: editable name + delete
+    const topRow = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;">' +
+      '<input type="text" value="' + escapeHtml(cat.name) + '" ' +
+        'style="font-size:14px;font-weight:800;border:none;outline:none;background:transparent;' +
+          'font-family:var(--font-main);flex:1;padding:0;min-width:0;" ' +
+        'data-cat-rename-id="' + cat.id + '" ' +
+
+
+        'placeholder="Category name" />' +
       '<button type="button" data-action="delete-category" data-id="' + cat.id + '" ' +
-        'style="background:none;border:none;cursor:pointer;font-size:14px;' +
-          'color:var(--gray-300);padding:2px 4px;font-family:var(--font-main);" ' +
+        'style="background:none;border:none;cursor:pointer;font-size:16px;' +
+          'color:var(--gray-300);padding:2px 6px;font-family:var(--font-main);flex-shrink:0;" ' +
         'title="Delete">✕</button>' +
     '</div>';
 
@@ -349,6 +386,7 @@ window.setCategories         = setCategories;
 window.addCategory           = addCategory;
 window.deleteCategory        = deleteCategory;
 window.toggleCategoryMode    = toggleCategoryMode;
+window.renameCategory        = renameCategory;
 window.renderCategories      = renderCategories;
 window.renderCategoryOptions = renderCategoryOptions;
 window.saveSettings          = saveSettings;

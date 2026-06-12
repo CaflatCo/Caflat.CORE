@@ -26,10 +26,12 @@ function _generateFromProduction() {
     .filter(item => item.shortfall > 0)
     .map(item => {
       const ing       = _getIngredients().find(i => i.id === item.id) || {};
-      const pkgQty    = Number(ing.packageQty  || 1);
+      const pkgQty    = Math.max(1, Number(ing.packageQty  || 1));
       const pkgCost   = Number(ing.packageCost || 0);
-      const packs     = Math.ceil(item.shortfall / pkgQty);
+      const packs     = Math.max(1, Math.ceil(item.shortfall / pkgQty));
       const totalCost = packs * pkgCost;
+      // Warn if package size looks suspicious (e.g. set to 1g for a bulk ingredient)
+      const pkgWarning = pkgQty < 10 && item.shortfall > 50;
       return {
         id:          item.id,
         name:        item.name,
@@ -41,6 +43,7 @@ function _generateFromProduction() {
         pkgCost,
         packs,
         totalCost,
+        pkgWarning,
         reason:      'Production shortfall',
         checked:     false
       };
@@ -57,12 +60,12 @@ function _generateFromLowStock() {
     .map(ing => {
       const stock     = Number(ing.stock   || 0);
       const reorder   = Number(ing.reorderLevel || 0);
-      const pkgQty    = Number(ing.packageQty   || 1);
+      const pkgQty    = Math.max(1, Number(ing.packageQty   || 1));
       const pkgCost   = Number(ing.packageCost  || 0);
-      // Buy enough to get back to reorder level + 1 package buffer
-      const shortfall = Math.max(0, reorder - stock) + pkgQty;
-      const packs     = Math.ceil(shortfall / pkgQty);
+      const shortfall = Math.max(pkgQty, reorder - stock + pkgQty);
+      const packs     = Math.max(1, Math.ceil(shortfall / pkgQty));
       const totalCost = packs * pkgCost;
+      const pkgWarning = pkgQty < 10 && shortfall > 50;
       return {
         id:          ing.id,
         name:        ing.name,
@@ -74,7 +77,8 @@ function _generateFromLowStock() {
         pkgCost,
         packs,
         totalCost,
-        reason:      `Low stock (reorder at ${reorder} ${ing.unit || ''})`,
+        pkgWarning,
+        reason:      'Low stock (reorder at ' + reorder + ' ' + (ing.unit || '') + ')',
         checked:     false
       };
     });
@@ -168,8 +172,9 @@ function renderShoppingListModal() {
                 : `Need: ${item.shortfall.toFixed(1)} ${item.unit} · On hand: ${item.onHand.toFixed(1)} ${item.unit}`}
             </div>
             ${!item.isManual && item.pkgQty ? `
-            <div style="font-size:11px;color:var(--gray-500);margin-top:2px;">
+            <div style="font-size:11px;color:${item.pkgWarning ? '#b45309' : 'var(--gray-500)'};margin-top:2px;">
               Package: ${item.pkgQty} ${item.unit} · ${formatCurrency(item.pkgCost)} each
+              ${item.pkgWarning ? '· <b>Check package size in Ingredients</b>' : ''}
             </div>` : ''}
           </div>
           <!-- Buy + Cost -->
