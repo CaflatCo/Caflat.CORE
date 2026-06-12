@@ -244,18 +244,18 @@ function _bindLabInputs() {
     if (!window.LAB_SESSION) return;
     const t = e.target;
 
-    // Batch size — do NOT call _renderLabIngredientRows
-    // It causes a full re-render which overwrites the input value mid-typing
+    // Batch size — set editing flag so _syncBatchSizeInput won't overwrite
     if (t.id === 'labBatchSize') {
-      const val = Number(t.value || 1);
-      window.LAB_SESSION.batchSize = Math.max(1, val);
-      if (typeof renderLabPricing          === 'function') renderLabPricing();
-      if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
-      if (typeof renderLabCharts           === 'function') renderLabCharts();
-      // Update qty labels without re-rendering the inputs
-      document.querySelectorAll('[id^="labQtyLabel_"]').forEach(el => {
-        el.textContent = window.LAB_SESSION.recipeMode === 'batch' ? 'Qty/batch' : 'Qty/unit';
-      });
+      t.dataset.userEditing = '1';
+      const val = Number(t.value || 0);
+      if (val > 0) {
+        window.LAB_SESSION.batchSize = val;
+        // Re-render ingredient rows so per-cookie costs update immediately
+        if (typeof _renderLabIngredientRows  === 'function') _renderLabIngredientRows();
+        if (typeof renderLabPricing          === 'function') renderLabPricing();
+        if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
+        if (typeof renderLabCharts           === 'function') renderLabCharts();
+      }
       return;
     }
 
@@ -340,14 +340,12 @@ function _bindLabInputs() {
     if (t.classList.contains('lab-batch-preset')) {
       window.LAB_SESSION.batchSize = Number(t.dataset.size);
       const inp = document.getElementById('labBatchSize');
-      if (inp) inp.value = window.LAB_SESSION.batchSize;
-      // No row re-render — just recalc
+      if (inp) { inp.value = window.LAB_SESSION.batchSize; inp.dataset.userEditing = '0'; }
+      // Re-render rows so per-cookie costs update
+      if (typeof _renderLabIngredientRows  === 'function') _renderLabIngredientRows();
       if (typeof renderLabPricing          === 'function') renderLabPricing();
       if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
       if (typeof renderLabCharts           === 'function') renderLabCharts();
-      document.querySelectorAll('[id^="labQtyLabel_"]').forEach(el => {
-        el.textContent = window.LAB_SESSION?.recipeMode === 'batch' ? 'Qty/batch' : 'Qty/unit';
-      });
       return;
     }
 
@@ -377,6 +375,21 @@ function _bindLabInputs() {
       return;
     }
   });
+
+  // Clear editing flag on batch size blur — commit final value
+  labView.addEventListener('blur', e => {
+    if (e.target.id === 'labBatchSize') {
+      e.target.dataset.userEditing = '0';
+      const val = Number(e.target.value || 0);
+      if (val > 0 && window.LAB_SESSION) {
+        window.LAB_SESSION.batchSize = val;
+        if (typeof _renderLabIngredientRows  === 'function') _renderLabIngredientRows();
+        if (typeof renderLabPricing          === 'function') renderLabPricing();
+        if (typeof renderLabSupplyAssessment === 'function') renderLabSupplyAssessment();
+        if (typeof renderLabCharts           === 'function') renderLabCharts();
+      }
+    }
+  }, true);
 
   // Waste slider also needs 'change' for iOS Safari (fires on release)
   labView.addEventListener('change', e => {

@@ -100,8 +100,8 @@ function _newSession() {
     ingredients:  [],   // { id, name, unit, qty, costPerUnit, scarcity, isTemp, tempCost }
     packaging:    [],   // { id, name, cost }
     packagingEnabled: false,
-    recipeMode:   'unit',   // unit | batch
-    batchSize:    1,        // user sets this — no forced default
+    recipeMode:   'batch',  // default to batch mode — more natural for bakers
+    batchSize:    24,       // sensible default for a cookie batch
     wastePercent: 0,
     marginTargets:[55, 65, 75],
     selectedScenario: 1,  // index 0,1,2 or 3=custom
@@ -396,7 +396,7 @@ function renderLabRecipeBuilder() {
 
 function _syncRecipeModeToggle() {
   const toggle = document.getElementById('labRecipeModeToggle');
-  if (toggle && LAB_SESSION) toggle.value = LAB_SESSION.recipeMode || 'unit';
+  if (toggle && LAB_SESSION) toggle.value = LAB_SESSION.recipeMode || 'batch';
   // Update qty labels
   const label = LAB_SESSION?.recipeMode === 'batch' ? 'Qty/batch' : 'Qty/unit';
   document.querySelectorAll('[id^="labQtyLabel_"]').forEach(el => {
@@ -463,74 +463,120 @@ function _updateLabCategorySelect() {
 function _syncBatchSizeInput() {
   const inp = document.getElementById('labBatchSize');
   if (!inp || !LAB_SESSION) return;
-  // Never overwrite if user is focused on the field
+  // Never overwrite while user is editing (works on iOS Safari too)
+  if (inp.dataset.userEditing === '1') return;
   if (document.activeElement === inp) return;
-  // Only sync if the displayed value differs from state
-  const currentDisplay = Number(inp.value || 0);
-  const stateVal       = LAB_SESSION.batchSize || 1;
-  if (currentDisplay !== stateVal) {
-    inp.value       = stateVal > 1 ? stateVal : '';
-    inp.placeholder = 'e.g. 24';
-  }
+  // Sync only if value differs from state
+  const stateVal = LAB_SESSION.batchSize || 1;
+  inp.value = stateVal > 1 ? String(stateVal) : '';
+  inp.placeholder = 'e.g. 24';
 }
 
 function _renderLabIngredientRows() {
   const container = document.getElementById('labIngredientRows');
   if (!container || !LAB_SESSION) return;
   container.innerHTML = '';
+
+  if (!LAB_SESSION.ingredients.length) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--gray-400);padding:12px 0 8px;">' +
+      'No ingredients yet — add from catalog or use a temp ingredient.</div>';
+    return;
+  }
+
+  const isBatch  = LAB_SESSION.recipeMode === 'batch';
+  const batch    = Math.max(1, LAB_SESSION.batchSize || 1);
+  const qtyLabel = isBatch ? 'per batch' : 'per unit';
+
   LAB_SESSION.ingredients.forEach((ing, idx) => {
-    const lineCost = Number(ing.qty || 0) * Number(ing.costPerUnit || 0);
+    // Cost per cookie = lineCost / batchSize (if batch mode)
+    const rawQty   = Number(ing.qty || 0);
+    const cpUnit   = Number(ing.costPerUnit || 0);
+    const lineCost = rawQty * cpUnit;                     // total for the qty entered
+    const perCookie= isBatch ? lineCost / batch : lineCost; // cost per single unit
 
     const row = document.createElement('div');
-    row.className = 'lab-ingredient-row';
+    row.style.cssText =
+      'display:flex;align-items:center;gap:0;margin-bottom:1px;' +
+      'border:1.5px solid var(--gray-200);border-radius:12px;' +
+      'background:var(--white);overflow:hidden;';
     row.dataset.idx = idx;
-    row.innerHTML = `
-      <div class="lab-ing-name">
-        ${ing.isTemp ? '<span class="lab-temp-badge">TEMP</span> ' : ''}
-        <span style="font-weight:700;font-size:12px;">${escapeHtml(ing.name)}</span>
-        <span style="font-size:10px;color:var(--gray-400);margin-left:4px;">${escapeHtml(ing.unit)}</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <label style="font-size:10px;color:var(--gray-400);" id="labQtyLabel_${idx}">
-          ${LAB_SESSION.recipeMode==='batch'?'Qty/batch':'Qty/unit'}
-        </label>
-        <input type="number" value="${ing.qty||''}" min="0" step="0.01"
-          placeholder="0"
-          style="width:80px;padding:5px 8px;border:1px solid var(--gray-200);
-            border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
-          oninput="LAB_SESSION.ingredients[${idx}].qty=Number(this.value||0);
-            const lc=this.closest('.lab-ingredient-row').querySelector('.lab-line-cost');
-            if(lc){const q=Number(this.value||0),c=Number(LAB_SESSION.ingredients[${idx}].costPerUnit||0);lc.textContent='₱'+(q*c).toFixed(2);}
-            _labRefreshDebounced();" />
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <label style="font-size:10px;color:var(--gray-400);">Cost/unit ₱</label>
-        <input type="number" value="${ing.costPerUnit||''}" min="0" step="0.001"
-          placeholder="0.000"
-          style="width:90px;padding:5px 8px;border:1px solid var(--gray-200);
-            border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
-          oninput="LAB_SESSION.ingredients[${idx}].costPerUnit=Number(this.value||0);
-            const lc=this.closest('.lab-ingredient-row').querySelector('.lab-line-cost');
-            if(lc){const q=Number(LAB_SESSION.ingredients[${idx}].qty||0),c=Number(this.value||0);lc.textContent='₱'+(q*c).toFixed(2);}
-            _labRefreshDebounced();" />
-      </div>
-      <span class="lab-line-cost" style="font-size:11px;font-weight:800;
-        width:70px;text-align:right;font-variant-numeric:tabular-nums;display:block;">
-        ${formatCurrency(lineCost)}</span>
-      <select
-        style="padding:5px 8px;border:1px solid var(--gray-200);
-          border-radius:var(--radius-md);font-size:11px;font-family:var(--font-main);"
-        onchange="LAB_SESSION.ingredients[${idx}].scarcity=this.value;_refreshLabCalcs();">
-        <option value="common"   ${ing.scarcity==='common'   ?'selected':''}>Common</option>
-        <option value="seasonal" ${ing.scarcity==='seasonal' ?'selected':''}>Seasonal</option>
-        <option value="hard"     ${ing.scarcity==='hard'     ?'selected':''}>Hard to Source</option>
-      </select>
 
-      <button type="button" class="btn btn-sm btn-secondary"
-        onclick="LAB_SESSION.ingredients.splice(${idx},1);_renderLabIngredientRows();_refreshLabCalcs();">
-        ✕</button>`;
+    // ── Name column ──
+    const nameCol = '<div style="flex:0 0 180px;padding:12px 14px;border-right:1px solid var(--gray-100);">' +
+      (ing.isTemp ? '<span style="font-size:8px;font-weight:800;letter-spacing:1px;padding:1px 6px;' +
+        'border-radius:999px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;margin-right:6px;">TEMP</span>' : '') +
+      '<div style="font-size:13px;font-weight:800;">' + escapeHtml(ing.name) + '</div>' +
+      '<div style="font-size:10px;color:var(--gray-400);margin-top:1px;">' + escapeHtml(ing.unit || '') + '</div>' +
+    '</div>';
+
+    // ── Quantity column ──
+    const qtyCol =
+      '<div style="flex:0 0 140px;padding:8px 12px;border-right:1px solid var(--gray-100);">' +
+        '<div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;' +
+          'color:var(--gray-400);margin-bottom:4px;">Qty <span style="font-weight:400;text-transform:none;">' + qtyLabel + '</span></div>' +
+        '<input type="number" value="' + (ing.qty || '') + '" min="0" step="0.01" placeholder="0" ' +
+          'id="labQtyInput_' + idx + '" ' +
+          'style="width:100%;padding:5px 8px;border:1.5px solid var(--gray-200);border-radius:8px;' +
+            'font-size:14px;font-weight:700;font-family:var(--font-main);" ' +
+          'oninput="LAB_SESSION.ingredients[' + idx + '].qty=Number(this.value||0);_labRefreshDebounced();" />' +
+      '</div>';
+
+    // ── Cost/unit column (read-only if from catalog, editable if temp) ──
+    const costEditable = ing.isTemp;
+    const cpuDisplay   = cpUnit > 0 ? '₱' + cpUnit.toFixed(4) : '—';
+    const costCol =
+      '<div style="flex:0 0 130px;padding:8px 12px;border-right:1px solid var(--gray-100);">' +
+        '<div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;' +
+          'color:var(--gray-400);margin-bottom:4px;">₱ / unit</div>' +
+        (costEditable
+          ? '<input type="number" value="' + (cpUnit || '') + '" min="0" step="0.001" placeholder="0.000" ' +
+              'style="width:100%;padding:5px 8px;border:1.5px solid var(--gray-200);border-radius:8px;' +
+                'font-size:13px;font-family:var(--font-main);" ' +
+              'oninput="LAB_SESSION.ingredients[' + idx + '].costPerUnit=Number(this.value||0);_labRefreshDebounced();" />'
+          : '<div style="font-size:13px;font-weight:700;padding:5px 0;color:var(--gray-600);">' + cpuDisplay + '</div>') +
+      '</div>';
+
+    // ── Cost per cookie column (computed) ──
+    const perUnitLabel = isBatch ? 'per cookie' : 'line cost';
+    const costPerCol =
+      '<div style="flex:1;padding:8px 12px;border-right:1px solid var(--gray-100);">' +
+        '<div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;' +
+          'color:var(--gray-400);margin-bottom:4px;">' + perUnitLabel + '</div>' +
+        '<div class="lab-line-cost" style="font-size:16px;font-weight:900;' +
+          'font-variant-numeric:tabular-nums;color:' + (perCookie > 0 ? 'var(--black)' : 'var(--gray-300)') + ';">' +
+          formatCurrency(perCookie) +
+        '</div>' +
+      '</div>';
+
+    // ── Remove button ──
+    const removeBtn =
+      '<button type="button" class="lab-remove-ing" data-idx="' + idx + '" ' +
+        'style="flex:0 0 44px;align-self:stretch;background:none;border:none;' +
+        'cursor:pointer;font-size:16px;color:var(--gray-300);font-family:var(--font-main);">✕</button>';
+
+    row.innerHTML = nameCol + qtyCol + costCol + costPerCol + removeBtn;
     container.appendChild(row);
   });
+
+  // Total row
+  if (LAB_SESSION.ingredients.length > 0) {
+    const totalPerCookie = LAB_SESSION.ingredients.reduce((sum, ing) => {
+      const raw = Number(ing.qty||0) * Number(ing.costPerUnit||0);
+      return sum + (isBatch ? raw / batch : raw);
+    }, 0);
+    const totalRow = document.createElement('div');
+    totalRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;' +
+      'padding:10px 14px;margin-top:4px;border-top:2px solid var(--black);';
+    totalRow.innerHTML =
+      '<span style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">' +
+        'Ingredient cost per ' + (isBatch ? 'cookie' : 'unit') +
+      '</span>' +
+      '<span style="font-size:18px;font-weight:900;font-variant-numeric:tabular-nums;">' +
+        formatCurrency(totalPerCookie) +
+      '</span>';
+    container.appendChild(totalRow);
+  }
+
   _bindIngredientRowEvents();
 }
 
