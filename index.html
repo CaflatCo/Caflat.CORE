@@ -474,7 +474,12 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Dashboard</h2>
-            <span style="font-size:11px;color:var(--gray-400);">All-time overview</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:11px;color:var(--gray-400);">All-time overview</span>
+              <button class="btn btn-secondary" id="endOfDayBtn" type="button">
+                End of Day
+              </button>
+            </div>
           </div>
 
           <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
@@ -568,6 +573,10 @@
                 onclick="if(typeof switchPage==='function')switchPage('lab');">
                 Open Lab ↗
               </button>
+              <button class="btn btn-secondary" id="openRecipesBtn" type="button"
+                style="display:none;">
+                Recipes ↗
+              </button>
             </div>
           </div>
           <div class="filter-bar">
@@ -614,7 +623,12 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Inventory</h2>
-            <span style="font-size:11px;color:var(--gray-400);">Ingredient stock levels</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:11px;color:var(--gray-400);">Ingredient stock levels</span>
+              <button class="btn btn-secondary" id="shoppingListBtn" type="button">
+                🛒 Shopping List
+              </button>
+            </div>
           </div>
 
           <!-- Finished Goods -->
@@ -1312,6 +1326,144 @@
         </div>
       </section>
 
+      <!-- ═══ RECIPE CATALOG VIEW ═══ -->
+      <section class="view" id="view-recipes">
+        <div class="panel">
+
+          <!-- List view -->
+          <div id="recipeCatalogListView">
+            <div class="panel-header">
+              <h2>Recipe Catalog</h2>
+              <button class="btn" id="rcNewRecipeBtn" type="button">+ New Recipe</button>
+            </div>
+            <div class="filter-bar" style="margin-bottom:16px;">
+              <input id="recipeSearch" type="text" placeholder="Search recipes…"
+                style="flex:1;" />
+              <select id="recipeCatFilter">
+                <option value="All">All Categories</option>
+                <option>Cookies</option>
+                <option>Filling</option>
+                <option>Coating</option>
+                <option>Dough</option>
+                <option>Sauce</option>
+                <option>Drink</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div id="recipeCatalogList"></div>
+          </div>
+
+          <!-- Detail view -->
+          <div id="recipeDetailView" style="display:none;">
+            <div class="panel-header">
+              <h2 id="recipeDetailTitle">Recipe</h2>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-secondary" type="button"
+                  id="rcCloseDetailBtn">← Back</button>
+                <button class="btn btn-secondary" type="button"
+                  id="rcEditDetailBtn"
+                  onclick="openRecipeForm(document.getElementById('rcCurrentRecipeId')?.value)">
+                  Edit</button>
+                <button class="btn btn-secondary" type="button"
+                  onclick="deleteRecipe(document.getElementById('rcCurrentRecipeId')?.value)"
+                  style="color:#dc2626;border-color:#fca5a5;">Delete</button>
+                <input type="hidden" id="rcCurrentRecipeId" />
+              </div>
+            </div>
+            <div id="recipeDetailContent"></div>
+          </div>
+
+          <!-- Form view -->
+          <div id="recipeFormView" style="display:none;">
+            <div class="panel-header">
+              <h2 id="rcFormTitle">Recipe</h2>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-secondary" id="rcCancelFormBtn" type="button">Cancel</button>
+                <button class="btn" id="rcSaveFormBtn" type="button">Save Recipe</button>
+              </div>
+            </div>
+
+            <input type="hidden" id="rcFormId" />
+
+            <div class="form-row">
+              <div class="form-group" style="flex:2;">
+                <label>Recipe Name <span style="color:var(--danger);">*</span></label>
+                <input id="rcFormName" type="text" placeholder="e.g. Dubai Chewy Cookies" />
+              </div>
+              <div class="form-group">
+                <label>Category</label>
+                <select id="rcFormCategory">
+                  <option value="">Select…</option>
+                  <option>Cookies</option><option>Filling</option><option>Coating</option>
+                  <option>Dough</option><option>Sauce</option><option>Drink</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Yield</label>
+                <input id="rcFormYield" type="text" placeholder="e.g. 24 pcs, 500g" />
+              </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="form-group">
+              <label>Tags</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+                  <input type="checkbox" class="rc-tag-check" value="Signature" /> Signature</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+                  <input type="checkbox" class="rc-tag-check" value="Seasonal" /> Seasonal</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+                  <input type="checkbox" class="rc-tag-check" value="In Progress" /> In Progress</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+                  <input type="checkbox" class="rc-tag-check" value="Retired" /> Retired</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+                  <input type="checkbox" class="rc-tag-check" value="Bestseller" /> Bestseller</label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;">
+                  <input type="checkbox" class="rc-tag-check" value="New" /> New</label>
+              </div>
+            </div>
+
+            <!-- Ingredients -->
+            <div class="section-title" style="margin-top:8px;">Ingredients</div>
+            <div id="rcIngredientRows" style="margin-bottom:8px;"></div>
+            <button class="btn btn-secondary" type="button"
+              onclick="_rcEditIngredients.push({name:'',qty:'',unit:''});_renderRCIngredients();"
+              style="margin-bottom:16px;">+ Add Ingredient</button>
+
+            <!-- Steps toggle -->
+            <div style="display:flex;align-items:center;justify-content:space-between;
+              margin-bottom:12px;">
+              <div>
+                <div style="font-weight:700;font-size:13px;">Steps</div>
+                <div style="font-size:11px;color:var(--gray-400);">Turn off for simple recipes</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="rcFormShowSteps" checked
+                  onchange="_renderRCSteps();" />
+                <div class="toggle-track"></div>
+                <div class="toggle-knob"></div>
+              </label>
+            </div>
+
+            <div id="rcStepsSection">
+              <div id="rcStepRows" style="margin-bottom:8px;"></div>
+              <button class="btn btn-secondary" type="button"
+                onclick="_rcEditSteps.push({text:''});_renderRCSteps();"
+                style="margin-bottom:16px;">+ Add Step</button>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea id="rcFormNotes" rows="3"
+                placeholder="Tips, variations, substitutions…"></textarea>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       <!-- ═══ SETTINGS VIEW ═══ -->
       <!-- ═══ SETTINGS VIEW ═══ -->
       <section class="view" id="view-settings">
@@ -1415,7 +1567,7 @@
                 <div class="toggle-knob"></div>
               </label>
             </div>
-            <div class="settings-toggle-row">
+            <div class="settings-toggle-row" style="border-bottom:1px solid var(--gray-100);">
               <div>
                 <div class="settings-toggle-label">Production Mode</div>
                 <div class="settings-toggle-sub">
@@ -1424,6 +1576,19 @@
               </div>
               <label class="toggle-switch">
                 <input type="checkbox" id="settingsProductionMode" />
+                <div class="toggle-track"></div>
+                <div class="toggle-knob"></div>
+              </label>
+            </div>
+            <div class="settings-toggle-row">
+              <div>
+                <div class="settings-toggle-label">Recipe Catalog</div>
+                <div class="settings-toggle-sub">
+                  Personal recipe reference — fully editable, disconnected from operations.
+                </div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settingsRecipeCatalog" />
                 <div class="toggle-track"></div>
                 <div class="toggle-knob"></div>
               </label>
@@ -2612,6 +2777,33 @@
       </div>
     </div>
 
+    <!-- Shopping List Modal -->
+    <div class="modal-overlay" id="shoppingListModal">
+      <div class="modal" style="max-width:560px;">
+        <h3>Shopping List</h3>
+        <div id="shoppingListContent"></div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="shoppingListModal">Close</button>
+          <button class="btn btn-secondary" id="slSaveBtn" type="button">Save List</button>
+          <button class="btn" id="slShareBtn" type="button">Share / Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- End of Day Modal -->
+    <div class="modal-overlay" id="endOfDayModal">
+      <div class="modal" style="max-width:520px;">
+        <h3>End of Day</h3>
+        <div id="endOfDayContent" style="max-height:65vh;overflow-y:auto;"></div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button"
+            data-close-modal="endOfDayModal">Close</button>
+          <button class="btn" id="eodShareBtn" type="button">Share / Copy</button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="voidModal">
       <div class="modal" style="max-width:460px;">
         <h3>Void Transaction</h3>
@@ -3003,6 +3195,9 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   <script src="./js/refund.js?v=2"></script>
   <script src="./js/finishedgoods.js?v=1"></script>
   <script src="./js/production.js?v=2"></script>
+  <script src="./js/shoppinglist.js?v=1"></script>
+  <script src="./js/endofday.js?v=1"></script>
+  <script src="./js/recipecatalog.js?v=1"></script>
   <script src="./js/productlab.js?v=2"></script>
   <script src="./js/coffeecart.js?v=2"></script>
   <script src="./js/void.js?v=2"></script>
