@@ -13,9 +13,10 @@ const APP_STATE = {
     orderTypes: ['Dine In', 'Take Out', 'Delivery'],
     lowStockThreshold: 5,
     voidPin: '000000',          // Admin void PIN — changeable in Settings
-    supplierModeEnabled: false, // Supplier Mode feature toggle
+    supplierModeEnabled: false,   // Supplier Mode feature toggle
     coffeeCartModeEnabled: false, // Coffee Cart Mode feature toggle
-    productionModeEnabled: false  // Production Mode feature toggle
+    productionModeEnabled: false, // Production Mode feature toggle
+    recipeCatalogEnabled: false   // Recipe Catalog feature toggle
   },
 
   receiptCounter: 0,            // Sequential permanent counter, never resets
@@ -37,6 +38,8 @@ const APP_STATE = {
   leads: [],                    // Lead Tracker / CRM
   labDrafts: [],                // Product Lab draft analyses
   labCategoryPresets: [],
+  recipeCatalog: [],            // Recipe Catalog — standalone reference recipes
+  shoppingLists: [],            // Saved shopping lists — last 5
   finishedGoods: [],            // { productId, productName, stock, reserved }
   fgMovements: [],              // Finished goods movement log
   productionJobs: [],           // Production Mode jobs
@@ -88,6 +91,8 @@ function resetState() {
   APP_STATE.productionJobs = [];
   APP_STATE.finishedGoods = [];
   APP_STATE.fgMovements   = [];
+  APP_STATE.shoppingLists = [];
+  // recipeCatalog intentionally NOT reset — user reference data
   // Note: labCategoryPresets + laborPeople intentionally NOT reset — user config
   persistState();
 }

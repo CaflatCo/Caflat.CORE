@@ -13,6 +13,7 @@ function initializeUIActions() {
   bindSupplyFilters();
   if (typeof bindLeadFilters         === 'function') bindLeadFilters();
   if (typeof bindProductionFilters   === 'function') bindProductionFilters();
+  if (typeof bindRecipeCatalogFilters=== 'function') bindRecipeCatalogFilters();
   if (typeof applyEventPickerButton  === 'function') applyEventPickerButton();
   _bindLabInputs();
   bindSupplyDiscountInputs();
@@ -48,6 +49,16 @@ function bindPrimaryButtons() {
     ['addEventBtn',         () => openEventModal()],
     ['labNewSessionBtn',       () => startNewLabSession()],
     ['addProdJobBtn',          () => openProductionJobModal()],
+    ['endOfDayBtn',            () => openEndOfDaySummary()],
+    ['shoppingListBtn',        () => openShoppingListModal()],
+    ['openRecipesBtn',         () => { if(typeof switchPage==='function') switchPage('recipes'); }],
+    ['rcNewRecipeBtn',         () => openRecipeForm()],
+    ['rcSaveFormBtn',          () => saveRecipeForm()],
+    ['rcCancelFormBtn',        () => closeRecipeForm()],
+    ['rcCloseDetailBtn',       () => closeRecipeDetail()],
+    ['slSaveBtn',              () => saveShoppingList()],
+    ['slShareBtn',             () => shareShoppingList()],
+    ['eodShareBtn',            () => shareEndOfDay()],
     ['saveProdJobBtn',         () => saveProductionJob()],
     ['saveBatchTrackingBtn',   () => saveBatchTracking()],
     ['addLaborPersonBtn',      () => openLaborPersonModal()],
@@ -138,6 +149,13 @@ function bindLeadFilters() {
   if (f) f.addEventListener('change', () => {
     if (typeof renderLeadsTable === 'function') renderLeadsTable();
   });
+}
+
+function bindRecipeCatalogFilters() {
+  const rs = document.getElementById('recipeSearch');
+  const rc = document.getElementById('recipeCatFilter');
+  if (rs) rs.addEventListener('input',  () => { if (typeof renderRecipeCatalog==='function') renderRecipeCatalog(); });
+  if (rc) rc.addEventListener('change', () => { if (typeof renderRecipeCatalog==='function') renderRecipeCatalog(); });
 }
 
 function bindProductionFilters() {
@@ -543,6 +561,9 @@ function bindDelegatedActions() {
       case 'save-client':            saveSupplierClient(); break;
       case 'delete-category':       deleteCategory(actionEl.dataset.id || ''); break;
       case 'toggle-category-mode':   toggleCategoryMode(actionEl.dataset.id || ''); break;
+      case 'open-recipe-detail':     openRecipeDetail(actionEl.dataset.id || ''); break;
+      case 'edit-recipe':            openRecipeForm(actionEl.dataset.id || ''); break;
+      case 'delete-recipe':          deleteRecipe(actionEl.dataset.id || ''); break;
       case 'open-change-pin':        if(typeof openChangePinModal==='function') openChangePinModal(); break;
       case 'save-new-pin':           if(typeof saveNewPin==='function') saveNewPin(); break;
       // Finished Goods

@@ -175,19 +175,22 @@ function saveSettings() {
 function saveFeatureSettings() {
   const supplierModeEnabled  = document.getElementById('settingsSupplierMode')?.checked  === true;
   const coffeeCartModeEnabled= document.getElementById('settingsCoffeeCartMode')?.checked === true;
-  const productionModeEnabled= document.getElementById('settingsProductionMode')?.checked === true;
+  const productionModeEnabled   = document.getElementById('settingsProductionMode')?.checked   === true;
+  const recipeCatalogEnabled    = document.getElementById('settingsRecipeCatalog')?.checked    === true;
 
   updateState('settings', current => ({
     ...current,
     supplierModeEnabled,
     coffeeCartModeEnabled,
-    productionModeEnabled
+    productionModeEnabled,
+    recipeCatalogEnabled
   }));
 
-  if (typeof applySupplierModeToggle   === 'function') applySupplierModeToggle();
-  if (typeof applySupplierCartButton   === 'function') applySupplierCartButton();
-  if (typeof applyCoffeeCartModeToggle === 'function') applyCoffeeCartModeToggle();
-  if (typeof applyProductionModeToggle === 'function') applyProductionModeToggle();
+  if (typeof applySupplierModeToggle    === 'function') applySupplierModeToggle();
+  if (typeof applySupplierCartButton    === 'function') applySupplierCartButton();
+  if (typeof applyCoffeeCartModeToggle  === 'function') applyCoffeeCartModeToggle();
+  if (typeof applyProductionModeToggle  === 'function') applyProductionModeToggle();
+  if (typeof applyRecipeCatalogToggle   === 'function') applyRecipeCatalogToggle();
   showNotification('Features saved', 'success');
 }
 
@@ -263,6 +266,9 @@ function renderBranding() {
 
   const productionToggle = document.getElementById('settingsProductionMode');
   if (productionToggle) productionToggle.checked = APP_STATE.settings?.productionModeEnabled === true;
+
+  const recipeToggle = document.getElementById('settingsRecipeCatalog');
+  if (recipeToggle) recipeToggle.checked = APP_STATE.settings?.recipeCatalogEnabled === true;
 }
 
 function escapeHtml(value) {

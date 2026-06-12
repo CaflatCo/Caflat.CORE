@@ -35,6 +35,7 @@ function renderEverything() {
     'renderInventoryTable',
     'renderFinishedGoodsTable',
     'renderInventoryMovementLog',
+    'applyRecipeCatalogToggle',
     'renderSalesTable',
     'renderCategories',
     'renderCategoryOptions',
@@ -164,13 +165,26 @@ function switchPage(target) {
   if (cleanTarget === 'coffeecart' && typeof renderCoffeeCartView === 'function') renderCoffeeCartView();
   if (cleanTarget === 'lab') {
     if (typeof renderLabView === 'function') renderLabView();
-    // Update Products "Open Lab" button state
     const openLabBtn = document.getElementById('openLabBtn');
     if (openLabBtn) openLabBtn.textContent = '← Back to Products';
+  }
+  if (cleanTarget === 'recipes') {
+    if (typeof renderRecipeCatalog === 'function') renderRecipeCatalog();
+    const openRecipesBtn = document.getElementById('openRecipesBtn');
+    if (openRecipesBtn) openRecipesBtn.textContent = '← Back to Products';
+    // Show list view by default
+    const listView = document.getElementById('recipeCatalogListView');
+    const detailView = document.getElementById('recipeDetailView');
+    const formView = document.getElementById('recipeFormView');
+    if (listView)  listView.style.display  = 'block';
+    if (detailView) detailView.style.display = 'none';
+    if (formView)  formView.style.display  = 'none';
   }
   if (cleanTarget === 'products') {
     const openLabBtn = document.getElementById('openLabBtn');
     if (openLabBtn) openLabBtn.textContent = 'Open Lab ↗';
+    const openRecipesBtn = document.getElementById('openRecipesBtn');
+    if (openRecipesBtn) openRecipesBtn.textContent = 'Recipes ↗';
   }
   if (cleanTarget === 'production' && typeof renderProductionView === 'function') renderProductionView();
   if (cleanTarget === 'inventory') {

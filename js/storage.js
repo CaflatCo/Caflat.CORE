@@ -39,6 +39,8 @@ function persistState() {
       leads:               APP_STATE.leads,
       labDrafts:           APP_STATE.labDrafts,
       labCategoryPresets:  APP_STATE.labCategoryPresets,
+      recipeCatalog:       APP_STATE.recipeCatalog,
+      shoppingLists:       APP_STATE.shoppingLists,
       productionJobs:      APP_STATE.productionJobs,
       laborPeople:         APP_STATE.laborPeople
     }));
@@ -95,6 +97,8 @@ function restorePersistedState() {
   APP_STATE.leads                = Array.isArray(persisted.leads)         ? persisted.leads         : [];
   APP_STATE.labDrafts            = Array.isArray(persisted.labDrafts)            ? persisted.labDrafts            : [];
   APP_STATE.labCategoryPresets   = Array.isArray(persisted.labCategoryPresets)   ? persisted.labCategoryPresets   : [];
+  APP_STATE.recipeCatalog        = Array.isArray(persisted.recipeCatalog)        ? persisted.recipeCatalog        : [];
+  APP_STATE.shoppingLists        = Array.isArray(persisted.shoppingLists)        ? persisted.shoppingLists        : [];
   APP_STATE.productionJobs       = Array.isArray(persisted.productionJobs)       ? persisted.productionJobs       : [];
   APP_STATE.laborPeople          = Array.isArray(persisted.laborPeople)          ? persisted.laborPeople          : [];
 }
@@ -125,6 +129,8 @@ function exportAllData() {
     leads:             APP_STATE.leads,
     labDrafts:         APP_STATE.labDrafts,
     labCategoryPresets:APP_STATE.labCategoryPresets,
+    recipeCatalog:     APP_STATE.recipeCatalog,
+    shoppingLists:     APP_STATE.shoppingLists,
     productionJobs:    APP_STATE.productionJobs,
     laborPeople:       APP_STATE.laborPeople
   };
@@ -192,6 +198,8 @@ function importAllData(file) {
       APP_STATE.leads                = Array.isArray(data.leads)               ? data.leads               : [];
       APP_STATE.labDrafts            = Array.isArray(data.labDrafts)           ? data.labDrafts           : [];
       APP_STATE.labCategoryPresets   = Array.isArray(data.labCategoryPresets)  ? data.labCategoryPresets  : [];
+      APP_STATE.recipeCatalog        = Array.isArray(data.recipeCatalog)       ? data.recipeCatalog       : [];
+      APP_STATE.shoppingLists        = Array.isArray(data.shoppingLists)       ? data.shoppingLists       : [];
       APP_STATE.productionJobs       = Array.isArray(data.productionJobs)      ? data.productionJobs      : [];
       APP_STATE.laborPeople          = Array.isArray(data.laborPeople)         ? data.laborPeople         : [];
 
@@ -214,13 +222,15 @@ function resetBusinessData() {
   const preserved = {
     settings:           APP_STATE.settings,
     labCategoryPresets: APP_STATE.labCategoryPresets,
-    laborPeople:        APP_STATE.laborPeople
+    laborPeople:        APP_STATE.laborPeople,
+    recipeCatalog:      APP_STATE.recipeCatalog
   };
   localStorage.removeItem(STORAGE_KEY);
   // Re-apply preserved fields
   APP_STATE.settings           = preserved.settings;
   APP_STATE.labCategoryPresets = preserved.labCategoryPresets;
   APP_STATE.laborPeople        = preserved.laborPeople;
+  APP_STATE.recipeCatalog      = preserved.recipeCatalog;
   if (typeof persistState === 'function') persistState();
   if (typeof renderEverything === 'function') renderEverything();
   showNotification('Business data reset — Lab presets and settings preserved', 'info');
