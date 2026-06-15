@@ -319,6 +319,7 @@
         <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
         <button data-view="production" id="navProduction" style="display:none;">Production</button>
         <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">Coffee Cart</button>
+        <button data-view="lab" id="navLab" style="display:none;">Product Lab</button>
       </nav>
     </header>
 
@@ -785,13 +786,15 @@
             </div>
           </div>
 
-          <!-- Void PIN -->
+          <!-- Void PIN — numeric only -->
           <div class="form-group">
             <label>Void / Refund PIN (6 digits)</label>
             <input id="settingsVoidPin" type="password" maxlength="6"
+              inputmode="numeric" pattern="[0-9]*"
               placeholder="● ● ● ● ● ●  (enter new PIN to change)"
               autocomplete="new-password"
-              style="letter-spacing:8px;font-size:20px;font-weight:900;text-align:center;" />
+              style="letter-spacing:8px;font-size:20px;font-weight:900;text-align:center;"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
           </div>
 
           <!-- Categories -->
@@ -822,19 +825,17 @@
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingsSupplierMode" />
-              <div class="toggle-track"></div>
-              <div class="toggle-knob"></div>
+              <div class="toggle-track"></div><div class="toggle-knob"></div>
             </label>
           </div>
           <div class="settings-toggle-row">
             <div>
               <div class="settings-toggle-label">Production Mode</div>
-              <div class="settings-toggle-sub">Enable production job scheduling, labor tracking, and batch management.</div>
+              <div class="settings-toggle-sub">Enable production job scheduling, labor tracking, and batch management. Ingredients auto-deduct when a job line is marked Done.</div>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingsProductionMode" />
-              <div class="toggle-track"></div>
-              <div class="toggle-knob"></div>
+              <div class="toggle-track"></div><div class="toggle-knob"></div>
             </label>
           </div>
           <div class="settings-toggle-row">
@@ -844,16 +845,87 @@
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingsCoffeeCartMode" />
-              <div class="toggle-track"></div>
-              <div class="toggle-knob"></div>
+              <div class="toggle-track"></div><div class="toggle-knob"></div>
+            </label>
+          </div>
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-toggle-label">Product Lab</div>
+              <div class="settings-toggle-sub">Enable the Product Lab for recipe costing, pricing scenarios, and product development.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingsProductLabMode" />
+              <div class="toggle-track"></div><div class="toggle-knob"></div>
             </label>
           </div>
 
-          <!-- Payment Methods -->
-          <div class="section-title" style="margin-top:24px;">Payment Methods</div>
+          <!-- Payment QR Codes (fixed slots) -->
+          <div class="section-title">Payment QR Codes</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;">
+            <!-- GCash -->
+            <div style="position:relative;">
+              <input type="file" id="qrUploadGcash" accept="image/*" style="display:none;"
+                onchange="uploadPaymentQR('gcash', this);" />
+              <div id="qrBoxGcash" onclick="document.getElementById('qrUploadGcash').click();"
+                style="border:2px dashed var(--gray-200);border-radius:14px;aspect-ratio:1;
+                  display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  cursor:pointer;background:var(--gray-50);overflow:hidden;position:relative;transition:border-color .15s;">
+                <div class="qr-placeholder" style="text-align:center;padding:12px;">
+                  <div style="font-size:24px;margin-bottom:6px;">+</div>
+                  <div style="font-size:11px;font-weight:800;color:var(--gray-500);">GCash</div>
+                </div>
+                <img id="qrImgGcash" src="" alt="GCash QR" style="display:none;width:100%;height:100%;object-fit:cover;" />
+              </div>
+              <button type="button" id="qrRemoveGcash" onclick="removePaymentQR('gcash');"
+                style="display:none;position:absolute;top:6px;right:6px;width:22px;height:22px;
+                  border-radius:50%;background:rgba(0,0,0,0.6);color:white;border:none;
+                  cursor:pointer;font-size:12px;line-height:1;font-family:var(--font-main);">✕</button>
+            </div>
+            <!-- Maya -->
+            <div style="position:relative;">
+              <input type="file" id="qrUploadMaya" accept="image/*" style="display:none;"
+                onchange="uploadPaymentQR('maya', this);" />
+              <div id="qrBoxMaya" onclick="document.getElementById('qrUploadMaya').click();"
+                style="border:2px dashed var(--gray-200);border-radius:14px;aspect-ratio:1;
+                  display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  cursor:pointer;background:var(--gray-50);overflow:hidden;position:relative;transition:border-color .15s;">
+                <div class="qr-placeholder" style="text-align:center;padding:12px;">
+                  <div style="font-size:24px;margin-bottom:6px;">+</div>
+                  <div style="font-size:11px;font-weight:800;color:var(--gray-500);">Maya</div>
+                </div>
+                <img id="qrImgMaya" src="" alt="Maya QR" style="display:none;width:100%;height:100%;object-fit:cover;" />
+              </div>
+              <button type="button" id="qrRemoveMaya" onclick="removePaymentQR('maya');"
+                style="display:none;position:absolute;top:6px;right:6px;width:22px;height:22px;
+                  border-radius:50%;background:rgba(0,0,0,0.6);color:white;border:none;
+                  cursor:pointer;font-size:12px;line-height:1;font-family:var(--font-main);">✕</button>
+            </div>
+            <!-- QR PH -->
+            <div style="position:relative;">
+              <input type="file" id="qrUploadQrph" accept="image/*" style="display:none;"
+                onchange="uploadPaymentQR('qrph', this);" />
+              <div id="qrBoxQrph" onclick="document.getElementById('qrUploadQrph').click();"
+                style="border:2px dashed var(--gray-200);border-radius:14px;aspect-ratio:1;
+                  display:flex;flex-direction:column;align-items:center;justify-content:center;
+                  cursor:pointer;background:var(--gray-50);overflow:hidden;position:relative;transition:border-color .15s;">
+                <div class="qr-placeholder" style="text-align:center;padding:12px;">
+                  <div style="font-size:24px;margin-bottom:6px;">+</div>
+                  <div style="font-size:11px;font-weight:800;color:var(--gray-500);">QR PH</div>
+                </div>
+                <img id="qrImgQrph" src="" alt="QR PH" style="display:none;width:100%;height:100%;object-fit:cover;" />
+              </div>
+              <button type="button" id="qrRemoveQrph" onclick="removePaymentQR('qrph');"
+                style="display:none;position:absolute;top:6px;right:6px;width:22px;height:22px;
+                  border-radius:50%;background:rgba(0,0,0,0.6);color:white;border:none;
+                  cursor:pointer;font-size:12px;line-height:1;font-family:var(--font-main);">✕</button>
+            </div>
+          </div>
+
+          <!-- Custom Payment Methods -->
+          <div class="section-title">Custom Payment Methods</div>
           <div id="paymentMethodsList" style="margin-bottom:12px;"></div>
           <button class="btn btn-secondary" type="button" id="addPaymentMethodBtn"
-            style="margin-bottom:24px;">+ Add Payment Method</button>
+            style="margin-bottom:32px;">+ Add Payment Method</button>
 
           <!-- Data Management -->
           <div class="section-title">Data Management</div>
@@ -870,17 +942,23 @@
               text-transform:uppercase;color:#dc2626;margin-bottom:16px;">Danger Zone</div>
             <div style="border:1.5px solid #fecaca;border-radius:var(--radius-lg);overflow:hidden;">
               <div style="display:flex;align-items:center;justify-content:space-between;
-                padding:14px 18px;border-bottom:1px solid #fecaca;">
+                padding:14px 18px;border-bottom:1px solid #fecaca;gap:12px;flex-wrap:wrap;">
                 <div>
                   <div style="font-weight:700;font-size:13px;">Archive &amp; Reset</div>
                   <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
                     Export a backup then wipe all business data. Settings and categories kept.
                   </div>
                 </div>
-                <button class="btn btn-secondary" id="resetDataBtn" type="button"
-                  style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;">
-                  Archive &amp; Reset
-                </button>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn btn-secondary" id="archiveLocalBtn" type="button"
+                    style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;font-size:12px;">
+                    ↓ Save Locally
+                  </button>
+                  <button class="btn btn-secondary" id="archiveEmailBtn" type="button"
+                    style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;font-size:12px;">
+                    ✉ Send to Email
+                  </button>
+                </div>
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between;
                 padding:14px 18px;">
@@ -2163,6 +2241,7 @@
   <!-- ═══ SCRIPTS ═══ -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="./js/qr.js"></script>
   <script src="./js/utils.js"></script>
   <script src="./js/state.js"></script>
   <script src="./js/storage.js"></script>
