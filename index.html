@@ -859,70 +859,8 @@
             </label>
           </div>
 
-          <!-- Payment QR Codes (fixed slots) -->
-          <div class="section-title">Payment QR Codes</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;">
-            <!-- GCash -->
-            <div style="position:relative;">
-              <input type="file" id="qrUploadGcash" accept="image/*" style="display:none;"
-                onchange="uploadPaymentQR('gcash', this);" />
-              <div id="qrBoxGcash" onclick="document.getElementById('qrUploadGcash').click();"
-                style="border:2px dashed var(--gray-200);border-radius:14px;aspect-ratio:1;
-                  display:flex;flex-direction:column;align-items:center;justify-content:center;
-                  cursor:pointer;background:var(--gray-50);overflow:hidden;position:relative;transition:border-color .15s;">
-                <div class="qr-placeholder" style="text-align:center;padding:12px;">
-                  <div style="font-size:24px;margin-bottom:6px;">+</div>
-                  <div style="font-size:11px;font-weight:800;color:var(--gray-500);">GCash</div>
-                </div>
-                <img id="qrImgGcash" src="" alt="GCash QR" style="display:none;width:100%;height:100%;object-fit:cover;" />
-              </div>
-              <button type="button" id="qrRemoveGcash" onclick="removePaymentQR('gcash');"
-                style="display:none;position:absolute;top:6px;right:6px;width:22px;height:22px;
-                  border-radius:50%;background:rgba(0,0,0,0.6);color:white;border:none;
-                  cursor:pointer;font-size:12px;line-height:1;font-family:var(--font-main);">✕</button>
-            </div>
-            <!-- Maya -->
-            <div style="position:relative;">
-              <input type="file" id="qrUploadMaya" accept="image/*" style="display:none;"
-                onchange="uploadPaymentQR('maya', this);" />
-              <div id="qrBoxMaya" onclick="document.getElementById('qrUploadMaya').click();"
-                style="border:2px dashed var(--gray-200);border-radius:14px;aspect-ratio:1;
-                  display:flex;flex-direction:column;align-items:center;justify-content:center;
-                  cursor:pointer;background:var(--gray-50);overflow:hidden;position:relative;transition:border-color .15s;">
-                <div class="qr-placeholder" style="text-align:center;padding:12px;">
-                  <div style="font-size:24px;margin-bottom:6px;">+</div>
-                  <div style="font-size:11px;font-weight:800;color:var(--gray-500);">Maya</div>
-                </div>
-                <img id="qrImgMaya" src="" alt="Maya QR" style="display:none;width:100%;height:100%;object-fit:cover;" />
-              </div>
-              <button type="button" id="qrRemoveMaya" onclick="removePaymentQR('maya');"
-                style="display:none;position:absolute;top:6px;right:6px;width:22px;height:22px;
-                  border-radius:50%;background:rgba(0,0,0,0.6);color:white;border:none;
-                  cursor:pointer;font-size:12px;line-height:1;font-family:var(--font-main);">✕</button>
-            </div>
-            <!-- QR PH -->
-            <div style="position:relative;">
-              <input type="file" id="qrUploadQrph" accept="image/*" style="display:none;"
-                onchange="uploadPaymentQR('qrph', this);" />
-              <div id="qrBoxQrph" onclick="document.getElementById('qrUploadQrph').click();"
-                style="border:2px dashed var(--gray-200);border-radius:14px;aspect-ratio:1;
-                  display:flex;flex-direction:column;align-items:center;justify-content:center;
-                  cursor:pointer;background:var(--gray-50);overflow:hidden;position:relative;transition:border-color .15s;">
-                <div class="qr-placeholder" style="text-align:center;padding:12px;">
-                  <div style="font-size:24px;margin-bottom:6px;">+</div>
-                  <div style="font-size:11px;font-weight:800;color:var(--gray-500);">QR PH</div>
-                </div>
-                <img id="qrImgQrph" src="" alt="QR PH" style="display:none;width:100%;height:100%;object-fit:cover;" />
-              </div>
-              <button type="button" id="qrRemoveQrph" onclick="removePaymentQR('qrph');"
-                style="display:none;position:absolute;top:6px;right:6px;width:22px;height:22px;
-                  border-radius:50%;background:rgba(0,0,0,0.6);color:white;border:none;
-                  cursor:pointer;font-size:12px;line-height:1;font-family:var(--font-main);">✕</button>
-            </div>
-          </div>
-
           <!-- Custom Payment Methods -->
-          <div class="section-title">Custom Payment Methods</div>
+          <div class="section-title">Payment Methods</div>
           <div id="paymentMethodsList" style="margin-bottom:12px;"></div>
           <button class="btn btn-secondary" type="button" id="addPaymentMethodBtn"
             style="margin-bottom:32px;">+ Add Payment Method</button>
