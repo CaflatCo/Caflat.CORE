@@ -77,6 +77,7 @@ function bindPrimaryButtons() {
     ['saveClientBtn',     () => saveSupplierClient()],
     ['exportDataBtn',     () => exportAllData()],
     ['exportDataBtnProducts', () => exportAllData()],
+    ['addPaymentMethodBtn', () => openPaymentMethodModal(null)],
   ];
 
   bindings.forEach(([id, handler]) => {

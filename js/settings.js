@@ -194,7 +194,9 @@ function saveSettings() {
     return;
   }
 
-  const supplierModeEnabled = document.getElementById('settingsSupplierMode')?.checked === true;
+  const supplierModeEnabled    = document.getElementById('settingsSupplierMode')?.checked    === true;
+  const productionModeEnabled  = document.getElementById('settingsProductionMode')?.checked  === true;
+  const coffeeCartModeEnabled  = document.getElementById('settingsCoffeeCartMode')?.checked  === true;
 
   updateState('settings', current => ({
     ...current,
@@ -202,12 +204,16 @@ function saveSettings() {
     taxRate,
     receiptFooter,
     supplierModeEnabled,
+    productionModeEnabled,
+    coffeeCartModeEnabled,
     ...(voidPin ? { voidPin } : {})
   }));
 
   renderBranding();
-  if (typeof applySupplierModeToggle  === 'function') applySupplierModeToggle();
-  if (typeof applySupplierCartButton === 'function') applySupplierCartButton();
+  if (typeof applySupplierModeToggle    === 'function') applySupplierModeToggle();
+  if (typeof applySupplierCartButton    === 'function') applySupplierCartButton();
+  if (typeof applyProductionModeToggle  === 'function') applyProductionModeToggle();
+  if (typeof applyCoffeeCartModeToggle  === 'function') applyCoffeeCartModeToggle();
   showNotification('Settings saved', 'success');
 }
 
@@ -228,6 +234,13 @@ function renderBranding() {
 
   const supplierToggle = document.getElementById('settingsSupplierMode');
   if (supplierToggle) supplierToggle.checked = APP_STATE.settings?.supplierModeEnabled === true;
+
+  const productionToggle = document.getElementById('settingsProductionMode');
+  if (productionToggle) productionToggle.checked = APP_STATE.settings?.productionModeEnabled === true;
+
+  const coffeeCartToggle = document.getElementById('settingsCoffeeCartMode');
+  if (coffeeCartToggle) coffeeCartToggle.checked = APP_STATE.settings?.coffeeCartModeEnabled === true;
+
   _renderPaymentQRBoxes();
 }
 
@@ -424,3 +437,174 @@ window.factoryReset    = factoryReset;
 window.saveSettings        = saveSettings;
 window.renderBranding      = renderBranding;
 window.loadDemoData        = loadDemoData;
+
+/* ─────────────────────────────────────────────
+   PAYMENT METHODS
+───────────────────────────────────────────── */
+
+function _getPaymentMethods() {
+  return APP_STATE.settings?.paymentMethods || [];
+}
+
+function renderPaymentMethodsList() {
+  const container = document.getElementById('paymentMethodsList');
+  if (!container) return;
+  const methods = _getPaymentMethods();
+
+  if (!methods.length) {
+    container.innerHTML = `<div style="font-size:13px;color:var(--gray-400);
+      padding:12px 0;">No payment methods yet. Add one below.</div>`;
+    return;
+  }
+
+  container.innerHTML = methods.map((m, i) => {
+    const typeLabel = { cash:'Cash', qr:'QR Code', bank:'Bank Transfer', card:'Card', other:'Other' }[m.type] || m.type;
+    const detail = m.type === 'bank'
+      ? `<div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${m.bankName || ''} · ${m.accountNumber || ''}</div>`
+      : m.type === 'qr' && m.qrImage
+        ? `<img src="${m.qrImage}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-top:4px;" />`
+        : '';
+
+    return `<div style="display:flex;align-items:center;justify-content:space-between;
+      padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);
+      margin-bottom:8px;gap:12px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:13px;">${sanitizeText(m.name)}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:1px;">${typeLabel}</div>
+        ${detail}
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="btn btn-secondary" type="button"
+          onclick="openPaymentMethodModal(${i});"
+          style="padding:6px 12px;font-size:12px;">Edit</button>
+        <button class="btn btn-secondary" type="button"
+          onclick="deletePaymentMethod(${i});"
+          style="padding:6px 12px;font-size:12px;color:#dc2626;border-color:#fca5a5;">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openPaymentMethodModal(editIndex) {
+  const modal = document.getElementById('paymentMethodModal');
+  if (!modal) return;
+
+  // Reset form
+  document.getElementById('pmEditId').value = editIndex ?? '';
+  document.getElementById('pmName').value = '';
+  document.getElementById('pmType').value = 'cash';
+  document.getElementById('pmQrSection').style.display = 'none';
+  document.getElementById('pmBankSection').style.display = 'none';
+  document.getElementById('pmBankName').value = '';
+  document.getElementById('pmAccountName').value = '';
+  document.getElementById('pmAccountNumber').value = '';
+  clearPmQr();
+
+  const title = document.getElementById('paymentMethodModalTitle');
+
+  if (editIndex !== null && editIndex !== undefined) {
+    const m = _getPaymentMethods()[editIndex];
+    if (!m) return;
+    if (title) title.textContent = 'Edit Payment Method';
+    document.getElementById('pmName').value = m.name || '';
+    document.getElementById('pmType').value = m.type || 'cash';
+
+    if (m.type === 'qr') {
+      document.getElementById('pmQrSection').style.display = 'block';
+      if (m.qrImage) {
+        document.getElementById('pmQrPreviewImg').src = m.qrImage;
+        document.getElementById('pmQrPreviewImg').style.display = 'block';
+        document.getElementById('pmQrPreviewPlaceholder').style.display = 'none';
+        document.getElementById('pmQrClearBtn').style.display = 'block';
+      }
+    } else if (m.type === 'bank') {
+      document.getElementById('pmBankSection').style.display = 'block';
+      document.getElementById('pmBankName').value = m.bankName || '';
+      document.getElementById('pmAccountName').value = m.accountName || '';
+      document.getElementById('pmAccountNumber').value = m.accountNumber || '';
+    }
+  } else {
+    if (title) title.textContent = 'Add Payment Method';
+  }
+
+  if (typeof openModal === 'function') openModal('paymentMethodModal');
+}
+
+function previewPmQr(input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('pmQrPreviewImg');
+    const placeholder = document.getElementById('pmQrPreviewPlaceholder');
+    const clearBtn = document.getElementById('pmQrClearBtn');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    if (placeholder) placeholder.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'block';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function clearPmQr() {
+  const img = document.getElementById('pmQrPreviewImg');
+  const placeholder = document.getElementById('pmQrPreviewPlaceholder');
+  const clearBtn = document.getElementById('pmQrClearBtn');
+  const upload = document.getElementById('pmQrUpload');
+  if (img) { img.src = ''; img.style.display = 'none'; }
+  if (placeholder) placeholder.style.display = 'block';
+  if (clearBtn) clearBtn.style.display = 'none';
+  if (upload) upload.value = '';
+}
+
+function savePaymentMethod() {
+  const name = sanitizeText(getElementValue('pmName'));
+  if (!name) { showNotification('Method name is required', 'error'); return; }
+
+  const type = getElementValue('pmType') || 'cash';
+  const editId = document.getElementById('pmEditId').value;
+
+  const method = { name, type };
+
+  if (type === 'qr') {
+    const img = document.getElementById('pmQrPreviewImg');
+    method.qrImage = img && img.style.display !== 'none' ? img.src : '';
+  }
+  if (type === 'bank') {
+    method.bankName      = sanitizeText(getElementValue('pmBankName'));
+    method.accountName   = sanitizeText(getElementValue('pmAccountName'));
+    method.accountNumber = sanitizeText(getElementValue('pmAccountNumber'));
+  }
+
+  updateState('settings', current => {
+    const methods = [...(current.paymentMethods || [])];
+    if (editId !== '') {
+      methods[parseInt(editId)] = method;
+    } else {
+      methods.push(method);
+    }
+    return { ...current, paymentMethods: methods };
+  });
+
+  renderPaymentMethodsList();
+  if (typeof closeModal === 'function') closeModal('paymentMethodModal');
+  showNotification('Payment method saved', 'success');
+}
+
+function deletePaymentMethod(index) {
+  if (!confirm('Remove this payment method?')) return;
+  updateState('settings', current => {
+    const methods = [...(current.paymentMethods || [])];
+    methods.splice(index, 1);
+    return { ...current, paymentMethods: methods };
+  });
+  renderPaymentMethodsList();
+  showNotification('Payment method removed', 'success');
+}
+
+window.renderPaymentMethodsList = renderPaymentMethodsList;
+window.openPaymentMethodModal   = openPaymentMethodModal;
+window.savePaymentMethod        = savePaymentMethod;
+window.deletePaymentMethod      = deletePaymentMethod;
+window.previewPmQr              = previewPmQr;
+window.clearPmQr                = clearPmQr;
+

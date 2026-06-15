@@ -46,6 +46,7 @@ function renderEverything() {
     'renderIntegrityReport',
     'renderSupplyView',
     'renderClientsList',
+    'renderPaymentMethodsList',
     'applySupplierModeToggle',
     'applyCoffeeCartModeToggle',
     'applyEventPickerButton',
