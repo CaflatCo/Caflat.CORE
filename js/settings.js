@@ -391,6 +391,36 @@ window.uploadPaymentQR      = uploadPaymentQR;
 window.removePaymentQR      = removePaymentQR;
 window._renderPaymentQRBoxes= _renderPaymentQRBoxes;
 
+/* ── Danger Zone ── */
+
+function archiveAndReset() {
+  if (!confirm('This will export a backup first, then wipe all business data.\n\nSettings and categories will be kept.\n\nContinue?')) return;
+  // Export first
+  if (typeof exportAllData === 'function') {
+    exportAllData();
+  } else if (typeof exportData === 'function') {
+    exportData();
+  }
+  // Reset after short delay to let download trigger
+  setTimeout(() => {
+    if (typeof resetBusinessData === 'function') {
+      resetBusinessData();
+      showNotification('Data archived and reset', 'success');
+      if (typeof renderEverything === 'function') renderEverything();
+    }
+  }, 800);
+}
+
+function factoryReset() {
+  if (!confirm('Factory Reset will wipe EVERYTHING including settings and passwords.\n\nThis cannot be undone. Are you sure?')) return;
+  if (!confirm('Final confirmation — delete everything and restart?')) return;
+  localStorage.clear();
+  window.location.reload();
+}
+
+window.archiveAndReset = archiveAndReset;
+window.factoryReset    = factoryReset;
+
 window.saveSettings        = saveSettings;
 window.renderBranding      = renderBranding;
 window.loadDemoData        = loadDemoData;
