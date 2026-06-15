@@ -284,80 +284,6 @@
     .status-picker-btn[data-status="PAID"]:hover {
       background:#15803d; color:var(--white); border-color:#15803d;
     }
-    /* Channel selector */
-    .channel-btn {
-      padding:6px 14px; border:1.5px solid var(--gray-200);
-      background:var(--white); border-radius:var(--radius-full);
-      font-size:11px; font-weight:700; cursor:pointer;
-      transition:all .15s ease; font-family:var(--font-main);
-      white-space:nowrap;
-    }
-    .channel-btn:hover { border-color:var(--black); }
-    .channel-btn.active {
-      background:var(--black); color:var(--white); border-color:var(--black);
-    }
-    #channelSelectorContainer { display:flex; }
-
-    /* Event picker button in cart */
-    .event-picker-btn {
-      width:100%; padding:11px 16px;
-      background:var(--white); color:var(--black);
-      border:1.5px solid var(--gray-300);
-      cursor:pointer; font-size:10px; letter-spacing:1.5px;
-      text-transform:uppercase; font-weight:900;
-      border-radius:var(--radius-md); font-family:var(--font-main);
-      transition:all 0.15s ease; text-align:center;
-    }
-    .event-picker-btn:hover {
-      border-color:var(--black);
-    }
-
-    /* Event picker option buttons in modal */
-    .event-picker-option {
-      width:100%; padding:12px 14px; text-align:left;
-      background:var(--white); border:1.5px solid var(--gray-200);
-      border-radius:var(--radius-lg); cursor:pointer;
-      font-family:var(--font-main); font-size:13px;
-      transition:all .15s ease;
-    }
-    .event-picker-option:hover {
-      border-color:var(--black); background:var(--gray-50);
-    }
-    .event-picker-option.active {
-      background:var(--black); color:var(--white);
-      border-color:var(--black);
-    }
-
-    /* ── Product Lab ── */
-    .lab-ingredient-row {
-      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-      padding:10px 14px; border:1px solid var(--gray-100);
-      border-radius:var(--radius-md); margin-bottom:8px;
-      background:var(--gray-50);
-    }
-    .lab-ing-name { min-width:140px; }
-    .lab-temp-badge {
-      font-size:8px; font-weight:800; letter-spacing:1px;
-      padding:1px 6px; border-radius:999px;
-      background:#fff7ed; color:#c2410c; border:1px solid #fed7aa;
-    }
-    .lab-scenario-card {
-      border:1.5px solid var(--gray-200); border-radius:var(--radius-lg);
-      padding:16px; background:var(--white); cursor:pointer;
-      transition:all .15s ease;
-    }
-    .lab-scenario-card.active {
-      background:var(--black); color:var(--white); border-color:var(--black);
-    }
-    .lab-chart-wrapper {
-      border:1.5px solid var(--gray-200); border-radius:var(--radius-lg);
-      padding:16px; background:var(--white);
-    }
-    .lab-chart-title {
-      font-size:10px; font-weight:800; letter-spacing:2px;
-      text-transform:uppercase; color:var(--gray-400); margin-bottom:12px;
-    }
-    .lab-chart-inner { min-height:160px; }
   </style>
 </head>
 <body>
@@ -389,10 +315,8 @@
         <button data-view="inventory">Inventory</button>
         <button data-view="sales">Sales</button>
         <button data-view="reports">Reports</button>
-        <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
-        <button data-view="coffeecart"  id="navCoffeeCart"  style="display:none;">Events</button>
-        <button data-view="production"  id="navProduction"  style="display:none;">Production</button>
         <button data-view="settings">Settings</button>
+        <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
       </nav>
     </header>
 
@@ -405,8 +329,6 @@
         <div class="pos-products">
           <!-- Order type tabs -->
           <div id="orderTypeTabs" class="order-type-tabs"></div>
-          <div id="channelSelectorContainer" style="display:none;padding:8px 16px 0;
-            display:none;gap:6px;flex-wrap:wrap;"></div>
 
           <!-- Category filter tabs -->
           <div class="category-tabs" id="categoryTabs"></div>
@@ -459,10 +381,6 @@
                 style="display:none;" data-action="open-supplier-order-prompt">
                 Supply Order ↗
               </button>
-              <button class="event-picker-btn" type="button" id="eventPickerBtn"
-                style="display:none;" data-action="open-event-picker">
-                Tag Event
-              </button>
               <button class="checkout-btn" type="button" id="checkoutBtn">Checkout →</button>
             </div>
           </div>
@@ -474,12 +392,7 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Dashboard</h2>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-size:11px;color:var(--gray-400);">All-time overview</span>
-              <button class="btn btn-secondary" id="endOfDayBtn" type="button">
-                End of Day
-              </button>
-            </div>
+            <span style="font-size:11px;color:var(--gray-400);">All-time overview</span>
           </div>
 
           <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
@@ -522,7 +435,7 @@
             <canvas id="dashboardChart"></canvas>
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
             <div>
               <div class="section-title">Top Selling Products</div>
               <div class="stat-card" style="min-height:0;padding:14px 18px;">
@@ -533,13 +446,6 @@
               <div class="section-title">Stock Alerts</div>
               <div id="lowStockContainer"></div>
             </div>
-          </div>
-
-          <div class="section-title">Revenue by Channel</div>
-          <div id="dashboardChannelBreakdown"
-            style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
-              padding:16px 18px;background:var(--gray-50);">
-            <div class="cost-preview-empty">No channel data yet</div>
           </div>
         </div>
       </section>
@@ -553,14 +459,6 @@
               <button class="btn" id="addProductBtn" type="button">+ Add Product</button>
               <button class="btn btn-secondary" id="exportDataBtnProducts" type="button">Export Data</button>
               <button class="btn btn-secondary" id="loadDemoBtnProducts" type="button">Load Demo</button>
-              <button class="btn btn-secondary" id="openLabBtn" type="button"
-                onclick="if(typeof switchPage==='function')switchPage('lab');">
-                Open Lab ↗
-              </button>
-              <button class="btn btn-secondary" id="openRecipesBtn" type="button"
-                style="display:none;">
-                Recipes ↗
-              </button>
             </div>
           </div>
           <div class="filter-bar">
@@ -572,7 +470,7 @@
               <thead>
                 <tr>
                   <th>Name</th><th>Category</th><th>Price</th>
-                  <th>Stock</th><th>Reorder</th><th>Break-Even</th><th>Status</th><th>Actions</th>
+                  <th>Stock</th><th>Reorder</th><th>Status</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -607,31 +505,7 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Inventory</h2>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-size:11px;color:var(--gray-400);">Ingredient stock levels</span>
-              <button class="btn btn-secondary" id="shoppingListBtn" type="button">
-                🛒 Shopping List
-              </button>
-            </div>
-          </div>
-
-          <!-- Finished Goods -->
-          <div class="section-title">Finished Goods
-            <span style="font-size:10px;font-weight:400;color:var(--gray-400);margin-left:8px;">
-              Produced stock ready to sell
-            </span>
-          </div>
-          <div id="fgInventoryContainer" style="margin-bottom:28px;"></div>
-
-          <!-- Raw Materials -->
-          <div class="section-title">Raw Materials</div>
-          <div style="margin-bottom:10px;">
-            <input id="inventorySearch" type="text"
-              placeholder="Search ingredients…"
-              style="width:100%;max-width:320px;padding:8px 14px;
-                border:1.5px solid var(--gray-200);border-radius:var(--radius-md);
-                font-size:13px;font-family:var(--font-main);"
-              oninput="if(typeof renderInventoryTable==='function') renderInventoryTable();" />
+            <span style="font-size:11px;color:var(--gray-400);">Ingredient stock levels</span>
           </div>
           <div class="table-wrapper">
             <table id="inventoryTable">
@@ -770,20 +644,6 @@
           </div>
 
           <!-- Product Performance -->
-          <div class="section-title">Revenue by Channel</div>
-          <div class="table-wrapper" style="margin-bottom:28px;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Channel</th><th>Revenue</th><th>Orders</th><th>Avg Order</th>
-                </tr>
-              </thead>
-              <tbody id="reportChannelContainer">
-                <tr><td colspan="4" class="empty-state">No data yet</td></tr>
-              </tbody>
-            </table>
-          </div>
-
           <div class="section-title">Product Performance</div>
           <div class="table-wrapper">
             <table id="reportProductsTable">
@@ -795,16 +655,6 @@
           </div>
 
           <!-- Ingredient Usage -->
-          <div class="section-title">Performance by Category</div>
-          <div id="categoryPerformanceContainer" style="margin-bottom:28px;">
-            <div class="cost-preview-empty">No category data yet</div>
-          </div>
-
-          <div class="section-title">Break-Even Analysis</div>
-          <div id="reportBreakEvenContainer" style="margin-bottom:28px;">
-            <div class="cost-preview-empty">No product data available</div>
-          </div>
-
           <div class="section-title">Ingredient Usage</div>
           <div class="table-wrapper">
             <table id="ingredientUsageTable">
@@ -903,832 +753,156 @@
         </div>
       </section>
 
-      <!-- ═══ COFFEE CART VIEW ═══ -->
-      <section class="view" id="view-coffeecart">
-        <div class="panel">
-          <div class="panel-header">
-            <h2>Events</h2>
-            <button class="btn" id="addEventBtn" type="button">+ New Event</button>
-          </div>
-
-          <div class="section-title">Events</div>
-          <div class="table-wrapper">
-            <table id="eventsTable">
-              <thead>
-                <tr>
-                  <th>Event</th><th>Type</th><th>Date</th>
-                  <th>Location</th><th>Revenue</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <!-- Event Packages -->
-          <div class="panel-header" style="margin-top:32px;">
-            <div class="section-title" style="margin:0;">Event Packages</div>
-            <button class="btn btn-secondary" id="addPackageBtn" type="button">+ New Package</button>
-          </div>
-          <div class="table-wrapper" style="margin-top:10px;">
-            <table id="packagesTable">
-              <thead>
-                <tr>
-                  <th>Package</th><th>Price</th><th>Pax Range</th>
-                  <th>Includes</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <!-- Lead Tracker -->
-          <div class="panel-header" style="margin-top:32px;">
-            <div class="section-title" style="margin:0;">Lead Tracker</div>
-            <button class="btn btn-secondary" id="addLeadBtn" type="button">+ New Lead</button>
-          </div>
-
-          <!-- Lead KPIs -->
-          <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin:12px 0 16px;">
-            <div class="stat-card">
-              <div class="label">Total Leads</div>
-              <div class="value" id="leadKpiTotal" style="font-size:22px;">0</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">Booked</div>
-              <div class="value" id="leadKpiBooked" style="font-size:22px;">0</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">Conv. Rate</div>
-              <div class="value" id="leadKpiConv" style="font-size:22px;">0%</div>
-            </div>
-            <div class="stat-card">
-              <div class="label">Pipeline Value</div>
-              <div class="value" id="leadKpiPipeline" style="font-size:18px;">₱0.00</div>
-            </div>
-          </div>
-
-          <div class="filter-bar">
-            <select id="leadStatusFilter">
-              <option value="">All Statuses</option>
-              <option value="INQUIRY">Inquiry</option>
-              <option value="QUOTED">Quoted</option>
-              <option value="BOOKED">Booked</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="LOST">Lost</option>
-            </select>
-          </div>
-
-          <div class="table-wrapper">
-            <table id="leadsTable">
-              <thead>
-                <tr>
-                  <th>Client</th><th>Contact</th><th>Event Type</th>
-                  <th>Date</th><th>Pax / Budget</th><th>Package</th>
-                  <th>Status</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- ═══ PRODUCT LAB VIEW ═══ -->
-      <section class="view" id="view-lab">
-        <div class="panel">
-
-          <!-- LANDING (no active session) -->
-          <div id="labLandingContent">
-            <div class="panel-header">
-              <h2>Product Lab</h2>
-              <button class="btn" id="labNewSessionBtn" type="button">+ New Analysis</button>
-            </div>
-            <p style="font-size:13px;color:var(--gray-500);margin-bottom:20px;line-height:1.6;">
-              Model a new product before committing it to your catalog. Analyze costs,
-              pricing, supply risk, and profitability — all in a safe sandbox.
-            </p>
-
-            <!-- Saved Drafts -->
-            <div class="section-title">Saved Drafts</div>
-            <div id="labDraftsList" style="margin-bottom:24px;"></div>
-
-            <!-- Category Presets -->
-            <div class="panel-header" style="margin-top:8px;">
-              <div class="section-title" style="margin:0;">Category Presets</div>
-              <button class="btn btn-secondary" type="button"
-                data-action="add-lab-preset">+ Add Preset</button>
-            </div>
-            <p style="font-size:12px;color:var(--gray-400);margin-bottom:10px;">
-              Presets auto-fill your Lab when you pick a category. Fully editable.
-            </p>
-            <div id="labPresetsList"></div>
-          </div>
-
-          <!-- MAIN LAB SESSION -->
-          <div id="labMainContent" style="display:none;">
-
-            <!-- Header -->
-            <div class="panel-header">
-              <div style="display:flex;align-items:center;gap:12px;">
-                <button class="btn btn-secondary" type="button"
-                  onclick="clearLabSession();">← All Drafts</button>
-                <input id="labDraftName" type="text" placeholder="Analysis name…"
-                  style="font-size:15px;font-weight:800;border:none;outline:none;
-                    font-family:var(--font-main);background:transparent;width:220px;" />
-              </div>
-              <div style="display:flex;gap:8px;">
-                <button class="btn btn-secondary" id="labSaveDraftBtn" type="button">Save Draft</button>
-                <button class="btn" id="labConvertBtn" type="button">Convert to Product →</button>
-              </div>
-            </div>
-
-            <!-- Inline Drafts Panel -->
-            <div style="margin-bottom:16px;padding:12px 14px;
-              background:var(--gray-50);border-radius:var(--radius-lg);
-              border:1px solid var(--gray-200);">
-              <div style="font-size:10px;font-weight:800;letter-spacing:2px;
-                text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">
-                Saved Drafts
-              </div>
-              <div id="labInlineDraftsList"></div>
-            </div>
-
-            <!-- SECTION 1: Recipe Builder -->
-            <div class="section-title" style="margin-top:4px;">
-              Recipe Builder
-            </div>
-
-            <!-- Category + Preset -->
-            <div class="form-row" style="margin-bottom:12px;">
-              <div class="form-group">
-                <label>Category</label>
-                <select id="labCategorySelect" style="font-weight:700;"></select>
-              </div>
-              <div class="form-group">
-                <label>Batch Size</label>
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <input id="labBatchSize" type="number" min="1" placeholder="24"
-                    style="width:80px;"
-                    oninput="if(window.LAB_SESSION&&Number(this.value)>0){window.LAB_SESSION.batchSize=Number(this.value);if(typeof _renderLabIngredientRows==='function')_renderLabIngredientRows();if(typeof renderLabPricing==='function')renderLabPricing();}"
-                    onchange="if(window.LAB_SESSION&&Number(this.value)>0){window.LAB_SESSION.batchSize=Number(this.value);if(typeof _renderLabIngredientRows==='function')_renderLabIngredientRows();if(typeof renderLabPricing==='function')renderLabPricing();}" />
-                  <div style="display:flex;gap:4px;">
-                    <button class="template-chip lab-batch-preset" data-size="12"
-                      style="padding:4px 10px;font-size:10px;">12</button>
-                    <button class="template-chip lab-batch-preset" data-size="24"
-                      style="padding:4px 10px;font-size:10px;">24</button>
-                    <button class="template-chip lab-batch-preset" data-size="36"
-                      style="padding:4px 10px;font-size:10px;">36</button>
-                    <button class="template-chip lab-batch-preset" data-size="48"
-                      style="padding:4px 10px;font-size:10px;">48</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Recipe mode toggle -->
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-              <span style="font-size:10px;font-weight:800;letter-spacing:2px;
-                text-transform:uppercase;color:var(--gray-400);">Recipe Mode</span>
-              <select id="labRecipeModeToggle"
-                style="padding:6px 10px;border:1px solid var(--gray-200);
-                  border-radius:var(--radius-md);font-size:12px;
-                  font-family:var(--font-main);"
-                onchange="if(window.LAB_SESSION){window.LAB_SESSION.recipeMode=this.value;if(typeof _renderLabIngredientRows==='function')_renderLabIngredientRows();if(typeof _labRefreshDebounced==='function')_labRefreshDebounced();}">
-                <option value="unit">Per Unit</option>
-                <option value="batch" selected>Per Batch</option>
-              </select>
-            </div>
-
-            <!-- Add ingredient from catalog -->
-            <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
-              <button class="btn btn-secondary" type="button"
-                data-action="open-lab-ing-picker"
-                style="flex:1;">+ Add Ingredient</button>
-              <button class="btn btn-secondary" type="button"
-                data-action="open-lab-temp-ing">+ Custom Ingredient</button>
-            </div>
-
-            <!-- Ingredient rows -->
-            <div id="labIngredientRows"></div>
-
-            <!-- Packaging toggle -->
-            <div class="settings-toggle-row" style="margin:16px 0 8px;">
-              <div>
-                <div class="settings-toggle-label">Packaging Costs</div>
-                <div class="settings-toggle-sub">Optional — add boxes, bags, stickers, etc.</div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="labPackagingToggle" />
-                <div class="toggle-track"></div>
-                <div class="toggle-knob"></div>
-              </label>
-            </div>
-            <div id="labPackagingSection" style="display:none;">
-              <div id="labPackagingRows"></div>
-              <button class="btn btn-secondary" type="button"
-                data-action="add-lab-packaging"
-                style="margin-bottom:12px;">+ Add Packaging Item</button>
-            </div>
-
-            <!-- SECTION 2: Cost & Pricing -->
-            <div class="section-title" style="margin-top:24px;">Cost & Pricing</div>
-
-            <!-- Cost summary -->
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
-              margin-bottom:16px;">
-              <div class="cost-preview-item">
-                <div class="cost-preview-label">Ingredient Cost</div>
-                <div class="cost-preview-value" id="labIngCostTotal">₱0.00</div>
-              </div>
-              <div class="cost-preview-item">
-                <div class="cost-preview-label">Packaging Cost</div>
-                <div class="cost-preview-value" id="labPkgCostTotal">₱0.00</div>
-              </div>
-              <div class="cost-preview-item">
-                <div class="cost-preview-label">Total Cost</div>
-                <div class="cost-preview-value" id="labTotalCost">₱0.00</div>
-              </div>
-              <div class="cost-preview-item">
-                <div class="cost-preview-label">Cost per Unit</div>
-                <div class="cost-preview-value" id="labCostPerUnit">₱0.00</div>
-              </div>
-            </div>
-
-            <!-- Waste slider -->
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-              <label style="font-size:10px;font-weight:800;letter-spacing:2px;
-                text-transform:uppercase;color:var(--gray-400);white-space:nowrap;">
-                Expected Waste
-              </label>
-              <input type="range" id="labWasteSlider" min="0" max="40" step="5" value="0"
-                style="flex:1;" />
-              <span id="labWasteDisplay" style="font-size:12px;font-weight:800;
-                width:32px;text-align:right;">0%</span>
-            </div>
-
-            <!-- Pricing scenarios -->
-            <div id="labScenariosContainer"
-              style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
-                margin-bottom:8px;"></div>
-
-            <!-- SECTION 3: Supply Assessment -->
-            <div class="section-title" style="margin-top:24px;">
-              Supply Assessment
-            </div>
-            <div id="labSupplyContainer"></div>
-
-            <!-- SECTION 4: Analysis Charts -->
-            <div class="section-title" style="margin-top:24px;">
-              Analysis Output
-            </div>
-
-            <!-- Chart selector -->
-            <div class="cost-preview-card" style="margin-bottom:16px;">
-              <div id="labChartSelector"></div>
-            </div>
-
-            <!-- Charts output -->
-            <div id="labChartsOutput"
-              style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-                gap:20px;margin-bottom:24px;"></div>
-
-            <!-- Strategic section (toggle) -->
-            <div class="settings-toggle-row" style="margin-bottom:8px;">
-              <div>
-                <div class="settings-toggle-label">Strategic Analysis</div>
-                <div class="settings-toggle-sub">
-                  Portfolio fit, cannibalization check, margin mix impact
-                </div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="labStrategicToggle" />
-                <div class="toggle-track"></div>
-                <div class="toggle-knob"></div>
-              </label>
-            </div>
-            <div id="labStrategicSection" style="display:none;">
-              <div class="cost-preview-card">
-                <div id="labStrategicContent">
-                  <div class="cost-preview-empty">Strategic analysis — coming in next phase</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Launch section (toggle) -->
-            <div class="settings-toggle-row" style="margin-top:12px;margin-bottom:8px;">
-              <div>
-                <div class="settings-toggle-label">Launch Checklist</div>
-                <div class="settings-toggle-sub">
-                  Readiness checklist, customer persona, channel decision
-                </div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="labLaunchToggle" />
-                <div class="toggle-track"></div>
-                <div class="toggle-knob"></div>
-              </label>
-            </div>
-            <div id="labLaunchSection" style="display:none;">
-              <div class="cost-preview-card">
-                <div style="display:grid;gap:8px;">
-                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
-                    <input type="checkbox" id="labCheck_0" style="width:16px;height:16px;" />
-                    Recipe finalised and tested
-                  </label>
-                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
-                    <input type="checkbox" id="labCheck_1" style="width:16px;height:16px;" />
-                    Ingredient costs confirmed with suppliers
-                  </label>
-                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
-                    <input type="checkbox" id="labCheck_2" style="width:16px;height:16px;" />
-                    Pricing approved
-                  </label>
-                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
-                    <input type="checkbox" id="labCheck_3" style="width:16px;height:16px;" />
-                    Minimum batch size determined
-                  </label>
-                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
-                    <input type="checkbox" id="labCheck_4" style="width:16px;height:16px;" />
-                    Packaging sourced and costed
-                  </label>
-                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
-                    <input type="checkbox" id="labCheck_5" style="width:16px;height:16px;" />
-                    Photos ready
-                  </label>
-                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
-                    <input type="checkbox" id="labCheck_6" style="width:16px;height:16px;" />
-                    Sales channel decided
-                  </label>
-                  <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer;">
-                    <input type="checkbox" id="labCheck_7" style="width:16px;height:16px;" />
-                    Initial stock quantity planned
-                  </label>
-                </div>
-              </div>
-            </div>
-
-          </div><!-- end labMainContent -->
-        </div>
-      </section>
-
-      <!-- ═══ PRODUCTION VIEW ═══ -->
-      <section class="view" id="view-production">
-        <div class="panel">
-
-          <!-- Header -->
-          <div class="panel-header">
-            <h2>Production</h2>
-            <button class="btn" id="addProdJobBtn" type="button">+ New Job</button>
-          </div>
-
-          <!-- Filter -->
-          <div class="filter-bar" style="margin-bottom:16px;">
-            <select id="prodStatusFilter">
-              <option value="">All Statuses</option>
-              <option value="PLANNED">Planned</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="DONE">Done</option>
-              <option value="QC">Quality Check</option>
-              <option value="PACKED">Packed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-          </div>
-
-          <!-- Production Board -->
-          <div class="section-title">Production Board</div>
-          <div id="prodJobCards" style="margin-bottom:28px;"></div>
-
-          <!-- Ingredient Forecast -->
-          <div class="section-title">Ingredient Forecast
-            <span style="font-size:10px;font-weight:400;color:var(--gray-400);
-              margin-left:8px;">Based on active jobs</span>
-          </div>
-          <div id="prodForecastContainer" style="margin-bottom:28px;"></div>
-
-          <!-- Labor Roster -->
-          <div class="panel-header" style="margin-top:8px;">
-            <div class="section-title" style="margin:0;">Labor Roster</div>
-            <button class="btn btn-secondary" id="addLaborPersonBtn"
-              type="button">+ Add Person</button>
-          </div>
-          <div id="laborRosterContainer" style="margin-bottom:28px;"></div>
-
-          <!-- Analytics -->
-          <div class="section-title">Production Analytics</div>
-          <div id="prodAnalyticsContainer"></div>
-
-        </div>
-      </section>
-
-      <!-- ═══ RECIPE CATALOG VIEW ═══ -->
-      <section class="view" id="view-recipes">
-        <div class="panel">
-
-          <!-- List view -->
-          <div id="recipeCatalogListView">
-            <div class="panel-header">
-              <h2>Recipe Catalog</h2>
-              <button class="btn" id="rcNewRecipeBtn" type="button">+ New Recipe</button>
-            </div>
-            <div class="filter-bar" style="margin-bottom:16px;">
-              <input id="recipeSearch" type="text" placeholder="Search recipes…"
-                style="flex:1;" />
-              <select id="recipeCatFilter">
-                <option value="All">All Categories</option>
-                <option>Cookies</option>
-                <option>Filling</option>
-                <option>Coating</option>
-                <option>Dough</option>
-                <option>Sauce</option>
-                <option>Drink</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div id="recipeCatalogList"></div>
-          </div>
-
-          <!-- Detail view -->
-          <div id="recipeDetailView" style="display:none;">
-            <div class="panel-header">
-              <h2 id="recipeDetailTitle">Recipe</h2>
-              <div style="display:flex;gap:8px;">
-                <button class="btn btn-secondary" type="button"
-                  id="rcCloseDetailBtn">← Back</button>
-                <button class="btn btn-secondary" type="button"
-                  id="rcEditDetailBtn"
-                  onclick="openRecipeForm(document.getElementById('rcCurrentRecipeId')?.value)">
-                  Edit</button>
-                <button class="btn btn-secondary" type="button"
-                  onclick="deleteRecipe(document.getElementById('rcCurrentRecipeId')?.value)"
-                  style="color:#dc2626;border-color:#fca5a5;">Delete</button>
-                <input type="hidden" id="rcCurrentRecipeId" />
-              </div>
-            </div>
-            <div id="recipeDetailContent"></div>
-          </div>
-
-          <!-- Form view -->
-          <div id="recipeFormView" style="display:none;">
-            <div class="panel-header">
-              <h2 id="rcFormTitle">Recipe</h2>
-              <div style="display:flex;gap:8px;">
-                <button class="btn btn-secondary" id="rcCancelFormBtn" type="button">Cancel</button>
-                <button class="btn" id="rcSaveFormBtn" type="button">Save Recipe</button>
-              </div>
-            </div>
-
-            <input type="hidden" id="rcFormId" />
-
-            <div class="form-row">
-              <div class="form-group" style="flex:2;">
-                <label>Recipe Name <span style="color:var(--danger);">*</span></label>
-                <input id="rcFormName" type="text" placeholder="e.g. Dubai Chewy Cookies" />
-              </div>
-              <div class="form-group">
-                <label>Category</label>
-                <select id="rcFormCategory">
-                  <option value="">Select…</option>
-                  <option>Cookies</option><option>Filling</option><option>Coating</option>
-                  <option>Dough</option><option>Sauce</option><option>Drink</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Yield</label>
-                <input id="rcFormYield" type="text" placeholder="e.g. 24 pcs, 500g" />
-              </div>
-            </div>
-
-
-
-            <!-- Ingredients -->
-            <div class="section-title" style="margin-top:8px;">Ingredients</div>
-            <div id="rcIngredientRows" style="margin-bottom:8px;"></div>
-            <button class="btn btn-secondary" type="button"
-              onclick="_rcEditIngredients.push({name:'',qty:'',unit:''});_renderRCIngredients();"
-              style="margin-bottom:16px;">+ Add Ingredient</button>
-
-            <!-- Steps toggle -->
-            <div style="display:flex;align-items:center;justify-content:space-between;
-              margin-bottom:12px;">
-              <div>
-                <div style="font-weight:700;font-size:13px;">Steps</div>
-                <div style="font-size:11px;color:var(--gray-400);">Turn off for simple recipes</div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="rcFormShowSteps" checked
-                  onchange="_renderRCSteps();" />
-                <div class="toggle-track"></div>
-                <div class="toggle-knob"></div>
-              </label>
-            </div>
-
-            <div id="rcStepsSection">
-              <div id="rcStepRows" style="margin-bottom:8px;"></div>
-              <button class="btn btn-secondary" type="button"
-                onclick="_rcEditSteps.push({text:''});_renderRCSteps();"
-                style="margin-bottom:16px;">+ Add Step</button>
-            </div>
-
-            <!-- Notes -->
-            <div class="form-group">
-              <label>Notes</label>
-              <textarea id="rcFormNotes" rows="3"
-                placeholder="Tips, variations, substitutions…"></textarea>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- ═══ SETTINGS VIEW ═══ -->
       <!-- ═══ SETTINGS VIEW ═══ -->
       <section class="view" id="view-settings">
         <div class="panel">
-
           <div class="panel-header">
             <h2>Settings</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn" id="saveSettingsBtn" type="button">Save Settings</button>
+              <button class="btn btn-secondary" id="resetDataBtn" type="button">Reset Data</button>
+              <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
+            </div>
           </div>
 
-          <!-- ── 1. BUSINESS PROFILE ── -->
-          <div class="section-title">Business Profile</div>
-          <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
-            padding:20px;margin-bottom:24px;">
+          <div class="form-group">
+            <label>Brand Name</label>
+            <input id="settingsBrandName" type="text" />
+          </div>
+          <div class="form-row">
             <div class="form-group">
-              <label>Brand Name</label>
-              <input id="settingsBrandName" type="text" placeholder="Your business name" />
-            </div>
-            <div class="form-row">
-              <div class="form-group" style="flex:0 0 120px;">
-                <label>Tax Rate (%)</label>
-                <input id="settingsTaxRate" type="number" step="0.01" min="0" placeholder="0" />
-              </div>
-              <div class="form-group" style="flex:1;">
-                <label>Receipt Footer</label>
-                <input id="settingsReceiptFooter" type="text"
-                  placeholder="Thank you for your purchase!" />
-              </div>
-            </div>
-            <div style="margin-top:4px;">
-              <button class="btn" id="saveSettingsBtn" type="button">Save</button>
+              <label>Tax Rate (%)</label>
+              <input id="settingsTaxRate" type="number" step="0.01" />
             </div>
           </div>
-
-          <!-- ── 2. SECURITY ── -->
-          <div class="section-title">Security</div>
-          <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
-            padding:16px 20px;margin-bottom:24px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-              <div>
-                <div style="font-weight:700;font-size:13px;">Void / Refund PIN</div>
-                <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
-                  6-digit PIN required to void or refund transactions
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <span id="pinStatusDots" style="font-size:18px;letter-spacing:4px;
-                  color:var(--gray-400);">
-                  ● ● ● ● ● ●
-                </span>
-                <button class="btn btn-secondary" type="button"
-                  data-action="open-change-pin">Change</button>
-              </div>
-            </div>
+          <div class="form-group">
+            <label>Receipt Footer</label>
+            <textarea id="settingsReceiptFooter" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Void / Refund PIN (6 digits)</label>
+            <input id="settingsVoidPin" type="password" maxlength="6"
+              placeholder="••••••  (enter new PIN to change)"
+              autocomplete="new-password" style="letter-spacing:4px;font-size:16px;" />
           </div>
 
-          <!-- ── 3. CATEGORIES ── -->
           <div class="section-title">Categories</div>
-          <div style="margin-bottom:24px;">
-            <div id="categoryList" style="margin-bottom:10px;"></div>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <input id="newCategoryInput" placeholder="New category name" type="text"
-                style="flex:1;min-width:180px;padding:10px 14px;font-size:14px;
-                  border:1.5px solid var(--gray-200);border-radius:var(--radius-md);
-                  font-family:var(--font-main);" />
-              <select id="newCategoryMode"
-                style="padding:10px 14px;border:1.5px solid var(--gray-200);
-                  border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);
-                  min-width:160px;">
-                <option value="direct">Direct</option>
-                <option value="finished_goods">Finished Goods</option>
-              </select>
-              <button class="btn" id="addCategoryBtn" type="button"
-                style="padding:10px 22px;font-size:13px;">Add</button>
-            </div>
+          <div id="categoryList"></div>
+          <div class="filter-bar" style="margin-top:8px;">
+            <input id="newCategoryInput" placeholder="New category name" type="text" style="flex:1;" />
+            <button class="btn btn-secondary" id="addCategoryBtn" type="button">Add</button>
           </div>
 
-          <!-- ── 4. FEATURES ── -->
           <div class="section-title">Features</div>
-          <div style="margin-bottom:24px;">
-            <div class="settings-toggle-row" style="border-bottom:1px solid var(--gray-100);">
-              <div>
-                <div class="settings-toggle-label">Supplier Mode</div>
-                <div class="settings-toggle-sub">
-                  Supply order tracking for B2B clients. Adds the Supply tab.
-                </div>
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-toggle-label">Supplier Mode</div>
+              <div class="settings-toggle-sub">
+                Enable supply order tracking for B2B clients. Adds the Supply tab to navigation.
               </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="settingsSupplierMode" />
-                <div class="toggle-track"></div>
-                <div class="toggle-knob"></div>
-              </label>
             </div>
-            <div class="settings-toggle-row" style="border-bottom:1px solid var(--gray-100);">
-              <div>
-                <div class="settings-toggle-label">Coffee Cart Mode</div>
-                <div class="settings-toggle-sub">
-                  Event management and order channels. Adds the Events tab.
-                </div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="settingsCoffeeCartMode" />
-                <div class="toggle-track"></div>
-                <div class="toggle-knob"></div>
-              </label>
-            </div>
-            <div class="settings-toggle-row" style="border-bottom:1px solid var(--gray-100);">
-              <div>
-                <div class="settings-toggle-label">Production Mode</div>
-                <div class="settings-toggle-sub">
-                  Production board, batch tracking, and labor costing.
-                </div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="settingsProductionMode" />
-                <div class="toggle-track"></div>
-                <div class="toggle-knob"></div>
-              </label>
-            </div>
-            <div class="settings-toggle-row">
-              <div>
-                <div class="settings-toggle-label">Recipe Catalog</div>
-                <div class="settings-toggle-sub">
-                  Personal recipe reference — fully editable, disconnected from operations.
-                </div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="settingsRecipeCatalog" />
-                <div class="toggle-track"></div>
-                <div class="toggle-knob"></div>
-              </label>
-            </div>
-          </div>
-          <div style="margin-bottom:24px;">
-            <button class="btn" id="saveFeaturesBtn" type="button">Save</button>
-          </div>
-
-          <!-- ── 5. DATA MANAGEMENT ── -->
-          <div class="section-title">Data Management</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px;">
-            <button class="btn btn-secondary" id="exportDataBtn"
-              data-action="export-data" type="button">Export Backup</button>
-            <label class="btn btn-secondary" id="importDataBtn"
-              style="cursor:pointer;margin:0;">
-              Import Backup
-              <input accept="application/json,.json,text/plain"
-                id="importDataInput" style="display:none" type="file" />
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingsSupplierMode" />
+              <div class="toggle-track"></div>
+              <div class="toggle-knob"></div>
             </label>
-            <button class="btn btn-secondary" id="loadDemoBtn"
-              type="button">Load Demo Data</button>
           </div>
 
-          <!-- ── 6. DANGER ZONE ── -->
-          <div style="border-top:2px solid var(--gray-100);padding-top:24px;margin-top:8px;">
-            <div style="font-size:9px;font-weight:800;letter-spacing:2px;
-              text-transform:uppercase;color:#dc2626;margin-bottom:16px;">
-              Danger Zone
-            </div>
-            <div style="border:1.5px solid #fecaca;border-radius:var(--radius-lg);
-              overflow:hidden;">
-              <div style="display:flex;align-items:center;justify-content:space-between;
-                padding:14px 18px;border-bottom:1px solid #fecaca;">
-                <div>
-                  <div style="font-weight:700;font-size:13px;">Archive &amp; Reset</div>
-                  <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
-                    Export a backup then wipe all business data. Settings and categories kept.
-                  </div>
+          <!-- ── Payment QR Codes ── -->
+          <div class="section-title">Payment QR Codes</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;">
+
+            <!-- GCash -->
+            <div style="position:relative;">
+              <input type="file" id="qrUploadGcash" accept="image/*" style="display:none;"
+                onchange="uploadPaymentQR('gcash', this);" />
+              <div id="qrBoxGcash"
+                onclick="document.getElementById('qrUploadGcash').click();"
+                style="border:2px dashed var(--gray-200);border-radius:14px;
+                  aspect-ratio:1;display:flex;flex-direction:column;
+                  align-items:center;justify-content:center;cursor:pointer;
+                  background:var(--gray-50);overflow:hidden;position:relative;
+                  transition:border-color .15s;">
+                <div class="qr-placeholder" style="text-align:center;padding:12px;">
+                  <div style="font-size:24px;margin-bottom:6px;">+</div>
+                  <div style="font-size:11px;font-weight:800;color:var(--gray-500);">GCash</div>
                 </div>
-                <button class="btn btn-secondary" id="resetDataBtn" type="button"
-                  style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;">
-                  Archive &amp; Reset
-                </button>
+                <img id="qrImgGcash" src="" alt="GCash QR"
+                  style="display:none;width:100%;height:100%;object-fit:cover;" />
               </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;
-                padding:14px 18px;">
-                <div>
-                  <div style="font-weight:700;font-size:13px;">Factory Reset</div>
-                  <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
-                    Wipe everything including settings. Cannot be undone.
-                  </div>
-                </div>
-                <button class="btn btn-secondary" id="factoryResetBtn" type="button"
-                  style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;">
-                  Factory Reset
-                </button>
-              </div>
+              <button type="button" id="qrRemoveGcash"
+                onclick="removePaymentQR('gcash');"
+                style="display:none;position:absolute;top:6px;right:6px;
+                  width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.6);
+                  color:white;border:none;cursor:pointer;font-size:12px;
+                  line-height:1;font-family:var(--font-main);">✕</button>
             </div>
+
+            <!-- Maya -->
+            <div style="position:relative;">
+              <input type="file" id="qrUploadMaya" accept="image/*" style="display:none;"
+                onchange="uploadPaymentQR('maya', this);" />
+              <div id="qrBoxMaya"
+                onclick="document.getElementById('qrUploadMaya').click();"
+                style="border:2px dashed var(--gray-200);border-radius:14px;
+                  aspect-ratio:1;display:flex;flex-direction:column;
+                  align-items:center;justify-content:center;cursor:pointer;
+                  background:var(--gray-50);overflow:hidden;position:relative;
+                  transition:border-color .15s;">
+                <div class="qr-placeholder" style="text-align:center;padding:12px;">
+                  <div style="font-size:24px;margin-bottom:6px;">+</div>
+                  <div style="font-size:11px;font-weight:800;color:var(--gray-500);">Maya</div>
+                </div>
+                <img id="qrImgMaya" src="" alt="Maya QR"
+                  style="display:none;width:100%;height:100%;object-fit:cover;" />
+              </div>
+              <button type="button" id="qrRemoveMaya"
+                onclick="removePaymentQR('maya');"
+                style="display:none;position:absolute;top:6px;right:6px;
+                  width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.6);
+                  color:white;border:none;cursor:pointer;font-size:12px;
+                  line-height:1;font-family:var(--font-main);">✕</button>
+            </div>
+
+            <!-- QR PH -->
+            <div style="position:relative;">
+              <input type="file" id="qrUploadQrph" accept="image/*" style="display:none;"
+                onchange="uploadPaymentQR('qrph', this);" />
+              <div id="qrBoxQrph"
+                onclick="document.getElementById('qrUploadQrph').click();"
+                style="border:2px dashed var(--gray-200);border-radius:14px;
+                  aspect-ratio:1;display:flex;flex-direction:column;
+                  align-items:center;justify-content:center;cursor:pointer;
+                  background:var(--gray-50);overflow:hidden;position:relative;
+                  transition:border-color .15s;">
+                <div class="qr-placeholder" style="text-align:center;padding:12px;">
+                  <div style="font-size:24px;margin-bottom:6px;">+</div>
+                  <div style="font-size:11px;font-weight:800;color:var(--gray-500);">QR PH</div>
+                </div>
+                <img id="qrImgQrph" src="" alt="QR PH"
+                  style="display:none;width:100%;height:100%;object-fit:cover;" />
+              </div>
+              <button type="button" id="qrRemoveQrph"
+                onclick="removePaymentQR('qrph');"
+                style="display:none;position:absolute;top:6px;right:6px;
+                  width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.6);
+                  color:white;border:none;cursor:pointer;font-size:12px;
+                  line-height:1;font-family:var(--font-main);">✕</button>
+            </div>
+
           </div>
 
+          <div class="section-title">Data Management</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-secondary" id="loadDemoBtn" type="button">Load Demo Data</button>
+            <button class="btn btn-secondary" id="exportDataBtn" data-action="export-data" type="button">Export Backup</button>
+            <button class="btn btn-secondary" id="importDataBtn" type="button">Import Backup</button>
+            <input accept=".json" id="importDataInput" style="display:none" type="file" />
+          </div>
         </div>
       </section>
 
     </main>
-
-    <!-- ═══ SHOPPING LIST WIDGET ═══ -->
-    <div id="shoppingWidget" style="
-      position:fixed;bottom:24px;right:24px;z-index:9999;
-      display:flex;flex-direction:column;align-items:flex-end;gap:0;">
-
-      <!-- Expanded Panel -->
-      <div id="shoppingWidgetPanel" style="
-        display:none;width:360px;
-        background:white;border-radius:16px;
-        box-shadow:0 8px 40px rgba(0,0,0,0.18);
-        border:1.5px solid var(--gray-200);
-        overflow:hidden;margin-bottom:10px;">
-
-        <!-- Panel Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;
-          padding:13px 16px;background:var(--black);">
-          <span style="font-size:13px;font-weight:800;color:white;">🛒 Shopping List</span>
-          <button type="button" onclick="toggleShoppingWidget()"
-            style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.6);
-              font-size:18px;line-height:1;font-family:var(--font-main);">✕</button>
-        </div>
-
-        <!-- Mode Tabs -->
-        <div style="display:flex;border-bottom:1px solid var(--gray-100);">
-          <button type="button" id="swTabProduction" onclick="switchWidgetMode('production')"
-            style="flex:1;padding:8px 2px;font-size:10px;font-weight:800;letter-spacing:.5px;
-              font-family:var(--font-main);border:none;cursor:pointer;transition:all .15s;
-              background:var(--black);color:white;">PRODUCTION</button>
-          <button type="button" id="swTabLowstock" onclick="switchWidgetMode('lowstock')"
-            style="flex:1;padding:8px 2px;font-size:10px;font-weight:800;letter-spacing:.5px;
-              font-family:var(--font-main);border:none;cursor:pointer;transition:all .15s;
-              background:white;color:var(--gray-400);">LOW STOCK</button>
-          <button type="button" id="swTabFree" onclick="switchWidgetMode('free')"
-            style="flex:1;padding:8px 2px;font-size:10px;font-weight:800;letter-spacing:.5px;
-              font-family:var(--font-main);border:none;cursor:pointer;transition:all .15s;
-              background:white;color:var(--gray-400);">FREE LIST</button>
-        </div>
-
-        <!-- List items -->
-        <div id="shoppingWidgetList"
-          style="overflow-y:auto;padding:10px 14px;max-height:45vh;"></div>
-
-        <!-- Free list add row -->
-        <div id="swFreeAddRow" style="display:none;padding:10px 14px;
-          border-top:1px solid var(--gray-100);background:var(--gray-50);">
-          <div style="display:flex;gap:6px;">
-            <select id="swIngSelect" style="flex:1;padding:7px 10px;
-              border:1.5px solid var(--gray-200);border-radius:8px;
-              font-size:12px;font-family:var(--font-main);">
-              <option value="">Select ingredient…</option>
-            </select>
-            <input type="number" id="swIngQty" placeholder="Qty" min="0"
-              style="width:60px;padding:7px 8px;border:1.5px solid var(--gray-200);
-                border-radius:8px;font-size:12px;font-family:var(--font-main);" />
-            <button type="button" onclick="addFreeListItem()"
-              style="padding:7px 12px;background:var(--black);color:white;border:none;
-                border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;
-                font-family:var(--font-main);">+</button>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div style="padding:10px 14px;border-top:1px solid var(--gray-100);
-          display:flex;align-items:center;justify-content:space-between;gap:8px;">
-          <div>
-            <span style="color:var(--gray-400);font-size:9px;font-weight:800;letter-spacing:1px;">TOTAL</span>
-            <span id="swTotal" style="font-size:15px;font-weight:900;margin-left:6px;">₱0.00</span>
-          </div>
-          <div style="display:flex;gap:6px;">
-            <button type="button" onclick="saveShoppingList()"
-              style="padding:6px 12px;font-size:11px;font-weight:700;
-                border:1.5px solid var(--gray-200);border-radius:8px;
-                background:white;cursor:pointer;font-family:var(--font-main);">Save</button>
-            <button type="button" onclick="shareShoppingList()"
-              style="padding:6px 12px;font-size:11px;font-weight:700;
-                border:none;border-radius:8px;background:var(--black);
-                color:white;cursor:pointer;font-family:var(--font-main);">Share</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- FAB -->
-      <button type="button" id="shoppingWidgetFab" onclick="toggleShoppingWidget()"
-        style="width:52px;height:52px;border-radius:50%;background:var(--black);
-          color:white;border:none;cursor:pointer;font-size:20px;
-          box-shadow:0 4px 16px rgba(0,0,0,0.25);
-          display:flex;align-items:center;justify-content:center;position:relative;">
-        🛒
-        <span id="swBadge" style="position:absolute;top:-2px;right:-2px;
-          background:#dc2626;color:white;font-size:9px;font-weight:900;
-          min-width:16px;height:16px;border-radius:999px;
-          display:none;align-items:center;justify-content:center;
-          padding:0 4px;font-family:var(--font-main);">0</span>
-      </button>
-    </div>
 
     <!-- ═══════════════════════════════════════════════════
          MODALS
@@ -1896,8 +1070,19 @@
         <!-- QR PH display -->
         <div id="qrphSection" style="display:none;text-align:center;margin-bottom:16px;">
           <div class="payment-badge">QR PAYMENT</div>
-          <img id="paymentQRImage" src="./assets/qr-placeholder.png"
-            style="width:220px;border:1px solid var(--gray-200);padding:10px;background:#fff;border-radius:12px;object-fit:contain;display:block;margin:0 auto;" />
+          <div id="paymentQRImageWrap" style="display:flex;justify-content:center;">
+            <img id="paymentQRImage" src=""
+              style="width:220px;border:1px solid var(--gray-200);padding:10px;
+                background:#fff;border-radius:12px;object-fit:contain;
+                display:none;margin:0 auto;" />
+            <div id="paymentQRFallback"
+              style="width:220px;height:220px;border:1px solid var(--gray-200);
+                border-radius:12px;background:#f9f9f9;display:flex;align-items:center;
+                justify-content:center;font-size:12px;color:var(--gray-400);
+                text-align:center;padding:16px;">
+              No QR uploaded.<br>Add one in Settings.
+            </div>
+          </div>
         </div>
 
         <!-- Reference number -->
@@ -2186,699 +1371,6 @@
       </div>
     </div>
 
-    <!-- Event Profitability Modal -->
-    <div class="modal-overlay" id="eventProfitabilityModal">
-      <div class="modal" style="max-width:540px;">
-        <h3>Event Profitability — <span id="profitEventName"></span></h3>
-        <input id="profitEventId" type="hidden" />
-
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
-          <div class="cost-preview-item">
-            <div class="cost-preview-label">Revenue</div>
-            <div class="cost-preview-value" style="color:#16a34a;" id="profitRevenue">₱0.00</div>
-          </div>
-          <div class="cost-preview-item">
-            <div class="cost-preview-label">Total Cost</div>
-            <div class="cost-preview-value" id="profitTotalCost">₱0.00</div>
-          </div>
-          <div class="cost-preview-item">
-            <div class="cost-preview-label">Net Profit</div>
-            <div class="cost-preview-value" id="profitNetProfit">₱0.00</div>
-          </div>
-          <div class="cost-preview-item">
-            <div class="cost-preview-label">Ingredient Cost</div>
-            <div class="cost-preview-value" style="font-size:13px;" id="profitIngredientCost">₱0.00</div>
-          </div>
-          <div class="cost-preview-item">
-            <div class="cost-preview-label">Expenses</div>
-            <div class="cost-preview-value" style="font-size:13px;" id="profitExpenses">₱0.00</div>
-          </div>
-          <div class="cost-preview-item">
-            <div class="cost-preview-label">Margin</div>
-            <div class="cost-preview-value" id="profitMargin">0%</div>
-          </div>
-        </div>
-        <div style="font-size:11px;color:var(--gray-400);margin-bottom:16px;text-align:right;">
-          <span id="profitOrders">0</span> completed orders tagged to this event
-        </div>
-
-        <div class="section-title">Expenses</div>
-        <div id="eventExpensesList" style="margin-bottom:12px;"></div>
-
-        <div style="display:flex;gap:8px;margin-bottom:16px;">
-          <input id="expenseLabel" type="text" placeholder="Expense (venue, transport, supplies…)"
-            style="flex:2;" />
-          <input id="expenseAmount" type="number" min="0" step="0.01" placeholder="Amount"
-            style="width:120px;" />
-          <button class="btn btn-secondary" type="button"
-            data-action="add-event-expense"
-            data-event-id="">+ Add</button>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn" type="button"
-            data-close-modal="eventProfitabilityModal">Close</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Package Builder Modal -->
-    <div class="modal-overlay" id="packageModal">
-      <div class="modal" style="max-width:520px;">
-        <h3>Event Package</h3>
-        <input id="packageId" type="hidden" />
-        <div class="form-row">
-          <div class="form-group" style="flex:2;">
-            <label>Package Name <span style="color:var(--danger);">*</span></label>
-            <input id="packageName" type="text" placeholder="e.g. Basic Brew, Signature Bar Package" />
-          </div>
-          <div class="form-group">
-            <label>Price (₱) <span style="color:var(--danger);">*</span></label>
-            <input id="packagePrice" type="number" min="0" step="0.01" placeholder="0.00" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Min Pax</label>
-            <input id="packageMinPax" type="number" min="0" placeholder="e.g. 50" />
-          </div>
-          <div class="form-group">
-            <label>Max Pax</label>
-            <input id="packageMaxPax" type="number" min="0" placeholder="e.g. 150" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Description / Terms</label>
-          <textarea id="packageDescription" rows="2"
-            placeholder="What's included, setup time, etc."></textarea>
-        </div>
-        <div class="section-title" style="margin-top:4px;">Included Items</div>
-        <div id="packageItemsBuilder"></div>
-        <button class="btn btn-secondary" id="addPackageItemBtn" type="button"
-          style="margin-bottom:12px;">+ Add Item</button>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="packageModal">Cancel</button>
-          <button class="btn" id="savePackageBtn" type="button">Save Package</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Lead Modal -->
-    <div class="modal-overlay" id="leadModal">
-      <div class="modal" style="max-width:560px;">
-        <h3>Lead</h3>
-        <input id="leadId" type="hidden" />
-        <div class="form-row">
-          <div class="form-group" style="flex:2;">
-            <label>Client Name <span style="color:var(--danger);">*</span></label>
-            <input id="leadClientName" type="text" placeholder="Name or company" />
-          </div>
-          <div class="form-group">
-            <label>Status</label>
-            <select id="leadStatus">
-              <option value="INQUIRY">Inquiry</option>
-              <option value="QUOTED">Quoted</option>
-              <option value="BOOKED">Booked</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="LOST">Lost</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Contact / Phone</label>
-            <input id="leadContact" type="text" placeholder="+63 9XX XXX XXXX" />
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input id="leadEmail" type="email" placeholder="email@example.com" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Event Type</label>
-            <select id="leadEventType">
-              <option value="Event">Event</option>
-              <option value="Wedding">Wedding</option>
-              <option value="Corporate">Corporate</option>
-              <option value="Festival">Festival</option>
-              <option value="Popup">Popup</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Event Date</label>
-            <input id="leadEventDate" type="date" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Expected Pax</label>
-            <input id="leadPax" type="number" min="0" placeholder="e.g. 100" />
-          </div>
-          <div class="form-group">
-            <label>Budget (₱)</label>
-            <input id="leadBudget" type="number" min="0" step="0.01" placeholder="0.00" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Package Reference</label>
-          <select id="leadPackageRef"></select>
-        </div>
-        <div class="form-group">
-          <label>Notes</label>
-          <textarea id="leadNotes" rows="2"
-            placeholder="Special requests, follow-up notes, requirements…"></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button" data-close-modal="leadModal">Cancel</button>
-          <button class="btn" id="saveLeadBtn" type="button">Save Lead</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Event Picker Modal (POS Cart) -->
-    <div class="modal-overlay" id="eventPickerModal">
-      <div class="modal" style="max-width:420px;">
-        <h3>Tag Event</h3>
-        <p style="font-size:12px;color:var(--gray-500);margin-bottom:16px;">
-          All sales in this cart session will be tagged to the selected event.
-        </p>
-        <div id="eventPickerList" style="display:flex;flex-direction:column;gap:8px;
-          max-height:360px;overflow-y:auto;"></div>
-        <div class="modal-actions" style="margin-top:16px;">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="eventPickerModal">Cancel</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Event Modal -->
-    <div class="modal-overlay" id="eventModal">
-      <div class="modal" style="max-width:500px;">
-        <h3>Event</h3>
-        <input id="eventId" type="hidden" />
-        <div class="form-row">
-          <div class="form-group" style="flex:2;">
-            <label>Event Name <span style="color:var(--danger);">*</span></label>
-            <input id="eventName" type="text" placeholder="e.g. Ayala Wedding, Globe Corporate" />
-          </div>
-          <div class="form-group">
-            <label>Type</label>
-            <select id="eventType">
-              <option value="Event">Event</option>
-              <option value="Wedding">Wedding</option>
-              <option value="Corporate">Corporate</option>
-              <option value="Festival">Festival</option>
-              <option value="Popup">Popup</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Date</label>
-            <input id="eventDate" type="date" />
-          </div>
-          <div class="form-group" style="flex:2;">
-            <label>Location</label>
-            <input id="eventLocation" type="text" placeholder="Venue name or address" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Notes</label>
-          <textarea id="eventNotes" rows="2" placeholder="Package details, special requirements…"></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button" data-close-modal="eventModal">Cancel</button>
-          <button class="btn" id="saveEventBtn" type="button">Save Event</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Lab: Ingredient Picker Modal -->
-    <div class="modal-overlay" id="labIngPickerModal">
-      <div class="modal" style="max-width:520px;">
-        <h3>Add Ingredient</h3>
-        <input id="labIngPickerSearch" type="text" placeholder="Search ingredients…"
-          style="width:100%;margin-bottom:12px;" />
-        <div id="labIngPickerList"
-          style="display:grid;grid-template-columns:1fr 1fr;gap:8px;
-            max-height:380px;overflow-y:auto;"></div>
-        <div class="modal-actions" style="margin-top:12px;">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="labIngPickerModal">Done</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Lab: Temp Ingredient Modal -->
-    <div class="modal-overlay" id="labTempIngModal">
-      <div class="modal" style="max-width:420px;">
-        <h3>Add Temporary Ingredient</h3>
-        <p style="font-size:12px;color:var(--gray-500);margin-bottom:14px;">
-          Not in your catalog — exists only in this Lab session.
-        </p>
-        <div class="form-row">
-          <div class="form-group" style="flex:2;">
-            <label>Ingredient Name</label>
-            <input id="labTempIngName" type="text" placeholder="e.g. Matcha Powder" />
-          </div>
-          <div class="form-group">
-            <label>Unit</label>
-            <input id="labTempIngUnit" type="text" placeholder="g" style="width:60px;" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Cost per unit (₱)</label>
-          <input id="labTempIngCost" type="number" min="0" step="0.001" placeholder="0.000" />
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="labTempIngModal">Cancel</button>
-          <button class="btn" id="labAddTempIngBtn" type="button">Add Ingredient</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Lab: Category Preset Modal -->
-    <div class="modal-overlay" id="labPresetModal">
-      <div class="modal" style="max-width:480px;">
-        <h3>Category Preset</h3>
-        <input id="labPresetId" type="hidden" />
-        <div class="form-group">
-          <label>Category Name</label>
-          <input id="labPresetCategory" type="text" placeholder="e.g. Chewy Cookies" />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Default Batch Size</label>
-            <input id="labPresetBatch" type="number" min="1" placeholder="24" />
-          </div>
-          <div class="form-group">
-            <label>Shelf Life (days)</label>
-            <input id="labPresetShelf" type="number" min="1" placeholder="7" />
-          </div>
-        </div>
-        <div class="section-title" style="margin-top:4px;">Default Margin Targets</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Conservative %</label>
-            <input id="labPresetM0" type="number" min="0" max="99" placeholder="55" />
-          </div>
-          <div class="form-group">
-            <label>Target %</label>
-            <input id="labPresetM1" type="number" min="0" max="99" placeholder="65" />
-          </div>
-          <div class="form-group">
-            <label>Premium %</label>
-            <input id="labPresetM2" type="number" min="0" max="99" placeholder="75" />
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="labPresetModal">Cancel</button>
-          <button class="btn" id="labSavePresetBtn" type="button">Save Preset</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Lab: Convert to Product Modal -->
-    <div class="modal-overlay" id="labConvertModal">
-      <div class="modal" style="max-width:500px;">
-        <h3>Convert to Product</h3>
-        <p style="font-size:12px;color:var(--gray-500);margin-bottom:14px;">
-          Choose a price scenario. The Add Product modal will open pre-filled — you can
-          review and make final adjustments before saving.
-        </p>
-        <div class="form-group">
-          <label>Product Name</label>
-          <input id="labConvertName" type="text" placeholder="Product name" />
-        </div>
-        <div class="section-title" style="margin-top:4px;">Select Price Scenario</div>
-        <div id="labConvertScenarios" style="margin-bottom:16px;"></div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="labConvertModal">Cancel</button>
-          <button class="btn" id="labConfirmConvertBtn" type="button">
-            Open Product Form →
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Reset Data Modal -->
-    <div class="modal-overlay" id="resetDataModal">
-      <div class="modal" style="max-width:500px;">
-        <h3>Reset Data</h3>
-
-        <!-- Standard reset option -->
-        <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
-          padding:16px;margin-bottom:12px;">
-          <div style="font-weight:800;font-size:13px;margin-bottom:6px;">
-            Standard Reset
-            <span style="font-size:9px;font-weight:700;letter-spacing:1px;
-              text-transform:uppercase;background:#f0fdf4;color:#16a34a;
-              padding:2px 8px;border-radius:999px;border:1px solid #bbf7d0;
-              margin-left:8px;">Recommended</span>
-          </div>
-          <p style="font-size:12px;color:var(--gray-500);margin-bottom:12px;line-height:1.5;">
-            Wipes all products, ingredients, sales, supply orders, events, leads,
-            inventory movements, and audit log.<br>
-            <strong style="color:var(--black);">Keeps:</strong>
-            Settings, Lab category presets, and your void PIN.
-          </p>
-          <button class="btn btn-secondary" type="button"
-            data-action="confirm-standard-reset"
-            style="width:100%;">
-            Reset Business Data
-          </button>
-        </div>
-
-        <!-- Factory reset option -->
-        <div style="border:1.5px solid #fecaca;border-radius:var(--radius-lg);
-          padding:16px;margin-bottom:16px;background:#fef2f2;">
-          <div style="font-weight:800;font-size:13px;color:#dc2626;margin-bottom:6px;">
-            Full Factory Reset
-          </div>
-          <p style="font-size:12px;color:#b91c1c;margin-bottom:12px;line-height:1.5;">
-            Wipes everything — all business data plus settings, Lab presets,
-            void PIN, and all configuration. Returns system to its original
-            out-of-box state. Use when handing the system to a new owner.
-          </p>
-          <button class="btn btn-danger" type="button"
-            data-action="confirm-factory-reset"
-            style="width:100%;background:#dc2626;border-color:#dc2626;">
-            Full Factory Reset — Wipe Everything
-          </button>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="resetDataModal">Cancel</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Labor Person Modal -->
-    <div class="modal-overlay" id="laborPersonModal">
-      <div class="modal" style="max-width:440px;">
-        <h3>Team Member</h3>
-        <input id="laborPersonId" type="hidden" />
-        <div class="form-row">
-          <div class="form-group" style="flex:2;">
-            <label>Name <span style="color:var(--danger);">*</span></label>
-            <input id="laborPersonName" type="text" placeholder="e.g. Maria Santos" />
-          </div>
-          <div class="form-group">
-            <label>Role</label>
-            <input id="laborPersonRole" type="text" placeholder="Baker, Packager…" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Type</label>
-            <select id="laborPersonType">
-              <option value="hired">Hired — rate applies</option>
-              <option value="owner">Owner — no cost</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Hourly Rate (₱)</label>
-            <input id="laborPersonRate" type="number" min="0" step="0.01"
-              placeholder="0.00" />
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="laborPersonModal">Cancel</button>
-          <button class="btn" id="saveLaborPersonBtn" type="button">Save</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Production Job Modal -->
-    <div class="modal-overlay" id="productionJobModal">
-      <div class="modal" style="max-width:600px;">
-        <h3>Production Job</h3>
-        <input id="prodJobId" type="hidden" />
-
-        <!-- Production Name -->
-        <div class="form-group">
-          <label>Production Name</label>
-          <input id="prodJobName" type="text"
-            placeholder="e.g. Ayala Wedding Batch, Weekend Market June 14" />
-        </div>
-
-        <!-- Products checklist -->
-        <div class="section-title" style="margin-top:4px;">Products
-          <span style="font-size:10px;font-weight:400;color:var(--gray-400);
-            margin-left:6px;">Add all products for this production run</span>
-        </div>
-        <select id="prodJobProductPicker"
-          style="width:100%;padding:7px 10px;border:1px solid var(--gray-200);
-            border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);
-            margin-bottom:10px;">
-          <option value="">+ Add product to this job…</option>
-        </select>
-        <div id="prodJobProductLines" style="margin-bottom:12px;"></div>
-
-        <!-- Scheduled Date — own row -->
-        <div class="form-row">
-          <div class="form-group">
-            <label>Scheduled Date</label>
-            <input id="prodJobScheduledDate" type="date" />
-          </div>
-        </div>
-
-        <!-- Funding Type — own full-width row -->
-        <div class="form-group">
-          <label>Funding Type</label>
-          <select id="prodJobFundingType"
-            onchange="_toggleFundingFields(this.value);">
-            <option value="RETAIL">Retail / Restock</option>
-            <option value="CLIENT">Client Order</option>
-            <option value="PENDING">Pending Funding</option>
-          </select>
-        </div>
-
-        <!-- Client fields -->
-        <div id="prodJobClientFields" style="display:none;">
-          <div class="form-row">
-            <div class="form-group" style="flex:2;">
-              <label>Client Name</label>
-              <input id="prodJobClientName" type="text" placeholder="Client or company" />
-            </div>
-            <div class="form-group">
-              <label>Total Value (₱)</label>
-              <input id="prodJobTotalValue" type="number" min="0" step="0.01"
-                placeholder="0.00" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Payment fields -->
-        <div id="prodJobPaymentFields" style="display:none;">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Down Payment Received (₱)</label>
-              <input id="prodJobDownPayment" type="number" min="0" step="0.01"
-                placeholder="0.00" />
-            </div>
-            <div class="form-group">
-              <label>Full Payment Received (₱)</label>
-              <input id="prodJobFullPayment" type="number" min="0" step="0.01"
-                placeholder="0.00" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Event link -->
-        <div id="prodJobEventRow" style="display:none;" class="form-group">
-          <label>Link to Event</label>
-          <select id="prodJobEventId"></select>
-        </div>
-
-        <!-- Labor -->
-        <div class="section-title" style="margin-top:8px;">Labor Assignment</div>
-        <div id="prodJobLaborList" style="margin-bottom:8px;"></div>
-        <select id="prodJobLaborSelect"
-          style="width:100%;padding:7px 10px;border:1px solid var(--gray-200);
-            border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);
-            margin-bottom:6px;">
-          <option value="">+ Assign person…</option>
-        </select>
-        <div style="font-size:11px;color:var(--gray-500);margin-bottom:12px;">
-          Total Labor: <strong id="prodJobLaborTotal">₱0.00</strong>
-        </div>
-
-        <div class="form-group">
-          <label>Notes</label>
-          <textarea id="prodJobNotes" rows="2"
-            placeholder="Special instructions, requirements…"></textarea>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="productionJobModal">Cancel</button>
-          <button class="btn" id="saveProdJobBtn" type="button">Save Job</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Product Line Status Modal -->
-    <div class="modal-overlay" id="prodLineStatusModal">
-      <div class="modal" style="max-width:420px;">
-        <h3>Set Product Status</h3>
-        <div style="font-size:12px;color:var(--gray-500);margin-bottom:14px;"
-          id="prodLineStatusInfo"></div>
-        <input id="prodLineStatusJobId"  type="hidden" />
-        <input id="prodLineStatusLineId" type="hidden" />
-        <div id="prodLineStatusOptions"
-          style="display:grid;grid-template-columns:1fr 1fr;gap:8px;
-            margin-bottom:16px;"></div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="prodLineStatusModal">Cancel</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Batch Tracking Modal -->
-    <div class="modal-overlay" id="batchTrackingModal">
-      <div class="modal" style="max-width:500px;">
-        <h3>Batch Tracking</h3>
-        <input id="batchJobId" type="hidden" />
-        <div style="font-size:12px;color:var(--gray-500);margin-bottom:14px;"
-          id="batchJobInfo"></div>
-
-        <div class="form-group">
-          <label>Actual Yield (units produced)</label>
-          <input id="batchActualYield" type="number" min="0"
-            placeholder="How many units were actually produced?" />
-        </div>
-
-        <div class="section-title" style="margin-top:4px;">Waste Log</div>
-        <div id="batchWasteLog"></div>
-
-        <div class="form-group" style="margin-top:12px;">
-          <label>Notes</label>
-          <textarea id="batchNotes" rows="2"
-            placeholder="Any notes about this batch…"></textarea>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="batchTrackingModal">Cancel</button>
-          <button class="btn" id="saveBatchTrackingBtn" type="button">Save</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- FG Adjustment Modal -->
-    <div class="modal-overlay" id="fgAdjustmentModal">
-      <div class="modal" style="max-width:420px;">
-        <h3>Finished Goods Adjustment</h3>
-        <input type="hidden" id="fgAdjProductId" />
-        <div class="form-group">
-          <label>Product</label>
-          <input type="text" id="fgAdjProductName" readonly />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Current Stock</label>
-            <input type="text" id="fgAdjCurrent" readonly />
-          </div>
-          <div class="form-group">
-            <label>Adjustment Type</label>
-            <select id="fgAdjType">
-              <option>Spoiled</option>
-              <option>Disposed</option>
-              <option>Expired</option>
-              <option>Damaged</option>
-              <option>Correction</option>
-              <option>Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Quantity</label>
-            <input type="number" id="fgAdjQty" min="0" placeholder="0"
-              title="For Correction: positive adds stock. All others subtract." />
-          </div>
-          <div class="form-group">
-            <label>Reason / Note</label>
-            <input type="text" id="fgAdjReason" placeholder="Optional note" />
-          </div>
-        </div>
-        <div style="font-size:11px;color:var(--gray-400);margin-bottom:12px;">
-          Spoiled/Disposed/Expired/Damaged reduces stock. Correction adds stock.
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="fgAdjustmentModal">Cancel</button>
-          <button class="btn" type="button"
-            data-action="save-fg-adjustment">Save Adjustment</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Change PIN Modal -->
-    <div class="modal-overlay" id="changePinModal">
-      <div class="modal" style="max-width:360px;">
-        <h3>Change PIN</h3>
-        <div class="form-group">
-          <label>New 6-Digit PIN</label>
-          <input id="newPinInput" type="password" maxlength="6"
-            placeholder="Enter 6 digits"
-            autocomplete="new-password"
-            style="letter-spacing:8px;font-size:20px;text-align:center;" />
-        </div>
-        <div class="form-group">
-          <label>Confirm PIN</label>
-          <input id="confirmPinInput" type="password" maxlength="6"
-            placeholder="Repeat PIN"
-            autocomplete="new-password"
-            style="letter-spacing:8px;font-size:20px;text-align:center;" />
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="changePinModal">Cancel</button>
-          <button class="btn" type="button"
-            data-action="save-new-pin">Save PIN</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Shopping List Modal -->
-    <div class="modal-overlay" id="shoppingListModal">
-      <div class="modal" style="max-width:560px;">
-        <h3>Shopping List</h3>
-        <div id="shoppingListContent"></div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="shoppingListModal">Close</button>
-          <button class="btn btn-secondary" id="slSaveBtn" type="button">Save List</button>
-          <button class="btn" id="slShareBtn" type="button">Share / Copy</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- End of Day Modal -->
-    <div class="modal-overlay" id="endOfDayModal">
-      <div class="modal" style="max-width:520px;">
-        <h3>End of Day</h3>
-        <div id="endOfDayContent" style="max-height:65vh;overflow-y:auto;"></div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" type="button"
-            data-close-modal="endOfDayModal">Close</button>
-          <button class="btn" id="eodShareBtn" type="button">Share / Copy</button>
-        </div>
-      </div>
-    </div>
-
     <div class="modal-overlay" id="voidModal">
       <div class="modal" style="max-width:460px;">
         <h3>Void Transaction</h3>
@@ -2968,317 +1460,26 @@
 
   <!-- ═══ SCRIPTS ═══ -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>/* qrcodejs - inlined */
-var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this.parsedData=[];for(var b=[],d=0,e=this.data.length;e>d;d++){var f=this.data.charCodeAt(d);f>65536?(b[0]=240|(1835008&f)>>>18,b[1]=128|(258048&f)>>>12,b[2]=128|(4032&f)>>>6,b[3]=128|63&f):f>2048?(b[0]=224|(61440&f)>>>12,b[1]=128|(4032&f)>>>6,b[2]=128|63&f):f>128?(b[0]=192|(1984&f)>>>6,b[1]=128|63&f):b[0]=f,this.parsedData=this.parsedData.concat(b)}this.parsedData.length!=this.data.length&&(this.parsedData.unshift(191),this.parsedData.unshift(187),this.parsedData.unshift(239))}function b(a,b){this.typeNumber=a,this.errorCorrectLevel=b,this.modules=null,this.moduleCount=0,this.dataCache=null,this.dataList=[]}function i(a,b){if(void 0==a.length)throw new Error(a.length+"/"+b);for(var c=0;c<a.length&&0==a[c];)c++;this.num=new Array(a.length-c+b);for(var d=0;d<a.length-c;d++)this.num[d]=a[d+c]}function j(a,b){this.totalCount=a,this.dataCount=b}function k(){this.buffer=[],this.length=0}function m(){return"undefined"!=typeof CanvasRenderingContext2D}function n(){var a=!1,b=navigator.userAgent;return/android/i.test(b)&&(a=!0,aMat=b.toString().match(/android ([0-9]\.[0-9])/i),aMat&&aMat[1]&&(a=parseFloat(aMat[1]))),a}function r(a,b){for(var c=1,e=s(a),f=0,g=l.length;g>=f;f++){var h=0;switch(b){case d.L:h=l[f][0];break;case d.M:h=l[f][1];break;case d.Q:h=l[f][2];break;case d.H:h=l[f][3]}if(h>=e)break;c++}if(c>l.length)throw new Error("Too long data");return c}function s(a){var b=encodeURI(a).toString().replace(/\%[0-9a-fA-F]{2}/g,"a");return b.length+(b.length!=a?3:0)}a.prototype={getLength:function(){return this.parsedData.length},write:function(a){for(var b=0,c=this.parsedData.length;c>b;b++)a.put(this.parsedData[b],8)}},b.prototype={addData:function(b){var c=new a(b);this.dataList.push(c),this.dataCache=null},isDark:function(a,b){if(0>a||this.moduleCount<=a||0>b||this.moduleCount<=b)throw new Error(a+","+b);return this.modules[a][b]},getModuleCount:function(){return this.moduleCount},make:function(){this.makeImpl(!1,this.getBestMaskPattern())},makeImpl:function(a,c){this.moduleCount=4*this.typeNumber+17,this.modules=new Array(this.moduleCount);for(var d=0;d<this.moduleCount;d++){this.modules[d]=new Array(this.moduleCount);for(var e=0;e<this.moduleCount;e++)this.modules[d][e]=null}this.setupPositionProbePattern(0,0),this.setupPositionProbePattern(this.moduleCount-7,0),this.setupPositionProbePattern(0,this.moduleCount-7),this.setupPositionAdjustPattern(),this.setupTimingPattern(),this.setupTypeInfo(a,c),this.typeNumber>=7&&this.setupTypeNumber(a),null==this.dataCache&&(this.dataCache=b.createData(this.typeNumber,this.errorCorrectLevel,this.dataList)),this.mapData(this.dataCache,c)},setupPositionProbePattern:function(a,b){for(var c=-1;7>=c;c++)if(!(-1>=a+c||this.moduleCount<=a+c))for(var d=-1;7>=d;d++)-1>=b+d||this.moduleCount<=b+d||(this.modules[a+c][b+d]=c>=0&&6>=c&&(0==d||6==d)||d>=0&&6>=d&&(0==c||6==c)||c>=2&&4>=c&&d>=2&&4>=d?!0:!1)},getBestMaskPattern:function(){for(var a=0,b=0,c=0;8>c;c++){this.makeImpl(!0,c);var d=f.getLostPoint(this);(0==c||a>d)&&(a=d,b=c)}return b},createMovieClip:function(a,b,c){var d=a.createEmptyMovieClip(b,c),e=1;this.make();for(var f=0;f<this.modules.length;f++)for(var g=f*e,h=0;h<this.modules[f].length;h++){var i=h*e,j=this.modules[f][h];j&&(d.beginFill(0,100),d.moveTo(i,g),d.lineTo(i+e,g),d.lineTo(i+e,g+e),d.lineTo(i,g+e),d.endFill())}return d},setupTimingPattern:function(){for(var a=8;a<this.moduleCount-8;a++)null==this.modules[a][6]&&(this.modules[a][6]=0==a%2);for(var b=8;b<this.moduleCount-8;b++)null==this.modules[6][b]&&(this.modules[6][b]=0==b%2)},setupPositionAdjustPattern:function(){for(var a=f.getPatternPosition(this.typeNumber),b=0;b<a.length;b++)for(var c=0;c<a.length;c++){var d=a[b],e=a[c];if(null==this.modules[d][e])for(var g=-2;2>=g;g++)for(var h=-2;2>=h;h++)this.modules[d+g][e+h]=-2==g||2==g||-2==h||2==h||0==g&&0==h?!0:!1}},setupTypeNumber:function(a){for(var b=f.getBCHTypeNumber(this.typeNumber),c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[Math.floor(c/3)][c%3+this.moduleCount-8-3]=d}for(var c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[c%3+this.moduleCount-8-3][Math.floor(c/3)]=d}},setupTypeInfo:function(a,b){for(var c=this.errorCorrectLevel<<3|b,d=f.getBCHTypeInfo(c),e=0;15>e;e++){var g=!a&&1==(1&d>>e);6>e?this.modules[e][8]=g:8>e?this.modules[e+1][8]=g:this.modules[this.moduleCount-15+e][8]=g}for(var e=0;15>e;e++){var g=!a&&1==(1&d>>e);8>e?this.modules[8][this.moduleCount-e-1]=g:9>e?this.modules[8][15-e-1+1]=g:this.modules[8][15-e-1]=g}this.modules[this.moduleCount-8][8]=!a},mapData:function(a,b){for(var c=-1,d=this.moduleCount-1,e=7,g=0,h=this.moduleCount-1;h>0;h-=2)for(6==h&&h--;;){for(var i=0;2>i;i++)if(null==this.modules[d][h-i]){var j=!1;g<a.length&&(j=1==(1&a[g]>>>e));var k=f.getMask(b,d,h-i);k&&(j=!j),this.modules[d][h-i]=j,e--,-1==e&&(g++,e=7)}if(d+=c,0>d||this.moduleCount<=d){d-=c,c=-c;break}}}},b.PAD0=236,b.PAD1=17,b.createData=function(a,c,d){for(var e=j.getRSBlocks(a,c),g=new k,h=0;h<d.length;h++){var i=d[h];g.put(i.mode,4),g.put(i.getLength(),f.getLengthInBits(i.mode,a)),i.write(g)}for(var l=0,h=0;h<e.length;h++)l+=e[h].dataCount;if(g.getLengthInBits()>8*l)throw new Error("code length overflow. ("+g.getLengthInBits()+">"+8*l+")");for(g.getLengthInBits()+4<=8*l&&g.put(0,4);0!=g.getLengthInBits()%8;)g.putBit(!1);for(;;){if(g.getLengthInBits()>=8*l)break;if(g.put(b.PAD0,8),g.getLengthInBits()>=8*l)break;g.put(b.PAD1,8)}return b.createBytes(g,e)},b.createBytes=function(a,b){for(var c=0,d=0,e=0,g=new Array(b.length),h=new Array(b.length),j=0;j<b.length;j++){var k=b[j].dataCount,l=b[j].totalCount-k;d=Math.max(d,k),e=Math.max(e,l),g[j]=new Array(k);for(var m=0;m<g[j].length;m++)g[j][m]=255&a.buffer[m+c];c+=k;var n=f.getErrorCorrectPolynomial(l),o=new i(g[j],n.getLength()-1),p=o.mod(n);h[j]=new Array(n.getLength()-1);for(var m=0;m<h[j].length;m++){var q=m+p.getLength()-h[j].length;h[j][m]=q>=0?p.get(q):0}}for(var r=0,m=0;m<b.length;m++)r+=b[m].totalCount;for(var s=new Array(r),t=0,m=0;d>m;m++)for(var j=0;j<b.length;j++)m<g[j].length&&(s[t++]=g[j][m]);for(var m=0;e>m;m++)for(var j=0;j<b.length;j++)m<h[j].length&&(s[t++]=h[j][m]);return s};for(var c={MODE_NUMBER:1,MODE_ALPHA_NUM:2,MODE_8BIT_BYTE:4,MODE_KANJI:8},d={L:1,M:0,Q:3,H:2},e={PATTERN000:0,PATTERN001:1,PATTERN010:2,PATTERN011:3,PATTERN100:4,PATTERN101:5,PATTERN110:6,PATTERN111:7},f={PATTERN_POSITION_TABLE:[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],G15:1335,G18:7973,G15_MASK:21522,getBCHTypeInfo:function(a){for(var b=a<<10;f.getBCHDigit(b)-f.getBCHDigit(f.G15)>=0;)b^=f.G15<<f.getBCHDigit(b)-f.getBCHDigit(f.G15);return(a<<10|b)^f.G15_MASK},getBCHTypeNumber:function(a){for(var b=a<<12;f.getBCHDigit(b)-f.getBCHDigit(f.G18)>=0;)b^=f.G18<<f.getBCHDigit(b)-f.getBCHDigit(f.G18);return a<<12|b},getBCHDigit:function(a){for(var b=0;0!=a;)b++,a>>>=1;return b},getPatternPosition:function(a){return f.PATTERN_POSITION_TABLE[a-1]},getMask:function(a,b,c){switch(a){case e.PATTERN000:return 0==(b+c)%2;case e.PATTERN001:return 0==b%2;case e.PATTERN010:return 0==c%3;case e.PATTERN011:return 0==(b+c)%3;case e.PATTERN100:return 0==(Math.floor(b/2)+Math.floor(c/3))%2;case e.PATTERN101:return 0==b*c%2+b*c%3;case e.PATTERN110:return 0==(b*c%2+b*c%3)%2;case e.PATTERN111:return 0==(b*c%3+(b+c)%2)%2;default:throw new Error("bad maskPattern:"+a)}},getErrorCorrectPolynomial:function(a){for(var b=new i([1],0),c=0;a>c;c++)b=b.multiply(new i([1,g.gexp(c)],0));return b},getLengthInBits:function(a,b){if(b>=1&&10>b)switch(a){case c.MODE_NUMBER:return 10;case c.MODE_ALPHA_NUM:return 9;case c.MODE_8BIT_BYTE:return 8;case c.MODE_KANJI:return 8;default:throw new Error("mode:"+a)}else if(27>b)switch(a){case c.MODE_NUMBER:return 12;case c.MODE_ALPHA_NUM:return 11;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 10;default:throw new Error("mode:"+a)}else{if(!(41>b))throw new Error("type:"+b);switch(a){case c.MODE_NUMBER:return 14;case c.MODE_ALPHA_NUM:return 13;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 12;default:throw new Error("mode:"+a)}}},getLostPoint:function(a){for(var b=a.getModuleCount(),c=0,d=0;b>d;d++)for(var e=0;b>e;e++){for(var f=0,g=a.isDark(d,e),h=-1;1>=h;h++)if(!(0>d+h||d+h>=b))for(var i=-1;1>=i;i++)0>e+i||e+i>=b||(0!=h||0!=i)&&g==a.isDark(d+h,e+i)&&f++;f>5&&(c+=3+f-5)}for(var d=0;b-1>d;d++)for(var e=0;b-1>e;e++){var j=0;a.isDark(d,e)&&j++,a.isDark(d+1,e)&&j++,a.isDark(d,e+1)&&j++,a.isDark(d+1,e+1)&&j++,(0==j||4==j)&&(c+=3)}for(var d=0;b>d;d++)for(var e=0;b-6>e;e++)a.isDark(d,e)&&!a.isDark(d,e+1)&&a.isDark(d,e+2)&&a.isDark(d,e+3)&&a.isDark(d,e+4)&&!a.isDark(d,e+5)&&a.isDark(d,e+6)&&(c+=40);for(var e=0;b>e;e++)for(var d=0;b-6>d;d++)a.isDark(d,e)&&!a.isDark(d+1,e)&&a.isDark(d+2,e)&&a.isDark(d+3,e)&&a.isDark(d+4,e)&&!a.isDark(d+5,e)&&a.isDark(d+6,e)&&(c+=40);for(var k=0,e=0;b>e;e++)for(var d=0;b>d;d++)a.isDark(d,e)&&k++;var l=Math.abs(100*k/b/b-50)/5;return c+=10*l}},g={glog:function(a){if(1>a)throw new Error("glog("+a+")");return g.LOG_TABLE[a]},gexp:function(a){for(;0>a;)a+=255;for(;a>=256;)a-=255;return g.EXP_TABLE[a]},EXP_TABLE:new Array(256),LOG_TABLE:new Array(256)},h=0;8>h;h++)g.EXP_TABLE[h]=1<<h;for(var h=8;256>h;h++)g.EXP_TABLE[h]=g.EXP_TABLE[h-4]^g.EXP_TABLE[h-5]^g.EXP_TABLE[h-6]^g.EXP_TABLE[h-8];for(var h=0;255>h;h++)g.LOG_TABLE[g.EXP_TABLE[h]]=h;i.prototype={get:function(a){return this.num[a]},getLength:function(){return this.num.length},multiply:function(a){for(var b=new Array(this.getLength()+a.getLength()-1),c=0;c<this.getLength();c++)for(var d=0;d<a.getLength();d++)b[c+d]^=g.gexp(g.glog(this.get(c))+g.glog(a.get(d)));return new i(b,0)},mod:function(a){if(this.getLength()-a.getLength()<0)return this;for(var b=g.glog(this.get(0))-g.glog(a.get(0)),c=new Array(this.getLength()),d=0;d<this.getLength();d++)c[d]=this.get(d);for(var d=0;d<a.getLength();d++)c[d]^=g.gexp(g.glog(a.get(d))+b);return new i(c,0).mod(a)}},j.RS_BLOCK_TABLE=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],j.getRSBlocks=function(a,b){var c=j.getRsBlockTable(a,b);if(void 0==c)throw new Error("bad rs block @ typeNumber:"+a+"/errorCorrectLevel:"+b);for(var d=c.length/3,e=[],f=0;d>f;f++)for(var g=c[3*f+0],h=c[3*f+1],i=c[3*f+2],k=0;g>k;k++)e.push(new j(h,i));return e},j.getRsBlockTable=function(a,b){switch(b){case d.L:return j.RS_BLOCK_TABLE[4*(a-1)+0];case d.M:return j.RS_BLOCK_TABLE[4*(a-1)+1];case d.Q:return j.RS_BLOCK_TABLE[4*(a-1)+2];case d.H:return j.RS_BLOCK_TABLE[4*(a-1)+3];default:return void 0}},k.prototype={get:function(a){var b=Math.floor(a/8);return 1==(1&this.buffer[b]>>>7-a%8)},put:function(a,b){for(var c=0;b>c;c++)this.putBit(1==(1&a>>>b-c-1))},getLengthInBits:function(){return this.length},putBit:function(a){var b=Math.floor(this.length/8);this.buffer.length<=b&&this.buffer.push(0),a&&(this.buffer[b]|=128>>>this.length%8),this.length++}};var l=[[17,14,11,7],[32,26,20,14],[53,42,32,24],[78,62,46,34],[106,84,60,44],[134,106,74,58],[154,122,86,64],[192,152,108,84],[230,180,130,98],[271,213,151,119],[321,251,177,137],[367,287,203,155],[425,331,241,177],[458,362,258,194],[520,412,292,220],[586,450,322,250],[644,504,364,280],[718,560,394,310],[792,624,442,338],[858,666,482,382],[929,711,509,403],[1003,779,565,439],[1091,857,611,461],[1171,911,661,511],[1273,997,715,535],[1367,1059,751,593],[1465,1125,805,625],[1528,1190,868,658],[1628,1264,908,698],[1732,1370,982,742],[1840,1452,1030,790],[1952,1538,1112,842],[2068,1628,1168,898],[2188,1722,1228,958],[2303,1809,1283,983],[2431,1911,1351,1051],[2563,1989,1423,1093],[2699,2099,1499,1139],[2809,2213,1579,1219],[2953,2331,1663,1273]],o=function(){var a=function(a,b){this._el=a,this._htOption=b};return a.prototype.draw=function(a){function g(a,b){var c=document.createElementNS("http://www.w3.org/2000/svg",a);for(var d in b)b.hasOwnProperty(d)&&c.setAttribute(d,b[d]);return c}var b=this._htOption,c=this._el,d=a.getModuleCount();Math.floor(b.width/d),Math.floor(b.height/d),this.clear();var h=g("svg",{viewBox:"0 0 "+String(d)+" "+String(d),width:"100%",height:"100%",fill:b.colorLight});h.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xlink","http://www.w3.org/1999/xlink"),c.appendChild(h),h.appendChild(g("rect",{fill:b.colorDark,width:"1",height:"1",id:"template"}));for(var i=0;d>i;i++)for(var j=0;d>j;j++)if(a.isDark(i,j)){var k=g("use",{x:String(i),y:String(j)});k.setAttributeNS("http://www.w3.org/1999/xlink","href","#template"),h.appendChild(k)}},a.prototype.clear=function(){for(;this._el.hasChildNodes();)this._el.removeChild(this._el.lastChild)},a}(),p="svg"===document.documentElement.tagName.toLowerCase(),q=p?o:m()?function(){function a(){this._elImage.src=this._elCanvas.toDataURL("image/png"),this._elImage.style.display="block",this._elCanvas.style.display="none"}function d(a,b){var c=this;if(c._fFail=b,c._fSuccess=a,null===c._bSupportDataURI){var d=document.createElement("img"),e=function(){c._bSupportDataURI=!1,c._fFail&&_fFail.call(c)},f=function(){c._bSupportDataURI=!0,c._fSuccess&&c._fSuccess.call(c)};return d.onabort=e,d.onerror=e,d.onload=f,d.src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",void 0}c._bSupportDataURI===!0&&c._fSuccess?c._fSuccess.call(c):c._bSupportDataURI===!1&&c._fFail&&c._fFail.call(c)}if(this._android&&this._android<=2.1){var b=1/window.devicePixelRatio,c=CanvasRenderingContext2D.prototype.drawImage;CanvasRenderingContext2D.prototype.drawImage=function(a,d,e,f,g,h,i,j){if("nodeName"in a&&/img/i.test(a.nodeName))for(var l=arguments.length-1;l>=1;l--)arguments[l]=arguments[l]*b;else"undefined"==typeof j&&(arguments[1]*=b,arguments[2]*=b,arguments[3]*=b,arguments[4]*=b);c.apply(this,arguments)}}var e=function(a,b){this._bIsPainted=!1,this._android=n(),this._htOption=b,this._elCanvas=document.createElement("canvas"),this._elCanvas.width=b.width,this._elCanvas.height=b.height,a.appendChild(this._elCanvas),this._el=a,this._oContext=this._elCanvas.getContext("2d"),this._bIsPainted=!1,this._elImage=document.createElement("img"),this._elImage.style.display="none",this._el.appendChild(this._elImage),this._bSupportDataURI=null};return e.prototype.draw=function(a){var b=this._elImage,c=this._oContext,d=this._htOption,e=a.getModuleCount(),f=d.width/e,g=d.height/e,h=Math.round(f),i=Math.round(g);b.style.display="none",this.clear();for(var j=0;e>j;j++)for(var k=0;e>k;k++){var l=a.isDark(j,k),m=k*f,n=j*g;c.strokeStyle=l?d.colorDark:d.colorLight,c.lineWidth=1,c.fillStyle=l?d.colorDark:d.colorLight,c.fillRect(m,n,f,g),c.strokeRect(Math.floor(m)+.5,Math.floor(n)+.5,h,i),c.strokeRect(Math.ceil(m)-.5,Math.ceil(n)-.5,h,i)}this._bIsPainted=!0},e.prototype.makeImage=function(){this._bIsPainted&&d.call(this,a)},e.prototype.isPainted=function(){return this._bIsPainted},e.prototype.clear=function(){this._oContext.clearRect(0,0,this._elCanvas.width,this._elCanvas.height),this._bIsPainted=!1},e.prototype.round=function(a){return a?Math.floor(1e3*a)/1e3:a},e}():function(){var a=function(a,b){this._el=a,this._htOption=b};return a.prototype.draw=function(a){for(var b=this._htOption,c=this._el,d=a.getModuleCount(),e=Math.floor(b.width/d),f=Math.floor(b.height/d),g=['<table style="border:0;border-collapse:collapse;">'],h=0;d>h;h++){g.push("<tr>");for(var i=0;d>i;i++)g.push('<td style="border:0;border-collapse:collapse;padding:0;margin:0;width:'+e+"px;height:"+f+"px;background-color:"+(a.isDark(h,i)?b.colorDark:b.colorLight)+';"></td>');g.push("</tr>")}g.push("</table>"),c.innerHTML=g.join("");var j=c.childNodes[0],k=(b.width-j.offsetWidth)/2,l=(b.height-j.offsetHeight)/2;k>0&&l>0&&(j.style.margin=l+"px "+k+"px")},a.prototype.clear=function(){this._el.innerHTML=""},a}();QRCode=function(a,b){if(this._htOption={width:256,height:256,typeNumber:4,colorDark:"#000000",colorLight:"#ffffff",correctLevel:d.H},"string"==typeof b&&(b={text:b}),b)for(var c in b)this._htOption[c]=b[c];"string"==typeof a&&(a=document.getElementById(a)),this._android=n(),this._el=a,this._oQRCode=null,this._oDrawing=new q(this._el,this._htOption),this._htOption.text&&this.makeCode(this._htOption.text)},QRCode.prototype.makeCode=function(a){this._oQRCode=new b(r(a,this._htOption.correctLevel),this._htOption.correctLevel),this._oQRCode.addData(a),this._oQRCode.make(),this._el.title=a,this._oDrawing.draw(this._oQRCode),this.makeImage()},QRCode.prototype.makeImage=function(){"function"==typeof this._oDrawing.makeImage&&(!this._android||this._android>=3)&&this._oDrawing.makeImage()},QRCode.prototype.clear=function(){this._oDrawing.clear()},QRCode.CorrectLevel=d}();
-  </script>
-  <script src="./js/utils.js?v=2"></script>
-  <script src="./js/state.js?v=2"></script>
-  <script src="./js/storage.js?v=2"></script>
-  <script src="./js/auth.js?v=2"></script>
-  <script src="./js/analytics.js?v=2"></script>
-  <script src="./js/dashboard.js?v=2"></script>
-  <script src="./js/settings.js?v=2"></script>
-  <script src="./js/products.js?v=2"></script>
-  <script src="./js/ingredients.js?v=2"></script>
-  <script src="./js/inventory.js?v=2"></script>
-  <script>/* CaflatQR — inlined */
-/* ═══════════════════════════════════════════════════════
-   CAFLAT QR — Pure SVG QR code generator
-   No canvas. No toDataURL. No images. Works on iOS Safari.
-   Self-contained — no external dependencies.
-═══════════════════════════════════════════════════════ */
-(function(root) {
-
-  /* ── Reed-Solomon GF(256) ── */
-  var GF = (function() {
-    var EXP = new Uint8Array(512), LOG = new Uint8Array(256);
-    var x = 1;
-    for (var i = 0; i < 255; i++) {
-      EXP[i] = x; LOG[x] = i;
-      x = x << 1; if (x & 0x100) x ^= 0x11D;
-    }
-    for (var i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
-    return {
-      mul: function(a, b) { return a && b ? EXP[LOG[a] + LOG[b]] : 0; },
-      poly: function(degree) {
-        var p = [1];
-        for (var i = 0; i < degree; i++) {
-          var q = [1, EXP[i]];
-          var r = new Array(p.length + 1).fill(0);
-          for (var j = 0; j < p.length; j++)
-            for (var k = 0; k < q.length; k++)
-              r[j+k] ^= GF.mul(p[j], q[k]);
-          p = r;
-        }
-        return p;
-      },
-      remainder: function(data, gen) {
-        var r = data.slice();
-        for (var i = 0; i < data.length; i++) {
-          var c = r[i];
-          if (c) for (var j = 1; j < gen.length; j++)
-            r[i+j] ^= GF.mul(gen[j], c);
-        }
-        return r.slice(data.length);
-      }
-    };
-  })();
-
-  /* ── QR data encoding (byte mode only) ── */
-  var EC_CODEWORDS = {
-    // [version][level L/M/Q/H] = [total, dataCodewords, ecCodewords, blocks]
-    1:  { L:[26,19,7,1],  M:[26,16,10,1], Q:[26,13,13,1], H:[26,9,17,1]  },
-    2:  { L:[44,34,10,1], M:[44,28,16,1], Q:[44,22,22,1], H:[44,16,28,1] },
-    3:  { L:[70,55,15,1], M:[70,44,26,1], Q:[70,34,36,2], H:[70,26,44,2] },
-    4:  { L:[100,80,20,1],M:[100,64,36,2],Q:[100,48,52,2],H:[100,36,64,4]},
-    5:  { L:[134,108,26,1],M:[134,86,48,2],Q:[134,62,72,2],H:[134,46,88,4]},
-    6:  { L:[172,136,36,2],M:[172,108,64,4],Q:[172,76,96,4],H:[172,60,112,4]},
-    7:  { L:[196,156,40,2],M:[196,124,72,4],Q:[196,88,108,2],H:[196,66,130,4]},
-  };
-
-  function encodeData(text, version, ecLevel) {
-    var info = EC_CODEWORDS[version][ecLevel];
-    var totalDC = info[1], ecPerBlock = info[2], numBlocks = info[3];
-    var dcPerBlock = Math.floor(totalDC / numBlocks);
-
-    // Build bit stream: mode indicator (0100) + char count + data + terminator
-    var bytes = [];
-    for (var i = 0; i < text.length; i++) bytes.push(text.charCodeAt(i) & 0xFF);
-
-    var bits = [];
-    var push = function(val, len) {
-      for (var i = len-1; i >= 0; i--) bits.push((val >> i) & 1);
-    };
-    push(4, 4);           // byte mode
-    push(bytes.length, 8);// char count
-    for (var i = 0; i < bytes.length; i++) push(bytes[i], 8);
-    push(0, 4);           // terminator
-
-    // Pad to byte boundary
-    while (bits.length % 8) bits.push(0);
-
-    // Convert to codeword array
-    var cw = [];
-    for (var i = 0; i < bits.length; i += 8) {
-      var b = 0;
-      for (var j = 0; j < 8; j++) b = (b << 1) | (bits[i+j] || 0);
-      cw.push(b);
-    }
-
-    // Pad to capacity with alternating 0xEC / 0x11
-    var pad = [0xEC, 0x11];
-    while (cw.length < totalDC) cw.push(pad[(cw.length - bytes.length - 2) % 2]);
-
-    // Split into blocks and generate EC codewords
-    var dcBlocks = [], ecBlocks = [];
-    for (var b = 0; b < numBlocks; b++) {
-      var block = cw.slice(b * dcPerBlock, (b+1) * dcPerBlock);
-      dcBlocks.push(block);
-      ecBlocks.push(GF.remainder(block, GF.poly(ecPerBlock)));
-    }
-
-    // Interleave
-    var result = [];
-    var maxDC = Math.max.apply(null, dcBlocks.map(function(b){return b.length;}));
-    for (var i = 0; i < maxDC; i++)
-      for (var b = 0; b < dcBlocks.length; b++)
-        if (i < dcBlocks[b].length) result.push(dcBlocks[b][i]);
-    for (var i = 0; i < ecPerBlock; i++)
-      for (var b = 0; b < ecBlocks.length; b++)
-        result.push(ecBlocks[b][i]);
-
-    return result;
-  }
-
-  /* ── QR matrix placement ── */
-  function makeMatrix(version) {
-    var size = 4 * version + 17;
-    var m = [];
-    for (var i = 0; i < size; i++) { m.push([]); for (var j = 0; j < size; j++) m[i].push(null); }
-    return m;
-  }
-
-  function setFinder(m, row, col) {
-    for (var r = -1; r <= 7; r++)
-      for (var c = -1; c <= 7; c++) {
-        var rr = row + r, cc = col + c;
-        if (rr < 0 || cc < 0 || rr >= m.length || cc >= m.length) continue;
-        m[rr][cc] = (r >= 0 && r <= 6 && (c === 0 || c === 6)) ||
-                    (c >= 0 && c <= 6 && (r === 0 || r === 6)) ||
-                    (r >= 2 && r <= 4 && c >= 2 && c <= 4) ? 1 : 0;
-      }
-  }
-
-  function setTiming(m) {
-    var size = m.length;
-    for (var i = 8; i < size - 8; i++) {
-      if (m[6][i] === null) m[6][i] = i % 2 === 0 ? 1 : 0;
-      if (m[i][6] === null) m[i][6] = i % 2 === 0 ? 1 : 0;
-    }
-  }
-
-  function setFormatInfo(m, mask, ecLevel) {
-    var EC_BITS = { L: 1, M: 0, Q: 3, H: 2 };
-    var fmt = (EC_BITS[ecLevel] << 3) | mask;
-    var d = fmt;
-    for (var i = 0; i < 10; i++) d = (d << 1) ^ ((d >> 9) ? 0x537 : 0);
-    var bits = (((fmt << 10) | d) ^ 0x5412);
-
-    var coords = [
-      [0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[7,8],[8,8],[8,7],
-      [8,5],[8,4],[8,3],[8,2],[8,1],[8,0]
-    ];
-    var size = m.length;
-    for (var i = 0; i < 15; i++) {
-      var bit = (bits >> (14 - i)) & 1;
-      m[coords[i][0]][coords[i][1]] = bit;
-      if (i < 7) m[size - 1 - i][8] = bit;
-      else       m[8][size - 15 + i] = bit;
-    }
-    m[size - 8][8] = 1; // dark module
-  }
-
-  var MASK_FNS = [
-    function(r,c){return (r+c)%2===0;},
-    function(r,c){return r%2===0;},
-    function(r,c){return c%3===0;},
-    function(r,c){return (r+c)%3===0;},
-    function(r,c){return (Math.floor(r/2)+Math.floor(c/3))%2===0;},
-    function(r,c){return (r*c)%2+(r*c)%3===0;},
-    function(r,c){return ((r*c)%2+(r*c)%3)%2===0;},
-    function(r,c){return ((r+c)%2+(r*c)%3)%2===0;}
-  ];
-
-  function placeData(m, codewords) {
-    var size = m.length, bit = 0, dir = -1;
-    var row = size - 1, col = size - 1;
-    while (col > 0) {
-      if (col === 6) col--;
-      for (var steps = 0; steps < size; steps++) {
-        for (var dc = 0; dc < 2; dc++) {
-          var c = col - dc, r = row;
-          if (m[r][c] === null) {
-            var cwIdx = Math.floor(bit / 8);
-            var bitIdx = 7 - (bit % 8);
-            m[r][c] = cwIdx < codewords.length ? (codewords[cwIdx] >> bitIdx) & 1 : 0;
-            bit++;
-          }
-        }
-        row += dir;
-        if (row < 0 || row >= size) { dir = -dir; row += dir; col -= 2; break; }
-      }
-    }
-  }
-
-  function applyMask(m, maskIdx) {
-    var fn = MASK_FNS[maskIdx], size = m.length;
-    var copy = m.map(function(row) { return row.slice(); });
-    for (var r = 0; r < size; r++)
-      for (var c = 0; c < size; c++)
-        if (copy[r][c] !== null && typeof copy[r][c] === 'number')
-          if (fn(r, c)) copy[r][c] ^= 1;
-    return copy;
-  }
-
-  function penalty(m) {
-    var size = m.length, score = 0;
-    // Rule 1: 5+ in a row
-    for (var r = 0; r < size; r++) {
-      for (var c = 0; c < size - 4; c++) {
-        var run = 1;
-        while (c + run < size && m[r][c+run] === m[r][c]) run++;
-        if (run >= 5) score += 3 + (run - 5);
-        c += run - 1;
-      }
-    }
-    return score;
-  }
-
-  /* ── Main: generate SVG string ── */
-  function generateSVG(text, options) {
-    options = options || {};
-    var ecLevel = options.ecLevel || 'M';
-    var size    = options.size    || 160;
-    var quiet   = options.quiet   || 4;
-
-    // Pick smallest version that fits
-    var version = 1;
-    var maxBytes = { 1:17, 2:32, 3:53, 4:78, 5:106, 6:134, 7:154 };
-    while (version <= 7 && text.length > maxBytes[version]) version++;
-    if (version > 7) {
-      // Text too long — truncate gracefully
-      version = 7;
-      text = text.slice(0, maxBytes[7]);
-    }
-
-    var codewords = encodeData(text, version, ecLevel);
-    var matSize   = 4 * version + 17;
-
-    // Build base matrix
-    var m = makeMatrix(version);
-    setFinder(m, 0, 0);
-    setFinder(m, 0, matSize - 7);
-    setFinder(m, matSize - 7, 0);
-    setTiming(m);
-
-    // Place data
-    var dataCopy = m.map(function(r){return r.slice();});
-    placeData(dataCopy, codewords);
-
-    // Pick best mask (evaluate penalty on all 8)
-    var bestMask = 0, bestPenalty = Infinity;
-    for (var i = 0; i < 8; i++) {
-      var masked = applyMask(dataCopy, i);
-      setFormatInfo(masked, i, ecLevel);
-      var p = penalty(masked);
-      if (p < bestPenalty) { bestPenalty = p; bestMask = i; }
-    }
-
-    var final = applyMask(dataCopy, bestMask);
-    setFormatInfo(final, bestMask, ecLevel);
-
-    // Render to SVG
-    var cellSize = size / (matSize + 2 * quiet);
-    var offset   = quiet * cellSize;
-    var rects    = [];
-
-    for (var r = 0; r < matSize; r++)
-      for (var c = 0; c < matSize; c++)
-        if (final[r][c]) {
-          var x = (offset + c * cellSize).toFixed(2);
-          var y = (offset + r * cellSize).toFixed(2);
-          var s = cellSize.toFixed(2);
-          rects.push('<rect x="'+x+'" y="'+y+'" width="'+s+'" height="'+s+'"/>');
-        }
-
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+size+' '+size+'" '
-      + 'width="'+size+'" height="'+size+'" shape-rendering="crispEdges">'
-      + '<rect width="'+size+'" height="'+size+'" fill="#fff"/>'
-      + '<g fill="#000">' + rects.join('') + '</g>'
-      + '</svg>';
-  }
-
-  root.CaflatQR = { generateSVG: generateSVG };
-
-})(window);
-
-  </script>
-  <script src="./js/sales.js?v=2"></script>
-  <script src="./js/reports.js?v=2"></script>
-  <script src="./js/uiActions.js?v=2"></script>
-  <script src="./js/integrity.js?v=2"></script>
-  <script src="./js/refund.js?v=2"></script>
-  <script src="./js/finishedgoods.js?v=1"></script>
-  <script src="./js/production.js?v=2"></script>
-  <script src="./js/shoppinglist.js?v=1"></script>
-  <script src="./js/endofday.js?v=1"></script>
-  <script src="./js/recipecatalog.js?v=1"></script>
-  <script src="./js/productlab.js?v=2"></script>
-  <script src="./js/coffeecart.js?v=2"></script>
-  <script src="./js/void.js?v=2"></script>
-  <script src="./js/supply.js?v=2"></script>
-  <script src="./js/navigation.js?v=2"></script>
-  <script src="./js/app.js?v=2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="./js/utils.js"></script>
+  <script src="./js/state.js"></script>
+  <script src="./js/storage.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/analytics.js"></script>
+  <script src="./js/dashboard.js"></script>
+  <script src="./js/products.js"></script>
+  <script src="./js/ingredients.js"></script>
+  <script src="./js/inventory.js"></script>
+  <script src="./js/sales.js"></script>
+  <script src="./js/reports.js"></script>
+  <script src="./js/settings.js"></script>
+  <script src="./js/uiActions.js"></script>
+  <script src="./js/integrity.js"></script>
+  <script src="./js/refund.js"></script>
+  <script src="./js/void.js"></script>
+  <script src="./js/supply.js"></script>
+  <script src="./js/navigation.js"></script>
+  <script src="./js/app.js"></script>
 
 </body>
 </html>
