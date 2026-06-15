@@ -212,6 +212,7 @@ function saveSettings() {
   }));
 
   renderBranding();
+  renderCheckoutPaymentOptions();
   if (typeof applySupplierModeToggle    === 'function') applySupplierModeToggle();
   if (typeof applySupplierCartButton    === 'function') applySupplierCartButton();
   if (typeof applyProductionModeToggle  === 'function') applyProductionModeToggle();
@@ -249,12 +250,31 @@ function renderBranding() {
 
   _renderPaymentQRBoxes();
   renderPaymentMethodsList();
+  renderCheckoutPaymentOptions();
+}
+
+function renderCheckoutPaymentOptions() {
+  const select = document.getElementById('checkoutPayment');
+  if (!select) return;
+  const current = select.value;
+  const methods = APP_STATE.settings?.paymentMethods || [];
+  select.innerHTML = '<option value="cash">Cash</option>';
+  methods.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.name.toLowerCase().replace(/\s+/g, '_');
+    opt.textContent = m.name;
+    select.appendChild(opt);
+  });
+  // Restore selection if still valid
+  if ([...select.options].some(o => o.value === current)) select.value = current;
 }
 
 function applyProductLabModeToggle() {
   const enabled = APP_STATE.settings?.productLabModeEnabled === true;
   const navBtn  = document.getElementById('navLab');
   if (navBtn) navBtn.style.display = enabled ? '' : 'none';
+  const labBtn  = document.getElementById('openLabBtn');
+  if (labBtn) labBtn.style.display = enabled ? '' : 'none';
   if (!enabled && APP_STATE.ui?.currentView === 'lab') {
     if (typeof switchPage === 'function') switchPage('products');
   }
@@ -647,6 +667,7 @@ function deletePaymentMethod(index) {
   showNotification('Payment method removed', 'success');
 }
 
+window.renderCheckoutPaymentOptions = renderCheckoutPaymentOptions;
 window.renderPaymentMethodsList = renderPaymentMethodsList;
 window.openPaymentMethodModal   = openPaymentMethodModal;
 window.savePaymentMethod        = savePaymentMethod;

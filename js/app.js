@@ -47,6 +47,7 @@ function renderEverything() {
     'renderSupplyView',
     'renderClientsList',
     'renderPaymentMethodsList',
+    'renderCheckoutPaymentOptions',
     'applySupplierModeToggle',
     'applyCoffeeCartModeToggle',
     'applyEventPickerButton',
@@ -75,6 +76,20 @@ function bindGlobalEvents() {
   if (productSearch) {
     productSearch.addEventListener('input', () => {
       if (typeof renderProductsTable === 'function') renderProductsTable();
+    });
+  }
+
+  const ingredientSearch = document.getElementById('ingredientSearch');
+  if (ingredientSearch) {
+    ingredientSearch.addEventListener('input', () => {
+      if (typeof renderIngredientsTable === 'function') renderIngredientsTable();
+    });
+  }
+
+  const inventorySearch = document.getElementById('inventorySearch');
+  if (inventorySearch) {
+    inventorySearch.addEventListener('input', () => {
+      if (typeof renderInventoryTable === 'function') renderInventoryTable();
     });
   }
 
