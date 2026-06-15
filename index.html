@@ -317,6 +317,8 @@
         <button data-view="reports">Reports</button>
         <button data-view="settings">Settings</button>
         <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
+        <button data-view="production" id="navProduction" style="display:none;">Production</button>
+        <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">Coffee Cart</button>
       </nav>
     </header>
 
@@ -769,21 +771,21 @@
             <label>Brand Name</label>
             <input id="settingsBrandName" type="text" />
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Tax Rate (%)</label>
-              <input id="settingsTaxRate" type="number" step="0.01" />
-            </div>
+          <div class="form-group">
+            <label>Tax Rate (%)</label>
+            <input id="settingsTaxRate" type="number" step="0.01" min="0" max="100" />
           </div>
           <div class="form-group">
             <label>Receipt Footer</label>
-            <textarea id="settingsReceiptFooter" rows="2"></textarea>
+            <textarea id="settingsReceiptFooter" rows="3"
+              placeholder="e.g. Thank you for choosing Caflat.Co!"></textarea>
           </div>
           <div class="form-group">
             <label>Void / Refund PIN (6 digits)</label>
             <input id="settingsVoidPin" type="password" maxlength="6"
-              placeholder="••••••  (enter new PIN to change)"
-              autocomplete="new-password" style="letter-spacing:4px;font-size:16px;" />
+              placeholder="● ● ● ● ● ●  (enter new PIN to change)"
+              autocomplete="new-password"
+              style="letter-spacing:8px;font-size:20px;font-weight:900;text-align:center;" />
           </div>
 
           <div class="section-title">Categories</div>
@@ -814,6 +816,32 @@
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingsSupplierMode" />
+              <div class="toggle-track"></div>
+              <div class="toggle-knob"></div>
+            </label>
+          </div>
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-toggle-label">Production Mode</div>
+              <div class="settings-toggle-sub">
+                Enable production job scheduling, labor tracking, and batch management.
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingsProductionMode" />
+              <div class="toggle-track"></div>
+              <div class="toggle-knob"></div>
+            </label>
+          </div>
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-toggle-label">Coffee Cart Mode</div>
+              <div class="settings-toggle-sub">
+                Enable event booking, package management, and lead tracking for off-site catering.
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingsCoffeeCartMode" />
               <div class="toggle-track"></div>
               <div class="toggle-knob"></div>
             </label>
@@ -947,6 +975,247 @@
             </div>
           </div>
 
+        </div>
+      </section>
+
+      <!-- ═══ PRODUCTION VIEW ═══ -->
+      <section class="view" id="view-production">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Production</h2>
+            <button class="btn" type="button" onclick="openProductionJobModal(null);">+ New Job</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+            <select id="prodStatusFilter" onchange="renderProductionBoard();"
+              style="padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);">
+              <option value="">All Statuses</option>
+              <option value="PLANNED">Planned</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="DONE">Done</option>
+              <option value="PACKED">Packed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          </div>
+          <div id="prodJobCards"></div>
+          <div class="section-title" style="margin-top:24px;">Ingredient Forecast</div>
+          <div id="prodForecastContainer"></div>
+          <div class="section-title" style="margin-top:24px;">Analytics</div>
+          <div id="prodAnalyticsContainer"></div>
+          <div class="section-title" style="margin-top:24px;">Labor Roster</div>
+          <div style="margin-bottom:10px;">
+            <button class="btn btn-secondary" type="button" onclick="openLaborPersonModal(null);">+ Add Person</button>
+          </div>
+          <div id="laborRosterContainer"></div>
+        </div>
+      </section>
+
+      <!-- ═══ COFFEE CART VIEW ═══ -->
+      <section class="view" id="view-coffeecart">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Coffee Cart</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-secondary" type="button" id="eventPickerBtn" onclick="openEventPickerModal();">Set Active Event</button>
+              <button class="btn" type="button" onclick="openEventModal(null);">+ New Event</button>
+            </div>
+          </div>
+          <div id="eventSessionBanner" style="display:none;background:var(--black);color:white;border-radius:var(--radius-lg);padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div>
+              <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:800;opacity:.6;margin-bottom:2px;">Active Event</div>
+              <div id="eventSessionName" style="font-weight:900;font-size:15px;"></div>
+              <div id="eventSessionTime" style="font-size:11px;opacity:.7;margin-top:2px;"></div>
+            </div>
+            <button class="btn btn-secondary" type="button" onclick="endEventSession();"
+              style="background:transparent;border-color:rgba(255,255,255,.3);color:white;">End Session</button>
+          </div>
+          <!-- Lead KPIs -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
+            <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
+              <div style="font-size:22px;font-weight:900;" id="leadKpiTotal">0</div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Total Leads</div>
+            </div>
+            <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
+              <div style="font-size:22px;font-weight:900;" id="leadKpiBooked">0</div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Booked</div>
+            </div>
+            <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
+              <div style="font-size:22px;font-weight:900;" id="leadKpiConv">0%</div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Conv. Rate</div>
+            </div>
+            <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
+              <div style="font-size:22px;font-weight:900;" id="leadKpiPipeline">₱0</div>
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Pipeline</div>
+            </div>
+          </div>
+          <!-- Events -->
+          <div class="section-title">Events</div>
+          <div style="overflow-x:auto;margin-bottom:24px;">
+            <table id="eventsTable" style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead>
+                <tr style="border-bottom:2px solid var(--gray-200);">
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Event</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Date</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Location</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Type</th>
+                  <th style="text-align:right;padding:8px 10px;"></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <!-- Packages -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div class="section-title" style="margin:0;">Packages</div>
+            <button class="btn btn-secondary" type="button" onclick="openPackageModal(null);">+ Package</button>
+          </div>
+          <div style="overflow-x:auto;margin-bottom:24px;">
+            <table id="packagesTable" style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead>
+                <tr style="border-bottom:2px solid var(--gray-200);">
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Package</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Price</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Pax</th>
+                  <th style="text-align:right;padding:8px 10px;"></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <!-- Leads -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div class="section-title" style="margin:0;">Leads</div>
+            <button class="btn btn-secondary" type="button" onclick="openLeadModal(null);">+ Lead</button>
+          </div>
+          <div style="margin-bottom:10px;">
+            <select id="leadStatusFilter" onchange="renderLeadsTable();"
+              style="padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);">
+              <option value="">All Statuses</option>
+              <option value="INQUIRY">Inquiry</option>
+              <option value="QUOTED">Quoted</option>
+              <option value="BOOKED">Booked</option>
+              <option value="DONE">Done</option>
+              <option value="LOST">Lost</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto;">
+            <table id="leadsTable" style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead>
+                <tr style="border-bottom:2px solid var(--gray-200);">
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Client</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Event Date</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Package</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Status</th>
+                  <th style="text-align:right;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Budget</th>
+                  <th style="text-align:right;padding:8px 10px;"></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ PRODUCT LAB VIEW ═══ -->
+      <section class="view" id="view-lab">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Product Lab</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-secondary" type="button" id="openLabBtn" onclick="switchPage('products');">← Back to Products</button>
+              <button class="btn" type="button" onclick="startNewLabSession();">+ New Session</button>
+            </div>
+          </div>
+          <!-- Landing -->
+          <div id="labLandingContent">
+            <div class="section-title">Saved Drafts</div>
+            <div id="labDraftsList"></div>
+            <div class="section-title" style="margin-top:20px;">Category Presets</div>
+            <div id="labPresetsList"></div>
+            <div style="margin-top:16px;">
+              <button class="btn btn-secondary" type="button" onclick="openLabPresetModal(null);">+ Add Preset</button>
+            </div>
+          </div>
+          <!-- Active session -->
+          <div id="labMainContent" style="display:none;">
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+              <input id="labDraftName" type="text" placeholder="Draft name…"
+                style="flex:1;min-width:180px;padding:10px 14px;font-size:14px;font-weight:700;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);font-family:var(--font-main);" />
+              <button class="btn btn-secondary" type="button" onclick="saveLabDraft();">Save Draft</button>
+              <button class="btn btn-secondary" type="button" onclick="clearLabSession();renderLabView();">Clear</button>
+            </div>
+            <div id="labInlineDraftsList"></div>
+            <div class="section-title">Recipe Builder</div>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+              <select id="labCategorySelect" onchange="applyLabPreset(this.value);"
+                style="padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);">
+                <option value="">Select category preset…</option>
+              </select>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;cursor:pointer;">
+                <input type="checkbox" id="labRecipeModeToggle" onchange="_refreshLabCalcs();" />Batch mode
+              </label>
+              <div style="display:flex;align-items:center;gap:6px;font-size:13px;">
+                Batch size:
+                <input id="labBatchSize" type="number" min="1" value="1" onchange="_refreshLabCalcs();"
+                  style="width:70px;padding:6px 10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
+                units
+              </div>
+            </div>
+            <div id="labIngredientRows"></div>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+              <button class="btn btn-secondary" type="button" onclick="openLabIngPickerModal();">+ From Catalog</button>
+              <button class="btn btn-secondary" type="button" onclick="addLabTempIngredient();">+ Temp Ingredient</button>
+            </div>
+            <!-- Packaging -->
+            <div style="display:flex;align-items:center;gap:10px;margin-top:20px;margin-bottom:10px;">
+              <div class="section-title" style="margin:0;">Packaging</div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="labPackagingToggle" />
+                <div class="toggle-track"></div><div class="toggle-knob"></div>
+              </label>
+            </div>
+            <div id="labPackagingSection" style="display:none;">
+              <div id="labPackagingRows"></div>
+              <button class="btn btn-secondary" type="button" style="margin-top:8px;" onclick="addLabPackagingItem();">+ Add Packaging</button>
+            </div>
+            <!-- Waste -->
+            <div style="display:flex;align-items:center;gap:12px;margin-top:20px;flex-wrap:wrap;">
+              <div style="font-size:13px;font-weight:700;">Waste %</div>
+              <input type="range" id="labWasteSlider" min="0" max="50" value="0" style="flex:1;min-width:120px;" />
+              <div id="labWasteDisplay" style="font-size:13px;font-weight:900;min-width:32px;">0%</div>
+            </div>
+            <!-- Pricing -->
+            <div class="section-title" style="margin-top:24px;">Cost &amp; Pricing</div>
+            <div id="labScenariosContainer"></div>
+            <!-- Supply -->
+            <div class="section-title" style="margin-top:24px;">Supply Assessment</div>
+            <div id="labSupplyContainer"></div>
+            <!-- Strategic -->
+            <div style="display:flex;align-items:center;gap:10px;margin-top:20px;">
+              <div style="font-size:13px;font-weight:700;">Strategic Analysis</div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="labStrategicToggle" />
+                <div class="toggle-track"></div><div class="toggle-knob"></div>
+              </label>
+            </div>
+            <div id="labStrategicSection" style="display:none;"></div>
+            <!-- Launch -->
+            <div style="display:flex;align-items:center;gap:10px;margin-top:16px;">
+              <div style="font-size:13px;font-weight:700;">Launch Planning</div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="labLaunchToggle" />
+                <div class="toggle-track"></div><div class="toggle-knob"></div>
+              </label>
+            </div>
+            <div id="labLaunchSection" style="display:none;"></div>
+            <!-- Charts -->
+            <div class="section-title" style="margin-top:24px;">Analysis Charts</div>
+            <div id="labChartSelector" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>
+            <div id="labChartsOutput"></div>
+            <!-- Convert -->
+            <div style="margin-top:28px;padding-top:20px;border-top:2px solid var(--gray-100);">
+              <button class="btn" type="button" style="width:100%;" onclick="openLabConvertModal();">Convert to Product ↗</button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1477,6 +1746,391 @@
       </div>
     </div>
 
+    <!-- ── PRODUCTION MODALS ── -->
+
+    <!-- Production Job Modal -->
+    <div class="modal-overlay" id="productionJobModal">
+      <div class="modal" style="max-width:640px;">
+        <h3>Production Job</h3>
+        <input type="hidden" id="prodJobId" />
+        <div class="form-group">
+          <label>Job Name <span style="color:var(--danger);">*</span></label>
+          <input id="prodJobName" type="text" placeholder="e.g. Weekend Cookie Batch" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Scheduled Date</label>
+            <input id="prodJobScheduledDate" type="date" />
+          </div>
+          <div class="form-group">
+            <label>Funding Type</label>
+            <select id="prodJobFundingType" onchange="
+              const cf=document.getElementById('prodJobClientFields');
+              const pf=document.getElementById('prodJobPaymentFields');
+              const isClient=this.value==='CLIENT';
+              if(cf)cf.style.display=isClient?'block':'none';
+              if(pf)pf.style.display=isClient?'block':'none';">
+              <option value="RETAIL">Retail</option>
+              <option value="CLIENT">Client Order</option>
+            </select>
+          </div>
+        </div>
+        <div id="prodJobEventRow" style="display:none;" class="form-group">
+          <label>Link to Event</label>
+          <select id="prodJobEventId">
+            <option value="">No event link</option>
+          </select>
+        </div>
+        <div id="prodJobClientFields" style="display:none;">
+          <div class="form-group">
+            <label>Client Name</label>
+            <input id="prodJobClientName" type="text" />
+          </div>
+        </div>
+        <div id="prodJobPaymentFields" style="display:none;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label>Total Value</label>
+              <input id="prodJobTotalValue" type="number" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Down Payment</label>
+              <input id="prodJobDownPayment" type="number" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Full Payment</label>
+              <input id="prodJobFullPayment" type="number" min="0" />
+            </div>
+          </div>
+        </div>
+        <!-- Product lines -->
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:8px;">Products</div>
+        <div id="prodJobProductLines" style="margin-bottom:8px;"></div>
+        <select id="prodJobProductPicker" onchange="if(this.value){addProductionLine(this.value);this.value='';}">
+          <option value="">+ Add product to this job…</option>
+        </select>
+        <!-- Labor -->
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-top:16px;margin-bottom:8px;">
+          Labor — Total: <span id="prodJobLaborTotal">₱0</span>
+        </div>
+        <div id="prodJobLaborList" style="margin-bottom:8px;"></div>
+        <select id="prodJobLaborSelect" onchange="if(this.value){assignLaborToProdJob(this.value);this.value='';}">
+          <option value="">+ Assign person…</option>
+        </select>
+        <!-- Notes -->
+        <div class="form-group" style="margin-top:16px;">
+          <label>Notes</label>
+          <textarea id="prodJobNotes" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="productionJobModal">Cancel</button>
+          <button class="btn" type="button" onclick="saveProductionJob();">Save Job</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Labor Person Modal -->
+    <div class="modal-overlay" id="laborPersonModal">
+      <div class="modal" style="max-width:420px;">
+        <h3>Labor Person</h3>
+        <input type="hidden" id="laborPersonId" />
+        <div class="form-group">
+          <label>Name <span style="color:var(--danger);">*</span></label>
+          <input id="laborPersonName" type="text" placeholder="e.g. Maria Santos" />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <input id="laborPersonRole" type="text" placeholder="e.g. Baker, Barista" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Daily Rate (₱)</label>
+            <input id="laborPersonRate" type="number" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="laborPersonType">
+              <option value="hired">Hired</option>
+              <option value="freelance">Freelance</option>
+              <option value="partner">Partner</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="laborPersonModal">Cancel</button>
+          <button class="btn" type="button" onclick="saveLaborPersonFromForm();">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Production Line Status Modal -->
+    <div class="modal-overlay" id="prodLineStatusModal">
+      <div class="modal" style="max-width:400px;">
+        <h3>Update Product Status</h3>
+        <input type="hidden" id="prodLineStatusJobId" />
+        <input type="hidden" id="prodLineStatusLineId" />
+        <div id="prodLineStatusInfo" style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:12px;margin-bottom:16px;font-size:13px;"></div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:10px;">Select Status</div>
+        <div id="prodLineStatusOptions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;"></div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="prodLineStatusModal">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Batch Tracking Modal -->
+    <div class="modal-overlay" id="batchTrackingModal">
+      <div class="modal" style="max-width:480px;">
+        <h3>Batch Tracking</h3>
+        <input type="hidden" id="batchJobId" />
+        <input type="hidden" id="batchLineId" />
+        <div id="batchJobInfo" style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:12px;margin-bottom:16px;font-size:13px;"></div>
+        <div class="form-group">
+          <label>Actual Yield (units)</label>
+          <input id="batchActualYield" type="number" min="0" />
+        </div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:8px;">Waste Log</div>
+        <div id="batchWasteLog"></div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="batchTrackingModal">Cancel</button>
+          <button class="btn" type="button" onclick="saveBatchTracking();">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── COFFEE CART MODALS ── -->
+
+    <!-- Event Modal -->
+    <div class="modal-overlay" id="eventModal">
+      <div class="modal" style="max-width:500px;">
+        <h3>Event</h3>
+        <input type="hidden" id="eventId" />
+        <div class="form-group">
+          <label>Event Name <span style="color:var(--danger);">*</span></label>
+          <input id="eventName" type="text" placeholder="e.g. Eastwood Night Market" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Date</label>
+            <input id="eventDate" type="date" />
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="eventType">
+              <option value="Event">Event</option>
+              <option value="Market">Market</option>
+              <option value="Pop-up">Pop-up</option>
+              <option value="Private">Private</option>
+              <option value="Corporate">Corporate</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input id="eventLocation" type="text" placeholder="e.g. BGC, Taguig" />
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="eventNotes" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="eventModal">Cancel</button>
+          <button class="btn" type="button" onclick="saveEvent();">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Package Modal -->
+    <div class="modal-overlay" id="packageModal">
+      <div class="modal" style="max-width:540px;">
+        <h3>Package</h3>
+        <input type="hidden" id="packageId" />
+        <div class="form-group">
+          <label>Package Name <span style="color:var(--danger);">*</span></label>
+          <input id="packageName" type="text" placeholder="e.g. Signature Coffee Package" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Price (₱)</label>
+            <input id="packagePrice" type="number" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Min Pax</label>
+            <input id="packageMinPax" type="number" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Max Pax</label>
+            <input id="packageMaxPax" type="number" min="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="packageDescription" rows="2"></textarea>
+        </div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:8px;">Package Items</div>
+        <div id="packageItemsBuilder"></div>
+        <button class="btn btn-secondary" type="button" style="margin-top:8px;"
+          onclick="addPackageItemRow();">+ Add Item</button>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="packageModal">Cancel</button>
+          <button class="btn" type="button" onclick="savePackage();">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lead Modal -->
+    <div class="modal-overlay" id="leadModal">
+      <div class="modal" style="max-width:540px;">
+        <h3>Lead</h3>
+        <input type="hidden" id="leadId" />
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Client Name <span style="color:var(--danger);">*</span></label>
+            <input id="leadClientName" type="text" />
+          </div>
+          <div class="form-group">
+            <label>Contact</label>
+            <input id="leadContact" type="text" placeholder="+63 9XX XXX XXXX" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input id="leadEmail" type="email" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Event Type</label>
+            <select id="leadEventType">
+              <option value="Event">Event</option>
+              <option value="Wedding">Wedding</option>
+              <option value="Corporate">Corporate</option>
+              <option value="Birthday">Birthday</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Event Date</label>
+            <input id="leadEventDate" type="date" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Pax</label>
+            <input id="leadPax" type="number" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Budget (₱)</label>
+            <input id="leadBudget" type="number" min="0" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Package</label>
+            <select id="leadPackageRef">
+              <option value="">No package</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="leadStatus">
+              <option value="INQUIRY">Inquiry</option>
+              <option value="QUOTED">Quoted</option>
+              <option value="BOOKED">Booked</option>
+              <option value="DONE">Done</option>
+              <option value="LOST">Lost</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="leadNotes" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="leadModal">Cancel</button>
+          <button class="btn" type="button" onclick="saveLead();">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event Picker Modal -->
+    <div class="modal-overlay" id="eventPickerModal">
+      <div class="modal" style="max-width:420px;">
+        <h3>Set Active Event</h3>
+        <div id="eventPickerList" style="max-height:360px;overflow-y:auto;margin-bottom:16px;"></div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="eventPickerModal">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PRODUCT LAB MODALS ── -->
+
+    <!-- Ingredient Picker Modal -->
+    <div class="modal-overlay" id="labIngPickerModal">
+      <div class="modal" style="max-width:460px;">
+        <h3>Add from Ingredient Catalog</h3>
+        <input id="labIngPickerSearch" type="text" placeholder="Search ingredients…"
+          oninput="_renderLabIngPickerList();"
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--gray-200);
+            border-radius:var(--radius-md);font-size:14px;font-family:var(--font-main);
+            margin-bottom:12px;box-sizing:border-box;" />
+        <div id="labIngPickerList" style="max-height:320px;overflow-y:auto;"></div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="labIngPickerModal">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab Preset Modal -->
+    <div class="modal-overlay" id="labPresetModal">
+      <div class="modal" style="max-width:480px;">
+        <h3>Category Preset</h3>
+        <div class="form-group">
+          <label>Category Name <span style="color:var(--danger);">*</span></label>
+          <input id="labPresetCategory" type="text" placeholder="e.g. Cookies" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>Default Batch Size</label>
+            <input id="labPresetBatchSize" type="number" min="1" value="1" />
+          </div>
+          <div class="form-group">
+            <label>Shelf Life (days)</label>
+            <input id="labPresetShelfLife" type="number" min="0" value="7" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Margin Targets (%, comma-separated)</label>
+          <input id="labPresetMargins" type="text" placeholder="e.g. 55,65,75" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="labPresetModal">Cancel</button>
+          <button class="btn" type="button" onclick="saveLabPresetFromForm();">Save Preset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab Convert to Product Modal -->
+    <div class="modal-overlay" id="labConvertModal">
+      <div class="modal" style="max-width:500px;">
+        <h3>Convert to Product</h3>
+        <div class="form-group">
+          <label>Product Name <span style="color:var(--danger);">*</span></label>
+          <input id="labConvertName" type="text" />
+        </div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:10px;">Select Price Scenario</div>
+        <div id="labConvertScenarios" style="margin-bottom:16px;"></div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:8px;">Or Custom Price</div>
+        <div class="form-group">
+          <input id="labConvertCustomPrice" type="number" min="0" placeholder="Custom price (₱)" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="labConvertModal">Cancel</button>
+          <button class="btn" type="button" onclick="confirmLabConvert();">Convert ↗</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Variant selector modal -->
     <div class="modal-overlay" id="variantModal">
       <div class="modal" style="max-width:480px;">
@@ -1518,6 +2172,7 @@
   <script src="./js/products.js"></script>
   <script src="./js/ingredients.js"></script>
   <script src="./js/inventory.js"></script>
+  <script src="./js/finishedgoods.js"></script>
   <script src="./js/sales.js"></script>
   <script src="./js/reports.js"></script>
   <script src="./js/settings.js"></script>
@@ -1526,6 +2181,11 @@
   <script src="./js/refund.js"></script>
   <script src="./js/void.js"></script>
   <script src="./js/supply.js"></script>
+  <script src="./js/production.js"></script>
+  <script src="./js/coffeecart.js"></script>
+  <script src="./js/productlab.js"></script>
+  <script src="./js/recipecatalog.js"></script>
+  <script src="./js/shoppinglist.js"></script>
   <script src="./js/navigation.js"></script>
   <script src="./js/app.js"></script>
 
