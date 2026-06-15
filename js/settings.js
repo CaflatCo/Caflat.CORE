@@ -2,29 +2,8 @@
    SETTINGS.JS — Categories, branding, settings, demo data
 ═══════════════════════════════════════════════════════ */
 
-/* ── Category helpers ── */
 function getCategories() {
-  const raw = Array.isArray(APP_STATE.categories) ? APP_STATE.categories : [];
-  // Migrate any legacy string categories to objects
-  return raw.map(c => {
-    if (typeof c === 'string') {
-      return { id: 'cat-' + c.toLowerCase().replace(/[^a-z0-9]/g, '-'), name: c, inventoryMode: 'direct' };
-    }
-    return c;
-  });
-}
-
-function getCategoryByName(name) {
-  return getCategories().find(c => c.name === name) || null;
-}
-
-function getCategoryMode(productCategoryName) {
-  const cat = getCategoryByName(productCategoryName);
-  return cat?.inventoryMode || 'direct';
-}
-
-function isFinishedGoodsProduct(product) {
-  return getCategoryMode(product?.category) === 'finished_goods';
+  return Array.isArray(APP_STATE.categories) ? APP_STATE.categories : [];
 }
 
 function setCategories(categories) {
@@ -36,130 +15,36 @@ function setCategories(categories) {
 
 function addCategory() {
   const input = document.getElementById('newCategoryInput');
-  const mode  = document.getElementById('newCategoryMode')?.value || 'direct';
   if (!input) return;
   const value = sanitizeText(input.value);
   if (!value) { showNotification('Category name is required', 'error'); return; }
   const categories = getCategories();
-  if (categories.some(c => c.name.toLowerCase() === value.toLowerCase())) {
+  if (categories.some(c => c.toLowerCase() === value.toLowerCase())) {
     showNotification('Category already exists', 'error'); return;
   }
-  categories.push({
-    id: 'cat-' + Date.now(),
-    name: value,
-    inventoryMode: mode
-  });
+  categories.push(value);
   setCategories(categories);
   input.value = '';
   showNotification('Category added', 'success');
 }
 
-function deleteCategory(categoryId) {
-  const cat = getCategories().find(c => c.id === categoryId);
-  if (!cat) return;
-  if (!confirm('Delete "' + cat.name + '"?')) return;
-  setCategories(getCategories().filter(c => c.id !== categoryId));
+function deleteCategory(categoryName) {
+  if (!confirm(`Delete "${categoryName}"?`)) return;
+  setCategories(getCategories().filter(c => c !== categoryName));
   showNotification('Category deleted', 'success');
 }
 
-function toggleCategoryMode(categoryId) {
-  const cats = getCategories();
-  const cat  = cats.find(c => c.id === categoryId);
-  if (!cat) return;
-  cat.inventoryMode = cat.inventoryMode === 'finished_goods' ? 'direct' : 'finished_goods';
-  setCategories(cats);
-}
-
-function renameCategory(catId, newName) {
-  const trimmed = (newName || '').trim();
-  if (!trimmed) { renderCategories(); return; }
-  const cats = getCategories();
-  const existing = cats.find(c => c.id === catId);
-  if (!existing) return;
-  if (existing.name === trimmed) return;
-  if (cats.some(c => c.id !== catId && c.name.toLowerCase() === trimmed.toLowerCase())) {
-    showNotification('Category name already exists', 'error');
-    renderCategories(); return;
-  }
-  // Update products using old name
-  const updatedProducts = (APP_STATE.products || []).map(p =>
-    p.category === existing.name ? { ...p, category: trimmed } : p
-  );
-  updateState('products', () => updatedProducts);
-  // Update category name
-  updateState('categories', () => cats.map(c =>
-    c.id !== catId ? c : { ...c, name: trimmed }
-  ));
-  renderCategories();
-  renderCategoryOptions();
-  showNotification('Category renamed', 'success');
-}
 function renderCategories() {
   const container = document.getElementById('categoryList');
   if (!container) return;
   container.innerHTML = '';
-  container.style.cssText = 'margin-bottom:10px;';
-
-  const cats = getCategories();
-  if (!cats.length) {
-    container.innerHTML = '<div style="font-size:12px;color:var(--gray-400);padding:8px 0;">No categories yet</div>';
-    return;
-  }
-
-  cats.forEach(cat => {
-    const isFG  = cat.inventoryMode === 'finished_goods';
-    const card  = document.createElement('div');
-    card.style.cssText =
-      'border:1.5px solid var(--gray-200);border-radius:12px;padding:14px 16px;' +
-      'margin-bottom:8px;background:var(--white);';
-
-    // Top row: editable name + delete
-    const topRow = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;">' +
-      '<input type="text" value="' + escapeHtml(cat.name) + '" ' +
-        'style="font-size:14px;font-weight:800;border:none;outline:none;background:transparent;' +
-          'font-family:var(--font-main);flex:1;padding:0;min-width:0;" ' +
-        'data-cat-rename-id="' + cat.id + '" ' +
-
-
-        'placeholder="Category name" />' +
-      '<button type="button" data-action="delete-category" data-id="' + cat.id + '" ' +
-        'style="background:none;border:none;cursor:pointer;font-size:16px;' +
-          'color:var(--gray-300);padding:2px 6px;font-family:var(--font-main);flex-shrink:0;" ' +
-        'title="Delete">✕</button>' +
-    '</div>';
-
-    // Toggle row: label + description + toggle switch
-    const toggleRow =
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
-        '<div>' +
-          '<div style="font-size:12px;font-weight:700;">' +
-            (isFG ? 'Finished Goods' : 'Direct') +
-          '</div>' +
-          '<div style="font-size:11px;color:var(--gray-400);margin-top:1px;">' +
-            (isFG
-              ? 'Sells from produced stock — ingredients deduct at production'
-              : 'Ingredients deduct at sale — no production step required') +
-          '</div>' +
-        '</div>' +
-        // Toggle switch — clicking it calls toggleCategoryMode
-        '<label style="position:relative;display:inline-block;width:44px;height:24px;' +
-          'flex-shrink:0;cursor:pointer;">' +
-          '<input type="checkbox" ' +
-            (isFG ? 'checked' : '') + ' ' +
-            'data-action="toggle-category-mode" data-id="' + cat.id + '" ' +
-            'style="opacity:0;width:0;height:0;position:absolute;" />' +
-          '<div style="position:absolute;top:0;left:0;right:0;bottom:0;' +
-            'background:' + (isFG ? 'var(--black)' : 'var(--gray-200)') + ';' +
-            'border-radius:999px;transition:background .2s;"></div>' +
-          '<div style="position:absolute;top:3px;' +
-            'left:' + (isFG ? '23px' : '3px') + ';' +
-            'width:18px;height:18px;background:white;border-radius:50%;' +
-            'transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>' +
-        '</label>' +
-      '</div>';
-
-    card.innerHTML = topRow + toggleRow;
-    container.appendChild(card);
+  getCategories().forEach(cat => {
+    const item = document.createElement('div');
+    item.className = 'category-chip';
+    item.innerHTML = `
+      <span>${escapeHtml(cat)}</span>
+      <button type="button" data-action="delete-category" data-category="${escapeHtml(cat)}" title="Delete">×</button>`;
+    container.appendChild(item);
   });
 }
 
@@ -181,131 +66,60 @@ function renderCategoryOptions() {
     }
     categories.forEach(cat => {
       const opt = document.createElement('option');
-      opt.value = cat.name; opt.textContent = cat.name +
-        (cat.inventoryMode === 'finished_goods' ? ' ·  FG' : '');
-      if (current === cat.name) opt.selected = true;
+      opt.value = cat; opt.textContent = cat;
+      if (current === cat) opt.selected = true;
       select.appendChild(opt);
     });
   });
 }
 
 /* ── Settings ── */
-
-// Save business profile (brand name, tax rate, receipt footer)
 function saveSettings() {
-  const brandName     = sanitizeText(getElementValue('settingsBrandName'));
-  const taxRate       = safeNumber(getElementValue('settingsTaxRate'));
+  const brandName    = sanitizeText(getElementValue('settingsBrandName'));
+  const taxRate      = safeNumber(getElementValue('settingsTaxRate'));
   const receiptFooter = sanitizeText(getElementValue('settingsReceiptFooter'));
+
+  const voidPin = String(getElementValue('settingsVoidPin') || '').trim();
+  if (voidPin && (voidPin.length !== 6 || !/^\d{6}$/.test(voidPin))) {
+    showNotification('Void PIN must be exactly 6 digits', 'error');
+    return;
+  }
+
+  const supplierModeEnabled = document.getElementById('settingsSupplierMode')?.checked === true;
 
   updateState('settings', current => ({
     ...current,
     brandName: brandName || current.brandName,
     taxRate,
-    receiptFooter
+    receiptFooter,
+    supplierModeEnabled,
+    ...(voidPin ? { voidPin } : {})
   }));
 
   renderBranding();
+  if (typeof applySupplierModeToggle  === 'function') applySupplierModeToggle();
+  if (typeof applySupplierCartButton === 'function') applySupplierCartButton();
   showNotification('Settings saved', 'success');
-}
-
-// Save feature toggles separately
-function saveFeatureSettings() {
-  const supplierModeEnabled  = document.getElementById('settingsSupplierMode')?.checked  === true;
-  const coffeeCartModeEnabled= document.getElementById('settingsCoffeeCartMode')?.checked === true;
-  const productionModeEnabled   = document.getElementById('settingsProductionMode')?.checked   === true;
-  const recipeCatalogEnabled    = document.getElementById('settingsRecipeCatalog')?.checked    === true;
-
-  updateState('settings', current => ({
-    ...current,
-    supplierModeEnabled,
-    coffeeCartModeEnabled,
-    productionModeEnabled,
-    recipeCatalogEnabled
-  }));
-
-  if (typeof applySupplierModeToggle    === 'function') applySupplierModeToggle();
-  if (typeof applySupplierCartButton    === 'function') applySupplierCartButton();
-  if (typeof applyCoffeeCartModeToggle  === 'function') applyCoffeeCartModeToggle();
-  if (typeof applyProductionModeToggle  === 'function') applyProductionModeToggle();
-  if (typeof applyRecipeCatalogToggle   === 'function') applyRecipeCatalogToggle();
-  showNotification('Features saved', 'success');
-}
-
-// Change PIN via modal
-function openChangePinModal() {
-  setElementValue('newPinInput',     '');
-  setElementValue('confirmPinInput', '');
-  openModal('changePinModal');
-}
-
-function saveNewPin() {
-  const pin1 = String(getElementValue('newPinInput')     || '').trim();
-  const pin2 = String(getElementValue('confirmPinInput') || '').trim();
-
-  if (!pin1 || pin1.length !== 6 || !/^\d{6}$/.test(pin1)) {
-    showNotification('PIN must be exactly 6 digits', 'error'); return;
-  }
-  if (pin1 !== pin2) {
-    showNotification('PINs do not match', 'error'); return;
-  }
-
-  updateState('settings', current => ({ ...current, voidPin: pin1 }));
-  closeModal('changePinModal');
-  showNotification('PIN updated', 'success');
-}
-
-// Archive & Reset — export backup first then reset
-function archiveAndReset() {
-  if (!confirm('This will export a backup and then wipe all business data. Settings and categories will be kept. Continue?')) return;
-  // Export first
-  if (typeof exportAllData === 'function') exportAllData();
-  // Then reset after short delay to let download trigger
-  setTimeout(() => {
-    if (typeof resetBusinessData === 'function') resetBusinessData();
-    showNotification('Data archived and reset', 'success');
-    if (typeof renderEverything === 'function') renderEverything();
-  }, 800);
-}
-
-// Factory Reset — wipe everything
-function factoryReset() {
-  if (!confirm('Factory reset will wipe ALL data including settings. This cannot be undone. Are you sure?')) return;
-  if (!confirm('Final confirmation — delete everything?')) return;
-  localStorage.clear();
-  window.location.reload();
 }
 
 function renderBranding() {
   const brandName = APP_STATE.settings?.brandName || 'Caflat.Co POS';
   document.querySelectorAll('[data-brand-name]').forEach(el => { el.textContent = brandName; });
-
   const brandInput = document.getElementById('settingsBrandName');
   if (brandInput) brandInput.value = brandName;
-
   const taxInput = document.getElementById('settingsTaxRate');
   if (taxInput) taxInput.value = APP_STATE.settings?.taxRate ?? 0;
-
   const footerInput = document.getElementById('settingsReceiptFooter');
   if (footerInput) footerInput.value = APP_STATE.settings?.receiptFooter || '';
 
-  // PIN status — show dots, never expose stored value
-  const pinDots = document.getElementById('pinStatusDots');
-  if (pinDots) {
-    pinDots.textContent = APP_STATE.settings?.voidPin ? '● ● ● ● ● ●' : '○ ○ ○ ○ ○ ○';
-    pinDots.style.color = APP_STATE.settings?.voidPin ? 'var(--black)' : 'var(--gray-300)';
-  }
+  // Void PIN — show placeholder only, never expose stored value
+  const voidPinInput = document.getElementById('settingsVoidPin');
+  if (voidPinInput) voidPinInput.value = '';
+  voidPinInput && voidPinInput.setAttribute('placeholder', '••••••  (enter new PIN to change)');
 
   const supplierToggle = document.getElementById('settingsSupplierMode');
   if (supplierToggle) supplierToggle.checked = APP_STATE.settings?.supplierModeEnabled === true;
-
-  const coffeeCartToggle = document.getElementById('settingsCoffeeCartMode');
-  if (coffeeCartToggle) coffeeCartToggle.checked = APP_STATE.settings?.coffeeCartModeEnabled === true;
-
-  const productionToggle = document.getElementById('settingsProductionMode');
-  if (productionToggle) productionToggle.checked = APP_STATE.settings?.productionModeEnabled === true;
-
-  const recipeToggle = document.getElementById('settingsRecipeCatalog');
-  if (recipeToggle) recipeToggle.checked = APP_STATE.settings?.recipeCatalogEnabled === true;
+  _renderPaymentQRBoxes();
 }
 
 function escapeHtml(value) {
@@ -370,7 +184,7 @@ function loadDemoData() {
     }
   ];
 
-  if (!APP_STATE.categories.some(c => c.name === 'Drinks')) APP_STATE.categories.push({ id: 'cat-drinks', name: 'Drinks', inventoryMode: 'direct' });
+  if (!APP_STATE.categories.includes('Drinks')) APP_STATE.categories.push('Drinks');
 
   APP_STATE.sales = [];
   persistState();
@@ -378,22 +192,91 @@ function loadDemoData() {
   showNotification('Demo data loaded', 'success');
 }
 
-window.getCategories         = getCategories;
-window.getCategoryByName     = getCategoryByName;
-window.getCategoryMode       = getCategoryMode;
-window.isFinishedGoodsProduct= isFinishedGoodsProduct;
-window.setCategories         = setCategories;
-window.addCategory           = addCategory;
-window.deleteCategory        = deleteCategory;
-window.toggleCategoryMode    = toggleCategoryMode;
-window.renameCategory        = renameCategory;
-window.renderCategories      = renderCategories;
+window.getCategories       = getCategories;
+window.setCategories       = setCategories;
+window.addCategory         = addCategory;
+window.deleteCategory      = deleteCategory;
+window.renderCategories    = renderCategories;
 window.renderCategoryOptions = renderCategoryOptions;
-window.saveSettings          = saveSettings;
-window.saveFeatureSettings   = saveFeatureSettings;
-window.openChangePinModal    = openChangePinModal;
-window.saveNewPin            = saveNewPin;
-window.archiveAndReset       = archiveAndReset;
-window.factoryReset          = factoryReset;
-window.renderBranding        = renderBranding;
-window.loadDemoData          = loadDemoData;
+/* ── Payment QR Codes ── */
+
+function uploadPaymentQR(method, input) {
+  const file = input?.files?.[0];
+  if (!file) return;
+
+  // Compress to max 400×400 before storing as base64
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const MAX = 400;
+      const scale  = Math.min(1, MAX / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const b64 = canvas.toDataURL('image/jpeg', 0.82);
+
+      // Save to settings
+      updateState('settings', s => ({
+        ...s,
+        paymentQRImages: { ...(s.paymentQRImages || {}), [method]: b64 }
+      }));
+
+      _renderPaymentQRBoxes();
+      showNotification('QR saved', 'success');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  // Reset input so same file can be re-uploaded
+  input.value = '';
+}
+
+function removePaymentQR(method) {
+  updateState('settings', s => {
+    const imgs = { ...(s.paymentQRImages || {}) };
+    delete imgs[method];
+    return { ...s, paymentQRImages: imgs };
+  });
+  _renderPaymentQRBoxes();
+  showNotification('QR removed', 'success');
+}
+
+function _renderPaymentQRBoxes() {
+  const images = APP_STATE.settings?.paymentQRImages || {};
+  ['gcash', 'maya', 'qrph'].forEach(method => {
+    const capMethod = method.charAt(0).toUpperCase() + method.slice(1);
+    const b64       = images[method];
+    const box       = document.getElementById('qrBox'   + capMethod);
+    const img       = document.getElementById('qrImg'   + capMethod);
+    const removeBtn = document.getElementById('qrRemove'+ capMethod);
+    const placeholder = box?.querySelector('.qr-placeholder');
+
+    if (!box || !img) return;
+
+    if (b64) {
+      // Show image, hide placeholder, show remove button
+      img.src          = b64;
+      img.style.display = 'block';
+      if (placeholder)  placeholder.style.display = 'none';
+      if (removeBtn)    removeBtn.style.display    = 'flex';
+      box.style.border  = '2px solid var(--gray-300)';
+    } else {
+      // Show placeholder, hide image, hide remove button
+      img.src           = '';
+      img.style.display = 'none';
+      if (placeholder)  placeholder.style.display = 'flex';
+      if (removeBtn)    removeBtn.style.display    = 'none';
+      box.style.border  = '2px dashed var(--gray-200)';
+    }
+  });
+}
+
+window.uploadPaymentQR      = uploadPaymentQR;
+window.removePaymentQR      = removePaymentQR;
+window._renderPaymentQRBoxes= _renderPaymentQRBoxes;
+
+window.saveSettings        = saveSettings;
+window.renderBranding      = renderBranding;
+window.loadDemoData        = loadDemoData;

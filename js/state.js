@@ -13,10 +13,8 @@ const APP_STATE = {
     orderTypes: ['Dine In', 'Take Out', 'Delivery'],
     lowStockThreshold: 5,
     voidPin: '000000',          // Admin void PIN — changeable in Settings
-    supplierModeEnabled: false,   // Supplier Mode feature toggle
-    coffeeCartModeEnabled: false, // Coffee Cart Mode feature toggle
-    productionModeEnabled: false, // Production Mode feature toggle
-    recipeCatalogEnabled: false   // Recipe Catalog feature toggle
+    paymentQRImages: {},        // { gcash, maya, qrph } — base64 images
+    supplierModeEnabled: false  // Supplier Mode feature toggle
   },
 
   receiptCounter: 0,            // Sequential permanent counter, never resets
@@ -32,23 +30,7 @@ const APP_STATE = {
   supplierClients: [],          // B2B client list
   supplyInvoiceCounter: 0,      // Sequential invoice counter
   stockReservations: [],        // Soft stock holds for ORDERED supply orders
-  events: [],                   // Coffee Cart events
-  activeEvent: null,            // Currently active event session
-  eventPackages: [],            // Event Package Builder
-  leads: [],                    // Lead Tracker / CRM
-  labDrafts: [],                // Product Lab draft analyses
-  labCategoryPresets: [],
-  recipeCatalog: [],            // Recipe Catalog — standalone reference recipes
-  shoppingLists: [],            // Saved shopping lists — last 5
-  finishedGoods: [],            // { productId, productName, stock, reserved }
-  fgMovements: [],              // Finished goods movement log
-  productionJobs: [],           // Production Mode jobs
-  laborPeople: [],              // Labor roster (survives reset)
-  categories: [
-    { id: 'cat-cookies',  name: 'Cookies',       inventoryMode: 'finished_goods' },
-    { id: 'cat-chewy',   name: 'Chewy Cookies',  inventoryMode: 'finished_goods' },
-    { id: 'cat-drinks',  name: 'Drinks',          inventoryMode: 'direct' }
-  ],
+  categories: ['Cookies', 'Chewy Cookies', 'Drinks'],
 
   ui: {
     currentView: 'pos',
@@ -74,26 +56,11 @@ function resetState() {
   APP_STATE.inventoryMovements = [];
   APP_STATE.auditLog = [];
   APP_STATE.receiptCounter = 0;
-  APP_STATE.categories = [
-    { id: 'cat-cookies',  name: 'Cookies',       inventoryMode: 'finished_goods' },
-    { id: 'cat-chewy',   name: 'Chewy Cookies',  inventoryMode: 'finished_goods' },
-    { id: 'cat-drinks',  name: 'Drinks',          inventoryMode: 'direct' }
-  ];
+  APP_STATE.categories = ['Cookies', 'Chewy Cookies', 'Drinks'];
   APP_STATE.supplyOrders = [];
   APP_STATE.supplierClients = [];
   APP_STATE.supplyInvoiceCounter = 0;
   APP_STATE.stockReservations = [];
-  APP_STATE.events = [];
-  APP_STATE.activeEvent = null;
-  APP_STATE.eventPackages = [];
-  APP_STATE.leads = [];
-  APP_STATE.labDrafts     = [];
-  APP_STATE.productionJobs = [];
-  APP_STATE.finishedGoods = [];
-  APP_STATE.fgMovements   = [];
-  APP_STATE.shoppingLists = [];
-  // recipeCatalog intentionally NOT reset — user reference data
-  // Note: labCategoryPresets + laborPeople intentionally NOT reset — user config
   persistState();
 }
 

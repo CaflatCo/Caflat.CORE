@@ -340,32 +340,18 @@ function togglePaymentFields() {
     const labels = { gcash: 'GCASH PAYMENT', maya: 'MAYA PAYMENT', qrph: 'QR PAYMENT' };
     if (badge) badge.textContent = labels[method] || 'QR PAYMENT';
 
-    // Update QR image src if method-specific QR images exist in assets
-    const img = document.getElementById('paymentQRImage');
-    if (img) {
-      const srcs = {
-        gcash: './assets/qr-gcash.png',
-        maya:  './assets/qr-maya.png',
-        qrph:  './assets/qr-qrph.png'
-      };
-      img.src = srcs[method] || './assets/qr-placeholder.png';
-      img.onerror = function() {
-        // If image doesn't exist, show a generated QR with your payment info
-        this.style.display = 'none';
-        const info = APP_STATE.settings?.receiptFooter || APP_STATE.settings?.brandName || 'Caflat.Co';
-        if (typeof CaflatQR !== 'undefined') {
-          const container = this.parentElement;
-          const existing  = container.querySelector('.payment-qr-svg');
-          if (existing) existing.remove();
-          const wrapper = document.createElement('div');
-          wrapper.className = 'payment-qr-svg';
-          wrapper.style.cssText = 'display:inline-block;border:1px solid var(--gray-200);' +
-            'padding:10px;background:#fff;border-radius:12px;margin:0 auto;';
-          wrapper.innerHTML = CaflatQR.generateSVG(info, { size: 200, ecLevel: 'M' });
-          container.insertBefore(wrapper, this.nextSibling);
-        }
-      };
-      img.style.display = '';
+    // Load uploaded QR from settings
+    const stored  = APP_STATE.settings?.paymentQRImages?.[method];
+    const img     = document.getElementById('paymentQRImage');
+    const fallback= document.getElementById('paymentQRFallback');
+
+    if (stored && img) {
+      img.src           = stored;
+      img.style.display = 'block';
+      if (fallback) fallback.style.display = 'none';
+    } else {
+      if (img)     img.style.display     = 'none';
+      if (fallback) fallback.style.display = 'flex';
     }
   }
 
