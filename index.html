@@ -788,9 +788,20 @@
 
           <div class="section-title">Categories</div>
           <div id="categoryList"></div>
-          <div class="filter-bar" style="margin-top:8px;">
-            <input id="newCategoryInput" placeholder="New category name" type="text" style="flex:1;" />
-            <button class="btn btn-secondary" id="addCategoryBtn" type="button">Add</button>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
+            <input id="newCategoryInput" placeholder="New category name" type="text"
+              style="flex:1;min-width:160px;padding:10px 14px;font-size:14px;
+                border:1.5px solid var(--gray-200);border-radius:var(--radius-md);
+                font-family:var(--font-main);" />
+            <select id="newCategoryMode"
+              style="padding:10px 14px;border:1.5px solid var(--gray-200);
+                border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);
+                min-width:160px;">
+              <option value="direct">Direct</option>
+              <option value="finished_goods">Finished Goods</option>
+            </select>
+            <button class="btn" id="addCategoryBtn" type="button"
+              style="padding:10px 22px;font-size:13px;">Add</button>
           </div>
 
           <div class="section-title">Features</div>
