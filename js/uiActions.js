@@ -78,6 +78,8 @@ function bindPrimaryButtons() {
     ['exportDataBtn',     () => exportAllData()],
     ['exportDataBtnProducts', () => exportAllData()],
     ['addPaymentMethodBtn', () => openPaymentMethodModal(null)],
+    ['archiveLocalBtn',   () => archiveAndResetLocal()],
+    ['archiveEmailBtn',   () => archiveAndResetEmail()],
   ];
 
   bindings.forEach(([id, handler]) => {

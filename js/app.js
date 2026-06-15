@@ -53,6 +53,7 @@ function renderEverything() {
     'renderCoffeeCartView',
     'applyProductionModeToggle',
     'renderProductionView',
+    'applyProductLabModeToggle',
     'renderLabDraftsList',
     'renderLabPresetsList',
     'applySupplierCartButton',

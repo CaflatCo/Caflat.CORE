@@ -197,6 +197,7 @@ function saveSettings() {
   const supplierModeEnabled    = document.getElementById('settingsSupplierMode')?.checked    === true;
   const productionModeEnabled  = document.getElementById('settingsProductionMode')?.checked  === true;
   const coffeeCartModeEnabled  = document.getElementById('settingsCoffeeCartMode')?.checked  === true;
+  const productLabModeEnabled  = document.getElementById('settingsProductLabMode')?.checked  === true;
 
   updateState('settings', current => ({
     ...current,
@@ -206,6 +207,7 @@ function saveSettings() {
     supplierModeEnabled,
     productionModeEnabled,
     coffeeCartModeEnabled,
+    productLabModeEnabled,
     ...(voidPin ? { voidPin } : {})
   }));
 
@@ -214,6 +216,7 @@ function saveSettings() {
   if (typeof applySupplierCartButton    === 'function') applySupplierCartButton();
   if (typeof applyProductionModeToggle  === 'function') applyProductionModeToggle();
   if (typeof applyCoffeeCartModeToggle  === 'function') applyCoffeeCartModeToggle();
+  applyProductLabModeToggle();
   showNotification('Settings saved', 'success');
 }
 
@@ -241,7 +244,21 @@ function renderBranding() {
   const coffeeCartToggle = document.getElementById('settingsCoffeeCartMode');
   if (coffeeCartToggle) coffeeCartToggle.checked = APP_STATE.settings?.coffeeCartModeEnabled === true;
 
+  const productLabToggle = document.getElementById('settingsProductLabMode');
+  if (productLabToggle) productLabToggle.checked = APP_STATE.settings?.productLabModeEnabled === true;
+
   _renderPaymentQRBoxes();
+  renderPaymentMethodsList();
+}
+
+function applyProductLabModeToggle() {
+  const enabled = APP_STATE.settings?.productLabModeEnabled === true;
+  const navBtn  = document.getElementById('navLab');
+  if (navBtn) navBtn.style.display = enabled ? '' : 'none';
+  if (!enabled && APP_STATE.ui?.currentView === 'lab') {
+    if (typeof switchPage === 'function') switchPage('products');
+  }
+}
 }
 
 function escapeHtml(value) {
@@ -406,23 +423,50 @@ window._renderPaymentQRBoxes= _renderPaymentQRBoxes;
 
 /* ── Danger Zone ── */
 
-function archiveAndReset() {
-  if (!confirm('This will export a backup first, then wipe all business data.\n\nSettings and categories will be kept.\n\nContinue?')) return;
-  // Export first
-  if (typeof exportAllData === 'function') {
-    exportAllData();
-  } else if (typeof exportData === 'function') {
-    exportData();
-  }
-  // Reset after short delay to let download trigger
+function archiveAndResetLocal() {
+  if (!confirm('This will download a backup file, then wipe all business data.\n\nSettings and categories will be kept.\n\nContinue?')) return;
+  if (typeof exportAllData === 'function') exportAllData();
   setTimeout(() => {
     if (typeof resetBusinessData === 'function') {
       resetBusinessData();
-      showNotification('Data archived and reset', 'success');
-      if (typeof renderEverything === 'function') renderEverything();
+      showNotification('Data archived locally and reset', 'success');
     }
   }, 800);
 }
+
+function archiveAndResetEmail() {
+  const email = prompt('Enter email address to send backup to:');
+  if (!email || !email.includes('@')) {
+    if (email !== null) showNotification('Invalid email address', 'error');
+    return;
+  }
+  if (!confirm(`Send backup to ${email} then wipe all business data?\n\nSettings and categories will be kept.`)) return;
+
+  // Build backup JSON
+  const backup = JSON.stringify(APP_STATE, null, 2);
+  const brand  = APP_STATE.settings?.brandName || 'Caflat';
+  const date   = new Date().toISOString().slice(0, 10);
+  const subject = encodeURIComponent(`${brand} Backup — ${date}`);
+  const body    = encodeURIComponent(
+    `Caflat.Co backup for ${brand} on ${date}.\n\nPlease find the backup data below — copy and save as a .json file:\n\n${backup.slice(0, 1800)}...\n\n(Full backup is too large for email body. Use Export Backup button to download the complete file.)`
+  );
+
+  // Open mail client
+  window.open(`mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`, '_blank');
+
+  // Also trigger download so they have the full file
+  if (typeof exportAllData === 'function') exportAllData();
+
+  setTimeout(() => {
+    if (typeof resetBusinessData === 'function') {
+      resetBusinessData();
+      showNotification('Backup sent to email and data reset', 'success');
+    }
+  }, 1200);
+}
+
+// Legacy alias
+function archiveAndReset() { archiveAndResetLocal(); }
 
 function factoryReset() {
   if (!confirm('Factory Reset will wipe EVERYTHING including settings and passwords.\n\nThis cannot be undone. Are you sure?')) return;
@@ -431,8 +475,11 @@ function factoryReset() {
   window.location.reload();
 }
 
-window.archiveAndReset = archiveAndReset;
-window.factoryReset    = factoryReset;
+window.archiveAndReset      = archiveAndReset;
+window.archiveAndResetLocal = archiveAndResetLocal;
+window.archiveAndResetEmail = archiveAndResetEmail;
+window.factoryReset         = factoryReset;
+window.applyProductLabModeToggle = applyProductLabModeToggle;
 
 window.saveSettings        = saveSettings;
 window.renderBranding      = renderBranding;
