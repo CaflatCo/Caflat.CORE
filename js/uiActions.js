@@ -606,7 +606,7 @@ function bindDelegatedActions() {
       case 'edit-client':            openClientModal(actionEl.dataset.id || ''); break;
       case 'delete-client':          deleteSupplierClient(actionEl.dataset.id || ''); break;
       case 'save-client':            saveSupplierClient(); break;
-      case 'delete-category':       deleteCategory(actionEl.dataset.id || ''); break;
+      case 'delete-category':       deleteCategory(actionEl.dataset.id || actionEl.dataset.category || ''); break;
       case 'toggle-category-mode':   toggleCategoryMode(actionEl.dataset.id || ''); break;
       case 'open-recipe-detail':     openRecipeDetail(actionEl.dataset.id || ''); break;
       case 'edit-recipe':            openRecipeForm(actionEl.dataset.id || ''); break;

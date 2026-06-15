@@ -3,7 +3,61 @@
 ═══════════════════════════════════════════════════════ */
 
 function getCategories() {
-  return Array.isArray(APP_STATE.categories) ? APP_STATE.categories : [];
+  const raw = Array.isArray(APP_STATE.categories) ? APP_STATE.categories : [];
+  // Migrate legacy string categories to objects
+  return raw.map(c => {
+    if (typeof c === 'string') {
+      return { id: 'cat-' + c.toLowerCase().replace(/[^a-z0-9]+/g, '-'), name: c, inventoryMode: 'direct' };
+    }
+    return c;
+  });
+}
+
+function getCategoryByName(name) {
+  return getCategories().find(c => c.name === name) || null;
+}
+
+function getCategoryMode(productCategoryName) {
+  const cat = getCategoryByName(productCategoryName);
+  return cat?.inventoryMode || 'direct';
+}
+
+function isFinishedGoodsProduct(product) {
+  return getCategoryMode(product?.category) === 'finished_goods';
+}
+
+function toggleCategoryMode(catId) {
+  const cats = getCategories().map(c =>
+    c.id !== catId ? c
+      : { ...c, inventoryMode: c.inventoryMode === 'finished_goods' ? 'direct' : 'finished_goods' }
+  );
+  updateState('categories', () => cats);
+  renderCategories();
+  if (typeof renderCategoryOptions === 'function') renderCategoryOptions();
+}
+
+function renameCategory(catId, newName) {
+  const trimmed = (newName || '').trim();
+  if (!trimmed) { renderCategories(); return; }
+  const cats    = getCategories();
+  const existing = cats.find(c => c.id === catId);
+  if (!existing) return;
+  if (existing.name === trimmed) return;
+  if (cats.some(c => c.id !== catId && c.name.toLowerCase() === trimmed.toLowerCase())) {
+    showNotification('Category name already exists', 'error');
+    renderCategories(); return;
+  }
+  // Update products that used the old name
+  const updatedProducts = (APP_STATE.products || []).map(p =>
+    p.category === existing.name ? { ...p, category: trimmed } : p
+  );
+  updateState('products', () => updatedProducts);
+  updateState('categories', () => cats.map(c =>
+    c.id !== catId ? c : { ...c, name: trimmed }
+  ));
+  renderCategories();
+  if (typeof renderCategoryOptions === 'function') renderCategoryOptions();
+  showNotification('Category renamed', 'success');
 }
 
 function setCategories(categories) {
@@ -14,23 +68,33 @@ function setCategories(categories) {
 }
 
 function addCategory() {
-  const input = document.getElementById('newCategoryInput');
+  const input   = document.getElementById('newCategoryInput');
+  const modeEl  = document.getElementById('newCategoryMode');
   if (!input) return;
-  const value = sanitizeText(input.value);
+  const value   = sanitizeText(input.value);
+  const mode    = modeEl?.value || 'direct';
   if (!value) { showNotification('Category name is required', 'error'); return; }
-  const categories = getCategories();
-  if (categories.some(c => c.toLowerCase() === value.toLowerCase())) {
+  const cats = getCategories();
+  if (cats.some(c => c.name.toLowerCase() === value.toLowerCase())) {
     showNotification('Category already exists', 'error'); return;
   }
-  categories.push(value);
-  setCategories(categories);
+  cats.push({ id: generateId(), name: value, inventoryMode: mode });
+  updateState('categories', () => cats);
   input.value = '';
+  renderCategories();
+  if (typeof renderCategoryOptions === 'function') renderCategoryOptions();
   showNotification('Category added', 'success');
 }
 
-function deleteCategory(categoryName) {
-  if (!confirm(`Delete "${categoryName}"?`)) return;
-  setCategories(getCategories().filter(c => c !== categoryName));
+function deleteCategory(catId) {
+  const cats = getCategories();
+  // Support both id-based and name-based deletion for backward compat
+  const cat  = cats.find(c => c.id === catId) || cats.find(c => c.name === catId);
+  if (!cat) return;
+  if (!confirm(`Delete "${cat.name}"?`)) return;
+  updateState('categories', () => cats.filter(c => c.id !== cat.id));
+  renderCategories();
+  if (typeof renderCategoryOptions === 'function') renderCategoryOptions();
   showNotification('Category deleted', 'success');
 }
 
@@ -38,13 +102,55 @@ function renderCategories() {
   const container = document.getElementById('categoryList');
   if (!container) return;
   container.innerHTML = '';
-  getCategories().forEach(cat => {
-    const item = document.createElement('div');
-    item.className = 'category-chip';
-    item.innerHTML = `
-      <span>${escapeHtml(cat)}</span>
-      <button type="button" data-action="delete-category" data-category="${escapeHtml(cat)}" title="Delete">×</button>`;
-    container.appendChild(item);
+  const cats = getCategories();
+  if (!cats.length) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--gray-400);padding:8px 0;">No categories yet</div>';
+    return;
+  }
+  cats.forEach(cat => {
+    const isFG  = cat.inventoryMode === 'finished_goods';
+    const card  = document.createElement('div');
+    card.style.cssText = 'border:1.5px solid var(--gray-200);border-radius:12px;' +
+      'padding:12px 16px;margin-bottom:8px;background:var(--white);';
+
+    // Editable name + delete
+    const topRow = '<div style="display:flex;align-items:center;justify-content:space-between;' +
+      'margin-bottom:10px;gap:8px;">' +
+      '<input type="text" value="' + escapeHtml(cat.name) + '" ' +
+        'data-cat-rename-id="' + cat.id + '" ' +
+        'style="font-size:14px;font-weight:800;border:none;outline:none;' +
+          'background:transparent;font-family:var(--font-main);flex:1;padding:0;min-width:0;" ' +
+        'placeholder="Category name" />' +
+      '<button type="button" data-action="delete-category" data-id="' + cat.id + '" ' +
+        'style="background:none;border:none;cursor:pointer;font-size:16px;' +
+          'color:var(--gray-300);padding:2px 6px;font-family:var(--font-main);flex-shrink:0;">✕</button>' +
+    '</div>';
+
+    // Toggle row
+    const toggleRow =
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+        '<div>' +
+          '<div style="font-size:12px;font-weight:700;">' + (isFG ? 'Finished Goods' : 'Direct') + '</div>' +
+          '<div style="font-size:11px;color:var(--gray-400);margin-top:1px;">' +
+            (isFG ? 'Sells from produced stock' : 'Ingredients deduct at sale') +
+          '</div>' +
+        '</div>' +
+        '<label style="position:relative;display:inline-block;width:44px;height:24px;' +
+          'flex-shrink:0;cursor:pointer;">' +
+          '<input type="checkbox" ' + (isFG ? 'checked' : '') + ' ' +
+            'data-action="toggle-category-mode" data-id="' + cat.id + '" ' +
+            'style="opacity:0;width:0;height:0;position:absolute;" />' +
+          '<div style="position:absolute;top:0;left:0;right:0;bottom:0;' +
+            'background:' + (isFG ? 'var(--black)' : 'var(--gray-200)') + ';' +
+            'border-radius:999px;transition:background .2s;"></div>' +
+          '<div style="position:absolute;top:3px;left:' + (isFG ? '23px' : '3px') + ';' +
+            'width:18px;height:18px;background:white;border-radius:50%;' +
+            'transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>' +
+        '</label>' +
+      '</div>';
+
+    card.innerHTML = topRow + toggleRow;
+    container.appendChild(card);
   });
 }
 
@@ -65,9 +171,12 @@ function renderCategoryOptions() {
       select.appendChild(opt);
     }
     categories.forEach(cat => {
-      const opt = document.createElement('option');
-      opt.value = cat; opt.textContent = cat;
-      if (current === cat) opt.selected = true;
+      const opt  = document.createElement('option');
+      const name = typeof cat === 'object' ? cat.name : cat;
+      const isFG = typeof cat === 'object' && cat.inventoryMode === 'finished_goods';
+      opt.value       = name;
+      opt.textContent = name + (isFG ? ' · FG' : '');
+      if (current === name) opt.selected = true;
       select.appendChild(opt);
     });
   });
@@ -192,11 +301,16 @@ function loadDemoData() {
   showNotification('Demo data loaded', 'success');
 }
 
-window.getCategories       = getCategories;
-window.setCategories       = setCategories;
-window.addCategory         = addCategory;
-window.deleteCategory      = deleteCategory;
-window.renderCategories    = renderCategories;
+window.getCategories         = getCategories;
+window.getCategoryByName     = getCategoryByName;
+window.getCategoryMode       = getCategoryMode;
+window.isFinishedGoodsProduct= isFinishedGoodsProduct;
+window.setCategories         = setCategories;
+window.addCategory           = addCategory;
+window.deleteCategory        = deleteCategory;
+window.toggleCategoryMode    = toggleCategoryMode;
+window.renameCategory        = renameCategory;
+window.renderCategories      = renderCategories;
 window.renderCategoryOptions = renderCategoryOptions;
 /* ── Payment QR Codes ── */
 
