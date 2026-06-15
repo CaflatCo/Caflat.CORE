@@ -315,11 +315,11 @@
         <button data-view="inventory">Inventory</button>
         <button data-view="sales">Sales</button>
         <button data-view="reports">Reports</button>
-        <button data-view="settings">Settings</button>
         <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
         <button data-view="production" id="navProduction" style="display:none;">Production</button>
         <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">Coffee Cart</button>
         <button data-view="lab" id="navLab" style="display:none;">Product Lab</button>
+        <button data-view="settings">Settings</button>
       </nav>
     </header>
 
@@ -395,7 +395,10 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Dashboard</h2>
-            <span style="font-size:11px;color:var(--gray-400);">All-time overview</span>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <span style="font-size:11px;color:var(--gray-400);">All-time overview</span>
+              <button class="btn btn-secondary" id="endOfDayBtn" type="button">End of Day</button>
+            </div>
           </div>
 
           <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
@@ -459,6 +462,7 @@
           <div class="panel-header">
             <h2>Products</h2>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-secondary" id="openLabBtn" type="button" style="display:none;">Product Lab</button>
               <button class="btn" id="addProductBtn" type="button">+ Add Product</button>
               <button class="btn btn-secondary" id="exportDataBtnProducts" type="button">Export Data</button>
               <button class="btn btn-secondary" id="loadDemoBtnProducts" type="button">Load Demo</button>
@@ -489,6 +493,9 @@
             <h2>Ingredients</h2>
             <button class="btn" id="addIngredientBtn" type="button">+ Add Ingredient</button>
           </div>
+          <div class="filter-bar">
+            <input id="ingredientSearch" placeholder="Search ingredients…" type="text" style="flex:1;min-width:200px;" />
+          </div>
           <div class="table-wrapper">
             <table id="ingredientsTable">
               <thead>
@@ -509,6 +516,9 @@
           <div class="panel-header">
             <h2>Inventory</h2>
             <span style="font-size:11px;color:var(--gray-400);">Ingredient stock levels</span>
+          </div>
+          <div class="filter-bar">
+            <input id="inventorySearch" placeholder="Search inventory…" type="text" style="flex:1;min-width:200px;" />
           </div>
           <div class="table-wrapper">
             <table id="inventoryTable">
@@ -1315,10 +1325,6 @@
             <label>Payment Method</label>
             <select id="checkoutPayment">
               <option value="cash">Cash</option>
-              <option value="gcash">GCash</option>
-              <option value="maya">Maya</option>
-              <option value="bank">Bank Transfer</option>
-              <option value="qrph">QR PH</option>
             </select>
           </div>
         </div>
@@ -2198,6 +2204,7 @@
   <script src="./js/refund.js"></script>
   <script src="./js/void.js"></script>
   <script src="./js/supply.js"></script>
+  <script src="./js/endofday.js"></script>
   <script src="./js/production.js"></script>
   <script src="./js/coffeecart.js"></script>
   <script src="./js/productlab.js"></script>
