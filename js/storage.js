@@ -67,7 +67,8 @@ function restorePersistedState() {
     productionModeEnabled: false,
     productLabModeEnabled: false,
     paymentMethods: [],
-    paymentQRImages: {}
+    paymentQRImages: {},
+    receiptBaseUrl: ""
   }, persisted.settings || {});
 
   APP_STATE.receiptCounter     = Number(persisted.receiptCounter || 0);
@@ -173,7 +174,8 @@ function importAllData(file) {
         productionModeEnabled: false,
         productLabModeEnabled: false,
         paymentMethods: [],
-        paymentQRImages: {}
+        paymentQRImages: {},
+    receiptBaseUrl: ""
       }, data.settings || {});
       APP_STATE.receiptCounter     = Number(data.receiptCounter || 0);
       APP_STATE.products           = Array.isArray(data.products)           ? data.products           : [];
@@ -259,7 +261,8 @@ function fullFactoryReset() {
     productionModeEnabled: false,
     productLabModeEnabled: false,
     paymentMethods: [],
-    paymentQRImages: {}
+    paymentQRImages: {},
+    receiptBaseUrl: ""
   };
   localStorage.removeItem(STORAGE_KEY);
   if (typeof renderEverything === 'function') renderEverything();
