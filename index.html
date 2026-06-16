@@ -462,7 +462,7 @@
           <div class="panel-header">
             <h2>Products</h2>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-secondary" id="openLabBtn" type="button" style="display:none;">Product Lab</button>
+              <button class="btn btn-secondary" id="openLabBtn" type="button" style="display:none;" onclick="switchPage('lab');">Product Lab</button>
               <button class="btn" id="addProductBtn" type="button">+ Add Product</button>
               <button class="btn btn-secondary" id="exportDataBtnProducts" type="button">Export Data</button>
               <button class="btn btn-secondary" id="loadDemoBtnProducts" type="button">Load Demo</button>
@@ -1085,7 +1085,7 @@
           <div class="panel-header">
             <h2>Product Lab</h2>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-secondary" type="button" id="openLabBtn" onclick="switchPage('products');">← Back to Products</button>
+              <button class="btn btn-secondary" type="button" id="labBackBtn" onclick="switchPage('products');">← Back to Products</button>
               <button class="btn" type="button" onclick="startNewLabSession();">+ New Session</button>
             </div>
           </div>
@@ -1466,9 +1466,12 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Notes</label>
-          <textarea id="supplyNotes" rows="2" placeholder="Special instructions, terms, etc."></textarea>
+        <div class="form-group" style="margin-top:8px;">
+          <label style="color:var(--black);">Notes</label>
+          <textarea id="supplyNotes" rows="3"
+            placeholder="Special instructions, terms, delivery details…"
+            style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:var(--radius-md);
+              font-size:13px;font-weight:500;resize:vertical;"></textarea>
         </div>
 
         <div class="modal-actions">
