@@ -902,43 +902,21 @@ function renderSupplyTable() {
 
     tbody.innerHTML += `
       <tr>
-        <td style="font-family:var(--font-mono);font-size:11px;font-weight:700;">
-          ${escapeHtml(order.invoiceNumber||'')}</td>
-        <td style="font-weight:700;">${escapeHtml(order.clientName||'—')}</td>
-        <td style="font-size:11px;max-width:140px;overflow:hidden;
-          text-overflow:ellipsis;white-space:nowrap;" title="${itemSummary}">
+        <td style="font-family:var(--font-mono);font-size:12px;font-weight:700;white-space:nowrap;">
+          ${escapeHtml(order.invoiceNumber||'—')}</td>
+        <td style="font-weight:700;font-size:13px;">${escapeHtml(order.clientName||'—')}</td>
+        <td style="font-size:12px;color:var(--gray-500);max-width:160px;
+          overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${itemSummary}">
           ${itemSummary||'—'}</td>
-        <td>
-          <div style="display:grid;gap:2px;">
-            ${SUPPLY_STATUSES.map(s => {
-              const entry = history.find(h => h.status === s);
-              if (!entry) return `<div style="font-size:10px;color:var(--gray-300);">
-                ${SUPPLY_STATUS_LABELS[s]}: —</div>`;
-              const d = new Date(entry.changedAt);
-              return `<div style="font-size:10px;color:var(--gray-600);">
-                <span style="font-weight:700;">${SUPPLY_STATUS_LABELS[s]}:</span>
-                ${d.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'2-digit'})}
-                ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
-                ${entry.note
-                  ? `<span style="color:var(--gray-400);"> · ${escapeHtml(entry.note)}</span>`
-                  : ''}
-              </div>`;
-            }).join('')}
-          </div>
-        </td>
-        <td style="font-weight:800;font-variant-numeric:tabular-nums;">
+        <td style="font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap;">
           ${formatCurrency(order.grandTotal||0)}</td>
-        <td>${supplyStatusBadge(order.status)}
-          ${order.reservedStock
-            ? `<div style="font-size:9px;color:#c2410c;font-weight:700;
-                letter-spacing:1px;margin-top:3px;">STOCK RESERVED</div>` : ''}
+        <td>
+          <div>${supplyStatusBadge(order.status)}</div>
           ${order.stockDeducted
-            ? `<div style="font-size:9px;color:#1d4ed8;font-weight:700;
-                letter-spacing:1px;margin-top:3px;">STOCK DEDUCTED</div>` : ''}
+            ? `<div style="font-size:9px;color:#1d4ed8;font-weight:700;letter-spacing:.5px;margin-top:4px;">STOCK DEDUCTED</div>` : ''}
+          ${order.reservedStock && !order.stockDeducted
+            ? `<div style="font-size:9px;color:#c2410c;font-weight:700;letter-spacing:.5px;margin-top:4px;">STOCK RESERVED</div>` : ''}
         </td>
-        <td style="font-size:11px;color:var(--gray-400);max-width:100px;overflow:hidden;
-          text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(order.notes||'')}">
-          ${escapeHtml(order.notes||'—')}</td>
         <td>
           <div class="table-actions">
             <button class="btn btn-sm btn-secondary" data-action="view-supply-order"
