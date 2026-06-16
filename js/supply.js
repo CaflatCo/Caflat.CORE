@@ -398,6 +398,8 @@ function hydrateSupplyOrderForm(order) {
   setElementValue('supplyDiscountType',  savedType);
 
   renderSupplyLineItems(order.items || []);
+  // Recalculate totals after rows are populated
+  if (typeof updateSupplyOrderTotal === 'function') updateSupplyOrderTotal();
 }
 
 function renderSupplyLineItems(items = []) {
