@@ -656,6 +656,10 @@
             </div>
           </div>
 
+          <!-- Category Performance -->
+          <div class="section-title">Category Performance</div>
+          <div id="categoryPerformanceContainer" style="margin-bottom:28px;"></div>
+
           <!-- Product Performance -->
           <div class="section-title">Product Performance</div>
           <div class="table-wrapper">
@@ -793,6 +797,17 @@
               <label>Receipt Footer</label>
               <input id="settingsReceiptFooter" type="text"
                 placeholder="e.g. Thank you for choosing Caflat.Co!" />
+            </div>
+          </div>
+
+          <!-- Receipt URL -->
+          <div class="form-group">
+            <label>Digital Receipt URL</label>
+            <input id="settingsReceiptUrl" type="url"
+              placeholder="e.g. https://caflat-core.vercel.app/receipt"
+              style="font-size:13px;" />
+            <div style="font-size:11px;color:var(--gray-400);margin-top:5px;font-weight:600;">
+              QR code on receipts will link to this URL with the receipt number appended — e.g. <span id="receiptUrlPreview" style="font-family:monospace;color:var(--gray-600);">https://your-url?r=0001</span>
             </div>
           </div>
 
@@ -2149,6 +2164,18 @@
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="paymentMethodModal">Cancel</button>
           <button class="btn" type="button" onclick="savePaymentMethod();">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── END OF DAY MODAL ── -->
+    <div class="modal-overlay" id="endOfDayModal">
+      <div class="modal" style="max-width:480px;">
+        <h3>End of Day Summary</h3>
+        <div id="endOfDayContent" style="max-height:60vh;overflow-y:auto;"></div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" onclick="shareEndOfDay();">Share / Copy</button>
+          <button class="btn btn-secondary" type="button" data-close-modal="endOfDayModal">Close</button>
         </div>
       </div>
     </div>
