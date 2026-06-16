@@ -596,6 +596,7 @@ function bindDelegatedActions() {
       case 'open-supplier-order-prompt': openSupplierOrderPrompt(); break;
       case 'confirm-supplier-order':     confirmSupplierOrder(); break;
       case 'add-supply-order':           openSupplyOrderModal(); break;
+      case 'view-supply-order':      openSupplyOrderView(actionEl.dataset.id || ''); break;
       case 'edit-supply-order':      openSupplyOrderModal(actionEl.dataset.id || ''); break;
       case 'delete-supply-order':    deleteSupplyOrder(actionEl.dataset.id || ''); break;
       case 'advance-supply-status':    advanceSupplyStatus(actionEl.dataset.id || ''); break;

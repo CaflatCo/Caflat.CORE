@@ -941,6 +941,8 @@ function renderSupplyTable() {
           ${escapeHtml(order.notes||'—')}</td>
         <td>
           <div class="table-actions">
+            <button class="btn btn-sm btn-secondary" data-action="view-supply-order"
+              data-id="${order.id}">View</button>
             <button class="btn btn-sm" data-action="open-status-picker"
               data-id="${order.id}">Set Status</button>
             <button class="btn btn-sm btn-secondary" data-action="edit-supply-order"
@@ -1206,3 +1208,111 @@ window.applySupplierModeToggle  = applySupplierModeToggle;
 window.applySupplierCartButton  = applySupplierCartButton;
 window.openSupplierOrderPrompt  = openSupplierOrderPrompt;
 window.confirmSupplierOrder     = confirmSupplierOrder;
+
+window.openSupplyOrderView = openSupplyOrderView;
+
+function openSupplyOrderView(orderId) {
+  const order = getSupplyOrderById(orderId);
+  if (!order) return;
+
+  const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+  const items   = Array.isArray(order.items) ? order.items : [];
+
+  const statusRows = SUPPLY_STATUSES.map(s => {
+    const entry = history.find(h => h.status === s);
+    if (!entry) return `
+      <div style="display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--gray-100);">
+        <span style="font-size:11px;font-weight:700;color:var(--gray-300);min-width:110px;">${SUPPLY_STATUS_LABELS[s]}</span>
+        <span style="font-size:11px;color:var(--gray-300);">—</span>
+      </div>`;
+    const d = new Date(entry.changedAt);
+    return `
+      <div style="display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--gray-100);">
+        <span style="font-size:11px;font-weight:800;color:var(--black);min-width:110px;">${SUPPLY_STATUS_LABELS[s]}</span>
+        <div>
+          <div style="font-size:11px;font-weight:700;">
+            ${d.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})}
+            ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+          </div>
+          ${entry.note ? `<div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${escapeHtml(entry.note)}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  const itemRows = items.map(item => `
+    <tr>
+      <td style="padding:8px 12px;font-size:13px;font-weight:700;border-bottom:1px solid var(--gray-100);">
+        ${escapeHtml(item.productName||item.description||'—')}</td>
+      <td style="padding:8px 12px;font-size:13px;text-align:right;border-bottom:1px solid var(--gray-100);
+        font-variant-numeric:tabular-nums;">${item.qty}</td>
+      <td style="padding:8px 12px;font-size:13px;text-align:right;border-bottom:1px solid var(--gray-100);
+        font-variant-numeric:tabular-nums;">${formatCurrency(item.unitPrice||0)}</td>
+      <td style="padding:8px 12px;font-size:13px;font-weight:800;text-align:right;
+        border-bottom:1px solid var(--gray-100);font-variant-numeric:tabular-nums;">
+        ${formatCurrency(item.total||0)}</td>
+    </tr>`).join('');
+
+  const container = document.getElementById('supplyOrderViewContent');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div>
+        <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:3px;">Invoice #</div>
+        <div style="font-size:15px;font-weight:900;font-family:var(--font-mono);">${escapeHtml(order.invoiceNumber||'—')}</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:3px;">Client</div>
+        <div style="font-size:15px;font-weight:900;">${escapeHtml(order.clientName||'—')}</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:3px;">Order Date</div>
+        <div style="font-size:13px;font-weight:700;">${order.orderDate ? new Date(order.orderDate).toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'}) : '—'}</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:3px;">Status</div>
+        <div>${supplyStatusBadge(order.status)}</div>
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">Order Items</div>
+    <div style="border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:20px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:var(--gray-50);">
+            <th style="padding:8px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);font-weight:800;">Product</th>
+            <th style="padding:8px 12px;text-align:right;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);font-weight:800;">Qty</th>
+            <th style="padding:8px 12px;text-align:right;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);font-weight:800;">Unit Price</th>
+            <th style="padding:8px 12px;text-align:right;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);font-weight:800;">Total</th>
+          </tr>
+        </thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+    </div>
+
+    <div style="background:var(--gray-50);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--gray-500);font-weight:600;">
+        <span>Subtotal</span><span style="font-weight:700;color:var(--black);">${formatCurrency(order.subtotal||0)}</span>
+      </div>
+      ${(order.discount||0) > 0 ? `
+      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--gray-500);font-weight:600;">
+        <span>Discount</span><span style="font-weight:700;color:#dc2626;">-${formatCurrency(order.discount||0)}</span>
+      </div>` : ''}
+      <div style="display:flex;justify-content:space-between;padding:8px 0 4px;font-size:17px;font-weight:900;border-top:1.5px solid var(--gray-200);margin-top:6px;">
+        <span>Grand Total</span>
+        <span style="font-variant-numeric:tabular-nums;">${formatCurrency(order.grandTotal||0)}</span>
+      </div>
+    </div>
+
+    <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">Status Timeline</div>
+    <div style="margin-bottom:20px;">${statusRows}</div>
+
+    ${order.notes ? `
+    <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">Notes</div>
+    <div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:var(--radius-md);
+      padding:12px 14px;font-size:13px;font-weight:500;line-height:1.6;white-space:pre-wrap;">
+      ${escapeHtml(order.notes)}</div>` : ''}
+  `;
+
+  openModal('supplyOrderViewModal');
+}
