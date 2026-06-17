@@ -83,135 +83,8 @@
       font-size: 9px; font-weight: 800; letter-spacing: 1px;
       text-transform: uppercase; border: 1px solid #e5e7eb;
     }
-    /* Supply line row */
-    .supply-line-row {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 8px; padding: 10px 12px;
-      border: 1px solid var(--gray-100); border-radius: var(--radius-md);
-      background: var(--gray-50);
-    }
-    .supply-line-row input {
-      padding: 7px 10px; border: 1px solid var(--gray-200);
-      border-radius: var(--radius-md); font-family: var(--font-main);
-      font-size: 12px; background: var(--white);
-    }
-    /* Supplier mode toggle */
-    .settings-toggle-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 16px; border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius-lg); margin-bottom: 12px;
-    }
-    .settings-toggle-label { font-size: 13px; font-weight: 700; }
-    .settings-toggle-sub   { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
-    .toggle-switch {
-      position: relative; width: 44px; height: 24px;
-      cursor: pointer; flex-shrink: 0;
-    }
-    .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-track {
-      position: absolute; inset: 0; background: var(--gray-200);
-      border-radius: 12px; transition: background .2s ease;
-    }
-    .toggle-switch input:checked + .toggle-track { background: var(--black); }
-    .toggle-knob {
-      position: absolute; top: 3px; left: 3px;
-      width: 18px; height: 18px; background: white;
-      border-radius: 50%; transition: transform .2s ease;
-      box-shadow: 0 1px 3px rgba(0,0,0,.2);
-    }
-    .toggle-switch input:checked ~ .toggle-knob { transform: translateX(20px); }
-    /* Supplier order button */
-    .supplier-order-btn {
-      width: 100%; padding: 12px 16px;
-      background: var(--white); color: var(--black);
-      border: 1.5px solid var(--gray-300);
-      cursor: pointer; font-size: 10px; letter-spacing: 2px;
-      text-transform: uppercase; font-weight: 900;
-      border-radius: var(--radius-md); font-family: var(--font-main);
-      transition: all 0.15s ease;
-    }
-    .supplier-order-btn:hover {
-      border-color: var(--black); background: var(--gray-50);
-    }
-    .pin-dots { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
-    .pin-dot {
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid var(--gray-300); background: transparent;
-      transition: all 0.1s ease;
-    }
-    .pin-dot.filled { background: var(--black); border-color: var(--black); }
-    .void-summary {
-      background: var(--gray-50); border: 1px solid var(--gray-200);
-      border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 16px;
-    }
-    .void-summary-row {
-      display: flex; justify-content: space-between;
-      font-size: 12px; padding: 3px 0;
-    }
-    .void-summary-row span:first-child { color: var(--gray-500); }
-    .void-summary-row span:last-child { font-weight: 700; }
-    .void-warning {
-      background: #fef2f2; border: 1px solid #fecaca;
-      border-radius: var(--radius-md); padding: 10px 14px;
-      font-size: 11px; color: #dc2626; font-weight: 700;
-      margin-bottom: 16px; text-align: center; letter-spacing: 0.5px;
-    }
   </style>
   <style>
-    /* Cost preview card */
-    .cost-preview-card {
-      margin-top:12px; border:1.5px solid var(--gray-200);
-      border-radius:var(--radius-lg); padding:16px 18px;
-      background:var(--gray-50);
-    }
-    .cost-preview-empty {
-      font-size:11px; color:var(--gray-400);
-      text-align:center; padding:6px 0; letter-spacing:.5px;
-    }
-    .cost-preview-grid {
-      display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
-    }
-    .cost-preview-item { text-align:center; }
-    .cost-preview-label {
-      font-size:9px; letter-spacing:2px; text-transform:uppercase;
-      font-weight:800; color:var(--gray-400); margin-bottom:6px;
-    }
-    .cost-preview-value {
-      font-size:16px; font-weight:900; color:var(--black);
-      font-variant-numeric:tabular-nums; line-height:1;
-    }
-    @media(max-width:480px){ .cost-preview-grid{grid-template-columns:repeat(2,1fr);} }
-
-    /* Template chips */
-    .template-chip {
-      padding:6px 14px; border:1.5px solid var(--gray-200);
-      background:var(--white); border-radius:var(--radius-full);
-      font-size:11px; font-weight:700; cursor:pointer;
-      transition:all .15s ease; font-family:var(--font-main);
-    }
-    .template-chip:hover {
-      background:var(--black); color:var(--white); border-color:var(--black);
-    }
-
-    /* Status badges */
-    .badge-ok, .badge-completed {
-      display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
-      border-radius:999px;background:#f0fdf4;color:#15803d;
-      font-size:9px;font-weight:800;letter-spacing:1px;
-      text-transform:uppercase;border:1px solid #bbf7d0;
-    }
-    .badge-pending {
-      display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
-      border-radius:999px;background:#fff7ed;color:#c2410c;
-      font-size:9px;font-weight:800;letter-spacing:1px;
-      text-transform:uppercase;border:1px solid #fed7aa;
-    }
-    .badge-refunded {
-      display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
-      border-radius:999px;background:#f3f4f6;color:#6b7280;
-      font-size:9px;font-weight:800;letter-spacing:1px;
-      text-transform:uppercase;border:1px solid #e5e7eb;
-    }
     .badge-voided {
       display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
       border-radius:999px;background:#f3f4f6;color:#6b7280;
@@ -231,10 +104,10 @@
     /* See More */
     .see-more-container {
       display:flex; align-items:center; justify-content:center;
-      gap:10px; padding:10px 0; border-top:1px solid var(--gray-100);
+      gap:10px; padding:10px 0; border-top:1px solid var(--border);
     }
     .see-more-btn {
-      padding:6px 16px; border:1.5px solid var(--gray-200);
+      padding:6px 16px; border:1.5px solid var(--border);
       background:var(--white); border-radius:var(--radius-full);
       font-size:10px; font-weight:800; letter-spacing:1px;
       text-transform:uppercase; cursor:pointer;
@@ -252,12 +125,12 @@
     .packaging-row {
       display:flex; align-items:center; gap:8px;
       margin-bottom:8px; padding:8px 12px;
-      border:1px solid var(--gray-100); border-radius:var(--radius-md);
+      border:1px solid var(--border); border-radius:var(--radius-md);
       background:var(--gray-50);
     }
     /* Status picker buttons */
     .status-picker-btn {
-      padding:10px 12px; border:1.5px solid var(--gray-200);
+      padding:10px 12px; border:1.5px solid var(--border);
       background:var(--white); border-radius:var(--radius-lg);
       font-size:11px; font-weight:700; cursor:pointer;
       transition:all .15s ease; font-family:var(--font-main);
@@ -590,7 +463,7 @@
             </button>
           </div>
           <div id="integrityReportContainer"
-            style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+            style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
               padding:16px 18px;background:var(--gray-50);">
             <div class="cost-preview-empty">
               Click "Run Check" to verify all transactions are untampered
@@ -606,13 +479,13 @@
             </button>
           </div>
           <div id="inventoryMovementContainer"
-            style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+            style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
               padding:14px 18px;background:var(--gray-50);"></div>
           <div id="inventoryMovementSeeMore" class="see-more-container"></div>
 
           <div class="section-title" style="margin-top:32px;">Daily Discrepancy Report</div>
           <div id="discrepancyContainer"
-            style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+            style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
               padding:14px 18px;background:var(--gray-50);"></div>
         </div>
       </section>
@@ -801,14 +674,14 @@
           </div>
 
           <!-- Receipt URL + Void PIN — compact buttons that open popups -->
-          <div style="display:flex;gap:10px;margin-bottom:var(--space-4);flex-wrap:wrap;">
+          <div class="form-row">
             <button class="btn btn-secondary" type="button" id="openReceiptUrlBtn"
-              style="flex:1;min-width:200px;justify-content:space-between;">
+              style="width:100%;justify-content:space-between;padding:10px 14px;">
               <span>Digital Receipt URL</span>
               <span id="receiptUrlStatusBadge" style="font-size:11px;color:var(--gray-400);font-weight:600;">Not set</span>
             </button>
             <button class="btn btn-secondary" type="button" id="openVoidPinBtn"
-              style="flex:1;min-width:200px;justify-content:space-between;">
+              style="width:100%;justify-content:space-between;padding:10px 14px;">
               <span>Void / Refund PIN</span>
               <span style="font-size:11px;color:var(--gray-400);font-weight:600;">●●●●●●</span>
             </button>
@@ -823,10 +696,10 @@
           <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
             <input id="newCategoryInput" placeholder="New category name" type="text"
               style="flex:1;min-width:160px;padding:10px 14px;font-size:14px;
-                border:1.5px solid var(--gray-200);border-radius:var(--radius-md);
+                border:1.5px solid var(--border);border-radius:var(--radius-md);
                 font-family:var(--font-main);" />
             <select id="newCategoryMode"
-              style="padding:10px 14px;border:1.5px solid var(--gray-200);
+              style="padding:10px 14px;border:1.5px solid var(--border);
                 border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);
                 min-width:160px;">
               <option value="direct">Direct</option>
@@ -942,7 +815,7 @@
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
             <select id="prodStatusFilter" onchange="renderProductionBoard();"
-              style="padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);">
+              style="padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);">
               <option value="">All Statuses</option>
               <option value="PLANNED">Planned</option>
               <option value="IN_PROGRESS">In Progress</option>
@@ -985,19 +858,19 @@
           </div>
           <!-- Lead KPIs -->
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
-            <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
+            <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
               <div style="font-size:22px;font-weight:900;" id="leadKpiTotal">0</div>
               <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Total Leads</div>
             </div>
-            <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
+            <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
               <div style="font-size:22px;font-weight:900;" id="leadKpiBooked">0</div>
               <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Booked</div>
             </div>
-            <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
+            <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
               <div style="font-size:22px;font-weight:900;" id="leadKpiConv">0%</div>
               <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Conv. Rate</div>
             </div>
-            <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
+            <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
               <div style="font-size:22px;font-weight:900;" id="leadKpiPipeline">₱0</div>
               <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Pipeline</div>
             </div>
@@ -1007,7 +880,7 @@
           <div style="overflow-x:auto;margin-bottom:24px;">
             <table id="eventsTable" style="width:100%;border-collapse:collapse;font-size:13px;">
               <thead>
-                <tr style="border-bottom:2px solid var(--gray-200);">
+                <tr style="border-bottom:2px solid var(--border);">
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Event</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Date</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Location</th>
@@ -1026,7 +899,7 @@
           <div style="overflow-x:auto;margin-bottom:24px;">
             <table id="packagesTable" style="width:100%;border-collapse:collapse;font-size:13px;">
               <thead>
-                <tr style="border-bottom:2px solid var(--gray-200);">
+                <tr style="border-bottom:2px solid var(--border);">
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Package</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Price</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Pax</th>
@@ -1043,7 +916,7 @@
           </div>
           <div style="margin-bottom:10px;">
             <select id="leadStatusFilter" onchange="renderLeadsTable();"
-              style="padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);">
+              style="padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);">
               <option value="">All Statuses</option>
               <option value="INQUIRY">Inquiry</option>
               <option value="QUOTED">Quoted</option>
@@ -1055,7 +928,7 @@
           <div style="overflow-x:auto;">
             <table id="leadsTable" style="width:100%;border-collapse:collapse;font-size:13px;">
               <thead>
-                <tr style="border-bottom:2px solid var(--gray-200);">
+                <tr style="border-bottom:2px solid var(--border);">
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Client</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Event Date</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Package</th>
@@ -1094,7 +967,7 @@
           <div id="labMainContent" style="display:none;">
             <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
               <input id="labDraftName" type="text" placeholder="Draft name…"
-                style="flex:1;min-width:180px;padding:10px 14px;font-size:14px;font-weight:700;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);font-family:var(--font-main);" />
+                style="flex:1;min-width:180px;padding:10px 14px;font-size:14px;font-weight:700;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font-main);" />
               <button class="btn btn-secondary" type="button" onclick="saveLabDraft();">Save Draft</button>
               <button class="btn btn-secondary" type="button" onclick="clearLabSession();renderLabView();">Clear</button>
             </div>
@@ -1102,7 +975,7 @@
             <div class="section-title">Recipe Builder</div>
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
               <select id="labCategorySelect" onchange="applyLabPreset(this.value);"
-                style="padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);">
+                style="padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);">
                 <option value="">Select category preset…</option>
               </select>
               <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;cursor:pointer;">
@@ -1111,7 +984,7 @@
               <div style="display:flex;align-items:center;gap:6px;font-size:13px;">
                 Batch size:
                 <input id="labBatchSize" type="number" min="1" value="1" onchange="_refreshLabCalcs();"
-                  style="width:70px;padding:6px 10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
+                  style="width:70px;padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
                 units
               </div>
             </div>
@@ -1167,7 +1040,7 @@
             <div id="labChartSelector" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>
             <div id="labChartsOutput"></div>
             <!-- Convert -->
-            <div style="margin-top:28px;padding-top:20px;border-top:2px solid var(--gray-100);">
+            <div style="margin-top:28px;padding-top:20px;border-top:2px solid var(--border);">
               <button class="btn" type="button" style="width:100%;" onclick="openLabConvertModal();">Convert to Product ↗</button>
             </div>
           </div>
@@ -1438,11 +1311,11 @@
           <div class="payment-badge">QR PAYMENT</div>
           <div id="paymentQRImageWrap" style="display:flex;justify-content:center;">
             <img id="paymentQRImage" src=""
-              style="width:220px;border:1px solid var(--gray-200);padding:10px;
+              style="width:220px;border:1px solid var(--border);padding:10px;
                 background:#fff;border-radius:12px;object-fit:contain;
                 display:none;margin:0 auto;" />
             <div id="paymentQRFallback"
-              style="width:220px;height:220px;border:1px solid var(--gray-200);
+              style="width:220px;height:220px;border:1px solid var(--border);
                 border-radius:12px;background:#f9f9f9;display:flex;align-items:center;
                 justify-content:center;font-size:12px;color:var(--gray-400);
                 text-align:center;padding:16px;">
@@ -1526,10 +1399,10 @@
             font-weight:800;color:var(--gray-400);white-space:nowrap;">Discount</span>
           <input id="supplyDiscountValue" type="number" min="0" step="0.01"
             placeholder="0"
-            style="width:90px;padding:7px 10px;border:1px solid var(--gray-200);
+            style="width:90px;padding:7px 10px;border:1px solid var(--border);
               border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />
           <select id="supplyDiscountType"
-            style="width:80px;padding:7px 10px;border:1px solid var(--gray-200);
+            style="width:80px;padding:7px 10px;border:1px solid var(--border);
               border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;">
             <option value="percent">%</option>
             <option value="amount">₱ Amt</option>
@@ -1611,7 +1484,7 @@
             font-weight:800;color:var(--gray-400);margin-bottom:10px;">Order Summary</div>
           <div id="supplierOrderCartSummary"></div>
           <div style="display:flex;justify-content:space-between;align-items:center;
-            padding-top:10px;margin-top:8px;border-top:1px solid var(--gray-200);">
+            padding-top:10px;margin-top:8px;border-top:1px solid var(--border);">
             <span style="font-size:10px;font-weight:800;letter-spacing:1px;
               text-transform:uppercase;color:var(--gray-500);">Total</span>
             <span id="supplierOrderCartTotal"
@@ -1671,7 +1544,7 @@
             <span>Date</span><span id="refundSaleDate">—</span>
           </div>
           <div class="void-summary-row" style="font-size:16px;padding-top:8px;margin-top:4px;
-            border-top:1px solid var(--gray-200);">
+            border-top:1px solid var(--border);">
             <span style="font-weight:800;">Total Refund</span>
             <span id="refundSaleTotal" style="font-weight:900;">—</span>
           </div>
@@ -1718,7 +1591,7 @@
     <div class="modal-overlay" id="statusPickerModal">
       <div class="modal" style="max-width:400px;">
         <h3>Set Order Status</h3>
-        <div style="background:var(--gray-50);border:1px solid var(--gray-200);
+        <div style="background:var(--gray-50);border:1px solid var(--border);
           border-radius:var(--radius-md);padding:12px 14px;margin-bottom:16px;">
           <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px;">
             <span id="statusPickerInvoice" style="font-family:var(--font-mono);font-weight:700;"></span>
@@ -1921,7 +1794,7 @@
         <h3>Update Product Status</h3>
         <input type="hidden" id="prodLineStatusJobId" />
         <input type="hidden" id="prodLineStatusLineId" />
-        <div id="prodLineStatusInfo" style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:12px;margin-bottom:16px;font-size:13px;"></div>
+        <div id="prodLineStatusInfo" style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;margin-bottom:16px;font-size:13px;"></div>
         <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:10px;">Select Status</div>
         <div id="prodLineStatusOptions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;"></div>
         <div class="modal-actions">
@@ -1936,7 +1809,7 @@
         <h3>Batch Tracking</h3>
         <input type="hidden" id="batchJobId" />
         <input type="hidden" id="batchLineId" />
-        <div id="batchJobInfo" style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:12px;margin-bottom:16px;font-size:13px;"></div>
+        <div id="batchJobInfo" style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;margin-bottom:16px;font-size:13px;"></div>
         <div class="form-group">
           <label>Actual Yield (units)</label>
           <input id="batchActualYield" type="number" min="0" />
@@ -2123,7 +1996,7 @@
         <h3>Add from Ingredient Catalog</h3>
         <input id="labIngPickerSearch" type="text" placeholder="Search ingredients…"
           oninput="_renderLabIngPickerList();"
-          style="width:100%;padding:10px 14px;border:1.5px solid var(--gray-200);
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--border);
             border-radius:var(--radius-md);font-size:14px;font-family:var(--font-main);
             margin-bottom:12px;box-sizing:border-box;" />
         <div id="labIngPickerList" style="max-height:320px;overflow-y:auto;"></div>
