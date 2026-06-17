@@ -48,6 +48,7 @@ function renderEverything() {
     'renderClientsList',
     'renderPaymentMethodsList',
     'renderCheckoutPaymentOptions',
+    'renderStorageUsage',
     'applySupplierModeToggle',
     'applyCoffeeCartModeToggle',
     'applyEventPickerButton',

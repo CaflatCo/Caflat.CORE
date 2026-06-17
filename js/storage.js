@@ -44,6 +44,7 @@ function persistState() {
       productionJobs:      APP_STATE.productionJobs,
       laborPeople:         APP_STATE.laborPeople
     }));
+    if (typeof _checkStorageWarning === 'function') _checkStorageWarning();
   } catch (error) {
     console.error('Failed to persist state', error);
   }
@@ -279,3 +280,71 @@ window.exportAllData        = exportAllData;
 window.importAllData        = importAllData;
 window.resetBusinessData    = resetBusinessData;
 window.fullFactoryReset     = fullFactoryReset;
+
+/* ─────────────────────────────────────────────
+   STORAGE USAGE INDICATOR
+   localStorage has no real quota API across browsers,
+   so we use the universal safe baseline of 5MB that
+   Safari, Chrome, Firefox, and Edge all guarantee at minimum.
+───────────────────────────────────────────── */
+
+const STORAGE_QUOTA_BYTES = 5 * 1024 * 1024; // 5MB baseline
+let _lastStorageWarningPct = 0;
+
+function getStorageUsageBytes() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? new Blob([raw]).size : 0;
+  } catch (error) {
+    return 0;
+  }
+}
+
+function getStorageUsagePercent() {
+  return Math.min(100, Math.round((getStorageUsageBytes() / STORAGE_QUOTA_BYTES) * 100));
+}
+
+function renderStorageUsage() {
+  const bar   = document.getElementById('storageUsageBar');
+  const label = document.getElementById('storageUsageLabel');
+  const note  = document.getElementById('storageUsageNote');
+  if (!bar || !label) return;
+
+  const pct   = getStorageUsagePercent();
+  const bytes = getStorageUsageBytes();
+  const mb    = (bytes / (1024 * 1024)).toFixed(2);
+
+  bar.style.width = `${pct}%`;
+  label.textContent = `${pct}%`;
+
+  if (pct >= 95) {
+    bar.style.background = 'var(--danger)';
+    label.style.color = 'var(--danger)';
+  } else if (pct >= 80) {
+    bar.style.background = 'var(--warning)';
+    label.style.color = 'var(--warning)';
+  } else {
+    bar.style.background = 'var(--success)';
+    label.style.color = 'var(--black)';
+  }
+
+  if (note) {
+    note.textContent = pct >= 80
+      ? `${mb} MB used — consider archiving older sales data soon.`
+      : `${mb} MB used of ~5 MB available.`;
+  }
+}
+
+function _checkStorageWarning() {
+  const pct = getStorageUsagePercent();
+  // Only fire once per threshold crossing per session, not on every save
+  if (pct >= 80 && _lastStorageWarningPct < 80) {
+    showNotification(`Storage is ${pct}% full — consider archiving data soon`, 'error');
+  }
+  _lastStorageWarningPct = pct;
+  renderStorageUsage();
+}
+
+window.getStorageUsageBytes   = getStorageUsageBytes;
+window.getStorageUsagePercent = getStorageUsagePercent;
+window.renderStorageUsage     = renderStorageUsage;

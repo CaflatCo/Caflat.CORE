@@ -452,19 +452,17 @@ function setProductLineStatus(jobId, lineId, newStatus) {
   line.statusHistory = [...(line.statusHistory||[]),
     {status:newStatus, changedAt:new Date().toISOString()}];
 
-  // At DONE: deduct ingredients (direct mode) OR credit finished goods (FG mode)
+  // At DONE: deduct ingredients always. For RETAIL jobs producing
+  // finished_goods-category products, mark ready for manual transfer
+  // to POS instead of auto-crediting — gives explicit control over
+  // when stock actually becomes sellable.
   if (newStatus==='DONE' && !line.ingredientsDeducted) {
     const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
     const isFG = typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(product);
-    if (isFG) {
-      // Credit finished goods stock, deduct ingredients
-      const unitsProduced = line.actualYield ?? line.targetQty;
-      _deductLineIngredients(job, line);
-      if (typeof creditFinishedGoods==='function') {
-        creditFinishedGoods(line.productId, line.productName, unitsProduced, job.name);
-      }
-    } else {
-      _deductLineIngredients(job, line);
+    _deductLineIngredients(job, line);
+    if (isFG && job.fundingType !== 'CLIENT') {
+      line.readyForTransfer = true;
+      line.transferredToPos = false;
     }
     line.ingredientsDeducted = true;
   }
@@ -473,6 +471,14 @@ function setProductLineStatus(jobId, lineId, newStatus) {
       _restoreLineIngredients(job, line);
       line.ingredientsDeducted = false;
     }
+    // If FG stock was already transferred to POS, pull it back out
+    if (line.transferredToPos && typeof _setFGRecord === 'function') {
+      const unitsProduced = line.actualYield ?? line.targetQty;
+      _setFGRecord(line.productId, line.productName, -unitsProduced, 0,
+        `Cancelled: ${job.name}`, 'production-cancel-reversal');
+    }
+    line.readyForTransfer = false;
+    line.transferredToPos = false;
   }
 
   // Auto-update job status
@@ -725,6 +731,25 @@ function renderIngredientForecast() {
    PRODUCTION BOARD RENDER
 ════════════════════════════════════════════════════════ */
 
+function transferLineToPos(jobId, lineId) {
+  const jobs = getProductionJobs();
+  const job  = jobs.find(j=>j.id===jobId);
+  const line = job?.products?.find(p=>p.id===lineId);
+  if (!job||!line) return;
+  if (!line.readyForTransfer || line.transferredToPos) return;
+
+  const unitsProduced = line.actualYield ?? line.targetQty;
+
+  if (typeof creditFinishedGoods === 'function') {
+    creditFinishedGoods(line.productId, line.productName, unitsProduced, job.name);
+  }
+
+  line.transferredToPos = true;
+  updateState('productionJobs', () => jobs);
+  renderProductionBoard();
+  showNotification(`${line.productName} → ${unitsProduced} units transferred to POS`, 'success');
+}
+
 function renderProductionBoard() {
   _renderProductionJobsTable();
   renderIngredientForecast();
@@ -867,6 +892,20 @@ function _renderProductionJobsTable() {
                   min-width:110px;text-align:center;">
                 ${ll} ▾
               </button>
+              <!-- Transfer to POS button — only shown when ready and not yet transferred -->
+              ${line.readyForTransfer && !line.transferredToPos ? `
+              <button type="button"
+                data-action="transfer-line-pos"
+                data-job-id="${job.id}" data-line-id="${line.id}"
+                style="padding:8px 16px;border:1.5px solid #1d4ed8;
+                  border-radius:var(--radius-lg);background:#1d4ed815;
+                  color:#1d4ed8;font-size:11px;font-weight:800;cursor:pointer;
+                  font-family:var(--font-main);white-space:nowrap;">
+                ↑ Transfer to POS
+              </button>` : ''}
+              ${line.transferredToPos ? `
+              <span style="font-size:10px;font-weight:800;color:#1d4ed8;
+                white-space:nowrap;letter-spacing:.5px;">✓ IN POS</span>` : ''}
               <!-- Batch button -->
               <button type="button"
                 data-action="open-batch-tracking"
@@ -1021,6 +1060,7 @@ window.saveProductionJob           = saveProductionJob;
 window.deleteProductionJob         = deleteProductionJob;
 window.openProductLineStatusModal  = openProductLineStatusModal;
 window.setProductLineStatus        = setProductLineStatus;
+window.transferLineToPos           = transferLineToPos;
 window.openBatchTrackingModal      = openBatchTrackingModal;
 window.saveBatchTracking           = saveBatchTracking;
 window.getIngredientForecast       = getIngredientForecast;
