@@ -736,7 +736,7 @@ th {
 }
 
 th:first-child { border-radius: var(--radius-md) 0 0 0; }
-th:last-child { border-radius: 0 var(--radius-md) 0 0; }
+th:last-child { border-radius: 0 var(--radius-md) 0 0; min-width: 280px; }
 
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: var(--gray-50); }
@@ -747,6 +747,7 @@ tbody tr:hover td { background: var(--gray-50); }
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+  min-width: 280px;
 }
 
 .low-stock-row td { background: #fffbfb !important; }
