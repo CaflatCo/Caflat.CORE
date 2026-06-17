@@ -759,7 +759,7 @@ function renderSalesTable() {
           <span style="font-size:10px;color:var(--gray-400);margin-left:4px;">▾</span>
         </div>
         <div style="font-size:10px;color:var(--gray-400);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${summary}</div>
-        <div id="${expandId}" style="display:none;border-top:1px solid var(--gray-100);margin-top:4px;padding-top:4px;">
+        <div id="${expandId}" style="display:none;border-top:1px solid var(--border);margin-top:4px;padding-top:4px;">
           ${itemRowsHTML}${moreHTML}
         </div>
       </td>

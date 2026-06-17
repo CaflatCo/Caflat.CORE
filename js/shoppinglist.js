@@ -193,7 +193,7 @@ function _swRenderList() {
   container.innerHTML = items.map((item, idx) => {
     const hasPackageData = item.pkgCost > 0;
     return `<div style="display:flex;align-items:flex-start;gap:8px;
-      padding:9px 0;border-bottom:1px solid var(--gray-100);
+      padding:9px 0;border-bottom:1px solid var(--border);
       opacity:${item.checked ? '0.4' : '1'};">
       <input type="checkbox" ${item.checked ? 'checked' : ''}
         onchange="_swToggleCheck(${idx}, this.checked)"

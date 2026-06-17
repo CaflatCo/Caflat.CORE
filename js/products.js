@@ -360,7 +360,7 @@ function renderProductCostPreview() {
       </div>
     </div>
     ${(ingredientCost > 0 || packagingCost > 0) ? `
-    <div style="display:flex;gap:16px;padding-top:10px;border-top:1px solid var(--gray-100);">
+    <div style="display:flex;gap:16px;padding-top:10px;border-top:1px solid var(--border);">
       <div style="font-size:11px;color:var(--gray-500);">
         Ingredients: <span style="font-weight:700;">${formatCurrency(ingredientCost)}</span>
       </div>

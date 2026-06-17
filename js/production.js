@@ -750,36 +750,7 @@ function transferLineToPos(jobId, lineId) {
   showNotification(`${line.productName} → ${unitsProduced} units transferred to POS`, 'success');
 }
 
-function _backfillLegacyTransferFlags() {
-  const jobs = getProductionJobs();
-  let changed = false;
-
-  jobs.forEach(job => {
-    (job.products||[]).forEach(line => {
-      // A line that's DONE, already had ingredients deducted, but has
-      // never seen the readyForTransfer/transferredToPos flags at all
-      // (undefined, not false) ran under the old auto-credit code path —
-      // back then, FG stock was credited automatically in the same step.
-      // Mark it as already-transferred so it doesn't sit in limbo and
-      // doesn't get double-credited if re-processed.
-      const isLegacyDone = ['DONE','QC','PACKED'].includes(line.status)
-        && line.ingredientsDeducted === true
-        && line.readyForTransfer === undefined
-        && line.transferredToPos === undefined;
-
-      if (isLegacyDone) {
-        line.readyForTransfer = true;
-        line.transferredToPos = true; // already credited under old behavior
-        changed = true;
-      }
-    });
-  });
-
-  if (changed) updateState('productionJobs', () => jobs);
-}
-
 function renderProductionBoard() {
-  _backfillLegacyTransferFlags();
   _renderProductionJobsTable();
   renderIngredientForecast();
   renderProductionAnalytics();

@@ -47,7 +47,7 @@ function openRefundModal(saleId) {
   if (itemsEl && Array.isArray(sale.items)) {
     itemsEl.innerHTML = sale.items.map(item => `
       <div style="display:flex;justify-content:space-between;align-items:center;
-        padding:5px 0;border-bottom:1px solid var(--gray-100);font-size:12px;">
+        padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;">
         <span>
           <span style="font-weight:700;">${escapeHtml(item.name)}</span>
           <span style="color:var(--gray-400);"> ×${item.quantity}</span>
