@@ -895,9 +895,23 @@
           <button class="btn btn-secondary" type="button" id="addPaymentMethodBtn"
             style="margin-bottom:32px;">+ Add Payment Method</button>
 
+          <!-- Storage Usage -->
+          <div class="section-title">Storage</div>
+          <div style="margin-bottom:24px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <span style="font-size:12px;font-weight:700;color:var(--gray-500);">Local Storage Used</span>
+              <span id="storageUsageLabel" style="font-size:12px;font-weight:800;">0%</span>
+            </div>
+            <div style="height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden;">
+              <div id="storageUsageBar" style="height:100%;width:0%;background:var(--success);
+                border-radius:999px;transition:width .4s ease, background .4s ease;"></div>
+            </div>
+            <div id="storageUsageNote" style="font-size:11px;color:var(--gray-400);margin-top:6px;font-weight:600;"></div>
+          </div>
+
           <!-- Data Management -->
           <div class="section-title">Data Management</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px;">
             <button class="btn btn-secondary" id="loadDemoBtn" type="button">Load Demo Data</button>
             <button class="btn btn-secondary" id="exportDataBtn" type="button">Export Backup</button>
             <button class="btn btn-secondary" id="importDataBtn" type="button">Import Backup</button>
@@ -906,25 +920,10 @@
               style="border:1.5px solid #fca5a5;color:#dc2626;background:#fff;">
               Archive &amp; Reset
             </button>
-          </div>
-
-          <!-- Danger Zone -->
-          <div style="border-top:2px solid var(--gray-100);padding-top:24px;margin-top:8px;margin-bottom:40px;">
-            <div style="font-size:9px;font-weight:800;letter-spacing:2px;
-              text-transform:uppercase;color:#dc2626;margin-bottom:16px;">Danger Zone</div>
-            <div style="display:flex;align-items:center;justify-content:space-between;
-              padding:14px 18px;border:1.5px solid #fecaca;border-radius:var(--radius-lg);">
-              <div>
-                <div style="font-weight:700;font-size:13px;">Factory Reset</div>
-                <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
-                  Wipe everything including settings. Cannot be undone.
-                </div>
-              </div>
-              <button class="btn btn-secondary" id="factoryResetBtn" type="button"
-                style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;">
-                Factory Reset
-              </button>
-            </div>
+            <button class="btn btn-secondary" id="factoryResetBtn" type="button"
+              style="border:1.5px solid #fca5a5;color:#dc2626;background:#fff;">
+              Factory Reset
+            </button>
           </div>
 
         </div>
@@ -939,7 +938,7 @@
           </div>
           <div style="background:var(--surface-2);border-radius:var(--radius-lg);padding:10px 14px;
             margin-bottom:16px;font-size:12px;color:var(--gray-500);font-weight:600;line-height:1.5;">
-            ℹ️ When a retail product line is marked <strong>Done</strong>, finished stock is credited automatically and becomes available for sale in POS — no manual transfer needed.
+            ℹ️ When a retail product line is marked <strong>Done</strong>, ingredients deduct automatically. Finished stock stays held until you tap <strong>↑ Transfer to POS</strong> — giving you control over exactly when it becomes sellable.
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
             <select id="prodStatusFilter" onchange="renderProductionBoard();"
