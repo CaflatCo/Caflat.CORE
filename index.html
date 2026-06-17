@@ -1858,17 +1858,21 @@
         <!-- Product lines -->
         <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:8px;">Products</div>
         <div id="prodJobProductLines" style="margin-bottom:8px;"></div>
-        <select id="prodJobProductPicker" onchange="if(this.value){addProductionLine(this.value);this.value='';}">
-          <option value="">+ Add product to this job…</option>
-        </select>
+        <div class="form-group">
+          <select id="prodJobProductPicker" onchange="if(this.value){addProductionLine(this.value);this.value='';}">
+            <option value="">+ Add product to this job…</option>
+          </select>
+        </div>
         <!-- Labor -->
         <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-top:16px;margin-bottom:8px;">
           Labor — Total: <span id="prodJobLaborTotal">₱0</span>
         </div>
         <div id="prodJobLaborList" style="margin-bottom:8px;"></div>
-        <select id="prodJobLaborSelect" onchange="if(this.value){assignLaborToProdJob(this.value);this.value='';}">
-          <option value="">+ Assign person…</option>
-        </select>
+        <div class="form-group">
+          <select id="prodJobLaborSelect" onchange="if(this.value){assignLaborToProdJob(this.value);this.value='';}">
+            <option value="">+ Assign person…</option>
+          </select>
+        </div>
         <!-- Notes -->
         <div class="form-group" style="margin-top:16px;">
           <label>Notes</label>
