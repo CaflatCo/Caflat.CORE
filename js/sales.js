@@ -324,29 +324,30 @@ function togglePaymentFields() {
   const tenderedWrap  = document.getElementById('tenderedWrap');
   const quickAmounts  = document.getElementById('quickAmounts');
 
-  const isCash    = method === 'cash';
-  const isDigital = ['gcash', 'maya', 'bank', 'qrph'].includes(method);
-  // Show QR section for gcash, maya, and qrph (not bank — bank has no scannable QR)
-  const showQR    = ['gcash', 'maya', 'qrph'].includes(method);
+  const isCash = method === 'cash';
 
-  if (tenderedWrap) tenderedWrap.style.display = isCash   ? 'block' : 'none';
-  if (quickAmounts) quickAmounts.style.display = isCash   ? 'flex'  : 'none';
-  if (referenceWrap) referenceWrap.style.display = isDigital ? 'block' : 'none';
-  if (qrphSection)  qrphSection.style.display  = showQR   ? 'block' : 'none';
+  // Look up the matching custom payment method by its generated value
+  const methods = APP_STATE.settings?.paymentMethods || [];
+  const matched = methods.find(m => m.name.toLowerCase().replace(/\s+/g, '_') === method);
 
-  // Update QR section label and image per method
+  const methodType = matched ? matched.type : (isCash ? 'cash' : null);
+  const isDigital  = !isCash && methodType !== 'cash';
+  const showQR     = methodType === 'qr' && matched?.qrImage;
+
+  if (tenderedWrap)  tenderedWrap.style.display  = isCash    ? 'block' : 'none';
+  if (quickAmounts)  quickAmounts.style.display   = isCash    ? 'flex'  : 'none';
+  if (referenceWrap) referenceWrap.style.display  = isDigital ? 'block' : 'none';
+  if (qrphSection)   qrphSection.style.display    = showQR    ? 'block' : 'none';
+
   if (showQR && qrphSection) {
     const badge = qrphSection.querySelector('.payment-badge');
-    const labels = { gcash: 'GCASH PAYMENT', maya: 'MAYA PAYMENT', qrph: 'QR PAYMENT' };
-    if (badge) badge.textContent = labels[method] || 'QR PAYMENT';
+    if (badge) badge.textContent = (matched?.name || 'QR').toUpperCase() + ' PAYMENT';
 
-    // Load uploaded QR from settings
-    const stored  = APP_STATE.settings?.paymentQRImages?.[method];
-    const img     = document.getElementById('paymentQRImage');
-    const fallback= document.getElementById('paymentQRFallback');
+    const img      = document.getElementById('paymentQRImage');
+    const fallback = document.getElementById('paymentQRFallback');
 
-    if (stored && img) {
-      img.src           = stored;
+    if (matched?.qrImage && img) {
+      img.src           = matched.qrImage;
       img.style.display = 'block';
       if (fallback) fallback.style.display = 'none';
     } else {
@@ -477,9 +478,14 @@ async function completeSale(forceStatus = 'COMPLETED') {
   const isPending = String(forceStatus).toUpperCase() === 'PENDING';
   const paymentStatus = isPending ? 'PENDING' : 'PAID';
 
+  // Determine if this method behaves like cash (no reference number needed)
+  const _methods = APP_STATE.settings?.paymentMethods || [];
+  const _matched = _methods.find(m => m.name.toLowerCase().replace(/\s+/g, '_') === method);
+  const isCashLike = method === 'cash' || _matched?.type === 'cash';
+
   let tendered = 0, change = 0;
 
-  if (!isPending && method === 'cash') {
+  if (!isPending && isCashLike) {
     const tenderedEl = getElementByIds(['checkoutTendered']);
     tendered = parseMoney(tenderedEl?.value);
     if (tendered <= 0) tendered = total;
@@ -489,7 +495,7 @@ async function completeSale(forceStatus = 'COMPLETED') {
     tendered = total;
   }
 
-  if (!isPending && ['bank', 'qrph'].includes(method) && !referenceNumber) {
+  if (!isPending && method !== 'cash' && !isCashLike && !referenceNumber) {
     showNotification('Reference number is required for this payment method', 'error');
     return;
   }
@@ -627,19 +633,22 @@ function _generateReceiptQR(transaction) {
   const container = document.getElementById('receiptQRContainer');
   if (!container) return;
 
-  const brand    = APP_STATE.settings?.brandName || 'Caflat.Co';
-  const receipt  = transaction.receiptNumber || transaction.id || '';
-  const total    = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
-  const date     = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
-                     .toLocaleDateString('en-PH');
-  // Keep QR payload short — just the essential identifiers
-  const text = [brand, receipt, total, date].filter(Boolean).join('\n');
+  const brand      = APP_STATE.settings?.brandName || 'Caflat.Co';
+  const receipt    = transaction.receiptNumber || transaction.id || '';
+  const total      = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
+  const date       = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
+                       .toLocaleDateString('en-PH');
+  const baseUrl    = String(APP_STATE.settings?.receiptBaseUrl || '').trim();
+
+  // If a URL is configured, encode that — otherwise encode plain text summary
+  const text = baseUrl
+    ? `${baseUrl}?r=${encodeURIComponent(receipt)}`
+    : [brand, receipt, total, date].filter(Boolean).join('\n');
 
   const qrDiv = document.getElementById('receiptQRDiv');
   if (!qrDiv) return;
   qrDiv.innerHTML = '';
 
-  // Use CaflatQR — pure SVG, no canvas, no xlink:href, works on iOS Safari
   if (typeof CaflatQR !== 'undefined' && CaflatQR.generateSVG) {
     try {
       qrDiv.innerHTML = CaflatQR.generateSVG(text, { size: 160, ecLevel: 'M' });
@@ -649,7 +658,6 @@ function _generateReceiptQR(transaction) {
     }
   }
 
-  // Fallback plain text
   qrDiv.innerHTML = `<pre style="font-size:8px;text-align:left;background:#f4f4f4;
     padding:8px;border-radius:4px;white-space:pre-wrap;word-break:break-all;">
     ${escapeHtml(text)}</pre>`;

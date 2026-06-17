@@ -78,8 +78,13 @@ function bindPrimaryButtons() {
     ['exportDataBtn',     () => exportAllData()],
     ['exportDataBtnProducts', () => exportAllData()],
     ['addPaymentMethodBtn', () => openPaymentMethodModal(null)],
-    ['archiveLocalBtn',   () => archiveAndResetLocal()],
-    ['archiveEmailBtn',   () => archiveAndResetEmail()],
+    ['archiveLocalBtn',   () => { closeModal('archiveResetChoiceModal'); archiveAndResetLocal(); }],
+    ['archiveEmailBtn',   () => { closeModal('archiveResetChoiceModal'); archiveAndResetEmail(); }],
+    ['archiveResetBtn',   () => openModal('archiveResetChoiceModal')],
+    ['openReceiptUrlBtn', () => openReceiptUrlPopup()],
+    ['saveReceiptUrlBtn', () => saveReceiptUrlFromPopup()],
+    ['openVoidPinBtn',    () => openVoidPinPopup()],
+    ['saveVoidPinBtn',    () => saveVoidPinFromPopup()],
   ];
 
   bindings.forEach(([id, handler]) => {

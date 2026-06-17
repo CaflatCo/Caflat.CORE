@@ -1219,14 +1219,15 @@ function openSupplyOrderView(orderId) {
 
   const itemRows = items.map(item => `
     <tr>
-      <td style="padding:8px 12px;font-size:13px;font-weight:700;border-bottom:1px solid var(--gray-100);">
+      <td style="padding:8px 10px;font-size:13px;font-weight:700;border-bottom:1px solid var(--gray-100);
+        max-width:180px;word-break:break-word;">
         ${escapeHtml(item.productName||item.description||'—')}</td>
-      <td style="padding:8px 12px;font-size:13px;text-align:right;border-bottom:1px solid var(--gray-100);
-        font-variant-numeric:tabular-nums;">${item.qty}</td>
-      <td style="padding:8px 12px;font-size:13px;text-align:right;border-bottom:1px solid var(--gray-100);
-        font-variant-numeric:tabular-nums;">${formatCurrency(item.unitPrice||0)}</td>
-      <td style="padding:8px 12px;font-size:13px;font-weight:800;text-align:right;
-        border-bottom:1px solid var(--gray-100);font-variant-numeric:tabular-nums;">
+      <td style="padding:8px 10px;font-size:13px;text-align:right;border-bottom:1px solid var(--gray-100);
+        font-variant-numeric:tabular-nums;white-space:nowrap;">${item.qty}</td>
+      <td style="padding:8px 10px;font-size:13px;text-align:right;border-bottom:1px solid var(--gray-100);
+        font-variant-numeric:tabular-nums;white-space:nowrap;">${formatCurrency(item.unitPrice||0)}</td>
+      <td style="padding:8px 10px;font-size:13px;font-weight:800;text-align:right;
+        border-bottom:1px solid var(--gray-100);font-variant-numeric:tabular-nums;white-space:nowrap;">
         ${formatCurrency(item.total||0)}</td>
     </tr>`).join('');
 
@@ -1254,14 +1255,14 @@ function openSupplyOrderView(orderId) {
     </div>
 
     <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">Order Items</div>
-    <div style="border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:20px;">
-      <table style="width:100%;border-collapse:collapse;">
+    <div style="border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow-x:auto;overflow-y:hidden;margin-bottom:20px;">
+      <table style="width:100%;border-collapse:collapse;min-width:420px;">
         <thead>
           <tr style="background:var(--gray-50);">
-            <th style="padding:8px 12px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);font-weight:800;">Product</th>
-            <th style="padding:8px 12px;text-align:right;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);font-weight:800;">Qty</th>
-            <th style="padding:8px 12px;text-align:right;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);font-weight:800;">Unit Price</th>
-            <th style="padding:8px 12px;text-align:right;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);font-weight:800;">Total</th>
+            <th style="padding:8px 10px;text-align:left;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--gray-400);font-weight:800;">Product</th>
+            <th style="padding:8px 10px;text-align:right;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--gray-400);font-weight:800;white-space:nowrap;">Qty</th>
+            <th style="padding:8px 10px;text-align:right;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--gray-400);font-weight:800;white-space:nowrap;">Price</th>
+            <th style="padding:8px 10px;text-align:right;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--gray-400);font-weight:800;white-space:nowrap;">Total</th>
           </tr>
         </thead>
         <tbody>${itemRows}</tbody>

@@ -66,6 +66,7 @@ function restorePersistedState() {
     coffeeCartModeEnabled: false,
     productionModeEnabled: false,
     productLabModeEnabled: false,
+    recipeCatalogEnabled: false,
     paymentMethods: [],
     paymentQRImages: {},
     receiptBaseUrl: ""
@@ -173,6 +174,7 @@ function importAllData(file) {
         coffeeCartModeEnabled: false,
         productionModeEnabled: false,
         productLabModeEnabled: false,
+    recipeCatalogEnabled: false,
         paymentMethods: [],
         paymentQRImages: {},
     receiptBaseUrl: ""
@@ -260,6 +262,7 @@ function fullFactoryReset() {
     coffeeCartModeEnabled: false,
     productionModeEnabled: false,
     productLabModeEnabled: false,
+    recipeCatalogEnabled: false,
     paymentMethods: [],
     paymentQRImages: {},
     receiptBaseUrl: ""

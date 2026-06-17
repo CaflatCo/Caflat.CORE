@@ -199,6 +199,7 @@ function saveSettings() {
   const productionModeEnabled  = document.getElementById('settingsProductionMode')?.checked  === true;
   const coffeeCartModeEnabled  = document.getElementById('settingsCoffeeCartMode')?.checked  === true;
   const productLabModeEnabled  = document.getElementById('settingsProductLabMode')?.checked  === true;
+  const recipeCatalogEnabled   = document.getElementById('settingsRecipeCatalogMode')?.checked === true;
 
   updateState('settings', current => ({
     ...current,
@@ -210,6 +211,7 @@ function saveSettings() {
     productionModeEnabled,
     coffeeCartModeEnabled,
     productLabModeEnabled,
+    recipeCatalogEnabled,
     ...(voidPin ? { voidPin } : {})
   }));
 
@@ -220,6 +222,7 @@ function saveSettings() {
   if (typeof applyProductionModeToggle  === 'function') applyProductionModeToggle();
   if (typeof applyCoffeeCartModeToggle  === 'function') applyCoffeeCartModeToggle();
   applyProductLabModeToggle();
+  if (typeof applyRecipeCatalogToggle   === 'function') applyRecipeCatalogToggle();
   showNotification('Settings saved', 'success');
 }
 
@@ -254,9 +257,13 @@ function renderBranding() {
   const productLabToggle = document.getElementById('settingsProductLabMode');
   if (productLabToggle) productLabToggle.checked = APP_STATE.settings?.productLabModeEnabled === true;
 
+  const recipeCatalogToggle = document.getElementById('settingsRecipeCatalogMode');
+  if (recipeCatalogToggle) recipeCatalogToggle.checked = APP_STATE.settings?.recipeCatalogEnabled === true;
+
   _renderPaymentQRBoxes();
   renderPaymentMethodsList();
   renderCheckoutPaymentOptions();
+  if (typeof _updateReceiptUrlBadge === 'function') _updateReceiptUrlBadge();
 }
 
 function renderCheckoutPaymentOptions() {
@@ -698,3 +705,71 @@ window.deletePaymentMethod      = deletePaymentMethod;
 window.previewPmQr              = previewPmQr;
 window.clearPmQr                = clearPmQr;
 
+
+/* ─────────────────────────────────────────────
+   RECEIPT URL + VOID PIN — popup pattern
+   These mirror values into the hidden #settingsReceiptUrl
+   and #settingsVoidPin inputs that saveSettings() reads,
+   so saveSettings() itself never needs to change.
+───────────────────────────────────────────── */
+
+function _updateReceiptUrlBadge() {
+  const badge = document.getElementById('receiptUrlStatusBadge');
+  const url   = APP_STATE.settings?.receiptBaseUrl || '';
+  if (badge) badge.textContent = url ? 'Set' : 'Not set';
+}
+
+function openReceiptUrlPopup() {
+  const current = APP_STATE.settings?.receiptBaseUrl || '';
+  setElementValue('receiptUrlInput', current);
+  _updateReceiptUrlPreviewPopup();
+  if (typeof openModal === 'function') openModal('receiptUrlModal');
+}
+
+function _updateReceiptUrlPreviewPopup() {
+  const preview = document.getElementById('receiptUrlPreview');
+  if (!preview) return;
+  const url = String(getElementValue('receiptUrlInput') || '').trim();
+  preview.textContent = url ? `${url}?r=0001` : 'https://your-url?r=0001';
+}
+
+function saveReceiptUrlFromPopup() {
+  const url = String(getElementValue('receiptUrlInput') || '').trim();
+  setElementValue('settingsReceiptUrl', url);
+  updateState('settings', current => ({ ...current, receiptBaseUrl: url }));
+  _updateReceiptUrlBadge();
+  if (typeof closeModal === 'function') closeModal('receiptUrlModal');
+  showNotification('Receipt URL saved', 'success');
+}
+
+function openVoidPinPopup() {
+  setElementValue('voidPinInput', '');
+  if (typeof openModal === 'function') openModal('voidPinModal');
+}
+
+function saveVoidPinFromPopup() {
+  const pin = String(getElementValue('voidPinInput') || '').trim();
+  if (!pin) {
+    // No change entered — just close
+    if (typeof closeModal === 'function') closeModal('voidPinModal');
+    return;
+  }
+  if (pin.length !== 6 || !/^\d{6}$/.test(pin)) {
+    showNotification('PIN must be exactly 6 digits', 'error');
+    return;
+  }
+  setElementValue('settingsVoidPin', pin);
+  updateState('settings', current => ({ ...current, voidPin: pin }));
+  if (typeof closeModal === 'function') closeModal('voidPinModal');
+  showNotification('Void PIN updated', 'success');
+}
+
+document.addEventListener('input', e => {
+  if (e.target && e.target.id === 'receiptUrlInput') _updateReceiptUrlPreviewPopup();
+});
+
+window.openReceiptUrlPopup      = openReceiptUrlPopup;
+window.saveReceiptUrlFromPopup  = saveReceiptUrlFromPopup;
+window.openVoidPinPopup         = openVoidPinPopup;
+window.saveVoidPinFromPopup     = saveVoidPinFromPopup;
+window._updateReceiptUrlBadge   = _updateReceiptUrlBadge;

@@ -55,6 +55,7 @@ function renderEverything() {
     'applyProductionModeToggle',
     'renderProductionView',
     'applyProductLabModeToggle',
+    'applyRecipeCatalogToggle',
     'renderLabDraftsList',
     'renderLabPresetsList',
     'applySupplierCartButton',
@@ -90,6 +91,13 @@ function bindGlobalEvents() {
   if (inventorySearch) {
     inventorySearch.addEventListener('input', () => {
       if (typeof renderInventoryTable === 'function') renderInventoryTable();
+    });
+  }
+
+  const receiptUrlInput = document.getElementById('settingsReceiptUrl');
+  if (receiptUrlInput) {
+    receiptUrlInput.addEventListener('input', () => {
+      if (typeof _updateReceiptUrlPreview === 'function') _updateReceiptUrlPreview();
     });
   }
 
