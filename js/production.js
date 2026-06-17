@@ -98,7 +98,7 @@ function renderLaborRoster() {
     const c = p.type==='owner'?'#6b7280':'#16a34a';
     return `
       <div style="display:flex;align-items:center;justify-content:space-between;
-        padding:12px 16px;border:1.5px solid var(--gray-200);
+        padding:12px 16px;border:1.5px solid var(--border);
         border-radius:var(--radius-lg);margin-bottom:8px;background:var(--white);">
         <div style="display:flex;align-items:center;gap:12px;">
           <div style="width:36px;height:36px;border-radius:50%;background:var(--black);
@@ -251,7 +251,7 @@ function _renderJobProductLines() {
   container.innerHTML = products.map((line, idx) => `
     <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;
       gap:8px;align-items:center;padding:10px 12px;
-      border:1px solid var(--gray-100);border-radius:var(--radius-md);
+      border:1px solid var(--border);border-radius:var(--radius-md);
       margin-bottom:6px;background:var(--gray-50);">
       <div style="font-weight:700;font-size:12px;">${escapeHtml(line.productName)}</div>
       <div>
@@ -259,7 +259,7 @@ function _renderJobProductLines() {
           letter-spacing:1px;text-transform:uppercase;">Target Qty</label>
         <input type="number" min="0" value="${line.targetQty||''}"
           placeholder="0"
-          style="width:100%;padding:5px 8px;border:1px solid var(--gray-200);
+          style="width:100%;padding:5px 8px;border:1px solid var(--border);
             border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
           oninput="_editingJob.products[${idx}].targetQty=Number(this.value||0);"/>
       </div>
@@ -268,7 +268,7 @@ function _renderJobProductLines() {
           letter-spacing:1px;text-transform:uppercase;">Batch Size</label>
         <input type="number" min="1" value="${line.batchSize||1}"
           placeholder="1"
-          style="width:100%;padding:5px 8px;border:1px solid var(--gray-200);
+          style="width:100%;padding:5px 8px;border:1px solid var(--border);
             border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
           oninput="_editingJob.products[${idx}].batchSize=Number(this.value||1);"/>
       </div>
@@ -309,7 +309,7 @@ function _renderJobLaborList() {
           <span style="color:var(--gray-400);font-size:11px;">${person?.role||''}</span>
           <input type="number" value="${a.hours||0}" min="0" step="0.5"
             placeholder="hrs"
-            style="width:65px;padding:4px 8px;border:1px solid var(--gray-200);
+            style="width:65px;padding:4px 8px;border:1px solid var(--border);
               border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
             oninput="_editingJob.laborAssignments[${i}].hours=Number(this.value||0);
               _renderJobLaborList();" />
@@ -567,15 +567,15 @@ function _renderWasteLogUI(wasteLog, jobId, lineId) {
     </div>
     <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
       <select id="wasteType"
-        style="flex:1;min-width:140px;padding:6px 10px;border:1px solid var(--gray-200);
+        style="flex:1;min-width:140px;padding:6px 10px;border:1px solid var(--border);
           border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);">
         ${WASTE_TYPES.map(t=>`<option>${t}</option>`).join('')}
       </select>
       <input type="number" id="wasteQty" placeholder="Qty" min="0"
-        style="width:80px;padding:6px 10px;border:1px solid var(--gray-200);
+        style="width:80px;padding:6px 10px;border:1px solid var(--border);
           border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
       <input type="text" id="wasteNote" placeholder="Note (optional)"
-        style="flex:1;padding:6px 10px;border:1px solid var(--gray-200);
+        style="flex:1;padding:6px 10px;border:1px solid var(--border);
           border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
       <button class="btn btn-secondary" type="button"
         onclick="_addWasteEntry('${jobId}','${lineId}');">+ Add</button>
@@ -700,11 +700,11 @@ function renderIngredientForecast() {
           text-transform:uppercase;color:rgba(255,255,255,.7);">${h}</div>`
       ).join('')}
     </div>
-    <div style="border:1.5px solid var(--gray-200);border-top:none;
+    <div style="border:1.5px solid var(--border);border-top:none;
       border-radius:0 0 var(--radius-md) var(--radius-md);">
       ${forecast.map(item=>`
         <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1.5fr;
-          gap:8px;padding:10px 12px;border-bottom:1px solid var(--gray-100);
+          gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);
           font-size:12px;">
           <div style="font-weight:700;">${escapeHtml(item.name)}</div>
           <div>${item.total.toFixed(2)} ${item.unit}</div>
@@ -750,7 +750,36 @@ function transferLineToPos(jobId, lineId) {
   showNotification(`${line.productName} → ${unitsProduced} units transferred to POS`, 'success');
 }
 
+function _backfillLegacyTransferFlags() {
+  const jobs = getProductionJobs();
+  let changed = false;
+
+  jobs.forEach(job => {
+    (job.products||[]).forEach(line => {
+      // A line that's DONE, already had ingredients deducted, but has
+      // never seen the readyForTransfer/transferredToPos flags at all
+      // (undefined, not false) ran under the old auto-credit code path —
+      // back then, FG stock was credited automatically in the same step.
+      // Mark it as already-transferred so it doesn't sit in limbo and
+      // doesn't get double-credited if re-processed.
+      const isLegacyDone = ['DONE','QC','PACKED'].includes(line.status)
+        && line.ingredientsDeducted === true
+        && line.readyForTransfer === undefined
+        && line.transferredToPos === undefined;
+
+      if (isLegacyDone) {
+        line.readyForTransfer = true;
+        line.transferredToPos = true; // already credited under old behavior
+        changed = true;
+      }
+    });
+  });
+
+  if (changed) updateState('productionJobs', () => jobs);
+}
+
 function renderProductionBoard() {
+  _backfillLegacyTransferFlags();
   _renderProductionJobsTable();
   renderIngredientForecast();
   renderProductionAnalytics();
@@ -790,7 +819,7 @@ function _renderProductionJobsTable() {
 
     const card = document.createElement('div');
     card.style.cssText = `
-      border:1.5px solid var(--gray-200);border-radius:16px;
+      border:1.5px solid var(--border);border-radius:16px;
       margin-bottom:16px;overflow:hidden;background:var(--white);
       box-shadow:0 1px 4px rgba(0,0,0,.06);`;
 
@@ -806,7 +835,7 @@ function _renderProductionJobsTable() {
 
     card.innerHTML = `
       <!-- Header -->
-      <div style="padding:16px 20px;border-bottom:1px solid var(--gray-100);
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);
         background:var(--gray-50);">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;
           gap:12px;flex-wrap:wrap;">
@@ -910,7 +939,7 @@ function _renderProductionJobsTable() {
               <button type="button"
                 data-action="open-batch-tracking"
                 data-job-id="${job.id}" data-line-id="${line.id}"
-                style="padding:8px 16px;border:1.5px solid var(--gray-200);
+                style="padding:8px 16px;border:1.5px solid var(--border);
                   border-radius:var(--radius-lg);background:var(--white);
                   color:var(--gray-600);font-size:11px;font-weight:700;
                   cursor:pointer;font-family:var(--font-main);white-space:nowrap;">

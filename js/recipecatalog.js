@@ -48,7 +48,7 @@ function renderRecipeCatalog() {
     const stepCount = (r.steps || []).length;
 
     return `
-      <div style="border:1.5px solid var(--gray-200);border-radius:14px;padding:14px 16px;
+      <div style="border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;
         margin-bottom:10px;background:var(--white);cursor:pointer;"
         onclick="openRecipeDetail('${r.id}')">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
@@ -98,10 +98,10 @@ function openRecipeDetail(recipeId) {
       <div style="margin-bottom:20px;">
         <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
           color:var(--gray-400);margin-bottom:8px;">Ingredients</div>
-        <div style="border:1.5px solid var(--gray-200);border-radius:10px;overflow:hidden;">
+        <div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;">
           ${(recipe.ingredients || []).map((ing, i) => `
             <div style="display:flex;justify-content:space-between;align-items:center;
-              padding:9px 12px;${i > 0 ? 'border-top:1px solid var(--gray-100);' : ''}">
+              padding:9px 12px;${i > 0 ? 'border-top:1px solid var(--border);' : ''}">
               <span style="font-size:12px;font-weight:700;">${escapeHtml(ing.name)}</span>
               <span style="font-size:12px;color:var(--gray-500);">
                 ${escapeHtml(ing.qty || '')} ${escapeHtml(ing.unit || '')}
@@ -118,7 +118,7 @@ function openRecipeDetail(recipeId) {
           color:var(--gray-400);margin-bottom:8px;">Steps</div>
         ${(recipe.steps || []).map((step, i) => `
           <div style="display:flex;gap:12px;padding:10px 0;
-            border-bottom:1px solid var(--gray-100);">
+            border-bottom:1px solid var(--border);">
             <div style="width:22px;height:22px;border-radius:50%;background:var(--black);
               color:white;font-size:10px;font-weight:900;display:flex;align-items:center;
               justify-content:center;flex-shrink:0;margin-top:1px;">${i + 1}</div>
@@ -196,15 +196,15 @@ function _renderRCIngredients() {
     <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;
       margin-bottom:6px;align-items:center;">
       <input type="text" value="${escapeHtml(ing.name || '')}" placeholder="Ingredient"
-        style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-md);
+        style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-md);
           font-size:12px;font-family:var(--font-main);"
         oninput="_rcEditIngredients[${i}].name=this.value;" />
       <input type="text" value="${escapeHtml(ing.qty || '')}" placeholder="Qty"
-        style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-md);
+        style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-md);
           font-size:12px;font-family:var(--font-main);"
         oninput="_rcEditIngredients[${i}].qty=this.value;" />
       <input type="text" value="${escapeHtml(ing.unit || '')}" placeholder="Unit/note"
-        style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:var(--radius-md);
+        style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-md);
           font-size:12px;font-family:var(--font-main);"
         oninput="_rcEditIngredients[${i}].unit=this.value;" />
       <button type="button" style="background:none;border:none;cursor:pointer;
@@ -233,7 +233,7 @@ function _renderRCSteps() {
         font-size:10px;font-weight:900;display:flex;align-items:center;
         justify-content:center;flex-shrink:0;margin-top:5px;">${i + 1}</div>
       <textarea rows="2"
-        style="flex:1;padding:6px 10px;border:1px solid var(--gray-200);
+        style="flex:1;padding:6px 10px;border:1px solid var(--border);
           border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);resize:vertical;"
         oninput="_rcEditSteps[${i}].text=this.value;">${escapeHtml(step.text || step)}</textarea>
       <button type="button" style="background:none;border:none;cursor:pointer;

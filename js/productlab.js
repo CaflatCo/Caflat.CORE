@@ -199,7 +199,7 @@ function renderLabPresetsList() {
   const presets = getLabCategoryPresets();
   container.innerHTML = presets.map(p => `
     <div style="display:flex;align-items:center;justify-content:space-between;
-      padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+      padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-lg);
       margin-bottom:8px;background:var(--white);">
       <div>
         <div style="font-weight:800;font-size:13px;">${escapeHtml(p.category)}</div>
@@ -431,7 +431,7 @@ function _renderLabIngPickerList(query) {
 
   container.innerHTML = ings.map(i => `
     <button type="button"
-      style="padding:12px 14px;border:1.5px solid var(--gray-200);
+      style="padding:12px 14px;border:1.5px solid var(--border);
         border-radius:var(--radius-lg);background:var(--white);cursor:pointer;
         text-align:left;font-family:var(--font-main);transition:all .15s ease;"
       onmouseover="this.style.borderColor='#000'"
@@ -497,12 +497,12 @@ function _renderLabIngredientRows() {
     const row = document.createElement('div');
     row.style.cssText =
       'display:flex;align-items:center;gap:0;margin-bottom:1px;' +
-      'border:1.5px solid var(--gray-200);border-radius:12px;' +
+      'border:1.5px solid var(--border);border-radius:12px;' +
       'background:var(--white);overflow:hidden;';
     row.dataset.idx = idx;
 
     // ── Name column ──
-    const nameCol = '<div style="flex:0 0 180px;padding:12px 14px;border-right:1px solid var(--gray-100);">' +
+    const nameCol = '<div style="flex:0 0 180px;padding:12px 14px;border-right:1px solid var(--border);">' +
       (ing.isTemp ? '<span style="font-size:8px;font-weight:800;letter-spacing:1px;padding:1px 6px;' +
         'border-radius:999px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;margin-right:6px;">TEMP</span>' : '') +
       '<div style="font-size:13px;font-weight:800;">' + escapeHtml(ing.name) + '</div>' +
@@ -511,12 +511,12 @@ function _renderLabIngredientRows() {
 
     // ── Quantity column ──
     const qtyCol =
-      '<div style="flex:0 0 140px;padding:8px 12px;border-right:1px solid var(--gray-100);">' +
+      '<div style="flex:0 0 140px;padding:8px 12px;border-right:1px solid var(--border);">' +
         '<div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;' +
           'color:var(--gray-400);margin-bottom:4px;">Qty <span style="font-weight:400;text-transform:none;">' + qtyLabel + '</span></div>' +
         '<input type="number" value="' + (ing.qty || '') + '" min="0" step="0.01" placeholder="0" ' +
           'id="labQtyInput_' + idx + '" ' +
-          'style="width:100%;padding:5px 8px;border:1.5px solid var(--gray-200);border-radius:8px;' +
+          'style="width:100%;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;' +
             'font-size:14px;font-weight:700;font-family:var(--font-main);" ' +
           'oninput="LAB_SESSION.ingredients[' + idx + '].qty=Number(this.value||0);_labRefreshDebounced();" />' +
       '</div>';
@@ -525,12 +525,12 @@ function _renderLabIngredientRows() {
     const costEditable = ing.isTemp;
     const cpuDisplay   = cpUnit > 0 ? '₱' + cpUnit.toFixed(4) : '—';
     const costCol =
-      '<div style="flex:0 0 130px;padding:8px 12px;border-right:1px solid var(--gray-100);">' +
+      '<div style="flex:0 0 130px;padding:8px 12px;border-right:1px solid var(--border);">' +
         '<div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;' +
           'color:var(--gray-400);margin-bottom:4px;">₱ / unit</div>' +
         (costEditable
           ? '<input type="number" value="' + (cpUnit || '') + '" min="0" step="0.001" placeholder="0.000" ' +
-              'style="width:100%;padding:5px 8px;border:1.5px solid var(--gray-200);border-radius:8px;' +
+              'style="width:100%;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;' +
                 'font-size:13px;font-family:var(--font-main);" ' +
               'oninput="LAB_SESSION.ingredients[' + idx + '].costPerUnit=Number(this.value||0);_labRefreshDebounced();" />'
           : '<div style="font-size:13px;font-weight:700;padding:5px 0;color:var(--gray-600);">' + cpuDisplay + '</div>') +
@@ -539,7 +539,7 @@ function _renderLabIngredientRows() {
     // ── Cost per cookie column (computed) ──
     const perUnitLabel = isBatch ? 'per cookie' : 'line cost';
     const costPerCol =
-      '<div style="flex:1;padding:8px 12px;border-right:1px solid var(--gray-100);">' +
+      '<div style="flex:1;padding:8px 12px;border-right:1px solid var(--border);">' +
         '<div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;' +
           'color:var(--gray-400);margin-bottom:4px;">' + perUnitLabel + '</div>' +
         '<div class="lab-line-cost" style="font-size:16px;font-weight:900;' +
@@ -597,12 +597,12 @@ function _renderLabPackagingRows() {
     row.innerHTML = `
       <input type="text" placeholder="e.g. Cookie Box"
         value="${escapeHtml(pkg.name)}"
-        style="flex:2;padding:7px 10px;border:1px solid var(--gray-200);
+        style="flex:2;padding:7px 10px;border:1px solid var(--border);
           border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
         oninput="LAB_SESSION.packaging[${idx}].name=this.value;" />
       <input type="number" placeholder="Cost ₱"
         value="${pkg.cost}" min="0" step="0.01"
-        style="width:110px;padding:7px 10px;border:1px solid var(--gray-200);
+        style="width:110px;padding:7px 10px;border:1px solid var(--border);
           border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
         oninput="LAB_SESSION.packaging[${idx}].cost=Number(this.value||0);_refreshLabCalcs();" />
       <button type="button" class="btn btn-sm btn-secondary"
@@ -762,7 +762,7 @@ function renderLabSupplyAssessment() {
     return `
       <div style="display:grid;grid-template-columns:2fr 1fr 1fr;
         gap:10px;align-items:center;padding:10px 12px;
-        border-bottom:1px solid var(--gray-100);font-size:12px;">
+        border-bottom:1px solid var(--border);font-size:12px;">
         <div>
           <div style="font-weight:700;">${escapeHtml(ing.name)}</div>
           <div style="font-size:10px;color:var(--gray-400);">
@@ -819,7 +819,7 @@ function renderLabSupplyAssessment() {
         text-transform:uppercase;color:rgba(255,255,255,.7);text-align:right;">
         Qty per Batch</div>
     </div>
-    <div style="border:1.5px solid var(--gray-200);border-top:none;
+    <div style="border:1.5px solid var(--border);border-top:none;
       border-radius:0 0 var(--radius-md) var(--radius-md);">${rows}</div>`;
 }
 
@@ -848,7 +848,7 @@ function renderLabChartSelector() {
   // Chart toggles
   const toggles = LAB_CHARTS.map(chart => `
     <div style="display:flex;align-items:center;justify-content:space-between;
-      padding:8px 12px;border:1px solid var(--gray-200);border-radius:var(--radius-md);
+      padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-md);
       margin-bottom:6px;background:var(--white);">
       <span style="font-size:12px;font-weight:${chart.locked?'800':'600'};">
         ${escapeHtml(chart.label)}
@@ -1375,7 +1375,7 @@ function openLabConvertModal() {
     container.innerHTML = [
       ...scenarios.map((sc, i) => `
         <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;
-          border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+          border:1.5px solid var(--border);border-radius:var(--radius-lg);
           cursor:pointer;margin-bottom:8px;">
           <input type="radio" name="labConvertScenario" value="${i}"
             ${LAB_SESSION.selectedScenario===i?'checked':''}
@@ -1391,7 +1391,7 @@ function openLabConvertModal() {
           </div>
         </label>`),
       `<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;
-          border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+          border:1.5px solid var(--border);border-radius:var(--radius-lg);
           cursor:pointer;margin-bottom:8px;">
           <input type="radio" name="labConvertScenario" value="custom"
             style="width:16px;height:16px;" />
@@ -1399,7 +1399,7 @@ function openLabConvertModal() {
             <span style="font-weight:700;font-size:12px;">Custom price</span>
             <input type="number" id="labConvertCustomPrice" min="0" step="0.01"
               placeholder="₱0.00"
-              style="width:100px;padding:5px 8px;border:1px solid var(--gray-200);
+              style="width:100px;padding:5px 8px;border:1px solid var(--border);
                 border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
           </div>
         </label>`

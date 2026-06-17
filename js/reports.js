@@ -441,7 +441,7 @@ function renderCategoryPerformance(fromDate, toDate) {
   const catCards   = activeCats.map(cat => {
     const chartId = `catChart_${cat.category.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}`;
     return `
-      <div style="border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+      <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
         padding:16px;background:var(--white);">
         <div style="font-weight:800;font-size:13px;margin-bottom:4px;">
           ${escapeHtml(cat.category)}</div>
@@ -454,7 +454,7 @@ function renderCategoryPerformance(fromDate, toDate) {
           Top products:</div>
         ${cat.topItems.map(item => `
           <div style="display:flex;justify-content:space-between;font-size:12px;
-            padding:3px 0;border-bottom:1px solid var(--gray-100);">
+            padding:3px 0;border-bottom:1px solid var(--border);">
             <span style="font-weight:700;">${escapeHtml(item.name)}</span>
             <span style="color:var(--gray-500);">${item.qty} · ${formatCurrency(item.revenue)}</span>
           </div>`).join('')}

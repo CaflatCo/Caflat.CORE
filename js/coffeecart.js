@@ -246,7 +246,7 @@ function renderChannelBreakdown() {
     const pct   = totalRev > 0 ? ((chRev / totalRev) * 100).toFixed(1) : '0.0';
     return `
       <div style="display:flex;align-items:center;justify-content:space-between;
-        padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+        padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-lg);
         margin-bottom:8px;background:var(--white);">
         <div>
           <div style="font-weight:800;font-size:13px;">${escapeHtml(ch)}</div>
@@ -445,7 +445,7 @@ function renderEventExpensesList(eventId) {
 
   container.innerHTML = expenses.map(ex => `
     <div style="display:flex;justify-content:space-between;align-items:center;
-      padding:7px 0;border-bottom:1px solid var(--gray-100);font-size:12px;">
+      padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
       <span style="font-weight:700;">${escapeHtml(ex.label)}</span>
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-weight:800;">${formatCurrency(ex.amount)}</span>
@@ -516,11 +516,11 @@ function addPackageItemRow(item = null) {
   row.innerHTML = `
     <input type="text" class="pkg-item-name" placeholder="e.g. Espresso, Cappuccino, Signature Drink"
       value="${escapeHtml(item?.name || '')}"
-      style="flex:2;padding:7px 10px;border:1px solid var(--gray-200);
+      style="flex:2;padding:7px 10px;border:1px solid var(--border);
         border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />
     <input type="number" class="pkg-item-qty" placeholder="Qty" min="1"
       value="${item?.qty || 1}"
-      style="width:70px;padding:7px 10px;border:1px solid var(--gray-200);
+      style="width:70px;padding:7px 10px;border:1px solid var(--border);
         border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />
     <button type="button" class="btn btn-sm btn-secondary pkg-remove">✕</button>`;
   row.querySelector('.pkg-remove').addEventListener('click', () => row.remove());

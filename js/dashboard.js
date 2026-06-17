@@ -312,7 +312,7 @@ function renderAnalyticsPanel() {
         { label:'Items Sold',value: kpis.items,                              delta: kpis.itemsDelta, up: kpis.itemsUp },
         { label:'Avg Order', value: formatCurrency(kpis.avgTicket),          delta: kpis.avgDelta,   up: kpis.avgUp   },
       ].map(k => `
-        <div style="border:1.5px solid var(--gray-200);border-radius:12px;padding:16px 18px;">
+        <div style="border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;">
           <div style="font-size:10px;color:var(--gray-400);letter-spacing:0.08em;
             text-transform:uppercase;margin-bottom:8px;">${k.label}</div>
           <div style="font-size:22px;font-weight:900;letter-spacing:-0.02em;
@@ -325,7 +325,7 @@ function renderAnalyticsPanel() {
     </div>
 
     <!-- Trend Chart -->
-    <div style="border:1.5px solid var(--gray-200);border-radius:12px;
+    <div style="border:1.5px solid var(--border);border-radius:12px;
       padding:20px;margin-bottom:20px;">
       <div style="font-size:10px;font-weight:700;color:var(--gray-400);
         letter-spacing:0.08em;text-transform:uppercase;margin-bottom:16px;">
@@ -340,7 +340,7 @@ function renderAnalyticsPanel() {
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
 
       <!-- Top Products -->
-      <div style="border:1.5px solid var(--gray-200);border-radius:12px;padding:18px;">
+      <div style="border:1.5px solid var(--border);border-radius:12px;padding:18px;">
         <div style="font-size:10px;font-weight:700;color:var(--gray-400);
           letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px;">
           Top Products
@@ -349,7 +349,7 @@ function renderAnalyticsPanel() {
           ? `<div style="font-size:12px;color:var(--gray-300);text-align:center;padding:16px 0;">No sales this period</div>`
           : top.map((p, i) => `
             <div style="display:flex;justify-content:space-between;align-items:center;
-              padding:8px 0;border-bottom:1px solid var(--gray-100);">
+              padding:8px 0;border-bottom:1px solid var(--border);">
               <div style="display:flex;align-items:center;gap:8px;">
                 <span style="font-size:9px;font-weight:900;color:var(--gray-300);
                   width:12px;">${i+1}</span>
@@ -363,7 +363,7 @@ function renderAnalyticsPanel() {
       </div>
 
       <!-- Payment Methods -->
-      <div style="border:1.5px solid var(--gray-200);border-radius:12px;padding:18px;">
+      <div style="border:1.5px solid var(--border);border-radius:12px;padding:18px;">
         <div style="font-size:10px;font-weight:700;color:var(--gray-400);
           letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px;">
           Payment Methods
@@ -392,7 +392,7 @@ function renderAnalyticsPanel() {
       </div>
 
       <!-- Category Performance -->
-      <div style="border:1.5px solid var(--gray-200);border-radius:12px;padding:18px;">
+      <div style="border:1.5px solid var(--border);border-radius:12px;padding:18px;">
         <div style="font-size:10px;font-weight:700;color:var(--gray-400);
           letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px;">
           By Category

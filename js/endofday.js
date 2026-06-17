@@ -116,7 +116,7 @@ function _renderEndOfDayContent() {
         ['Orders',  orderCount,                   ''],
         ['Avg Order', formatCurrency(avgOrder),   ''],
       ].map(([label, val, color]) => `
-        <div style="border:1.5px solid var(--gray-200);border-radius:12px;padding:12px 14px;">
+        <div style="border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;">
           <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;
             text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">${label}</div>
           <div style="font-size:20px;font-weight:900;${color?'color:'+color+';':''}">
@@ -136,7 +136,7 @@ function _renderEndOfDayContent() {
         color:var(--gray-400);margin-bottom:8px;">Top Sellers</div>
       ${topSellers.map((p, i) => `
         <div style="display:flex;align-items:center;justify-content:space-between;
-          padding:7px 0;border-bottom:1px solid var(--gray-100);">
+          padding:7px 0;border-bottom:1px solid var(--border);">
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:10px;font-weight:900;color:var(--gray-300);
               width:14px;">${i + 1}</span>
@@ -156,7 +156,7 @@ function _renderEndOfDayContent() {
         color:var(--gray-400);margin-bottom:8px;">Payment Methods</div>
       ${Object.entries(paymentBreakdown).map(([method, amt]) => `
         <div style="display:flex;justify-content:space-between;padding:5px 0;
-          border-bottom:1px solid var(--gray-100);font-size:12px;">
+          border-bottom:1px solid var(--border);font-size:12px;">
           <span>${pmLabels[method] || method}</span>
           <span style="font-weight:700;">${formatCurrency(amt)}</span>
         </div>`).join('')}
@@ -167,16 +167,16 @@ function _renderEndOfDayContent() {
       <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
         color:var(--gray-400);margin-bottom:8px;">Production Today</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div style="border:1.5px solid var(--gray-200);border-radius:10px;padding:10px 12px;">
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;">
           <div style="font-size:9px;color:var(--gray-400);margin-bottom:2px;">Jobs Completed</div>
           <div style="font-size:18px;font-weight:900;">${todayJobs.length}</div>
         </div>
-        <div style="border:1.5px solid var(--gray-200);border-radius:10px;padding:10px 12px;">
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;">
           <div style="font-size:9px;color:var(--gray-400);margin-bottom:2px;">Units Produced</div>
           <div style="font-size:18px;font-weight:900;">${totalProduced}</div>
         </div>
         ${avgEfficiency !== null ? `
-        <div style="border:1.5px solid var(--gray-200);border-radius:10px;padding:10px 12px;">
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;">
           <div style="font-size:9px;color:var(--gray-400);margin-bottom:2px;">Avg Efficiency</div>
           <div style="font-size:18px;font-weight:900;
             color:${avgEfficiency>=90?'#16a34a':avgEfficiency>=70?'#ea580c':'#dc2626'};">
@@ -191,7 +191,7 @@ function _renderEndOfDayContent() {
         color:var(--gray-400);margin-bottom:8px;">Finished Goods Remaining</div>
       ${fgRemaining.map(p => `
         <div style="display:flex;justify-content:space-between;padding:5px 0;
-          border-bottom:1px solid var(--gray-100);font-size:12px;">
+          border-bottom:1px solid var(--border);font-size:12px;">
           <span>${escapeHtml(p.name)}</span>
           <span style="font-weight:800;">${p.available} units</span>
         </div>`).join('')}

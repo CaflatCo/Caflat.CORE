@@ -210,7 +210,7 @@ function renderClientsList() {
 
   container.innerHTML = clients.map(c => `
     <div style="display:flex;align-items:center;justify-content:space-between;
-      padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);
+      padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-lg);
       margin-bottom:8px;background:var(--white);">
       <div>
         <div style="font-weight:800;font-size:13px;">${escapeHtml(c.name)}</div>
@@ -265,17 +265,17 @@ function addSupplyLineItemRow(item = null) {
 
   row.innerHTML = `
     <select class="supply-item-product" style="flex:2;padding:7px 10px;
-      border:1px solid var(--gray-200);border-radius:var(--radius-md);
+      border:1px solid var(--border);border-radius:var(--radius-md);
       font-family:var(--font-main);font-size:12px;background:var(--white);">
       ${buildProductOptions(item?.productId || '')}
     </select>
     <input type="number" class="supply-item-qty" placeholder="Qty"
       value="${item?.qty || 1}" min="0.01" step="0.01"
-      style="width:72px;padding:7px 10px;border:1px solid var(--gray-200);
+      style="width:72px;padding:7px 10px;border:1px solid var(--border);
         border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />
     <input type="number" class="supply-item-price" placeholder="Unit Price"
       value="${item?.unitPrice || ''}" min="0" step="0.01"
-      style="width:110px;padding:7px 10px;border:1px solid var(--gray-200);
+      style="width:110px;padding:7px 10px;border:1px solid var(--border);
         border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />
     <div class="supply-item-total"
       style="width:90px;text-align:right;font-weight:800;font-size:13px;
@@ -1045,7 +1045,7 @@ function renderSupplierOrderCartSummary(cart) {
     grandTotal += lineTotal;
     return `
       <div style="display:flex;justify-content:space-between;align-items:center;
-        padding:5px 0;border-bottom:1px solid var(--gray-100);font-size:12px;">
+        padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;">
         <div>
           <span style="font-weight:700;">${escapeHtml(item.name)}</span>
           <span style="color:var(--gray-400);margin-left:6px;">
@@ -1199,13 +1199,13 @@ function openSupplyOrderView(orderId) {
   const statusRows = SUPPLY_STATUSES.map(s => {
     const entry = history.find(h => h.status === s);
     if (!entry) return `
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--gray-100);">
+      <div style="display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);">
         <span style="font-size:11px;font-weight:700;color:var(--gray-300);min-width:110px;">${SUPPLY_STATUS_LABELS[s]}</span>
         <span style="font-size:11px;color:var(--gray-300);">—</span>
       </div>`;
     const d = new Date(entry.changedAt);
     return `
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--gray-100);">
+      <div style="display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);">
         <span style="font-size:11px;font-weight:800;color:var(--black);min-width:110px;">${SUPPLY_STATUS_LABELS[s]}</span>
         <div>
           <div style="font-size:11px;font-weight:700;">
@@ -1219,15 +1219,15 @@ function openSupplyOrderView(orderId) {
 
   const itemRows = items.map(item => `
     <tr>
-      <td style="padding:8px 10px;font-size:13px;font-weight:700;border-bottom:1px solid var(--gray-100);
+      <td style="padding:8px 10px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border);
         max-width:180px;word-break:break-word;">
         ${escapeHtml(item.productName||item.description||'—')}</td>
-      <td style="padding:8px 10px;font-size:13px;text-align:right;border-bottom:1px solid var(--gray-100);
+      <td style="padding:8px 10px;font-size:13px;text-align:right;border-bottom:1px solid var(--border);
         font-variant-numeric:tabular-nums;white-space:nowrap;">${item.qty}</td>
-      <td style="padding:8px 10px;font-size:13px;text-align:right;border-bottom:1px solid var(--gray-100);
+      <td style="padding:8px 10px;font-size:13px;text-align:right;border-bottom:1px solid var(--border);
         font-variant-numeric:tabular-nums;white-space:nowrap;">${formatCurrency(item.unitPrice||0)}</td>
       <td style="padding:8px 10px;font-size:13px;font-weight:800;text-align:right;
-        border-bottom:1px solid var(--gray-100);font-variant-numeric:tabular-nums;white-space:nowrap;">
+        border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;white-space:nowrap;">
         ${formatCurrency(item.total||0)}</td>
     </tr>`).join('');
 
@@ -1255,7 +1255,7 @@ function openSupplyOrderView(orderId) {
     </div>
 
     <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">Order Items</div>
-    <div style="border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow-x:auto;overflow-y:hidden;margin-bottom:20px;">
+    <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow-x:auto;overflow-y:hidden;margin-bottom:20px;">
       <table style="width:100%;border-collapse:collapse;min-width:420px;">
         <thead>
           <tr style="background:var(--gray-50);">
@@ -1277,7 +1277,7 @@ function openSupplyOrderView(orderId) {
       <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--gray-500);font-weight:600;">
         <span>Discount</span><span style="font-weight:700;color:#dc2626;">-${formatCurrency(order.discount||0)}</span>
       </div>` : ''}
-      <div style="display:flex;justify-content:space-between;padding:8px 0 4px;font-size:17px;font-weight:900;border-top:1.5px solid var(--gray-200);margin-top:6px;">
+      <div style="display:flex;justify-content:space-between;padding:8px 0 4px;font-size:17px;font-weight:900;border-top:1.5px solid var(--border);margin-top:6px;">
         <span>Grand Total</span>
         <span style="font-variant-numeric:tabular-nums;">${formatCurrency(order.grandTotal||0)}</span>
       </div>

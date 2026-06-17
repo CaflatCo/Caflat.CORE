@@ -220,7 +220,7 @@ function renderInventoryMovementHistory() {
     return `
       <div style="display:grid;grid-template-columns:auto 1fr auto auto;
         gap:10px;align-items:center;padding:8px 0;
-        border-bottom:1px solid var(--gray-100);font-size:12px;">
+        border-bottom:1px solid var(--border);font-size:12px;">
         <span style="width:10px;height:10px;border-radius:50%;
           background:${color};flex-shrink:0;display:block;"></span>
         <div>

@@ -110,7 +110,7 @@ function renderCategories() {
   cats.forEach(cat => {
     const isFG  = cat.inventoryMode === 'finished_goods';
     const card  = document.createElement('div');
-    card.style.cssText = 'border:1.5px solid var(--gray-200);border-radius:12px;' +
+    card.style.cssText = 'border:1.5px solid var(--border);border-radius:12px;' +
       'padding:12px 16px;margin-bottom:8px;background:var(--white);';
 
     // Editable name + delete
@@ -562,7 +562,7 @@ function renderPaymentMethodsList() {
         : '';
 
     return `<div style="display:flex;align-items:center;justify-content:space-between;
-      padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);
+      padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);
       margin-bottom:8px;gap:12px;">
       <div style="flex:1;min-width:0;">
         <div style="font-weight:700;font-size:13px;">${sanitizeText(m.name)}</div>
