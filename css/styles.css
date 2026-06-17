@@ -833,6 +833,22 @@ tbody tr:hover td { background: var(--gray-50); }
   box-shadow: 0 0 0 3px rgba(0,0,0,.06);
 }
 
+/* Safari/iPadOS renders type="date" with its own internal box model
+   that ignores width:100% from the rule above — pin it down explicitly
+   so it matches the height/sizing of adjacent <select> elements. */
+.form-group input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 42px;
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+}
+
+.form-group input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 .form-group input[readonly] {
   background: var(--gray-50);
   color: var(--gray-500);
