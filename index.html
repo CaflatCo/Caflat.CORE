@@ -318,7 +318,6 @@
         <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
         <button data-view="production" id="navProduction" style="display:none;">Production</button>
         <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">Coffee Cart</button>
-        <button data-view="lab" id="navLab" style="display:none;">Product Lab</button>
         <button data-view="settings">Settings</button>
       </nav>
     </header>
@@ -463,6 +462,7 @@
             <h2>Products</h2>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button class="btn btn-secondary" id="openLabBtn" type="button" style="display:none;" onclick="switchPage('lab');">Product Lab</button>
+              <button class="btn btn-secondary" id="openRecipesBtn" type="button" style="display:none;" onclick="switchPage('recipes');">Recipe Catalog</button>
               <button class="btn" id="addProductBtn" type="button">+ Add Product</button>
               <button class="btn btn-secondary" id="exportDataBtnProducts" type="button">Export Data</button>
               <button class="btn btn-secondary" id="loadDemoBtnProducts" type="button">Load Demo</button>
@@ -800,27 +800,22 @@
             </div>
           </div>
 
-          <!-- Receipt URL -->
-          <div class="form-group">
-            <label>Digital Receipt URL</label>
-            <input id="settingsReceiptUrl" type="url"
-              placeholder="e.g. https://caflat-core.vercel.app/receipt"
-              style="font-size:13px;" />
-            <div style="font-size:11px;color:var(--gray-400);margin-top:5px;font-weight:600;">
-              QR code on receipts will link to this URL with the receipt number appended — e.g. <span id="receiptUrlPreview" style="font-family:monospace;color:var(--gray-600);">https://your-url?r=0001</span>
-            </div>
+          <!-- Receipt URL + Void PIN — compact buttons that open popups -->
+          <div style="display:flex;gap:10px;margin-bottom:var(--space-4);flex-wrap:wrap;">
+            <button class="btn btn-secondary" type="button" id="openReceiptUrlBtn"
+              style="flex:1;min-width:200px;justify-content:space-between;">
+              <span>Digital Receipt URL</span>
+              <span id="receiptUrlStatusBadge" style="font-size:11px;color:var(--gray-400);font-weight:600;">Not set</span>
+            </button>
+            <button class="btn btn-secondary" type="button" id="openVoidPinBtn"
+              style="flex:1;min-width:200px;justify-content:space-between;">
+              <span>Void / Refund PIN</span>
+              <span style="font-size:11px;color:var(--gray-400);font-weight:600;">●●●●●●</span>
+            </button>
           </div>
-
-          <!-- Void PIN — numeric only -->
-          <div class="form-group">
-            <label>Void / Refund PIN (6 digits)</label>
-            <input id="settingsVoidPin" type="password" maxlength="6"
-              inputmode="numeric" pattern="[0-9]*"
-              placeholder="● ● ● ● ● ●  (enter new PIN to change)"
-              autocomplete="new-password"
-              style="letter-spacing:8px;font-size:20px;font-weight:900;text-align:center;"
-              oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
-          </div>
+          <!-- Hidden inputs — saveSettings() reads these directly, unchanged -->
+          <input id="settingsReceiptUrl" type="hidden" />
+          <input id="settingsVoidPin" type="hidden" />
 
           <!-- Categories -->
           <div class="section-title">Categories</div>
@@ -883,6 +878,16 @@
               <div class="toggle-track"></div><div class="toggle-knob"></div>
             </label>
           </div>
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-toggle-label">Recipe Catalog</div>
+              <div class="settings-toggle-sub">Standalone reference library for recipes — ingredients, steps, and notes. Not connected to costing or inventory.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingsRecipeCatalogMode" />
+              <div class="toggle-track"></div><div class="toggle-knob"></div>
+            </label>
+          </div>
 
           <!-- Custom Payment Methods -->
           <div class="section-title">Payment Methods</div>
@@ -892,50 +897,33 @@
 
           <!-- Data Management -->
           <div class="section-title">Data Management</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
             <button class="btn btn-secondary" id="loadDemoBtn" type="button">Load Demo Data</button>
             <button class="btn btn-secondary" id="exportDataBtn" type="button">Export Backup</button>
             <button class="btn btn-secondary" id="importDataBtn" type="button">Import Backup</button>
             <input accept=".json" id="importDataInput" style="display:none" type="file" />
+            <button class="btn btn-secondary" id="archiveResetBtn" type="button"
+              style="border:1.5px solid #fca5a5;color:#dc2626;background:#fff;">
+              Archive &amp; Reset
+            </button>
           </div>
 
           <!-- Danger Zone -->
-          <div style="border-top:2px solid var(--gray-100);padding-top:24px;margin-top:8px;">
+          <div style="border-top:2px solid var(--gray-100);padding-top:24px;margin-top:8px;margin-bottom:40px;">
             <div style="font-size:9px;font-weight:800;letter-spacing:2px;
               text-transform:uppercase;color:#dc2626;margin-bottom:16px;">Danger Zone</div>
-            <div style="border:1.5px solid #fecaca;border-radius:var(--radius-lg);overflow:hidden;">
-              <div style="display:flex;align-items:center;justify-content:space-between;
-                padding:14px 18px;border-bottom:1px solid #fecaca;gap:12px;flex-wrap:wrap;">
-                <div>
-                  <div style="font-weight:700;font-size:13px;">Archive &amp; Reset</div>
-                  <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
-                    Export a backup then wipe all business data. Settings and categories kept.
-                  </div>
-                </div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                  <button class="btn btn-secondary" id="archiveLocalBtn" type="button"
-                    style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;font-size:12px;">
-                    ↓ Save Locally
-                  </button>
-                  <button class="btn btn-secondary" id="archiveEmailBtn" type="button"
-                    style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;font-size:12px;">
-                    ✉ Send to Email
-                  </button>
+            <div style="display:flex;align-items:center;justify-content:space-between;
+              padding:14px 18px;border:1.5px solid #fecaca;border-radius:var(--radius-lg);">
+              <div>
+                <div style="font-weight:700;font-size:13px;">Factory Reset</div>
+                <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+                  Wipe everything including settings. Cannot be undone.
                 </div>
               </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;
-                padding:14px 18px;">
-                <div>
-                  <div style="font-weight:700;font-size:13px;">Factory Reset</div>
-                  <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
-                    Wipe everything including settings. Cannot be undone.
-                  </div>
-                </div>
-                <button class="btn btn-secondary" id="factoryResetBtn" type="button"
-                  style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;">
-                  Factory Reset
-                </button>
-              </div>
+              <button class="btn btn-secondary" id="factoryResetBtn" type="button"
+                style="border-color:#fca5a5;color:#dc2626;white-space:nowrap;">
+                Factory Reset
+              </button>
             </div>
           </div>
 
@@ -948,6 +936,10 @@
           <div class="panel-header">
             <h2>Production</h2>
             <button class="btn" type="button" onclick="openProductionJobModal(null);">+ New Job</button>
+          </div>
+          <div style="background:var(--surface-2);border-radius:var(--radius-lg);padding:10px 14px;
+            margin-bottom:16px;font-size:12px;color:var(--gray-500);font-weight:600;line-height:1.5;">
+            ℹ️ When a retail product line is marked <strong>Done</strong>, finished stock is credited automatically and becomes available for sale in POS — no manual transfer needed.
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
             <select id="prodStatusFilter" onchange="renderProductionBoard();"
@@ -1180,6 +1172,104 @@
               <button class="btn" type="button" style="width:100%;" onclick="openLabConvertModal();">Convert to Product ↗</button>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- ═══ RECIPE CATALOG VIEW ═══ -->
+      <section class="view" id="view-recipes">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Recipe Catalog</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-secondary" type="button" onclick="switchPage('products');">← Back to Products</button>
+              <button class="btn" type="button" onclick="openRecipeForm(null);">+ New Recipe</button>
+            </div>
+          </div>
+
+          <!-- List view -->
+          <div id="recipeCatalogListView">
+            <div class="filter-bar">
+              <input id="recipeSearch" type="text" placeholder="Search recipes…"
+                oninput="renderRecipeCatalog();" style="flex:1;min-width:180px;" />
+              <select id="recipeCatFilter" onchange="renderRecipeCatalog();">
+                <option value="All">All Categories</option>
+                <option value="Cookies">Cookies</option>
+                <option value="Filling">Filling</option>
+                <option value="Coating">Coating</option>
+                <option value="Dough">Dough</option>
+                <option value="Sauce">Sauce</option>
+                <option value="Drink">Drink</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div id="recipeCatalogList"></div>
+          </div>
+
+          <!-- Detail view -->
+          <div id="recipeDetailView" style="display:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+              <h3 id="recipeDetailTitle" style="font-size:19px;font-weight:800;border:none;padding:0;margin:0;"></h3>
+              <button class="btn btn-secondary" type="button" onclick="closeRecipeDetail();">← Back to List</button>
+            </div>
+            <div id="recipeDetailContent"></div>
+          </div>
+
+          <!-- Form view (add/edit) -->
+          <div id="recipeFormView" style="display:none;">
+            <input type="hidden" id="rcFormId" />
+            <div class="form-group">
+              <label>Recipe Name <span style="color:var(--danger);">*</span></label>
+              <input id="rcFormName" type="text" placeholder="e.g. Brown Butter Cookie Dough" />
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="form-group">
+                <label>Category</label>
+                <select id="rcFormCategory">
+                  <option value="Cookies">Cookies</option>
+                  <option value="Filling">Filling</option>
+                  <option value="Coating">Coating</option>
+                  <option value="Dough">Dough</option>
+                  <option value="Sauce">Sauce</option>
+                  <option value="Drink">Drink</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Yield</label>
+                <input id="rcFormYield" type="text" placeholder="e.g. 24 cookies" />
+              </div>
+            </div>
+
+            <div class="section-title">Ingredients</div>
+            <div id="rcIngredientRows"></div>
+            <button class="btn btn-secondary" type="button" style="margin-bottom:16px;"
+              onclick="_rcEditIngredients.push({name:'',qty:'',unit:''});_renderRCIngredients();">+ Add Ingredient</button>
+
+            <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+              <div class="section-title" style="margin:0;">Steps</div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="rcFormShowSteps" checked
+                  onchange="_renderRCSteps();" />
+                <div class="toggle-track"></div><div class="toggle-knob"></div>
+              </label>
+            </div>
+            <div id="rcStepsSection">
+              <div id="rcStepRows"></div>
+              <button class="btn btn-secondary" type="button" style="margin-top:8px;"
+                onclick="_rcEditSteps.push({text:''});_renderRCSteps();">+ Add Step</button>
+            </div>
+
+            <div class="form-group" style="margin-top:16px;">
+              <label>Notes</label>
+              <textarea id="rcFormNotes" rows="3"></textarea>
+            </div>
+
+            <div class="modal-actions" style="border-top:none;padding-top:0;">
+              <button class="btn btn-secondary" type="button" onclick="closeRecipeForm();">Cancel</button>
+              <button class="btn" type="button" onclick="saveRecipeForm();">Save Recipe</button>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -2095,6 +2185,69 @@
     </div>
 
     <!-- ── PAYMENT METHOD MODAL ── -->
+    <!-- ── RECEIPT URL POPUP ── -->
+    <div class="modal-overlay" id="receiptUrlModal">
+      <div class="modal" style="max-width:420px;">
+        <h3>Digital Receipt URL</h3>
+        <div class="form-group">
+          <label>URL</label>
+          <input id="receiptUrlInput" type="url"
+            placeholder="e.g. https://caflat-core.vercel.app/receipt" />
+          <div style="font-size:11px;color:var(--gray-400);margin-top:6px;font-weight:600;">
+            QR code on receipts will link to this URL with the receipt number appended — e.g.
+            <span id="receiptUrlPreview" style="font-family:var(--font-mono);color:var(--gray-600);display:block;margin-top:3px;">https://your-url?r=0001</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="receiptUrlModal">Cancel</button>
+          <button class="btn" type="button" id="saveReceiptUrlBtn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VOID PIN POPUP ── -->
+    <div class="modal-overlay" id="voidPinModal">
+      <div class="modal" style="max-width:380px;">
+        <h3>Void / Refund PIN</h3>
+        <div class="form-group">
+          <label>6-Digit PIN</label>
+          <input id="voidPinInput" type="password" maxlength="6"
+            inputmode="numeric" pattern="[0-9]*"
+            placeholder="● ● ● ● ● ●  (enter new PIN to change)"
+            autocomplete="new-password"
+            style="letter-spacing:8px;font-size:20px;font-weight:900;text-align:center;"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="voidPinModal">Cancel</button>
+          <button class="btn" type="button" id="saveVoidPinBtn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ARCHIVE & RESET CHOICE MODAL ── -->
+    <div class="modal-overlay" id="archiveResetChoiceModal">
+      <div class="modal" style="max-width:420px;">
+        <h3>Archive &amp; Reset</h3>
+        <p style="font-size:13px;color:var(--gray-500);margin-bottom:18px;line-height:1.5;">
+          This exports a full backup, then wipes all business data. Settings and categories are kept.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button class="btn btn-secondary" type="button" id="archiveLocalBtn"
+            style="justify-content:flex-start;padding:14px 16px;border:1.5px solid #fca5a5;color:#dc2626;">
+            ↓ Save Locally — download backup file
+          </button>
+          <button class="btn btn-secondary" type="button" id="archiveEmailBtn"
+            style="justify-content:flex-start;padding:14px 16px;border:1.5px solid #fca5a5;color:#dc2626;">
+            ✉ Send to Email — open mail app with backup
+          </button>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="archiveResetChoiceModal">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="paymentMethodModal">
       <div class="modal" style="max-width:460px;">
         <h3 id="paymentMethodModalTitle">Add Payment Method</h3>
