@@ -115,6 +115,10 @@ function confirmRefund() {
 
 function _refundRestoreProductStock(sale) {
   const products = (APP_STATE.products || []).map(product => {
+    // FG-mode products restore via the FG ledger in _refundRestoreIngredientStock below.
+    if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+      return product;
+    }
     const units = (sale.items || []).reduce((sum, line) => {
       if (String(line.productId) !== String(product.id)) return sum;
       return sum + Number(line.quantity || 0) * Number(line.multiplier || 1);

@@ -165,6 +165,11 @@ function executeVoid(saleId, reason) {
 /* ── Stock restoration ── */
 function restoreProductStockForSale(sale) {
   const updatedProducts = (APP_STATE.products || []).map(product => {
+    // FG-mode products restore via the FG ledger in restoreIngredientStockForSale below —
+    // never touch product.stock for these, it isn't the source of truth.
+    if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+      return product;
+    }
     const restoreUnits = (sale.items || []).reduce((sum, line) => {
       if (String(line.productId) !== String(product.id)) return sum;
       return sum + Number(line.quantity || 0) * Number(line.multiplier || 1);

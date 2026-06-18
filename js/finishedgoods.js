@@ -40,6 +40,17 @@ function getFGAvailable(productId) {
   return Math.max(0, getFGStock(productId) - getFGReserved(productId));
 }
 
+/* ── Shared stock accessor: routes to FG ledger for finished_goods-category
+   products, or the plain product.stock field for direct-mode products.
+   Use this everywhere stock is displayed, validated, or deducted in POS. ── */
+function getEffectiveStock(product) {
+  if (!product) return 0;
+  if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+    return getFGAvailable(product.id);
+  }
+  return Number(product.stock || 0);
+}
+
 /* ── Core write ── */
 function _setFGRecord(productId, productName, delta, reservedDelta, reason, type) {
   const goods = getFinishedGoods();
@@ -353,6 +364,7 @@ window.getFGMovements             = getFGMovements;
 window.getFGRecord                = getFGRecord;
 window.getFGStock                 = getFGStock;
 window.getFGAvailable             = getFGAvailable;
+window.getEffectiveStock          = getEffectiveStock;
 window.creditFinishedGoods        = creditFinishedGoods;
 window.deductFGForCart            = deductFGForCart;
 window.reserveFGForSupply         = reserveFGForSupply;

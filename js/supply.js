@@ -558,13 +558,17 @@ function _restoreSupplyStock(order) {
       return sum + Number(line.quantity || 0);
     }, 0);
     if (!units) return product;
-    // For FG-mode products, also restore finished goods stock
+    // FG-mode products restore via the FG reservation release only —
+    // never touch product.stock for these, it isn't the source of truth.
     if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
-      if (typeof releaseFGReserveForSupply === 'function') releaseFGReserveForSupply(order);
+      return product;
     }
     return { ...product, stock: Number(product.stock || 0) + units };
   });
   updateState('products', () => updatedProducts);
+
+  // Release FG reservations for any FG-mode products in this order
+  if (typeof releaseFGReserveForSupply === 'function') releaseFGReserveForSupply(order);
 
   _logInventoryMovements(order, 'supply-stock-restored', 0,
     `Restored from supply order ${order.invoiceNumber}`);
@@ -574,8 +578,12 @@ function _deductSupplyStock(order) {
   const cart = _supplyItemsToCart(order);
   if (!cart.length) return;
 
-  // Deduct product stock
+  // Deduct product stock — DIRECT mode products only.
+  // FG-mode products deduct via deductFGForSupply() further below.
   const updatedProducts = (APP_STATE.products || []).map(product => {
+    if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+      return product;
+    }
     const units = cart.reduce((sum, line) => {
       if (String(line.productId) !== String(product.id)) return sum;
       return sum + Number(line.quantity || 0);

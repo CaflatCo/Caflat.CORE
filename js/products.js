@@ -180,7 +180,7 @@ function renderProductsTable() {
   }
 
   products.forEach(product => {
-    const stock = Number(product.stock || 0);
+    const stock = typeof getEffectiveStock === "function" ? getEffectiveStock(product) : Number(product.stock || 0);
     const soldOut = stock <= 0;
     const lowStock = !soldOut && stock <= Number(product.reorderLevel || 0);
     const row = document.createElement('tr');
@@ -192,7 +192,7 @@ function renderProductsTable() {
       <td style="font-weight:700;">${escapeHtml(product.name)}</td>
       <td>${escapeHtml(product.category)}</td>
       <td>${formatCurrency(product.price)}</td>
-      <td style="font-variant-numeric:tabular-nums;">${product.stock}</td>
+      <td style="font-variant-numeric:tabular-nums;">${stock}</td>
       <td>${product.reorderLevel}</td>
       <td style="font-variant-numeric:tabular-nums;">
         ${be && be.hasBatchContext
@@ -234,7 +234,7 @@ function renderPOSProducts() {
   const cart = getCart();
 
   products.forEach(product => {
-    const stock = Number(product.stock || 0);
+    const stock = typeof getEffectiveStock === "function" ? getEffectiveStock(product) : Number(product.stock || 0);
     const soldOut = stock <= 0;
     const lowStock = !soldOut && stock <= Number(product.reorderLevel || 0);
     const cartQty = cart.filter(i => String(i.productId) === String(product.id)).reduce((s, i) => s + i.quantity, 0);

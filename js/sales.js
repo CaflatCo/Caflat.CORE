@@ -181,7 +181,8 @@ function addToCart(productId, variant = null) {
   const product = getProductById(productId);
   if (!product) { showNotification('Product not found', 'error'); return; }
 
-  const stock = Number(product.stock || 0);
+  const stock = typeof getEffectiveStock === 'function'
+    ? getEffectiveStock(product) : Number(product.stock || 0);
   if (stock <= 0) { showNotification('Out of stock', 'error'); return; }
 
   const cart = getCart();
@@ -221,7 +222,9 @@ function increaseQty(id) {
   if (!item) return;
   const product = getProductById(item.productId);
   if (!product) return;
-  if ((getCartUnitsForProduct(item.productId) + Number(item.multiplier || 1)) > Number(product.stock || 0)) {
+  const availableStock = typeof getEffectiveStock === 'function'
+    ? getEffectiveStock(product) : Number(product.stock || 0);
+  if ((getCartUnitsForProduct(item.productId) + Number(item.multiplier || 1)) > availableStock) {
     showNotification('Insufficient stock', 'error');
     return;
   }
@@ -448,6 +451,12 @@ function deductInventoryForCart(cart) {
 
 function deductProductStockForCart(cart) {
   const updatedProducts = getProducts().map(product => {
+    // Finished-goods products track stock in the separate FG ledger —
+    // never touch product.stock for these, or the field drifts with
+    // no relationship to actual availability.
+    if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+      return product;
+    }
     const quantitySold = cart.reduce((sum, line) => {
       if (String(line.productId) !== String(product.id)) return sum;
       return sum + Number(line.quantity || 0) * Number(line.multiplier || 1);
@@ -506,7 +515,10 @@ async function completeSale(forceStatus = 'COMPLETED') {
       if (String(line.productId) !== String(product.id)) return sum;
       return sum + Number(line.quantity || 0) * Number(line.multiplier || 1);
     }, 0);
-    if (requiredUnits > Number(product.stock || 0)) {
+    if (!requiredUnits) continue;
+    const availableUnits = typeof getEffectiveStock === 'function'
+      ? getEffectiveStock(product) : Number(product.stock || 0);
+    if (requiredUnits > availableUnits) {
       showNotification(`${product.name}: insufficient stock`, 'error');
       return;
     }
@@ -835,6 +847,18 @@ function restoreInventoryForSale(sale) {
   (sale.items || []).forEach(line => {
     const product = getProductById(line.productId);
     if (!product) return;
+
+    // FG-mode products: restore via the FG ledger, not ingredients —
+    // ingredients for these were already consumed at production time.
+    if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+      if (typeof _setFGRecord === 'function') {
+        const units = Number(line.quantity || 0) * Number(line.multiplier || 1);
+        _setFGRecord(product.id, product.name, units, 0,
+          `Pending sale cancelled: ${sale.receiptNumber || sale.id}`, 'pending-cancel-restore');
+      }
+      return;
+    }
+
     const recipeItems = Array.isArray(product.recipe) ? product.recipe : [];
     const batchYield = Math.max(1, Number(product.batchYield || 1));
     const recipeMode = String(product.recipeMode || 'unit');
@@ -874,6 +898,10 @@ function cancelPendingSale(saleId) {
   if (!sale) return;
   if (sale.audit?.inventoryDeducted) {
     const updatedProducts = getProducts().map(product => {
+      // FG-mode products restore via the FG ledger inside restoreInventoryForSale below.
+      if (typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product)) {
+        return product;
+      }
       const qty = (sale.items || []).reduce((sum, line) => {
         if (String(line.productId) !== String(product.id)) return sum;
         return sum + Number(line.quantity || 0) * Number(line.multiplier || 1);
