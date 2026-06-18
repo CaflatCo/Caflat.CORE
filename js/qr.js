@@ -133,6 +133,40 @@
     }
   }
 
+  /* Builds a same-size boolean matrix marking every cell that belongs to a
+     function pattern (finder + separator, timing, format info, dark module).
+     Per the QR spec, the data mask must NEVER be applied to these cells —
+     only to actual data/EC modules. Without this, masking scrambles the
+     finder squares into noise and the code becomes undetectable by scanners. */
+  function buildReservedMap(size) {
+    var reserved = [];
+    for (var i = 0; i < size; i++) { reserved.push([]); for (var j = 0; j < size; j++) reserved[i].push(false); }
+
+    function markFinder(row, col) {
+      for (var r = -1; r <= 7; r++)
+        for (var c = -1; c <= 7; c++) {
+          var rr = row + r, cc = col + c;
+          if (rr < 0 || cc < 0 || rr >= size || cc >= size) continue;
+          reserved[rr][cc] = true;
+        }
+    }
+    markFinder(0, 0);
+    markFinder(0, size - 7);
+    markFinder(size - 7, 0);
+
+    for (var i = 0; i < size; i++) { reserved[6][i] = true; reserved[i][6] = true; }
+
+    // Format info regions (around top-left finder, plus the two strips
+    // near top-right and bottom-left finders) — same coordinates setFormatInfo writes to.
+    for (var i = 0; i <= 8; i++) { reserved[8][i] = true; reserved[i][8] = true; }
+    for (var i = 0; i < 8; i++) {
+      reserved[size - 1 - i][8] = true;
+      reserved[8][size - 1 - i] = true;
+    }
+
+    return reserved;
+  }
+
   function setFormatInfo(m, mask, ecLevel) {
     var EC_BITS = { L: 1, M: 0, Q: 3, H: 2 };
     var fmt = (EC_BITS[ecLevel] << 3) | mask;
@@ -186,13 +220,14 @@
     }
   }
 
-  function applyMask(m, maskIdx) {
+  function applyMask(m, maskIdx, reserved) {
     var fn = MASK_FNS[maskIdx], size = m.length;
     var copy = m.map(function(row) { return row.slice(); });
     for (var r = 0; r < size; r++)
       for (var c = 0; c < size; c++)
         if (copy[r][c] !== null && typeof copy[r][c] === 'number')
-          if (fn(r, c)) copy[r][c] ^= 1;
+          if (!(reserved && reserved[r][c]))
+            if (fn(r, c)) copy[r][c] ^= 1;
     return copy;
   }
 
@@ -240,17 +275,18 @@
     // Place data
     var dataCopy = m.map(function(r){return r.slice();});
     placeData(dataCopy, codewords);
+    var reserved = buildReservedMap(matSize);
 
     // Pick best mask (evaluate penalty on all 8)
     var bestMask = 0, bestPenalty = Infinity;
     for (var i = 0; i < 8; i++) {
-      var masked = applyMask(dataCopy, i);
+      var masked = applyMask(dataCopy, i, reserved);
       setFormatInfo(masked, i, ecLevel);
       var p = penalty(masked);
       if (p < bestPenalty) { bestPenalty = p; bestMask = i; }
     }
 
-    var final = applyMask(dataCopy, bestMask);
+    var final = applyMask(dataCopy, bestMask, reserved);
     setFormatInfo(final, bestMask, ecLevel);
 
     // Render to SVG
