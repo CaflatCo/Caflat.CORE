@@ -494,13 +494,18 @@
             <button class="btn" id="addIngredientBtn" type="button">+ Add Ingredient</button>
           </div>
           <div class="filter-bar">
-            <input id="ingredientSearch" placeholder="Search ingredients…" type="text" style="flex:1;min-width:200px;" />
+            <input id="ingredientSearch" placeholder="Search ingredients…" type="text" style="flex:1;min-width:200px;" oninput="renderIngredientsTable();" />
+            <select id="ingredientTypeFilter" onchange="renderIngredientsTable();">
+              <option value="all">All Types</option>
+              <option value="raw">Raw Ingredients</option>
+              <option value="packaging">Packaging</option>
+            </select>
           </div>
           <div class="table-wrapper">
             <table id="ingredientsTable">
               <thead>
                 <tr>
-                  <th>Name</th><th>Unit</th><th>Pkg Qty</th><th>Pkg Cost</th>
+                  <th>Name</th><th>Unit</th><th>Type</th><th>Pkg Qty</th><th>Pkg Cost</th>
                   <th>Cost/Unit</th><th>Stock</th><th>Reorder</th><th>Actions</th>
                 </tr>
               </thead>
@@ -518,19 +523,54 @@
             <span style="font-size:11px;color:var(--gray-400);">Ingredient stock levels</span>
           </div>
           <div class="filter-bar">
-            <input id="inventorySearch" placeholder="Search inventory…" type="text" style="flex:1;min-width:200px;" />
+            <input id="inventorySearch" placeholder="Search inventory…" type="text" style="flex:1;min-width:200px;" oninput="renderInventoryTable();" />
+            <select id="inventoryTypeFilter" onchange="renderInventoryTable();">
+              <option value="all">All Types</option>
+              <option value="raw">Raw Ingredients</option>
+              <option value="packaging">Packaging</option>
+            </select>
           </div>
           <div class="table-wrapper">
             <table id="inventoryTable">
               <thead>
                 <tr>
-                  <th>Name</th><th>Unit</th><th>Pkg Qty</th><th>Pkg Cost</th>
+                  <th>Name</th><th>Unit</th><th>Type</th><th>Pkg Qty</th><th>Pkg Cost</th>
                   <th>Stock</th><th>Reorder</th><th>Status</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody></tbody>
             </table>
           </div>
+
+          <!-- Movement Log -->
+          <div style="margin-top:32px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+              <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gray-400);">
+                Inventory Movement Log
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <select id="movementLogIngredientFilter" onchange="renderInventoryMovementLog();"
+                  style="padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);
+                    font-size:12px;font-family:var(--font-main);">
+                  <option value="">All Ingredients</option>
+                </select>
+                <select id="movementLogTypeFilter" onchange="renderInventoryMovementLog();"
+                  style="padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);
+                    font-size:12px;font-family:var(--font-main);">
+                  <option value="">All Events</option>
+                  <option value="restock">Restock</option>
+                  <option value="sale-deduction">Sale Deduction</option>
+                  <option value="production">Production</option>
+                  <option value="manual-adjustment">Manual Adjustment</option>
+                  <option value="pending-cancel-restoration">Pending Cancel</option>
+                  <option value="supply-stock-restored">Supply Restored</option>
+                  <option value="void-restoration">Void Restored</option>
+                </select>
+              </div>
+            </div>
+            <div id="inventoryMovementLog"></div>
+          </div>
+
         </div>
       </section>
 
@@ -938,7 +978,7 @@
           </div>
           <div style="background:var(--surface-2);border-radius:var(--radius-lg);padding:10px 14px;
             margin-bottom:16px;font-size:12px;color:var(--gray-500);font-weight:600;line-height:1.5;">
-            ℹ️ When a retail product line is marked <strong>Done</strong>, ingredients deduct automatically. Finished stock stays held until you tap <strong>↑ Transfer to POS</strong> — giving you control over exactly when it becomes sellable.
+            ℹ️ Ingredients are deducted from stock <strong>immediately</strong> when a production job is saved. Marking a retail line <strong>Done</strong> then unlocks <strong>↑ Transfer to POS</strong> to make finished stock sellable.
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
             <select id="prodStatusFilter" onchange="renderProductionBoard();"
@@ -1379,28 +1419,39 @@
             <input id="ingredientName" type="text" />
           </div>
           <div class="form-group">
-            <label>Unit (g, ml, pcs…)</label>
-            <input id="ingredientUnit" type="text" />
+            <label>Type</label>
+            <select id="ingredientType">
+              <option value="raw">Raw Ingredient</option>
+              <option value="packaging">Packaging</option>
+            </select>
           </div>
         </div>
         <div class="form-row">
+          <div class="form-group">
+            <label>Unit (g, ml, pcs…)</label>
+            <input id="ingredientUnit" type="text" />
+          </div>
           <div class="form-group">
             <label>Package Qty</label>
             <input id="ingredientPackageQty" type="number" min="0" step="0.01" />
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>Package Cost (₱)</label>
             <input id="ingredientPackageCost" type="number" min="0" step="0.01" />
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label>Current Stock</label>
             <input id="ingredientStock" type="number" min="0" step="0.01" />
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>Reorder Level</label>
             <input id="ingredientReorderLevel" type="number" min="0" step="0.01" />
+          </div>
+          <div class="form-group">
           </div>
         </div>
         <div class="modal-actions">
