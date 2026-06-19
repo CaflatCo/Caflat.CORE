@@ -248,12 +248,42 @@ function _renderJobProductLines() {
     return;
   }
 
-  container.innerHTML = products.map((line, idx) => `
+  container.innerHTML = products.map((line, idx) => {
+    // Stock-based yield calculation: how many units can current ingredient stock support?
+    const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
+    let maxFromStock = null;
+    let constraintName = '';
+    if (product && Array.isArray(product.recipe) && product.recipe.length) {
+      const batchYield = Math.max(1, Number(product.batchYield||1));
+      const mode       = String(product.recipeMode||'unit');
+      let minUnits = Infinity;
+      let minIng   = '';
+      product.recipe.forEach(ri => {
+        const ing     = (APP_STATE.ingredients||[]).find(i=>String(i.id)===String(ri.ingredientId));
+        if (!ing) return;
+        const perUnit = mode==='batch' ? Number(ri.quantity||0)/batchYield : Number(ri.quantity||0);
+        if (perUnit <= 0) return;
+        const possible = Math.floor(Number(ing.stock||0) / perUnit);
+        if (possible < minUnits) { minUnits = possible; minIng = ing.name; }
+      });
+      if (minUnits < Infinity) { maxFromStock = minUnits; constraintName = minIng; }
+    }
+    const yieldBadge = maxFromStock !== null
+      ? `<div style="font-size:10px;color:${maxFromStock===0?'var(--danger)':maxFromStock<5?'var(--warning)':'#15803d'};
+          font-weight:700;margin-top:2px;">
+          Max from stock: ${maxFromStock} units${constraintName?` <span style="color:var(--gray-400);font-weight:600;">(limited by ${escapeHtml(constraintName)})</span>`:''}
+         </div>`
+      : '';
+
+    return `
     <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;
-      gap:8px;align-items:center;padding:10px 12px;
+      gap:8px;align-items:start;padding:10px 12px;
       border:1px solid var(--border);border-radius:var(--radius-md);
       margin-bottom:6px;background:var(--gray-50);">
-      <div style="font-weight:700;font-size:12px;">${escapeHtml(line.productName)}</div>
+      <div>
+        <div style="font-weight:700;font-size:12px;">${escapeHtml(line.productName)}</div>
+        ${yieldBadge}
+      </div>
       <div>
         <label style="font-size:9px;color:var(--gray-400);display:block;
           letter-spacing:1px;text-transform:uppercase;">Target Qty</label>
@@ -274,7 +304,8 @@ function _renderJobProductLines() {
       </div>
       <button type="button" class="btn btn-sm btn-secondary"
         onclick="_editingJob.products.splice(${idx},1);_renderJobProductLines();">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 /* ── Labor ── */
@@ -382,9 +413,19 @@ function saveProductionJob() {
   if (existing>=0) jobs[existing] = _editingJob;
   else jobs.push(_editingJob);
 
-  // Soft-reserve ingredients for all PLANNED product lines
-  // This lets the inventory view show Available = Stock - Reserved
-  _syncProductionIngredientReservations();
+  // Immediately deduct ingredients for any product line not yet deducted.
+  // ingredientsDeducted flag ensures we never double-deduct when the job
+  // is edited and re-saved, or when the line is later marked DONE.
+  _editingJob.products.forEach(line => {
+    if (line.ingredientsDeducted) return; // already consumed
+    if (['CANCELLED'].includes(line.status)) return; // cancelled lines don't consume
+    const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
+    if (!product) return;
+    const isFG = typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(product);
+    if (isFG) return; // FG products deduct ingredients at production done, not at job create
+    _deductLineIngredients(_editingJob, line);
+    line.ingredientsDeducted = true;
+  });
 
   updateState('productionJobs',()=>jobs);
   closeModal('productionJobModal');
@@ -452,19 +493,26 @@ function setProductLineStatus(jobId, lineId, newStatus) {
   line.statusHistory = [...(line.statusHistory||[]),
     {status:newStatus, changedAt:new Date().toISOString()}];
 
-  // At DONE: deduct ingredients always. For RETAIL jobs producing
-  // finished_goods-category products, mark ready for manual transfer
-  // to POS instead of auto-crediting — gives explicit control over
-  // when stock actually becomes sellable.
+  // Ingredients were already deducted when the job was saved.
+  // At DONE: just set the FG transfer flag for retail finished-goods lines,
+  // so the "Transfer to POS" button appears. Don't deduct again.
   if (newStatus==='DONE' && !line.ingredientsDeducted) {
+    // Edge case: line added to a job that was created before immediate-deduction existed,
+    // or a line whose ingredients weren't deducted for some reason. Deduct now.
     const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
     const isFG = typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(product);
-    _deductLineIngredients(job, line);
-    if (isFG && job.fundingType !== 'CLIENT') {
+    if (!isFG) {
+      _deductLineIngredients(job, line);
+    }
+    line.ingredientsDeducted = true;
+  }
+  if (newStatus==='DONE') {
+    const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
+    const isFG = typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(product);
+    if (isFG && job.fundingType !== 'CLIENT' && !line.readyForTransfer) {
       line.readyForTransfer = true;
       line.transferredToPos = false;
     }
-    line.ingredientsDeducted = true;
   }
   if (newStatus==='CANCELLED' && line.ingredientsDeducted) {
     if (confirm('Restore ingredients to stock?')) {
@@ -503,11 +551,12 @@ function _deductLineIngredients(job, line) {
     if (idx<0) return;
     const perUnit = mode==='batch' ? Number(ri.quantity||0)/batchYield : Number(ri.quantity||0);
     const used    = perUnit * units;
-    ings[idx] = {...ings[idx], stock:Math.max(0,Number(ings[idx].stock||0)-used)};
+    const prevStock = Number(ings[idx].stock||0);
+    const newStock  = Math.max(0, prevStock - used);
+    ings[idx] = {...ings[idx], stock: newStock};
     if (typeof logInventoryAdjustment==='function') {
-      logInventoryAdjustment(ings[idx].id,
-        Number(ings[idx].stock)+used, ings[idx].stock,
-        `Production: ${job.name||''} — ${line.productName}`);
+      logInventoryAdjustment(ings[idx].id, prevStock, newStock,
+        `Production deduction: ${job.name||''} — ${line.productName}`, 'production');
     }
   });
   updateState('ingredients',()=>ings);
@@ -523,8 +572,15 @@ function _restoreLineIngredients(job, line) {
   product.recipe.forEach(ri=>{
     const idx = ings.findIndex(i=>String(i.id)===String(ri.ingredientId));
     if (idx<0) return;
-    const perUnit = mode==='batch' ? Number(ri.quantity||0)/batchYield : Number(ri.quantity||0);
-    ings[idx] = {...ings[idx], stock:Number(ings[idx].stock||0)+perUnit*units};
+    const perUnit   = mode==='batch' ? Number(ri.quantity||0)/batchYield : Number(ri.quantity||0);
+    const restored  = perUnit * units;
+    const prevStock = Number(ings[idx].stock||0);
+    const newStock  = prevStock + restored;
+    ings[idx] = {...ings[idx], stock: newStock};
+    if (typeof logInventoryAdjustment==='function') {
+      logInventoryAdjustment(ings[idx].id, prevStock, newStock,
+        `Production cancelled: ${job.name||''} — ${line.productName}`, 'production-cancel');
+    }
   });
   updateState('ingredients',()=>ings);
 }

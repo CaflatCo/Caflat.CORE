@@ -15,6 +15,7 @@ function getIngredientFormData() {
     id: getElementValue('ingredientId') || generateId(),
     name: sanitizeText(getElementValue('ingredientName')),
     unit: sanitizeText(getElementValue('ingredientUnit')),
+    type: getElementValue('ingredientType') || 'raw',
     stock: safeNumber(getElementValue('ingredientStock')),
     reorderLevel: safeNumber(getElementValue('ingredientReorderLevel')),
     packageQuantity: safeNumber(getElementValue('ingredientPackageQty')),
@@ -43,8 +44,21 @@ function saveIngredient() {
   const existingIndex = ingredients.findIndex(ingredient => String(ingredient.id) === String(data.id));
 
   if (existingIndex >= 0) {
+    const prev = ingredients[existingIndex];
+    // Log a movement if the stock value changed on edit
+    if (typeof logInventoryAdjustment === 'function' &&
+        Number(prev.stock || 0) !== Number(data.stock || 0)) {
+      logInventoryAdjustment(data.id, Number(prev.stock || 0), Number(data.stock || 0),
+        'Manual stock edit', 'manual-adjustment');
+    }
     ingredients[existingIndex] = data;
   } else {
+    // Log initial stock for new ingredient if non-zero
+    if (Number(data.stock || 0) > 0) {
+      if (typeof logInventoryAdjustment === 'function') {
+        logInventoryAdjustment(data.id, 0, Number(data.stock || 0), 'Initial stock', 'manual-adjustment');
+      }
+    }
     ingredients.push(data);
   }
 
@@ -62,6 +76,7 @@ function saveIngredient() {
 function clearIngredientForm() {
   setElementValue('ingredientId', '');
   setElementValue('ingredientName', '');
+  setElementValue('ingredientType', 'raw');
   setElementValue('ingredientUnit', '');
   setElementValue('ingredientStock', '');
   setElementValue('ingredientReorderLevel', '');
@@ -84,6 +99,7 @@ function hydrateIngredientForm(ingredient) {
   setElementValue('ingredientId', ingredient.id);
   setElementValue('ingredientName', ingredient.name);
   setElementValue('ingredientUnit', ingredient.unit);
+  setElementValue('ingredientType', ingredient.type || 'raw');
   setElementValue('ingredientStock', ingredient.stock);
   setElementValue('ingredientReorderLevel', ingredient.reorderLevel);
   setElementValue('ingredientPackageQty', ingredient.packageQuantity);
@@ -103,8 +119,13 @@ function renderIngredientsTable() {
   const tableBody = document.querySelector('#ingredientsTable tbody');
   if (!tableBody) return;
 
-  const search = String(document.getElementById('ingredientSearch')?.value || '').toLowerCase().trim();
+  const search   = String(document.getElementById('ingredientSearch')?.value || '').toLowerCase().trim();
+  const typeFilter = String(document.getElementById('ingredientTypeFilter')?.value || 'all');
   let ingredients = getIngredients();
+
+  if (typeFilter !== 'all') {
+    ingredients = ingredients.filter(i => (i.type || 'raw') === typeFilter);
+  }
 
   if (search) {
     ingredients = ingredients.filter(i =>
@@ -119,7 +140,7 @@ function renderIngredientsTable() {
   if (!ingredients.length) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="8" class="empty-state">${search ? 'No ingredients match "' + escapeHtml(search) + '"' : 'No ingredients found'}</td>
+        <td colspan="9" class="empty-state">${search ? 'No ingredients match "' + escapeHtml(search) + '"' : 'No ingredients found'}</td>
       </tr>
     `;
     return;
@@ -133,6 +154,13 @@ function renderIngredientsTable() {
     row.innerHTML = `
       <td>${escapeHtml(ingredient.name)}</td>
       <td>${escapeHtml(ingredient.unit)}</td>
+      <td style="font-size:11px;">
+        <span style="padding:2px 8px;border-radius:var(--radius-full);font-weight:800;letter-spacing:.5px;
+          background:${(ingredient.type||'raw')==='packaging'?'#f0f7ff':'#f5f5f5'};
+          color:${(ingredient.type||'raw')==='packaging'?'#1d4ed8':'var(--gray-600)'};">
+          ${(ingredient.type||'raw')==='packaging'?'Packaging':'Raw'}
+        </span>
+      </td>
       <td>${ingredient.packageQuantity}</td>
       <td>${formatCurrency(ingredient.packageCost)}</td>
       <td>${formatCurrency(ingredient.costPerUnit)}</td>

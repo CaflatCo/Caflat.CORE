@@ -284,7 +284,7 @@ function renderDailyDiscrepancies() {
 }
 
 /* ── Inventory Adjustment Log ── */
-function logInventoryAdjustment(ingredientId, previousStock, newStock, reason) {
+function logInventoryAdjustment(ingredientId, previousStock, newStock, reason, type) {
   const ingredient = (APP_STATE.ingredients || []).find(i => String(i.id) === String(ingredientId));
   const movements  = Array.isArray(APP_STATE.inventoryMovements) ? APP_STATE.inventoryMovements : [];
   const diff       = newStock - previousStock;
@@ -293,7 +293,7 @@ function logInventoryAdjustment(ingredientId, previousStock, newStock, reason) {
     id:             generateId(),
     ingredientId,
     ingredientName: ingredient?.name || '—',
-    type:           'manual-adjustment',
+    type:           type || 'manual-adjustment',
     quantityAdded:  diff > 0 ? diff : 0,
     quantityUsed:   diff < 0 ? Math.abs(diff) : 0,
     reason:         reason || 'Manual stock adjustment',
