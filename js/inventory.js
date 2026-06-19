@@ -281,7 +281,7 @@ function _populateMovementLogIngredientFilter() {
   });
 }
 
-function renderInventoryMovementLog() {
+function renderInventoryMovementLog(limit) {
   _populateMovementLogIngredientFilter();
 
   const container = document.getElementById('inventoryMovementLog');
@@ -290,22 +290,20 @@ function renderInventoryMovementLog() {
   const ingFilter  = document.getElementById('movementLogIngredientFilter')?.value || '';
   const typeFilter = document.getElementById('movementLogTypeFilter')?.value || '';
 
-  let movements = getInventoryMovements().slice().reverse(); // newest first
+  let movements = getInventoryMovements().slice().reverse();
 
-  if (ingFilter) {
-    movements = movements.filter(m => String(m.ingredientId) === String(ingFilter));
-  }
-  if (typeFilter) {
-    movements = movements.filter(m => m.type === typeFilter);
-  }
+  if (ingFilter) movements = movements.filter(m => String(m.ingredientId) === String(ingFilter));
+  if (typeFilter) movements = movements.filter(m => m.type === typeFilter);
 
   if (!movements.length) {
     container.innerHTML = '<div class="empty-state" style="padding:24px 0;">No movements recorded yet.</div>';
     return;
   }
 
-  const SHOW = 50;
-  const shown = movements.slice(0, SHOW);
+  const SHOW    = typeof limit === 'number' ? limit : 10;
+  const total   = movements.length;
+  const shown   = movements.slice(0, SHOW);
+  const hasMore = total > SHOW;
 
   const rows = shown.map(m => {
     const qty      = Number(m.quantityAdded || 0) - Number(m.quantityUsed || 0);
@@ -314,11 +312,10 @@ function renderInventoryMovementLog() {
     const qtyLabel = isPos ? `+${qty.toFixed(2)}` : qty.toFixed(2);
     const qtyColor = isPos ? 'color:#15803d;' : isNeg ? 'color:var(--danger);' : '';
     const typeLabel = MOVEMENT_TYPE_LABELS[m.type] || m.type || '—';
-    const date     = m.createdAt ? new Date(m.createdAt).toLocaleString('en-PH', {
+    const date = m.createdAt ? new Date(m.createdAt).toLocaleString('en-PH', {
       month:'short', day:'numeric', year:'numeric',
       hour:'numeric', minute:'2-digit', hour12:true
     }) : '—';
-
     return `
       <tr>
         <td style="font-size:11px;color:var(--gray-400);">${date}</td>
@@ -332,26 +329,34 @@ function renderInventoryMovementLog() {
       </tr>`;
   }).join('');
 
+  const btnStyle = `padding:7px 20px;border:1.5px solid var(--border);border-radius:var(--radius-full);
+    background:var(--white);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-main);`;
+
+  const footer = hasMore
+    ? `<div style="text-align:center;padding:12px 0;">
+        <button type="button" onclick="renderInventoryMovementLog(${SHOW + 20})" style="${btnStyle}">
+          Show more <span style="color:var(--gray-400);font-weight:600;">(${total - SHOW} remaining)</span>
+        </button>
+       </div>`
+    : SHOW > 10
+      ? `<div style="text-align:center;padding:12px 0;">
+          <button type="button" onclick="renderInventoryMovementLog(10)" style="${btnStyle}">
+            Show less
+          </button>
+         </div>`
+      : '';
+
   container.innerHTML = `
     <div class="table-wrapper">
       <table style="min-width:700px;">
-        <thead>
-          <tr>
-            <th>Date / Time</th>
-            <th>Item</th>
-            <th>Event</th>
-            <th>Change</th>
-            <th>Stock Before → After</th>
-            <th>Reason</th>
-            <th>By</th>
-          </tr>
-        </thead>
+        <thead><tr>
+          <th>Date / Time</th><th>Item</th><th>Event</th><th>Change</th>
+          <th>Stock Before → After</th><th>Reason</th><th>By</th>
+        </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
-    ${movements.length > SHOW ? `<div style="font-size:11px;color:var(--gray-400);padding:8px 0;text-align:center;">
-      Showing latest ${SHOW} of ${movements.length} entries — use filters to narrow down.</div>` : ''}
+    ${footer}
   `;
 }
-
 window.renderInventoryMovementLog = renderInventoryMovementLog;
