@@ -920,8 +920,6 @@ function renderSupplyTable() {
           ${formatCurrency(order.grandTotal||0)}</td>
         <td>
           <div>${supplyStatusBadge(order.status)}</div>
-          ${order.stockDeducted
-            ? `<div style="font-size:9px;color:#1d4ed8;font-weight:700;letter-spacing:.5px;margin-top:4px;">STOCK DEDUCTED</div>` : ''}
           ${order.reservedStock && !order.stockDeducted
             ? `<div style="font-size:9px;color:#c2410c;font-weight:700;letter-spacing:.5px;margin-top:4px;">STOCK RESERVED</div>` : ''}
         </td>
