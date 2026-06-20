@@ -200,6 +200,7 @@ function saveSettings() {
   const coffeeCartModeEnabled  = document.getElementById('settingsCoffeeCartMode')?.checked  === true;
   const productLabModeEnabled  = document.getElementById('settingsProductLabMode')?.checked  === true;
   const recipeCatalogEnabled   = document.getElementById('settingsRecipeCatalogMode')?.checked === true;
+  const shoppingListEnabled    = document.getElementById('settingsShoppingList')?.checked === true;
 
   updateState('settings', current => ({
     ...current,
@@ -212,6 +213,7 @@ function saveSettings() {
     coffeeCartModeEnabled,
     productLabModeEnabled,
     recipeCatalogEnabled,
+    shoppingListEnabled,
     ...(voidPin ? { voidPin } : {})
   }));
 
@@ -223,6 +225,7 @@ function saveSettings() {
   if (typeof applyCoffeeCartModeToggle  === 'function') applyCoffeeCartModeToggle();
   applyProductLabModeToggle();
   if (typeof applyRecipeCatalogToggle   === 'function') applyRecipeCatalogToggle();
+  if (typeof applyShoppingListToggle    === 'function') applyShoppingListToggle();
   showNotification('Settings saved', 'success');
 }
 
@@ -259,6 +262,9 @@ function renderBranding() {
 
   const recipeCatalogToggle = document.getElementById('settingsRecipeCatalogMode');
   if (recipeCatalogToggle) recipeCatalogToggle.checked = APP_STATE.settings?.recipeCatalogEnabled === true;
+
+  const shoppingListToggle = document.getElementById('settingsShoppingList');
+  if (shoppingListToggle) shoppingListToggle.checked = APP_STATE.settings?.shoppingListEnabled === true;
 
   _renderPaymentQRBoxes();
   renderPaymentMethodsList();
@@ -773,3 +779,24 @@ window.saveReceiptUrlFromPopup  = saveReceiptUrlFromPopup;
 window.openVoidPinPopup         = openVoidPinPopup;
 window.saveVoidPinFromPopup     = saveVoidPinFromPopup;
 window._updateReceiptUrlBadge   = _updateReceiptUrlBadge;
+
+function applyShoppingListToggle() {
+  const enabled = APP_STATE.settings?.shoppingListEnabled === true;
+  const fab     = document.getElementById('shoppingWidgetFab');
+  const panel   = document.getElementById('shoppingWidgetPanel');
+
+  if (fab) {
+    fab.style.display = enabled ? 'flex' : 'none';
+  }
+
+  // If disabled while panel is open, close it cleanly
+  if (!enabled && panel && panel.style.display !== 'none') {
+    panel.style.display = 'none';
+    // Reset the internal open state so it doesn't re-open stale
+    if (typeof toggleShoppingWidget === 'function' && window._swOpen) {
+      window._swOpen = false;
+    }
+  }
+}
+
+window.applyShoppingListToggle = applyShoppingListToggle;
