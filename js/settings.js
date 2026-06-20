@@ -785,17 +785,13 @@ function applyShoppingListToggle() {
   const fab     = document.getElementById('shoppingWidgetFab');
   const panel   = document.getElementById('shoppingWidgetPanel');
 
-  if (fab) {
-    fab.style.display = enabled ? 'flex' : 'none';
-  }
+  if (fab) fab.style.display = enabled ? 'flex' : 'none';
 
-  // If disabled while panel is open, close it cleanly
-  if (!enabled && panel && panel.style.display !== 'none') {
-    panel.style.display = 'none';
-    // Reset the internal open state so it doesn't re-open stale
-    if (typeof toggleShoppingWidget === 'function' && window._swOpen) {
-      window._swOpen = false;
-    }
+  // If disabled while modal is open, close it
+  if (!enabled && panel && panel.classList.contains('active')) {
+    panel.classList.remove('active');
+    document.body.style.overflow = '';
+    window._swOpen = false;
   }
 }
 

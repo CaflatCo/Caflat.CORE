@@ -22,10 +22,21 @@ function toggleShoppingWidget() {
   _swOpen = !_swOpen;
   const panel = document.getElementById('shoppingWidgetPanel');
   const fab   = document.getElementById('shoppingWidgetFab');
-  if (panel) panel.style.display = _swOpen ? 'block' : 'none';
-  if (fab)   fab.style.transform = _swOpen ? 'scale(0.92)' : 'scale(1)';
+
+  if (panel) {
+    if (_swOpen) {
+      panel.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    } else {
+      panel.classList.remove('active');
+      if (!document.querySelector('.modal-overlay.active')) {
+        document.body.style.overflow = '';
+      }
+    }
+  }
+  if (fab) fab.style.transform = _swOpen ? 'scale(0.92)' : 'scale(1)';
+
   if (_swOpen) {
-    // Check if Production Mode is on — default to production if jobs exist
     const hasActiveJobs = (APP_STATE.productionJobs || []).some(j =>
       ['PLANNED','IN_PROGRESS'].includes(j.status));
     if (!APP_STATE.settings?.productionModeEnabled || !hasActiveJobs) {
@@ -85,15 +96,16 @@ function _generateFromProduction() {
   return forecast
     .filter(item => item.shortfall > 0)
     .map(item => {
-      const ing    = _getIngredients().find(i => i.id === item.id) || {};
-      const pkgQty = Math.max(1, Number(ing.packageQty || 1));
-      const pkgCost= Number(ing.packageCost || 0);
-      const packs  = Math.max(1, Math.ceil(item.shortfall / pkgQty));
+      const ing     = _getIngredients().find(i => i.id === item.id) || {};
+      const pkgQty  = Number(ing.packageQuantity || 0);
+      const pkgCost = Number(ing.packageCost || 0);
+      const hasPkgData = pkgQty > 1 && pkgCost > 0;
+      const packs   = hasPkgData ? Math.max(1, Math.ceil(item.shortfall / pkgQty)) : null;
       return {
-        id: item.id, name: item.name, unit: item.unit || '',
+        id: item.id, name: item.name, unit: ing.unit || item.unit || '',
         shortfall: item.shortfall, onHand: item.onHand,
-        pkgQty, pkgCost, packs, totalCost: packs * pkgCost,
-        pkgWarning: pkgQty < 10 && item.shortfall > 50,
+        pkgQty, pkgCost, hasPkgData,
+        packs, totalCost: hasPkgData ? packs * pkgCost : 0,
         checked: false
       };
     });
@@ -103,17 +115,17 @@ function _generateFromLowStock() {
   return _getIngredients()
     .filter(ing => Number(ing.stock || 0) <= Number(ing.reorderLevel || 0))
     .map(ing => {
-      const stock  = Number(ing.stock || 0);
-      const reorder= Number(ing.reorderLevel || 0);
-      const pkgQty = Math.max(1, Number(ing.packageQty || 1));
-      const pkgCost= Number(ing.packageCost || 0);
-      const shortfall = Math.max(pkgQty, reorder - stock + pkgQty);
-      const packs     = Math.max(1, Math.ceil(shortfall / pkgQty));
+      const stock      = Number(ing.stock || 0);
+      const reorder    = Number(ing.reorderLevel || 0);
+      const pkgQty     = Number(ing.packageQuantity || 0);
+      const pkgCost    = Number(ing.packageCost || 0);
+      const hasPkgData = pkgQty > 1 && pkgCost > 0;
+      const shortfall  = Math.max(reorder - stock, 0);
+      const packs      = hasPkgData ? Math.max(1, Math.ceil(shortfall / pkgQty)) : null;
       return {
         id: ing.id, name: ing.name, unit: ing.unit || '',
-        shortfall, onHand: stock, pkgQty, pkgCost,
-        packs, totalCost: packs * pkgCost,
-        pkgWarning: pkgQty < 10 && shortfall > 50,
+        shortfall, onHand: stock, pkgQty, pkgCost, hasPkgData,
+        packs, totalCost: hasPkgData ? packs * pkgCost : 0,
         checked: false
       };
     });
@@ -136,35 +148,66 @@ function addFreeListItem() {
   const qtyEl = document.getElementById('swIngQty');
   if (!selEl || !selEl.value) { showNotification('Select an ingredient', 'error'); return; }
 
-  const ing    = _getIngredients().find(i => i.id === selEl.value);
+  const ing     = _getIngredients().find(i => i.id === selEl.value);
   if (!ing) return;
 
-  const qty    = Number(qtyEl?.value || 0);
-  const pkgQty = Math.max(1, Number(ing.packageQty || 1));
-  const pkgCost= Number(ing.packageCost || 0);
-  const packs  = qty > 0 ? Math.max(1, Math.ceil(qty / pkgQty)) : 1;
+  const qty     = Number(qtyEl?.value || 0);
+  const pkgQty  = Number(ing.packageQuantity || 0);
+  const pkgCost = Number(ing.packageCost || 0);
+  const hasPkgData = pkgQty > 1 && pkgCost > 0;
+  const packs   = hasPkgData && qty > 0 ? Math.max(1, Math.ceil(qty / pkgQty)) : null;
 
-  // If already in free list, update quantity
   const existing = _swFreeItems.find(i => i.id === ing.id);
   if (existing) {
     existing.shortfall = qty;
-    existing.packs = packs;
-    existing.totalCost = packs * pkgCost;
+    existing.packs     = packs;
+    existing.hasPkgData= hasPkgData;
+    existing.totalCost = hasPkgData && packs ? packs * pkgCost : 0;
   } else {
     _swFreeItems.push({
       id: ing.id, name: ing.name, unit: ing.unit || '',
       shortfall: qty, onHand: Number(ing.stock || 0),
-      pkgQty, pkgCost, packs, totalCost: packs * pkgCost,
-      pkgWarning: false, checked: false, isFreeItem: true
+      pkgQty, pkgCost, hasPkgData,
+      packs, totalCost: hasPkgData && packs ? packs * pkgCost : 0,
+      checked: false, isFreeItem: true
     });
   }
 
-  // Reset selectors
   selEl.value = '';
   if (qtyEl) qtyEl.value = '';
   _swRenderList();
   _swUpdateBadge();
   showNotification(`${ing.name} added`, 'success');
+}
+
+function addCustomListItem() {
+  const nameEl = document.getElementById('swCustomName');
+  const qtyEl  = document.getElementById('swCustomQty');
+  const unitEl = document.getElementById('swCustomUnit');
+  const costEl = document.getElementById('swCustomCost');
+
+  const name = (nameEl?.value || '').trim();
+  if (!name) { showNotification('Enter an item name', 'error'); return; }
+
+  const qty  = Number(qtyEl?.value || 0);
+  const unit = (unitEl?.value || '').trim();
+  const cost = Number(costEl?.value || 0);
+
+  _swFreeItems.push({
+    id: null, name, unit,
+    shortfall: qty, onHand: 0,
+    pkgQty: 0, pkgCost: cost, hasPkgData: cost > 0,
+    packs: null, totalCost: cost,
+    checked: false, isFreeItem: true, isCustom: true
+  });
+
+  if (nameEl) nameEl.value = '';
+  if (qtyEl)  qtyEl.value  = '';
+  if (unitEl) unitEl.value = '';
+  if (costEl) costEl.value = '';
+  _swRenderList();
+  _swUpdateBadge();
+  showNotification(`${name} added`, 'success');
 }
 
 /* ════════════════════════════════════════════════════════
@@ -191,34 +234,43 @@ function _swRenderList() {
   }
 
   container.innerHTML = items.map((item, idx) => {
-    const hasPackageData = item.pkgCost > 0;
+    const hasPackageData = item.hasPkgData && item.pkgCost > 0;
+    const qty = item.shortfall > 0
+      ? `${item.shortfall % 1 === 0 ? item.shortfall : item.shortfall.toFixed(2)} ${item.unit}`.trim()
+      : item.unit || '';
+    const pkgLine = hasPackageData && item.packs
+      ? `${item.packs} × ${item.pkgQty}${item.unit} pkg`
+      : '';
+    const costDisplay = hasPackageData && item.totalCost > 0
+      ? formatCurrency(item.totalCost)
+      : item.isCustom && item.pkgCost > 0
+        ? formatCurrency(item.pkgCost)
+        : '—';
     return `<div style="display:flex;align-items:flex-start;gap:8px;
-      padding:9px 0;border-bottom:1px solid var(--border);
+      padding:10px 0;border-bottom:1px solid var(--border);
       opacity:${item.checked ? '0.4' : '1'};">
       <input type="checkbox" ${item.checked ? 'checked' : ''}
         onchange="_swToggleCheck(${idx}, this.checked)"
         style="margin-top:3px;width:15px;height:15px;cursor:pointer;flex-shrink:0;" />
       <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;font-weight:800;
+        <div style="font-size:13px;font-weight:800;
           ${item.checked ? 'text-decoration:line-through;' : ''}">
           ${escapeHtml(item.name)}
-          ${item.pkgWarning ? '<span style="color:#b45309;font-size:9px;"> ⚠ check pkg size</span>' : ''}
         </div>
-        <div style="font-size:10px;color:var(--gray-400);margin-top:1px;">
-          ${item.shortfall > 0 ? `Need: ${item.shortfall.toFixed(1)} ${item.unit}` : item.unit}
-          ${item.pkgQty ? ` · Pkg: ${item.pkgQty} ${item.unit}` : ''}
+        <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+          ${qty}${pkgLine ? ` · ${pkgLine}` : ''}
         </div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:13px;font-weight:900;">${item.packs} pk</div>
-        <div style="font-size:11px;color:${hasPackageData ? 'var(--black)' : 'var(--gray-300)'};">
-          ${hasPackageData ? formatCurrency(item.totalCost) : '—'}
+        <div style="font-size:13px;font-weight:900;
+          color:${costDisplay === '—' ? 'var(--gray-300)' : 'var(--black)'};">
+          ${costDisplay}
         </div>
       </div>
-      ${_swMode === 'free' ? `
+      ${item.isFreeItem ? `
       <button type="button" onclick="_swRemoveFree(${idx})"
         style="background:none;border:none;cursor:pointer;color:var(--gray-300);
-          font-size:14px;padding:0 2px;flex-shrink:0;">✕</button>` : ''}
+          font-size:16px;padding:0 2px;flex-shrink:0;line-height:1;">✕</button>` : ''}
     </div>`;
   }).join('');
 
@@ -318,8 +370,9 @@ function shareShoppingList() {
 window.toggleShoppingWidget = toggleShoppingWidget;
 window.switchWidgetMode     = switchWidgetMode;
 window.addFreeListItem      = addFreeListItem;
+window.addCustomListItem    = addCustomListItem;
 window._swToggleCheck       = _swToggleCheck;
 window._swRemoveFree        = _swRemoveFree;
 window.saveShoppingList     = saveShoppingList;
 window.shareShoppingList    = shareShoppingList;
-window.openShoppingListModal= toggleShoppingWidget; // backwards compat
+window.openShoppingListModal= toggleShoppingWidget;
