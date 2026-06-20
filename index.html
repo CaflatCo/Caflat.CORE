@@ -1156,13 +1156,30 @@
                 <option value="">Select category preset…</option>
               </select>
               <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;cursor:pointer;">
-                <input type="checkbox" id="labRecipeModeToggle" onchange="_refreshLabCalcs();" />Batch mode
+                <input type="checkbox" id="labRecipeModeToggle"
+                  onchange="if(LAB_SESSION){LAB_SESSION.recipeMode=this.checked?'batch':'unit';renderLabView();}" />Batch mode
               </label>
-              <div style="display:flex;align-items:center;gap:6px;font-size:13px;">
+              <div style="display:flex;align-items:center;gap:6px;font-size:13px;flex-wrap:wrap;">
                 Batch size:
-                <input id="labBatchSize" type="number" min="1" value="1" onchange="_refreshLabCalcs();"
+                <input id="labBatchSize" type="number" min="1" value="1"
+                  oninput="if(LAB_SESSION){LAB_SESSION.batchSize=Math.max(1,Number(this.value||1));}"
                   style="width:70px;padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
                 units
+                <button type="button" class="btn btn-sm"
+                  onclick="if(LAB_SESSION){LAB_SESSION.batchSize=Math.max(1,Number(document.getElementById('labBatchSize').value||1));renderLabView();}">
+                  Update
+                </button>
+                <span style="font-size:11px;color:var(--gray-400);font-weight:600;">Quick:</span>
+                <button type="button" onclick="if(LAB_SESSION){LAB_SESSION.batchSize=10;document.getElementById('labBatchSize').value=10;renderLabView();}"
+                  class="btn btn-secondary btn-sm">10</button>
+                <button type="button" onclick="if(LAB_SESSION){LAB_SESSION.batchSize=20;document.getElementById('labBatchSize').value=20;renderLabView();}"
+                  class="btn btn-secondary btn-sm">20</button>
+                <button type="button" onclick="if(LAB_SESSION){LAB_SESSION.batchSize=24;document.getElementById('labBatchSize').value=24;renderLabView();}"
+                  class="btn btn-secondary btn-sm">24</button>
+                <button type="button" onclick="if(LAB_SESSION){LAB_SESSION.batchSize=30;document.getElementById('labBatchSize').value=30;renderLabView();}"
+                  class="btn btn-secondary btn-sm">30</button>
+                <button type="button" onclick="if(LAB_SESSION){LAB_SESSION.batchSize=40;document.getElementById('labBatchSize').value=40;renderLabView();}"
+                  class="btn btn-secondary btn-sm">40</button>
               </div>
             </div>
             <div id="labIngredientRows"></div>
@@ -1190,6 +1207,25 @@
             </div>
             <!-- Pricing -->
             <div class="section-title" style="margin-top:24px;">Cost &amp; Pricing</div>
+            <!-- Cost summary row -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
+              <div style="padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-lg);background:var(--gray-50);">
+                <div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Ingredient Cost</div>
+                <div id="labIngCostTotal" style="font-size:16px;font-weight:900;font-variant-numeric:tabular-nums;">₱0.00</div>
+              </div>
+              <div style="padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-lg);background:var(--gray-50);">
+                <div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Packaging Cost</div>
+                <div id="labPkgCostTotal" style="font-size:16px;font-weight:900;font-variant-numeric:tabular-nums;">₱0.00</div>
+              </div>
+              <div style="padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-lg);background:var(--gray-50);">
+                <div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Total COGS</div>
+                <div id="labTotalCost" style="font-size:16px;font-weight:900;font-variant-numeric:tabular-nums;">₱0.00</div>
+              </div>
+              <div style="padding:12px 14px;border:1.5px solid var(--black);border-radius:var(--radius-lg);background:var(--black);">
+                <div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px;">Cost / Unit</div>
+                <div id="labCostPerUnit" style="font-size:16px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--white);">₱0.00</div>
+              </div>
+            </div>
             <div id="labScenariosContainer"></div>
             <!-- Supply -->
             <div class="section-title" style="margin-top:24px;">Supply Assessment</div>
