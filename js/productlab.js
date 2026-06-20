@@ -396,7 +396,7 @@ function renderLabRecipeBuilder() {
 
 function _syncRecipeModeToggle() {
   const toggle = document.getElementById('labRecipeModeToggle');
-  if (toggle && LAB_SESSION) toggle.value = LAB_SESSION.recipeMode || 'batch';
+  if (toggle && LAB_SESSION) toggle.checked = (LAB_SESSION.recipeMode || 'batch') === 'batch';
   // Update qty labels
   const label = LAB_SESSION?.recipeMode === 'batch' ? 'Qty/batch' : 'Qty/unit';
   document.querySelectorAll('[id^="labQtyLabel_"]').forEach(el => {
@@ -463,12 +463,10 @@ function _updateLabCategorySelect() {
 function _syncBatchSizeInput() {
   const inp = document.getElementById('labBatchSize');
   if (!inp || !LAB_SESSION) return;
-  // Never overwrite while user is editing (works on iOS Safari too)
-  if (inp.dataset.userEditing === '1') return;
-  if (document.activeElement === inp) return;
-  // Sync only if value differs from state
+  // Always sync from state — the input writes to state immediately on oninput,
+  // so this just keeps the displayed value correct after re-renders
   const stateVal = LAB_SESSION.batchSize || 1;
-  inp.value = stateVal > 1 ? String(stateVal) : '';
+  inp.value = String(stateVal);
   inp.placeholder = 'e.g. 24';
 }
 
@@ -671,61 +669,84 @@ function renderLabPricing() {
   // Render scenario columns
   const container = document.getElementById('labScenariosContainer');
   if (!container) return;
-  container.innerHTML = scenarios.map((sc, i) => `
-    <div class="lab-scenario-card${LAB_SESSION.selectedScenario === i ? ' active' : ''}"
-      data-scenario="${i}">
-      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;
-        font-weight:800;color:${LAB_SESSION.selectedScenario===i?'rgba(255,255,255,.6)':'var(--gray-400)'};
-        margin-bottom:8px;">
-        ${i===0?'CONSERVATIVE':i===1?'TARGET':'PREMIUM'}
-      </div>
-      <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px;">
-        <input type="number" class="lab-margin-input" data-scenario="${i}"
-          value="${sc.margin.toFixed(1)}" min="0" max="99" step="0.5"
-          style="width:56px;padding:4px 6px;border:1px solid ${LAB_SESSION.selectedScenario===i?'rgba(255,255,255,.3)':'var(--gray-200)'};
-            border-radius:var(--radius-md);font-size:12px;font-weight:800;
-            background:${LAB_SESSION.selectedScenario===i?'rgba(255,255,255,.1)':'var(--white)'};
-            color:${LAB_SESSION.selectedScenario===i?'white':'black'};
-            font-family:var(--font-main);text-align:center;" />
-        <span style="font-size:11px;font-weight:700;">% margin</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-        <span style="font-size:11px;color:${LAB_SESSION.selectedScenario===i?'rgba(255,255,255,.6)':'var(--gray-400)'};
-          white-space:nowrap;">Price ₱</span>
-        <input type="number" class="lab-price-input" data-scenario="${i}"
-          value="${sc.price.toFixed(2)}" min="0" step="0.01"
-          style="width:100px;padding:5px 8px;font-size:16px;font-weight:900;
-            border:1px solid ${LAB_SESSION.selectedScenario===i?'rgba(255,255,255,.3)':'var(--gray-200)'};
-            border-radius:var(--radius-md);
-            background:${LAB_SESSION.selectedScenario===i?'rgba(255,255,255,.1)':'var(--white)'};
-            color:${LAB_SESSION.selectedScenario===i?'white':'black'};
-            font-family:var(--font-main);font-variant-numeric:tabular-nums;" />
-      </div>
-      <div style="font-size:11px;margin-bottom:2px;">
-        Profit/unit: <strong>${formatCurrency(sc.profitPerUnit)}</strong>
-      </div>
-      <div style="font-size:11px;margin-bottom:2px;">
-        Effective margin: <strong>${sc.effectiveMargin.toFixed(1)}%</strong>
-      </div>
-      <div style="font-size:11px;margin-bottom:2px;">
-        Break-even: <strong>${sc.breakEven} units</strong>
-      </div>
-      <div style="font-size:11px;">
-        Batch profit: <strong>${formatCurrency(sc.batchProfit)}</strong>
-      </div>
-      <div style="margin-top:8px;">
-        <button type="button" class="lab-select-scenario"
-          data-scenario="${i}"
-          style="width:100%;padding:6px;font-size:10px;font-weight:800;
-            letter-spacing:1px;text-transform:uppercase;cursor:pointer;
-            border-radius:var(--radius-md);font-family:var(--font-main);
-            background:${LAB_SESSION.selectedScenario===i?'rgba(255,255,255,.2)':'var(--black)'};
-            color:${LAB_SESSION.selectedScenario===i?'white':'white'};
-            border:${LAB_SESSION.selectedScenario===i?'2px solid rgba(255,255,255,.5)':'none'};">
-          ${LAB_SESSION.selectedScenario===i ? '✓ Selected' : 'Select'}
+
+  const labels = ['CONSERVATIVE', 'TARGET', 'PREMIUM'];
+
+  container.innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px;">' +
+    scenarios.map((sc, i) => {
+      const isActive = LAB_SESSION.selectedScenario === i;
+      const cardBg   = isActive ? 'var(--black)' : 'var(--white)';
+      const cardBd   = isActive ? 'none' : '1.5px solid var(--border)';
+      const textClr  = isActive ? 'rgba(255,255,255,.55)' : 'var(--gray-400)';
+      const boldClr  = isActive ? 'var(--white)' : 'var(--black)';
+      const inpBd    = isActive ? '1px solid rgba(255,255,255,.25)' : '1.5px solid var(--border)';
+      const inpBg    = isActive ? 'rgba(255,255,255,.08)' : 'var(--white)';
+      const inpClr   = isActive ? 'var(--white)' : 'var(--black)';
+      const btnBg    = isActive ? 'rgba(255,255,255,.15)' : 'var(--black)';
+      const btnBd    = isActive ? '1.5px solid rgba(255,255,255,.3)' : 'none';
+      const btnLbl   = isActive ? '&#10003; Selected' : 'SELECT';
+      return `
+      <div data-scenario="${i}"
+        style="background:${cardBg};border:${cardBd};border-radius:var(--radius-xl);
+          padding:18px 16px;display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;
+          font-weight:800;color:${textClr};">${labels[i]}</div>
+
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" class="lab-margin-input" data-scenario="${i}"
+            value="${sc.margin.toFixed(1)}" min="0" max="99" step="0.5"
+            style="width:60px;padding:5px 8px;border:${inpBd};
+              border-radius:var(--radius-md);font-size:13px;font-weight:800;
+              background:${inpBg};color:${inpClr};
+              font-family:var(--font-main);text-align:center;" />
+          <span style="font-size:11px;font-weight:700;color:${boldClr};">% margin</span>
+        </div>
+
+        <div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:.5px;
+            text-transform:uppercase;color:${textClr};margin-bottom:4px;">Price &#8369;</div>
+          <input type="number" class="lab-price-input" data-scenario="${i}"
+            value="${sc.price.toFixed(2)}" min="0" step="0.01"
+            style="width:100%;padding:7px 10px;font-size:18px;font-weight:900;
+              border:${inpBd};border-radius:var(--radius-md);
+              background:${inpBg};color:${boldClr};
+              font-family:var(--font-main);font-variant-numeric:tabular-nums;" />
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:4px;
+          padding:10px 12px;border-radius:var(--radius-md);
+          background:${isActive ? 'rgba(255,255,255,.07)' : 'var(--gray-50)'};
+          border:${isActive ? '1px solid rgba(255,255,255,.1)' : '1px solid var(--border)'};">
+          <div style="display:flex;justify-content:space-between;font-size:11px;">
+            <span style="color:${textClr};">Profit/unit</span>
+            <strong style="color:${boldClr};">${formatCurrency(sc.profitPerUnit)}</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;">
+            <span style="color:${textClr};">Margin</span>
+            <strong style="color:${boldClr};">${sc.effectiveMargin.toFixed(1)}%</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;">
+            <span style="color:${textClr};">Break-even</span>
+            <strong style="color:${boldClr};">${sc.breakEven} units</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;
+            padding-top:6px;border-top:1px solid ${isActive ? 'rgba(255,255,255,.12)' : 'var(--border)'};">
+            <span style="color:${textClr};">Batch profit</span>
+            <strong style="color:${isActive ? '#86efac' : '#15803d'};">${formatCurrency(sc.batchProfit)}</strong>
+          </div>
+        </div>
+
+        <button type="button" class="lab-select-scenario" data-scenario="${i}"
+          style="width:100%;padding:9px;font-size:10px;font-weight:800;
+            letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;
+            border-radius:var(--radius-full);font-family:var(--font-main);
+            background:${btnBg};color:var(--white);border:${btnBd};">
+          ${btnLbl}
         </button>
-      </div>
-    </div>`).join('');
+      </div>`;
+    }).join('') +
+    '</div>';
 
   // Event delegation on #view-lab handles scenario inputs
 
