@@ -653,9 +653,13 @@ function _generateReceiptQR(transaction) {
   const baseUrl    = String(APP_STATE.settings?.receiptBaseUrl || '').trim();
 
   // If a URL is configured, encode that — otherwise encode plain text summary
+  // Strip non-latin-1 characters (like ₱) from QR text — the QR generator uses
+  // byte mode (latin-1), so characters above 0xFF get silently corrupted,
+  // producing a valid-looking code that decodes to garbled text.
+  const sanitizeForQR = str => str.replace(/₱/g, 'PHP').replace(/[^\x00-\xFF]/g, '');
   const text = baseUrl
-    ? `${baseUrl}?r=${encodeURIComponent(receipt)}`
-    : [brand, receipt, total, date].filter(Boolean).join('\n');
+    ? sanitizeForQR(`${baseUrl}?r=${encodeURIComponent(receipt)}`)
+    : sanitizeForQR([brand, receipt, total, date].filter(Boolean).join('\n'));
 
   const qrDiv = document.getElementById('receiptQRDiv');
   if (!qrDiv) return;
