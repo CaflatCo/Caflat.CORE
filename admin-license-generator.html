@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Caflat.CORE — License Generator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f0f0f; color: #fff; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    background: #1a1a1a; border: 1px solid #2a2a2a;
+    border-radius: 16px; padding: 32px; width: 100%; max-width: 520px;
+  }
+  h1 { font-size: 20px; font-weight: 900; margin-bottom: 4px; }
+  .sub { font-size: 12px; color: #666; margin-bottom: 28px; }
+  label { font-size: 11px; font-weight: 700; letter-spacing: .5px;
+    text-transform: uppercase; color: #666; display: block; margin-bottom: 6px; }
+  input, select {
+    width: 100%; padding: 10px 14px; background: #0f0f0f;
+    border: 1.5px solid #2a2a2a; border-radius: 8px; color: #fff;
+    font-size: 14px; font-family: inherit; margin-bottom: 16px;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: #444; }
+  select option { background: #1a1a1a; }
+  button {
+    width: 100%; padding: 12px; background: #fff; color: #0f0f0f;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: 800;
+    cursor: pointer; margin-top: 4px;
+  }
+  button:hover { background: #eee; }
+  button:disabled { background: #333; color: #666; cursor: not-allowed; }
+  .result {
+    display: none; margin-top: 20px; padding: 16px;
+    background: #0f0f0f; border: 1.5px solid #2a2a2a;
+    border-radius: 10px;
+  }
+  .key-display {
+    font-family: 'Courier New', monospace; font-size: 18px;
+    font-weight: 900; letter-spacing: 2px; color: #fff;
+    text-align: center; margin: 10px 0; word-break: break-all;
+  }
+  .copy-btn {
+    background: #2a2a2a; color: #fff; margin-top: 10px;
+    font-size: 12px; padding: 8px;
+  }
+  .copy-btn:hover { background: #333; }
+  .meta { font-size: 11px; color: #666; text-align: center; margin-top: 8px; }
+  .error { color: #ef4444; font-size: 13px; margin-top: 12px; text-align: center; }
+  .success-tag { font-size: 10px; font-weight: 800; letter-spacing: 1px;
+    padding: 2px 8px; border-radius: 999px; background: #16a34a20;
+    color: #16a34a; display: inline-block; margin-bottom: 8px; }
+  .divider { border: none; border-top: 1px solid #2a2a2a; margin: 24px 0; }
+  .history { max-height: 300px; overflow-y: auto; }
+  .history-item {
+    padding: 10px 12px; border: 1px solid #2a2a2a; border-radius: 8px;
+    margin-bottom: 8px; font-size: 12px;
+  }
+  .history-item .hkey { font-family: monospace; font-size: 13px;
+    font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .history-item .hmeta { color: #666; }
+  .badge {
+    font-size: 9px; font-weight: 900; padding: 1px 6px;
+    border-radius: 999px; display: inline-block; margin-left: 6px;
+  }
+  .badge-pro  { background: #fff; color: #0f0f0f; }
+  .badge-used { background: #ef444420; color: #ef4444; }
+  .badge-ok   { background: #16a34a20; color: #16a34a; }
+  .badge-rev  { background: #f9731620; color: #f97316; }
+  #authScreen { text-align: center; }
+  #authScreen input { max-width: 280px; margin: 12px auto 8px; }
+  #authScreen button { max-width: 280px; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<!-- Auth gate — simple password so only Clyde can access -->
+<div class="card" id="authScreen">
+  <h1>🔐 Admin Access</h1>
+  <p class="sub">License Generator — Caflat.CORE</p>
+  <label>Admin Password</label>
+  <input type="password" id="adminPass" placeholder="Enter admin password" />
+  <button onclick="checkAdminAuth()">Enter</button>
+  <div class="error" id="authError"></div>
+</div>
+
+<div class="card" id="mainScreen" style="display:none;">
+  <h1>License Generator</h1>
+  <p class="sub">Caflat.CORE · Private Admin Tool</p>
+
+  <label>Client Name</label>
+  <input type="text" id="clientName" placeholder="e.g. Buzzd Cafe" />
+
+  <label>Tier</label>
+  <select id="tier">
+    <option value="pro">PRO — ₱499</option>
+  </select>
+
+  <label>Duration</label>
+  <select id="duration">
+    <option value="1">1 Month</option>
+    <option value="3">3 Months</option>
+    <option value="6" selected>6 Months</option>
+    <option value="12">1 Year</option>
+    <option value="24">2 Years</option>
+    <option value="0">Lifetime (No Expiry)</option>
+  </select>
+
+  <button id="generateBtn" onclick="generateKey()">Generate License Key</button>
+  <div class="error" id="genError"></div>
+
+  <div class="result" id="result">
+    <div class="success-tag">✓ KEY GENERATED</div>
+    <div class="key-display" id="generatedKey"></div>
+    <div class="meta" id="keyMeta"></div>
+    <button class="copy-btn" onclick="copyKey()">Copy Key</button>
+  </div>
+
+  <hr class="divider" />
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <label style="margin:0;">Generated Keys</label>
+    <button style="width:auto;padding:6px 14px;font-size:12px;background:#2a2a2a;color:#fff;" onclick="loadKeys()">Refresh</button>
+  </div>
+  <div class="history" id="keyHistory">
+    <div style="color:#666;font-size:12px;text-align:center;padding:16px;">Loading…</div>
+  </div>
+</div>
+
+<script>
+const SB_URL  = 'https://tkrsebalgonimmozbgqc.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcnNlYmFsZ29uaW1tb3piZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMjc5NzEsImV4cCI6MjA5NzYwMzk3MX0.OKp5NCLYnL-5CFWnvXpA2E78jNi5r63Jzs2zABAkzsw';
+
+// Simple admin password — change this to something only you know
+const ADMIN_PASS = 'caflat-admin-2026';
+
+function checkAdminAuth() {
+  const pass = document.getElementById('adminPass').value;
+  if (pass === ADMIN_PASS) {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('mainScreen').style.display = 'block';
+    loadKeys();
+  } else {
+    document.getElementById('authError').textContent = 'Incorrect password.';
+  }
+}
+
+document.getElementById('adminPass')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkAdminAuth();
+});
+
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
+  const seg = () => Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+  return `CAFLAT-${seg()}-${seg()}-${seg()}`;
+}
+
+async function generateKey() {
+  const clientName = document.getElementById('clientName').value.trim();
+  const tier       = document.getElementById('tier').value;
+  const months     = parseInt(document.getElementById('duration').value);
+  const errEl      = document.getElementById('genError');
+  const btn        = document.getElementById('generateBtn');
+
+  errEl.textContent = '';
+  if (!clientName) { errEl.textContent = 'Client name is required.'; return; }
+
+  btn.textContent = 'Generating…';
+  btn.disabled = true;
+
+  const code = generateCode();
+
+  let expires_at = null;
+  if (months > 0) {
+    const d = new Date();
+    d.setMonth(d.getMonth() + months);
+    expires_at = d.toISOString();
+  }
+
+  const res = await fetch(`${SB_URL}/rest/v1/licenses`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SB_ANON,
+      'Authorization': `Bearer ${SB_ANON}`,
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({ code, client_name: clientName, tier, duration_months: months, expires_at })
+  });
+
+  btn.textContent = 'Generate License Key';
+  btn.disabled = false;
+
+  if (!res.ok) {
+    const t = await res.text();
+    errEl.textContent = 'Failed to save key: ' + t;
+    return;
+  }
+
+  document.getElementById('generatedKey').textContent = code;
+  document.getElementById('keyMeta').textContent =
+    `${clientName} · ${tier.toUpperCase()} · ${months === 0 ? 'Lifetime' : months + ' month' + (months > 1 ? 's' : '')}` +
+    (expires_at ? ` · Expires ${new Date(expires_at).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'})}` : '');
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('clientName').value = '';
+  loadKeys();
+}
+
+function copyKey() {
+  const key = document.getElementById('generatedKey').textContent;
+  navigator.clipboard.writeText(key).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = 'Copy Key', 2000);
+  });
+}
+
+async function loadKeys() {
+  const container = document.getElementById('keyHistory');
+  container.innerHTML = '<div style="color:#666;font-size:12px;text-align:center;padding:16px;">Loading…</div>';
+
+  const res = await fetch(`${SB_URL}/rest/v1/licenses?select=*&order=created_at.desc&limit=50`, {
+    headers: { 'apikey': SB_ANON, 'Authorization': `Bearer ${SB_ANON}` }
+  });
+
+  if (!res.ok) { container.innerHTML = '<div style="color:#ef4444;font-size:12px;">Failed to load keys.</div>'; return; }
+
+  const keys = await res.json();
+  if (!keys.length) { container.innerHTML = '<div style="color:#666;font-size:12px;text-align:center;padding:16px;">No keys generated yet.</div>'; return; }
+
+  container.innerHTML = keys.map(k => {
+    const expiry = k.expires_at
+      ? new Date(k.expires_at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})
+      : 'Lifetime';
+    const created = new Date(k.created_at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+    const statusBadge = k.revoked
+      ? '<span class="badge badge-rev">REVOKED</span>'
+      : k.activated
+        ? '<span class="badge badge-used">USED</span>'
+        : '<span class="badge badge-ok">UNUSED</span>';
+
+    return `<div class="history-item">
+      <div class="hkey">${k.code} <span class="badge badge-pro">${k.tier.toUpperCase()}</span>${statusBadge}</div>
+      <div class="hmeta">
+        ${k.client_name} · Created ${created} · Expires ${expiry}
+        ${k.activated ? `<br>Activated ${new Date(k.activated_at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}` : ''}
+      </div>
+      ${!k.revoked && !k.activated ? `<button onclick="revokeKey('${k.code}')" style="width:auto;padding:4px 12px;font-size:11px;background:#ef444420;color:#ef4444;margin-top:8px;">Revoke</button>` : ''}
+      ${k.activated && !k.revoked ? `<button onclick="revokeKey('${k.code}')" style="width:auto;padding:4px 12px;font-size:11px;background:#f9731620;color:#f97316;margin-top:8px;">Revoke Access</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function revokeKey(code) {
+  if (!confirm(`Revoke key ${code}?\n\nThe client's app will revert to free plan on next check (within 7 days).`)) return;
+
+  const res = await fetch(`${SB_URL}/rest/v1/licenses?code=eq.${encodeURIComponent(code)}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SB_ANON,
+      'Authorization': `Bearer ${SB_ANON}`,
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({ revoked: true, revoked_at: new Date().toISOString() })
+  });
+
+  if (res.ok) { loadKeys(); }
+  else { alert('Revocation failed.'); }
+}
+</script>
+</body>
+</html>
