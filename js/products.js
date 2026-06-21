@@ -74,6 +74,14 @@ function saveProduct() {
 
   const products = getProducts();
   const existing = products.find(p => String(p.id) === String(data.id));
+
+  // Free tier product limit — only block NEW products, not edits
+  if (!existing && typeof isAtProductLimit === 'function' && isAtProductLimit()) {
+    showNotification(`Free plan is limited to ${FREE_PRODUCT_LIMIT || 50} products. Upgrade to PRO to add more.`, 'error');
+    if (typeof openLicenseModal === 'function') setTimeout(openLicenseModal, 600);
+    return;
+  }
+
   const idx = products.findIndex(p => String(p.id) === String(data.id));
   if (idx >= 0) products[idx] = data;
   else products.push(data);

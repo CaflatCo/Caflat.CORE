@@ -5,6 +5,7 @@
 function initializeApp() {
   try {
     if (typeof restorePersistedState === 'function') restorePersistedState();
+    if (typeof initializeLicense === 'function') initializeLicense();
     if (typeof initializeAuth === 'function') initializeAuth();
     if (typeof initializeUIActions === 'function') initializeUIActions();
     if (typeof initializeSales === 'function') initializeSales();
@@ -37,6 +38,7 @@ function renderEverything() {
     'renderInventoryMovementLog',
     'applyRecipeCatalogToggle',
     'applyShoppingListToggle',
+    'applyLicenseTier',
     'renderSalesTable',
     'renderCategories',
     'renderCategoryOptions',
@@ -59,6 +61,7 @@ function renderEverything() {
     'applyProductLabModeToggle',
     'applyRecipeCatalogToggle',
     'applyShoppingListToggle',
+    'applyLicenseTier',
     'renderLabDraftsList',
     'renderLabPresetsList',
     'applySupplierCartButton',
