@@ -261,10 +261,10 @@ const MOVEMENT_TYPE_LABELS = {
   'manual-adjustment':          'Manual Adjustment',
   'pending-cancel-restoration': 'Pending Cancel',
   'pending-cancel-restore':     'Pending Cancel',
-  'supply-reservation':         'Supply Reserved',
+  'supply-reservation':         'Reserved',
   'supply-delivery-deduction':  'Supply Delivered',
   'supply-stock-restored':      'Supply Restored',
-  'supply-reservation-released':'Supply Cancelled',
+  'supply-reservation-released':'Reservation Released',
   'void-restoration':           'Void Restored',
 };
 
@@ -344,7 +344,8 @@ function renderInventoryMovementLog(limit) {
       <tr>
         <td style="font-size:11px;color:var(--gray-400);white-space:nowrap;">${date}</td>
         <td><span style="padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;
-          background:${badgeBg};color:${badgeColor};white-space:nowrap;">${typeLabel}</span></td>
+          white-space:nowrap;display:inline-block;
+          background:${badgeBg};color:${badgeColor};">${typeLabel}</span></td>
         <td style="font-weight:700;">${itemName}</td>
         <td style="font-variant-numeric:tabular-nums;font-weight:800;${qtyColor}">${qty === 0 ? '—' : qtyLabel}</td>
         <td style="font-variant-numeric:tabular-nums;color:var(--gray-500);">${m.previousStock ?? '—'} → ${m.newStock ?? '—'}</td>
