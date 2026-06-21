@@ -253,109 +253,117 @@ function renderFinishedGoodsTable() {
 }
 
 /* ── Inventory Movement Log (both raw + FG) ── */
-function renderInventoryMovementLog() {
+function renderInventoryMovementLog(limit) {
   const container = document.getElementById('inventoryMovementLog');
   if (!container) return;
 
+  // Populate ingredient filter
+  const ingFilterEl  = document.getElementById('movementLogIngredientFilter');
+  const typeFilterEl = document.getElementById('movementLogTypeFilter');
+  if (ingFilterEl) {
+    const current = ingFilterEl.value;
+    ingFilterEl.innerHTML = '<option value="">All Ingredients</option>';
+    (APP_STATE.ingredients || []).slice().sort((a,b) => (a.name||'').localeCompare(b.name||'')).forEach(ing => {
+      const opt = document.createElement('option');
+      opt.value = ing.id; opt.textContent = ing.name;
+      if (ing.id === current) opt.selected = true;
+      ingFilterEl.appendChild(opt);
+    });
+  }
+
+  // Merge raw + FG movements, newest first
   const rawMovements = (APP_STATE.inventoryMovements || []).map(m => ({
-    ...m, logType: 'raw', displayName: m.ingredientName
+    ...m, logType: 'raw', displayName: m.ingredientName || m.productName || m.description || ''
   }));
   const fgMovements = getFGMovements().map(m => ({
-    ...m, logType: 'fg', displayName: m.productName
+    ...m, logType: 'fg', displayName: m.productName || ''
   }));
 
-  const all = [...rawMovements, ...fgMovements]
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 100); // last 100
+  let all = [...rawMovements, ...fgMovements]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  // Apply filters
+  const ingVal  = ingFilterEl?.value  || '';
+  const typeVal = typeFilterEl?.value || '';
+  if (ingVal)  all = all.filter(m => String(m.ingredientId || m.productId) === ingVal);
+  if (typeVal) all = all.filter(m => m.type === typeVal);
 
   if (!all.length) {
-    container.innerHTML = `<div class="empty-state">No inventory movements yet</div>`;
+    container.innerHTML = '<div class="empty-state" style="padding:24px 0;">No movements recorded yet.</div>';
     return;
   }
 
-  const typeColors = {
-    'restock':              '#16a34a',
-    'sale-deduction':       '#dc2626',
-    'production-credit':    '#2563eb',
-    'supply-reserve':       '#ea580c',
-    'supply-deduction':     '#dc2626',
-    'supply-reserve-release':'#6b7280',
-    'supply-stock-restored':'#16a34a',
-    'adjustment':           '#9333ea',
-    'void-restore':         '#16a34a',
-  };
+  const SHOW    = typeof limit === 'number' ? limit : 10;
+  const total   = all.length;
+  const shown   = all.slice(0, SHOW);
+  const hasMore = total > SHOW;
 
   const typeLabels = {
-    'restock':              'Restock',
-    'sale-deduction':       'Sale',
-    'production-credit':    'Production',
-    'supply-reserve':       'Supply Reserved',
-    'supply-deduction':     'Supply Delivered',
-    'supply-reserve-release':'Supply Cancelled',
-    'supply-stock-restored':'Supply Restored',
-    'adjustment':           'Adjustment',
-    'void-restore':         'Void Restored',
+    'restock':'Restock','sale-deduction':'Sale','production':'Production',
+    'production-cancel':'Prod. Cancelled','manual-adjustment':'Manual',
+    'pending-cancel-restoration':'Pending Cancel','pending-cancel-restore':'Pending Cancel',
+    'supply-reservation':'Reserved','supply-delivery-deduction':'Supply Delivered',
+    'supply-stock-restored':'Supply Restored','supply-reservation-released':'Rsv. Released',
+    'void-restoration':'Void Restored','production-credit':'Produced',
+    'supply-reserve':'Reserved','supply-deduction':'Supply Delivered',
+    'supply-reserve-release':'Rsv. Released','adjustment':'Adjustment','void-restore':'Void Restored',
   };
 
-  container.innerHTML = `
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Item</th>
-            <th>Inventory</th>
-            <th>Change</th>
-            <th>Before</th>
-            <th>After</th>
-            <th>Reason</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${all.map(m => {
-            const color   = typeColors[m.type] || '#6b7280';
-            const label   = typeLabels[m.type] || m.type;
-            const isRaw   = m.logType === 'raw';
-            const change  = isRaw
-              ? (m.quantityAdded > 0 ? '+' + m.quantityAdded : '-' + m.quantityUsed)
-              : (m.delta >= 0 ? '+' + m.delta : String(m.delta));
-            const before  = isRaw ? m.previousStock : m.stockBefore;
-            const after   = isRaw ? m.newStock : m.stockAfter;
-            const date    = new Date(m.createdAt).toLocaleString('en-PH', {
-              month: 'short', day: 'numeric',
-              hour: '2-digit', minute: '2-digit'
-            });
+  const badgeCss = (type) => {
+    if (!type) return 'background:var(--gray-50);color:var(--gray-600);';
+    if (type==='restock'||type==='production-credit'||type==='void-restore'||type==='void-restoration'||type==='supply-stock-restored') return 'background:#dcfce7;color:#15803d;';
+    if (type==='sale-deduction') return 'background:#fef3c7;color:#92400e;';
+    if (type.startsWith('supply-delivery')||type==='supply-deduction') return 'background:#eff6ff;color:#1d4ed8;';
+    if (type.startsWith('supply-reserv')||type==='supply-reserve') return 'background:#f0f9ff;color:#0369a1;';
+    if (type.startsWith('production')) return 'background:#faf5ff;color:#7e22ce;';
+    if (type.includes('cancel')||type.includes('restoration')||type.includes('released')) return 'background:#fef2f2;color:#dc2626;';
+    if (type==='manual-adjustment'||type==='adjustment') return 'background:#f8fafc;color:#475569;';
+    return 'background:var(--gray-50);color:var(--gray-600);';
+  };
 
-            return `
-              <tr>
-                <td style="font-size:11px;color:var(--gray-500);white-space:nowrap;">${date}</td>
-                <td>
-                  <span style="font-size:9px;font-weight:800;padding:2px 8px;
-                    border-radius:999px;background:${color}20;color:${color};
-                    border:1px solid ${color}40;">${label}</span>
-                </td>
-                <td style="font-weight:700;">${escapeHtml(m.displayName || '')}</td>
-                <td>
-                  <span style="font-size:10px;padding:1px 6px;border-radius:999px;
-                    background:${isRaw ? 'var(--gray-100)' : '#2563eb20'};
-                    color:${isRaw ? 'var(--gray-600)' : '#2563eb'};font-weight:700;">
-                    ${isRaw ? 'Raw' : 'Finished'}
-                  </span>
-                </td>
-                <td style="font-variant-numeric:tabular-nums;font-weight:800;
-                  color:${m.delta >= 0 || m.quantityAdded > 0 ? '#16a34a' : '#dc2626'};">
-                  ${change}
-                </td>
-                <td style="font-variant-numeric:tabular-nums;color:var(--gray-500);">${before ?? '—'}</td>
-                <td style="font-variant-numeric:tabular-nums;">${after ?? '—'}</td>
-                <td style="font-size:11px;color:var(--gray-500);">${escapeHtml(m.reason || '')}</td>
-              </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>`;
+  const rows = shown.map(m => {
+    const isRaw  = m.logType === 'raw';
+    const label  = typeLabels[m.type] || m.type || '—';
+    const before = isRaw ? (m.previousStock ?? '—') : (m.stockBefore ?? '—');
+    const after  = isRaw ? (m.newStock ?? '—') : (m.stockAfter ?? '—');
+    let changeLabel, changeColor;
+    if (isRaw) {
+      const n = Number(m.quantityAdded||0) - Number(m.quantityUsed||0);
+      changeLabel = n > 0 ? '+'+n.toFixed(2) : n === 0 ? '—' : n.toFixed(2);
+      changeColor = n > 0 ? '#15803d' : n < 0 ? 'var(--danger)' : 'var(--gray-400)';
+    } else {
+      const d = Number(m.delta||0);
+      changeLabel = d > 0 ? '+'+d : d === 0 ? '—' : String(d);
+      changeColor = d > 0 ? '#15803d' : d < 0 ? 'var(--danger)' : 'var(--gray-400)';
+    }
+    const invBadge = isRaw
+      ? '<span style="font-size:10px;padding:1px 6px;border-radius:999px;background:var(--gray-100);color:var(--gray-600);font-weight:700;">Raw</span>'
+      : '<span style="font-size:10px;padding:1px 6px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-weight:700;">Finished</span>';
+    const date = m.createdAt ? new Date(m.createdAt).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}) : '—';
+    return `<tr>
+      <td style="font-size:11px;color:var(--gray-400);white-space:nowrap;">${date}</td>
+      <td><span style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap;display:inline-block;${badgeCss(m.type)}">${label}</span></td>
+      <td style="font-weight:700;">${escapeHtml(m.displayName||'—')}</td>
+      <td>${invBadge}</td>
+      <td style="font-variant-numeric:tabular-nums;font-weight:800;color:${changeColor};">${changeLabel}</td>
+      <td style="font-variant-numeric:tabular-nums;color:var(--gray-500);">${before}</td>
+      <td style="font-variant-numeric:tabular-nums;">${after}</td>
+      <td style="font-size:11px;color:var(--gray-500);">${escapeHtml(m.reason||'—')}</td>
+    </tr>`;
+  }).join('');
+
+  const btn = 'padding:7px 20px;border:1.5px solid var(--border);border-radius:var(--radius-full);background:var(--white);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-main);';
+  const footer = hasMore
+    ? `<div style="text-align:center;padding:12px 0;"><button type="button" onclick="renderInventoryMovementLog(${SHOW+20})" style="${btn}">Show more <span style="color:var(--gray-400);font-weight:600;">(${total-SHOW} remaining)</span></button></div>`
+    : SHOW > 10
+      ? `<div style="text-align:center;padding:12px 0;"><button type="button" onclick="renderInventoryMovementLog(10)" style="${btn}">Show less</button></div>`
+      : '';
+
+  container.innerHTML = `<div class="table-wrapper"><table>
+    <thead><tr><th>Date</th><th>Type</th><th>Item</th><th>Inventory</th><th>Change</th><th>Before</th><th>After</th><th>Reason</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>${footer}`;
 }
+
 
 /* ── Exports ── */
 window._setFGRecord               = _setFGRecord;   // exposed for manual sync
