@@ -261,6 +261,8 @@ const MOVEMENT_TYPE_LABELS = {
   'manual-adjustment':          'Manual Adjustment',
   'pending-cancel-restoration': 'Pending Cancel',
   'pending-cancel-restore':     'Pending Cancel',
+  'supply-reservation':         'Supply Reserved',
+  'supply-delivery-deduction':  'Supply Delivered',
   'supply-stock-restored':      'Supply Restored',
   'supply-reservation-released':'Supply Cancelled',
   'void-restoration':           'Void Restored',
@@ -310,22 +312,43 @@ function renderInventoryMovementLog(limit) {
     const isPos    = qty > 0;
     const isNeg    = qty < 0;
     const qtyLabel = isPos ? `+${qty.toFixed(2)}` : qty.toFixed(2);
-    const qtyColor = isPos ? 'color:#15803d;' : isNeg ? 'color:var(--danger);' : '';
+    const qtyColor = isPos ? 'color:#15803d;' : isNeg ? 'color:var(--danger);' : 'color:var(--gray-400);';
     const typeLabel = MOVEMENT_TYPE_LABELS[m.type] || m.type || '—';
+    const itemName  = (m.ingredientName || m.productName || m.description || '—').replace(/</g,'&lt;');
+
+    let badgeBg, badgeColor;
+    if (m.type === 'restock') {
+      badgeBg = '#dcfce7'; badgeColor = '#15803d';
+    } else if (m.type === 'sale-deduction') {
+      badgeBg = '#fef3c7'; badgeColor = '#92400e';
+    } else if (m.type && m.type.startsWith('supply-delivery')) {
+      badgeBg = '#eff6ff'; badgeColor = '#1d4ed8';
+    } else if (m.type && m.type.startsWith('supply-reservation')) {
+      badgeBg = '#f0f9ff'; badgeColor = '#0369a1';
+    } else if (m.type && m.type.startsWith('supply')) {
+      badgeBg = '#eff6ff'; badgeColor = '#1d4ed8';
+    } else if (m.type && m.type.startsWith('production')) {
+      badgeBg = '#faf5ff'; badgeColor = '#7e22ce';
+    } else if (m.type && (m.type.includes('void') || m.type.includes('cancel') || m.type.includes('restored') || m.type.includes('restoration'))) {
+      badgeBg = '#fef2f2'; badgeColor = '#dc2626';
+    } else {
+      badgeBg = 'var(--gray-50)'; badgeColor = 'var(--gray-600)';
+    }
+
     const date = m.createdAt ? new Date(m.createdAt).toLocaleString('en-PH', {
-      month:'short', day:'numeric', year:'numeric',
+      month:'short', day:'numeric',
       hour:'numeric', minute:'2-digit', hour12:true
     }) : '—';
+
     return `
       <tr>
-        <td style="font-size:11px;color:var(--gray-400);">${date}</td>
-        <td style="font-weight:700;">${(m.ingredientName || m.productName || '—').replace(/</g,'&lt;')}</td>
+        <td style="font-size:11px;color:var(--gray-400);white-space:nowrap;">${date}</td>
         <td><span style="padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;
-          background:var(--gray-50);color:var(--gray-600);">${typeLabel}</span></td>
-        <td style="font-variant-numeric:tabular-nums;font-weight:800;${qtyColor}">${qtyLabel}</td>
+          background:${badgeBg};color:${badgeColor};white-space:nowrap;">${typeLabel}</span></td>
+        <td style="font-weight:700;">${itemName}</td>
+        <td style="font-variant-numeric:tabular-nums;font-weight:800;${qtyColor}">${qty === 0 ? '—' : qtyLabel}</td>
         <td style="font-variant-numeric:tabular-nums;color:var(--gray-500);">${m.previousStock ?? '—'} → ${m.newStock ?? '—'}</td>
         <td style="color:var(--gray-400);font-size:11px;">${(m.reason || '—').replace(/</g,'&lt;')}</td>
-        <td style="color:var(--gray-400);font-size:10px;">${(m.createdBy || '—')}</td>
       </tr>`;
   }).join('');
 
@@ -350,8 +373,8 @@ function renderInventoryMovementLog(limit) {
     <div class="table-wrapper">
       <table style="min-width:700px;">
         <thead><tr>
-          <th>Date / Time</th><th>Item</th><th>Event</th><th>Change</th>
-          <th>Stock Before → After</th><th>Reason</th><th>By</th>
+          <th>Date</th><th>Type</th><th>Item</th><th>Change</th>
+          <th>Before → After</th><th>Reason</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
