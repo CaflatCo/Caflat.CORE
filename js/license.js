@@ -208,7 +208,30 @@ function applyLicenseTier() {
   const tier = getLicenseTier();
   const isPro = tier === TIER_PRO;
 
-  // Update license badge in UI if it exists
+  // Update Settings license section
+  const statusLabel = document.getElementById('licenseStatusLabel');
+  const statusSub   = document.getElementById('licenseStatusSub');
+  const openBtn     = document.getElementById('openLicenseBtn');
+  if (statusLabel) {
+    if (isPro) {
+      statusLabel.textContent = '✓ PRO Plan';
+      statusLabel.style.color = '#15803d';
+      if (statusSub) {
+        const expiry = _licenseState?.expires_at
+          ? new Date(_licenseState.expires_at).toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'numeric'})
+          : 'Lifetime';
+        statusSub.textContent = `${_licenseState?.client_name || ''} · All features unlocked · Expires ${expiry}`;
+      }
+      if (openBtn) { openBtn.textContent = 'Manage License'; }
+    } else {
+      statusLabel.textContent = 'Free Plan';
+      statusLabel.style.color = '';
+      if (statusSub) statusSub.textContent = 'Up to 50 products · Core features only';
+      if (openBtn) { openBtn.textContent = 'Enter License Key'; }
+    }
+  }
+
+  // Update nav badge
   _renderLicenseBadge();
 
   // Gate optional modes — only show in settings if Pro
