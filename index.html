@@ -948,14 +948,35 @@
           <button class="btn btn-secondary" type="button" id="addPaymentMethodBtn"
             style="margin-bottom:32px;">+ Add Payment Method</button>
 
-          <!-- Storage Usage -->
-          <div class="section-title">Storage</div>
+          <!-- Storage & Sync -->
+          <div class="section-title">Storage &amp; Sync</div>
           <div style="margin-bottom:24px;">
+
+            <!-- Sync status card -->
+            <div style="padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-lg);
+              margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div id="syncStatusDot" style="width:9px;height:9px;border-radius:50%;
+                  background:var(--gray-300);flex-shrink:0;"></div>
+                <div>
+                  <div style="font-size:12px;font-weight:800;" id="syncStatusLabel">Not connected</div>
+                  <div style="font-size:11px;color:var(--gray-400);margin-top:1px;" id="syncStatusSub">
+                    License data only · Full sync coming soon
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="syncNowBtn"
+                onclick="triggerLicenseRevalidation()">
+                Check Now
+              </button>
+            </div>
+
+            <!-- Local storage bar -->
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
               <span style="font-size:12px;font-weight:700;color:var(--gray-500);">Local Storage Used</span>
               <span id="storageUsageLabel" style="font-size:12px;font-weight:800;">0%</span>
             </div>
-            <div style="height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden;">
+            <div style="height:8px;background:var(--surface-2);border-radius:999px;overflow:hidden;">
               <div id="storageUsageBar" style="height:100%;width:0%;background:var(--success);
                 border-radius:999px;transition:width .4s ease, background .4s ease;"></div>
             </div>
