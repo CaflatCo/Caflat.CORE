@@ -458,12 +458,93 @@ function _deactivateLicense() {
   showNotification('License removed. Now on free plan.', 'success');
 }
 
+/* ── Sync status UI ────────────────────────────────── */
+function updateSyncStatus(state, detail) {
+  const dot   = document.getElementById('syncStatusDot');
+  const label = document.getElementById('syncStatusLabel');
+  const sub   = document.getElementById('syncStatusSub');
+  const btn   = document.getElementById('syncNowBtn');
+  if (!dot || !label) return;
+
+  const states = {
+    connected:  { color: '#16a34a', text: 'Connected to Supabase' },
+    syncing:    { color: '#f59e0b', text: 'Checking…' },
+    error:      { color: '#dc2626', text: 'Connection error' },
+    idle:       { color: '#16a34a', text: 'Connected to Supabase' },
+    offline:    { color: '#9ca3af', text: 'Offline — using local data' },
+  };
+
+  const s = states[state] || states.idle;
+  dot.style.background    = s.color;
+  label.textContent       = s.text;
+  if (sub && detail) sub.textContent = detail;
+  if (btn) btn.disabled = state === 'syncing';
+}
+
+async function triggerLicenseRevalidation() {
+  updateSyncStatus('syncing', 'Connecting to Supabase…');
+  const btn = document.getElementById('syncNowBtn');
+  if (btn) btn.textContent = 'Checking…';
+
+  try {
+    // Ping Supabase with a simple request
+    const res = await fetch(`${CAFLAT_SB_URL}/rest/v1/licenses?limit=1`, {
+      headers: {
+        'apikey': CAFLAT_SB_ANON,
+        'Authorization': `Bearer ${CAFLAT_SB_ANON}`
+      }
+    });
+
+    if (res.ok) {
+      const now = new Date().toLocaleString('en-PH', {
+        month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true
+      });
+
+      // Also revalidate current license
+      if (_licenseState) {
+        await revalidateLicense();
+        _licenseState.last_validated = new Date().toISOString();
+        _saveLicenseToStorage(_licenseState);
+      }
+
+      updateSyncStatus('connected', `Last checked ${now} · License data only`);
+      showNotification('Connected to Supabase', 'success');
+    } else {
+      updateSyncStatus('error', 'Could not reach Supabase');
+    }
+  } catch (e) {
+    updateSyncStatus('offline', 'No internet connection');
+  }
+
+  if (btn) btn.textContent = 'Check Now';
+}
+
 /* ── Initialize ────────────────────────────────────── */
 function initializeLicense() {
   _licenseState = _loadLicenseFromStorage();
 
-  // Revalidate in background (non-blocking)
-  revalidateLicense().catch(() => {});
+  // Revalidate in background and update sync status
+  (async () => {
+    updateSyncStatus('syncing', 'Connecting…');
+    try {
+      const res = await fetch(`${CAFLAT_SB_URL}/rest/v1/licenses?limit=1`, {
+        headers: { 'apikey': CAFLAT_SB_ANON, 'Authorization': `Bearer ${CAFLAT_SB_ANON}` }
+      });
+      if (res.ok) {
+        await revalidateLicense();
+        const now = new Date().toLocaleString('en-PH', {
+          month: 'short', day: 'numeric',
+          hour: 'numeric', minute: '2-digit', hour12: true
+        });
+        updateSyncStatus('connected', `Last checked ${now} · License data only`);
+      } else {
+        updateSyncStatus('error', 'Could not reach Supabase');
+      }
+    } catch (e) {
+      updateSyncStatus('offline', 'No internet — using local data');
+    }
+  })();
 
   // Apply tier on init
   requestAnimationFrame(() => {
@@ -472,13 +553,15 @@ function initializeLicense() {
 }
 
 /* ── Exports ───────────────────────────────────────── */
-window.initializeLicense   = initializeLicense;
-window.applyLicenseTier    = applyLicenseTier;
-window.openLicenseModal    = openLicenseModal;
-window.getLicenseTier      = getLicenseTier;
-window.isProTier           = isProTier;
-window.isFeatureAllowed    = isFeatureAllowed;
-window.getProductLimit     = getProductLimit;
-window.isAtProductLimit    = isAtProductLimit;
-window.activateLicenseKey  = activateLicenseKey;
-window._deactivateLicense  = _deactivateLicense;
+window.initializeLicense          = initializeLicense;
+window.applyLicenseTier           = applyLicenseTier;
+window.openLicenseModal           = openLicenseModal;
+window.getLicenseTier             = getLicenseTier;
+window.isProTier                  = isProTier;
+window.isFeatureAllowed           = isFeatureAllowed;
+window.getProductLimit            = getProductLimit;
+window.isAtProductLimit           = isAtProductLimit;
+window.activateLicenseKey         = activateLicenseKey;
+window._deactivateLicense         = _deactivateLicense;
+window.updateSyncStatus           = updateSyncStatus;
+window.triggerLicenseRevalidation = triggerLicenseRevalidation;
