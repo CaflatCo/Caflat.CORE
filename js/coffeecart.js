@@ -650,14 +650,16 @@ function renderPackagesTable() {
         ${itemsHtml}
       </div>
 
-      <!-- Actions -->
+      <!-- Actions — hidden in presentation mode -->
+      ${_packagePresentationMode ? '' : `
       <div style="padding:12px 20px;border-top:1px solid var(--gray-200);
         display:flex;gap:8px;justify-content:flex-end;background:var(--gray-50);">
         <button class="btn btn-sm" data-action="edit-package"
           data-id="${pkg.id}">Edit</button>
         <button class="btn btn-sm btn-secondary" data-action="delete-package"
           data-id="${pkg.id}">Delete</button>
-      </div>`;
+      </div>`}
+    `;
 
     grid.appendChild(card);
   });
@@ -996,3 +998,35 @@ window.getSelectedPOSEvent    = getSelectedPOSEvent;
 window.applyEventPickerButton = applyEventPickerButton;
 window.openEventPickerModal   = openEventPickerModal;
 window._updateEventPickerLabel= _updateEventPickerLabel;
+
+/* ── Package Presentation Mode ── */
+let _packagePresentationMode = false;
+
+function togglePackagePresentationMode() {
+  _packagePresentationMode = !_packagePresentationMode;
+  const btn     = document.getElementById('packagePresentationBtn');
+  const addBtn  = document.getElementById('addPackageBtn');
+
+  if (_packagePresentationMode) {
+    if (btn) {
+      btn.textContent = 'Exit Presentation';
+      btn.style.background    = '#000';
+      btn.style.color         = '#fff';
+      btn.style.borderColor   = '#000';
+    }
+    if (addBtn) addBtn.style.display = 'none';
+  } else {
+    if (btn) {
+      btn.textContent = 'Present';
+      btn.style.background  = '';
+      btn.style.color       = '';
+      btn.style.borderColor = '';
+    }
+    if (addBtn) addBtn.style.display = '';
+  }
+
+  // Re-render cards with/without edit controls
+  renderPackagesTable();
+}
+
+window.togglePackagePresentationMode = togglePackagePresentationMode;

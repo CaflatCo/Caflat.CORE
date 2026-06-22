@@ -621,6 +621,9 @@ function openCheckoutModal() {
   const payEl = document.getElementById('checkoutPayment');
   if (payEl) payEl.value = 'cash';
 
+  // Reset split payment
+  _resetSplitPayment();
+
   updateCartSummary();
   togglePaymentFields();
   calculateChange();
@@ -816,6 +819,24 @@ async function completeSale(forceStatus = 'COMPLETED') {
     return;
   }
 
+  // Validate split payment
+  if (!isPending && typeof isSplitActive === 'function' && isSplitActive()) {
+    const split = getSplitPaymentData();
+    if (!split || split.amount <= 0) {
+      showNotification('Enter the split payment amount', 'error'); return;
+    }
+    if (split.amount >= total) {
+      showNotification('Split amount must be less than the total', 'error'); return;
+    }
+    const splitIsCash = split.method === 'cash';
+    const methods = APP_STATE.settings?.paymentMethods || [];
+    const splitMatched = methods.find(m => m.name.toLowerCase().replace(/\s+/g,'_') === split.method);
+    const splitIsCashLike = splitIsCash || splitMatched?.type === 'cash';
+    if (!splitIsCashLike && !split.reference) {
+      showNotification('Reference number required for split payment method', 'error'); return;
+    }
+  }
+
   // Stock validation
   for (const product of getProducts()) {
     const requiredUnits = cart.reduce((sum, line) => {
@@ -836,6 +857,18 @@ async function completeSale(forceStatus = 'COMPLETED') {
     paymentStatus, paymentMethod: method,
     tendered, change, referenceNumber, customerName, cartOverride: cart
   });
+
+  // Attach split payment info if active
+  if (!isPending && typeof isSplitActive === 'function' && isSplitActive()) {
+    const split = getSplitPaymentData();
+    if (split && split.amount > 0) {
+      transaction.payment.splitMethod    = split.method;
+      transaction.payment.splitAmount    = split.amount;
+      transaction.payment.splitReference = split.reference || '';
+      // Annotate the display method string
+      transaction.payment.method = `${method} + ${split.method}`;
+    }
+  }
 
   if (isPending) {
     transaction.audit = transaction.audit || {};
@@ -1328,3 +1361,81 @@ window.closeHeldOrdersModal = closeHeldOrdersModal;
 window.resumeHeldOrder = resumeHeldOrder;
 window.setQuickAmount = setQuickAmount;
 window.escapeHtml = escapeHtml;
+
+/* ═══════════════════════════════════════════════════════
+   SPLIT PAYMENT
+═══════════════════════════════════════════════════════ */
+let _splitActive = false;
+
+function _resetSplitPayment() {
+  _splitActive = false;
+  const track  = document.getElementById('splitToggleTrack');
+  const thumb  = document.getElementById('splitToggleThumb');
+  const section = document.getElementById('splitPaymentSection');
+  if (track)   { track.style.background = 'var(--gray-200)'; }
+  if (thumb)   { thumb.style.transform = 'translateX(0)'; }
+  if (section) { section.style.display = 'none'; }
+  const amtEl  = document.getElementById('splitPaymentAmount');
+  const refEl  = document.getElementById('splitPaymentReference');
+  if (amtEl)   amtEl.value = '';
+  if (refEl)   refEl.value = '';
+}
+
+function toggleSplitPayment() {
+  _splitActive = !_splitActive;
+  const track   = document.getElementById('splitToggleTrack');
+  const thumb   = document.getElementById('splitToggleThumb');
+  const section = document.getElementById('splitPaymentSection');
+
+  if (_splitActive) {
+    if (track)   { track.style.background = 'var(--black)'; }
+    if (thumb)   { thumb.style.transform = 'translateX(16px)'; }
+    if (section) { section.style.display = 'block'; }
+    // Populate split method dropdown with same options as main
+    const mainSel  = document.getElementById('checkoutPayment');
+    const splitSel = document.getElementById('splitPaymentMethod');
+    if (mainSel && splitSel) {
+      splitSel.innerHTML = mainSel.innerHTML;
+      // Default split to GCash if available, else first non-cash
+      const nonCash = Array.from(splitSel.options).find(o => o.value !== 'cash');
+      if (nonCash) splitSel.value = nonCash.value;
+    }
+    renderSplitPaymentFields();
+    updateSplitAmounts();
+  } else {
+    _resetSplitPayment();
+  }
+}
+
+function renderSplitPaymentFields() {
+  const method   = document.getElementById('splitPaymentMethod')?.value || '';
+  const refWrap  = document.getElementById('splitReferenceWrap');
+  const isCashLike = method === 'cash' || method === '';
+  if (refWrap) refWrap.style.display = isCashLike ? 'none' : 'block';
+}
+
+function updateSplitAmounts() {
+  if (!_splitActive) return;
+  const total   = calculateCartTotal();
+  const splitEl = document.getElementById('splitPaymentAmount');
+  const firstEl = document.getElementById('splitFirstAmount');
+  const splitAmt = parseMoney(splitEl?.value || '0');
+  const firstAmt = Math.max(0, total - splitAmt);
+  if (firstEl) firstEl.textContent = formatCurrency(firstAmt);
+}
+
+function isSplitActive() { return _splitActive; }
+
+function getSplitPaymentData() {
+  if (!_splitActive) return null;
+  const method    = document.getElementById('splitPaymentMethod')?.value || 'cash';
+  const amount    = parseMoney(document.getElementById('splitPaymentAmount')?.value || '0');
+  const reference = document.getElementById('splitPaymentReference')?.value?.trim() || '';
+  return { method, amount, reference };
+}
+
+window.toggleSplitPayment      = toggleSplitPayment;
+window.renderSplitPaymentFields = renderSplitPaymentFields;
+window.updateSplitAmounts      = updateSplitAmounts;
+window.isSplitActive           = isSplitActive;
+window.getSplitPaymentData     = getSplitPaymentData;
