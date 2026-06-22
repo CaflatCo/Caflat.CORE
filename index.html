@@ -597,6 +597,14 @@
               <option value="bank">Bank Transfer</option>
               <option value="qrph">QR PH</option>
             </select>
+            <select id="salesStatusFilter">
+              <option value="">All Status</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="PENDING">Pending</option>
+              <option value="VOIDED">Voided</option>
+              <option value="REFUNDED">Refunded</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
           </div>
           <div class="table-wrapper">
             <table id="salesTable">
@@ -1064,7 +1072,7 @@
               <button class="btn" type="button" onclick="openEventModal(null);">+ New Event</button>
             </div>
           </div>
-          <div id="eventSessionBanner" style="display:none;background:var(--black);color:white;border-radius:var(--radius-lg);padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <div id="eventSessionBanner" style="display:none;background:var(--black);color:white;border-radius:var(--radius-lg);padding:12px 18px;margin-bottom:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
             <div>
               <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:800;opacity:.6;margin-bottom:2px;">Active Event</div>
               <div id="eventSessionName" style="font-weight:900;font-size:15px;"></div>
