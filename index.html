@@ -383,6 +383,10 @@
                 style="display:none;" data-action="open-supplier-order-prompt">
                 Supply Order ↗
               </button>
+              <button class="btn btn-secondary" type="button" id="eventPickerBtn"
+                style="display:none;width:100%;margin-bottom:6px;" onclick="openEventPickerModal();">
+                Tag Event
+              </button>
               <button class="checkout-btn" type="button" id="checkoutBtn">Checkout →</button>
             </div>
           </div>
@@ -1068,7 +1072,6 @@
           <div class="panel-header">
             <h2>Coffee Cart</h2>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-secondary" type="button" id="eventPickerBtn" onclick="openEventPickerModal();">Set Active Event</button>
               <button class="btn" type="button" onclick="openEventModal(null);">+ New Event</button>
             </div>
           </div>
