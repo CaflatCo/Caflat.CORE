@@ -211,12 +211,21 @@
   function placeFormatInfo(m, maskIdx) {
     var n=m.length, data=FMT_M[maskIdx], seq=[];
     for(var i=14;i>=0;i--) seq.push((data>>i)&1);
+
+    /* Copy 1 — around top-left finder */
     var pos=[[8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],
              [7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]];
     for(var i=0;i<15;i++) m[pos[i][0]][pos[i][1]]=seq[i];
-    for(var i=0;i<8;i++) m[8][n-1-i]=seq[i];
-    for(var i=8;i<15;i++) m[n-15+i][8]=seq[i];
-    m[n-8][8]=1; // dark module
+
+    /* Copy 2 — top-right: (8, n-1) down to (8, n-8)
+       ISO: these mirror bits 0..7 of the 15-bit string (seq[14]..seq[7]) */
+    for(var i=0;i<8;i++) m[8][n-1-i]=seq[14-i];
+
+    /* Copy 2 — bottom-left: (n-7, 8) up to (n-1, 8)
+       ISO: these mirror bits 8..14 of the 15-bit string (seq[6]..seq[0]) */
+    for(var i=0;i<7;i++) m[n-7+i][8]=seq[6-i];
+
+    m[n-8][8]=1; // dark module — always 1
   }
 
   var MASK_FNS=[
@@ -240,9 +249,22 @@
 
   function penalty(m) {
     var n=m.length,p=0;
-    for(var r=0;r<n;r++){for(var c=0;c<n-4;c++){var v=m[r][c];if(m[r][c+1]===v&&m[r][c+2]===v&&m[r][c+3]===v&&m[r][c+4]===v){p+=3;var k=c+5;while(k<n&&m[r][k]===v){p++;k++;}}}}
-    for(var c=0;c<n;c++){for(var r=0;r<n-4;r++){var v=m[r][c];if(m[r+1][c]===v&&m[r+2][c]===v&&m[r+3][c]===v&&m[r+4][c]===v){p+=3;var k=r+5;while(k<n&&m[k][c]===v){p++;k++;}}}}
+    /* Rule 1: 5+ consecutive same-colour in row/col */
+    for(var r=0;r<n;r++){var run=1;for(var c=1;c<n;c++){if(m[r][c]===m[r][c-1]){run++;}else{if(run>=5)p+=3+(run-5);run=1;}}if(run>=5)p+=3+(run-5);}
+    for(var c=0;c<n;c++){var run=1;for(var r=1;r<n;r++){if(m[r][c]===m[r-1][c]){run++;}else{if(run>=5)p+=3+(run-5);run=1;}}if(run>=5)p+=3+(run-5);}
+    /* Rule 2: 2×2 same-colour blocks */
     for(var r=0;r<n-1;r++)for(var c=0;c<n-1;c++){var v=m[r][c];if(m[r][c+1]===v&&m[r+1][c]===v&&m[r+1][c+1]===v)p+=3;}
+    /* Rule 3: finder-like patterns (1,0,1,1,1,0,1 with 4 light on either side) */
+    var A=[1,0,1,1,1,0,1,0,0,0,0],B=[0,0,0,0,1,0,1,1,1,0,1];
+    function rowMatch(r,c,pat){for(var k=0;k<11;k++)if(m[r][c+k]!==pat[k])return false;return true;}
+    function colMatch(c,r,pat){for(var k=0;k<11;k++)if(m[r+k][c]!==pat[k])return false;return true;}
+    for(var r=0;r<n;r++)for(var c=0;c<=n-11;c++){if(rowMatch(r,c,A)||rowMatch(r,c,B))p+=40;}
+    for(var c=0;c<n;c++)for(var r=0;r<=n-11;r++){if(colMatch(c,r,A)||colMatch(c,r,B))p+=40;}
+    /* Rule 4: dark/light balance */
+    var dark=0,total=n*n;
+    for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(m[r][c])dark++;
+    var pct=dark/total*100,lo=Math.floor(pct/5)*5,hi=lo+5;
+    p+=Math.min(Math.abs(lo-50),Math.abs(hi-50))/5*10;
     return p;
   }
 

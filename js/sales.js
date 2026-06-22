@@ -664,7 +664,7 @@ function _generateReceiptQR(transaction) {
 
   if (typeof CaflatQR !== 'undefined' && CaflatQR.generateSVG) {
     try {
-      qrDiv.innerHTML = CaflatQR.generateSVG(text, { size: 160, ecLevel: 'M' });
+      qrDiv.innerHTML = CaflatQR.generateSVG(text, { size: 240, ecLevel: 'M' });
       return;
     } catch(e) {
       console.warn('CaflatQR failed:', e);
