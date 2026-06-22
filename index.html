@@ -1091,7 +1091,7 @@
 
           <!-- Data Management -->
           <div class="section-title">Data Management</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
             <button class="btn btn-secondary" id="loadDemoBtn" type="button">Load Demo Data</button>
             <button class="btn btn-secondary" id="exportDataBtn" type="button">Export Backup</button>
             <button class="btn btn-secondary" id="importDataBtn" type="button">Import Backup</button>
@@ -1104,6 +1104,24 @@
               style="border:1.5px solid #fca5a5;color:#dc2626;background:#fff;">
               Factory Reset
             </button>
+          </div>
+
+          <!-- Cloud Backup -->
+          <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
+            padding:16px 18px;margin-bottom:40px;background:var(--gray-50);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <div>
+                <div style="font-size:12px;font-weight:800;">Cloud Backup</div>
+                <div style="font-size:11px;color:var(--gray-500);margin-top:2px;">
+                  Saves a full snapshot to Supabase · PRO only · Last 3 kept
+                </div>
+              </div>
+              <button class="btn btn-secondary" id="cloudBackupBtn" type="button"
+                onclick="cloudBackup()">
+                Backup to Cloud
+              </button>
+            </div>
+            <div id="cloudBackupList"></div>
           </div>
 
         </div>

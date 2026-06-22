@@ -204,6 +204,13 @@ async function generateKey() {
 
   const code = generateCode();
 
+  // Generate a stable tenant_id UUID for this license
+  const tenantId = crypto.randomUUID ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random()*16|0, v = c==='x'?r:(r&0x3|0x8);
+        return v.toString(16);
+      });
+
   // Negative values = days (week trials), positive = months, 0 = lifetime
   let expires_at = null;
   let months = durationVal;
@@ -232,7 +239,7 @@ async function generateKey() {
       'Authorization': `Bearer ${SB_ANON}`,
       'Prefer': 'return=representation'
     },
-    body: JSON.stringify({ code, client_name: clientName, tier, duration_months: months, expires_at })
+    body: JSON.stringify({ code, client_name: clientName, tier, duration_months: months, expires_at, tenant_id: tenantId })
   });
 
   btn.textContent = 'Generate License Key';
