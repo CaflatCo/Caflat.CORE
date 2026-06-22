@@ -1757,3 +1757,11 @@ canvas { width: 100% !important; max-width: 100%; }
   border-color: var(--black);
   color: var(--white);
 }
+
+/* ═══════════════════════════════════════════════════
+   OFFLINE INDICATOR
+═══════════════════════════════════════════════════ */
+@keyframes offlinePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
