@@ -254,4 +254,3 @@ function shareEndOfDay() {
 
 window.openEndOfDaySummary = openEndOfDaySummary;
 window.shareEndOfDay       = shareEndOfDay;
-window.shareEndOfDay       = shareEndOfDay;

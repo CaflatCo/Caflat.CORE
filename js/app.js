@@ -67,7 +67,6 @@ function renderEverything() {
     'applySupplierCartButton',
     'renderCart',
     'refreshDashboard',
-    'renderReports'
   ];
 
   renderCalls.forEach(fn => {

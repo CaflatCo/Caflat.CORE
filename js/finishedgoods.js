@@ -174,7 +174,7 @@ function saveFGAdjustment() {
 
   closeModal('fgAdjustmentModal');
   renderFinishedGoodsTable();
-  if (typeof renderInventoryMovementLog === 'function') renderInventoryMovementLog();
+  if (typeof renderFGMovementLog === 'function') renderFGMovementLog();
   showNotification('Adjustment saved', 'success');
 }
 
@@ -253,11 +253,7 @@ function renderFinishedGoodsTable() {
 }
 
 /* ── Inventory Movement Log (both raw + FG) ── */
-function renderInventoryMovementLog(limit) {
-  const container = document.getElementById('inventoryMovementLog');
-  if (!container) return;
-
-  // Populate ingredient filter
+function renderFGMovementLog(limit) {
   const ingFilterEl  = document.getElementById('movementLogIngredientFilter');
   const typeFilterEl = document.getElementById('movementLogTypeFilter');
   if (ingFilterEl) {
@@ -354,9 +350,9 @@ function renderInventoryMovementLog(limit) {
 
   const btn = 'padding:7px 20px;border:1.5px solid var(--border);border-radius:var(--radius-full);background:var(--white);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-main);';
   const footer = hasMore
-    ? `<div style="text-align:center;padding:12px 0;"><button type="button" onclick="renderInventoryMovementLog(${SHOW+20})" style="${btn}">Show more <span style="color:var(--gray-400);font-weight:600;">(${total-SHOW} remaining)</span></button></div>`
+    ? `<div style="text-align:center;padding:12px 0;"><button type="button" onclick="renderFGMovementLog(${SHOW+20})" style="${btn}">Show more <span style="color:var(--gray-400);font-weight:600;">(${total-SHOW} remaining)</span></button></div>`
     : SHOW > 10
-      ? `<div style="text-align:center;padding:12px 0;"><button type="button" onclick="renderInventoryMovementLog(10)" style="${btn}">Show less</button></div>`
+      ? `<div style="text-align:center;padding:12px 0;"><button type="button" onclick="renderFGMovementLog(10)" style="${btn}">Show less</button></div>`
       : '';
 
   container.innerHTML = `<div class="table-wrapper"><table>
@@ -381,5 +377,5 @@ window.releaseFGReserveForSupply  = releaseFGReserveForSupply;
 window.openFGAdjustmentModal      = openFGAdjustmentModal;
 window.saveFGAdjustment           = saveFGAdjustment;
 window.renderFinishedGoodsTable   = renderFinishedGoodsTable;
-window.renderInventoryMovementLog = renderInventoryMovementLog;
+window.renderFGMovementLog        = renderFGMovementLog;
 window.FG_ADJUSTMENT_TYPES        = FG_ADJUSTMENT_TYPES;

@@ -526,7 +526,10 @@ function archiveAndReset() { archiveAndResetLocal(); }
 function factoryReset() {
   if (!confirm('Factory Reset will wipe EVERYTHING including settings and passwords.\n\nThis cannot be undone. Are you sure?')) return;
   if (!confirm('Final confirmation — delete everything and restart?')) return;
+  // Preserve license key so PRO customers don't lose their activation
+  const licenseBackup = localStorage.getItem('caflat_license_v1');
   localStorage.clear();
+  if (licenseBackup) localStorage.setItem('caflat_license_v1', licenseBackup);
   window.location.reload();
 }
 

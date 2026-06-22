@@ -17,6 +17,16 @@ function getPersistedState() {
 
 function persistState() {
   try {
+    // Enforce data caps to prevent localStorage overflow
+    if (Array.isArray(APP_STATE.sales) && APP_STATE.sales.length > 500)
+      APP_STATE.sales = APP_STATE.sales.slice(-500);
+    if (Array.isArray(APP_STATE.auditLog) && APP_STATE.auditLog.length > 1000)
+      APP_STATE.auditLog = APP_STATE.auditLog.slice(-1000);
+    if (Array.isArray(APP_STATE.inventoryMovements) && APP_STATE.inventoryMovements.length > 1000)
+      APP_STATE.inventoryMovements = APP_STATE.inventoryMovements.slice(-1000);
+    if (Array.isArray(APP_STATE.fgMovements) && APP_STATE.fgMovements.length > 500)
+      APP_STATE.fgMovements = APP_STATE.fgMovements.slice(-500);
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       settings:           APP_STATE.settings,
       receiptCounter:     APP_STATE.receiptCounter,
