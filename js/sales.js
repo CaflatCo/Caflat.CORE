@@ -639,7 +639,7 @@ function renderReceipt(transaction) {
   `;
 
   // Generate QR after DOM renders
-  requestAnimationFrame(() => _generateReceiptQR(transaction));
+  setTimeout(() => _generateReceiptQR(transaction), 80);
 }
 
 function _generateReceiptQR(transaction) {
@@ -658,25 +658,16 @@ function _generateReceiptQR(transaction) {
     ? `${baseUrl}?r=${encodeURIComponent(receipt)}`
     : [brand, receipt, total, date].filter(Boolean).join('\n');
 
-  try {
-    // qrcode-generator: qr(typeNumber 0=auto, errorCorrectionLevel)
-    const qr = qrcode(0, 'M');
-    qr.addData(text);
-    qr.make();
-    // createSvgTag(cellSize, margin) — pure SVG, works everywhere including Safari
-    qrDiv.innerHTML = qr.createSvgTag(5, 4);
-    // Make sure it's not too big or too small
-    const svg = qrDiv.querySelector('svg');
-    if (svg) {
-      svg.style.display = 'block';
-      svg.style.maxWidth = '200px';
-      svg.style.height = 'auto';
+  if (typeof CaflatQR !== 'undefined' && CaflatQR.generateSVG) {
+    try {
+      qrDiv.innerHTML = CaflatQR.generateSVG(text, { size: 220 });
+      return;
+    } catch(e) {
+      console.warn('CaflatQR failed:', e);
     }
-  } catch(e) {
-    console.warn('QR generation failed:', e);
-    qrDiv.innerHTML = `<div style="font-size:10px;color:#999;padding:8px;
-      word-break:break-all;">${escapeHtml(text)}</div>`;
   }
+
+  qrDiv.textContent = text;
 }
 
 function _receiptQRFallback(container, text) {
