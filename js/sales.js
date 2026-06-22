@@ -646,14 +646,13 @@ function _generateReceiptQR(transaction) {
   const container = document.getElementById('receiptQRContainer');
   if (!container) return;
 
-  const brand      = APP_STATE.settings?.brandName || 'Caflat.Co';
-  const receipt    = transaction.receiptNumber || transaction.id || '';
-  const total      = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
-  const date       = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
-                       .toLocaleDateString('en-PH');
-  const baseUrl    = String(APP_STATE.settings?.receiptBaseUrl || '').trim();
+  const brand   = APP_STATE.settings?.brandName || 'Caflat.Co';
+  const receipt = transaction.receiptNumber || transaction.id || '';
+  const total   = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
+  const date    = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
+                    .toLocaleDateString('en-PH');
+  const baseUrl = String(APP_STATE.settings?.receiptBaseUrl || '').trim();
 
-  // If a URL is configured, encode that — otherwise encode plain text summary
   const text = baseUrl
     ? `${baseUrl}?r=${encodeURIComponent(receipt)}`
     : [brand, receipt, total, date].filter(Boolean).join('\n');
@@ -662,15 +661,23 @@ function _generateReceiptQR(transaction) {
   if (!qrDiv) return;
   qrDiv.innerHTML = '';
 
-  if (typeof CaflatQR !== 'undefined' && CaflatQR.generateSVG) {
+  if (typeof QRCode !== 'undefined') {
     try {
-      qrDiv.innerHTML = CaflatQR.generateSVG(text, { size: 240, ecLevel: 'M' });
+      new QRCode(qrDiv, {
+        text,
+        width:          200,
+        height:         200,
+        colorDark:      '#000000',
+        colorLight:     '#ffffff',
+        correctLevel:   QRCode.CorrectLevel.M
+      });
       return;
     } catch(e) {
-      console.warn('CaflatQR failed:', e);
+      console.warn('QRCode failed:', e);
     }
   }
 
+  // Fallback: plain text
   qrDiv.innerHTML = `<pre style="font-size:8px;text-align:left;background:#f4f4f4;
     padding:8px;border-radius:4px;white-space:pre-wrap;word-break:break-all;">
     ${escapeHtml(text)}</pre>`;
