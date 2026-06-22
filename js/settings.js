@@ -248,6 +248,8 @@ function renderBranding() {
   if (voidPinInput) voidPinInput.value = '';
   voidPinInput && voidPinInput.setAttribute('placeholder', '••••••  (enter new PIN to change)');
 
+  // Logo preview
+  if (typeof renderLogoPreview === 'function') renderLogoPreview();
   const supplierToggle = document.getElementById('settingsSupplierMode');
   if (supplierToggle) supplierToggle.checked = APP_STATE.settings?.supplierModeEnabled === true;
 
@@ -471,12 +473,26 @@ window._renderPaymentQRBoxes= _renderPaymentQRBoxes;
 function archiveAndResetLocal() {
   if (!confirm('This will download a backup file, then wipe all business data.\n\nSettings and categories will be kept.\n\nContinue?')) return;
   if (typeof exportAllData === 'function') exportAllData();
-  setTimeout(() => {
-    if (typeof resetBusinessData === 'function') {
-      resetBusinessData();
-      showNotification('Data archived locally and reset', 'success');
-    }
-  }, 800);
+
+  // Auto cloud backup if tenant is available
+  if (typeof getTenantId === 'function' && getTenantId()) {
+    showNotification('Backing up to cloud before reset…', 'info');
+    cloudBackup().finally(() => {
+      setTimeout(() => {
+        if (typeof resetBusinessData === 'function') {
+          resetBusinessData();
+          showNotification('Archived locally + cloud, data reset', 'success');
+        }
+      }, 800);
+    });
+  } else {
+    setTimeout(() => {
+      if (typeof resetBusinessData === 'function') {
+        resetBusinessData();
+        showNotification('Data archived locally and reset', 'success');
+      }
+    }, 800);
+  }
 }
 
 function archiveAndResetEmail() {
@@ -511,13 +527,19 @@ function archiveAndResetEmail() {
   setTimeout(() => document.body.removeChild(a), 500);
 
   // Reset after a short delay to let the download trigger first
-  setTimeout(() => {
+  const doReset = () => {
     if (typeof resetBusinessData === 'function') {
       resetBusinessData();
       if (typeof renderEverything === 'function') renderEverything();
       showNotification('Backup downloaded — attach it to the email that just opened', 'success');
     }
-  }, 1500);
+  };
+
+  if (typeof getTenantId === 'function' && getTenantId()) {
+    cloudBackup().finally(() => setTimeout(doReset, 1500));
+  } else {
+    setTimeout(doReset, 1500);
+  }
 }
 
 // Legacy alias
@@ -799,3 +821,62 @@ function applyShoppingListToggle() {
 }
 
 window.applyShoppingListToggle = applyShoppingListToggle;
+
+/* ═══════════════════════════════════════════════════════
+   RECEIPT LOGO
+═══════════════════════════════════════════════════════ */
+function handleLogoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 500 * 1024) {
+    showNotification('Logo must be under 500KB', 'error');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const base64 = e.target.result;
+    // Store in settings
+    if (!APP_STATE.settings) APP_STATE.settings = {};
+    APP_STATE.settings.receiptLogo = base64;
+    persistState();
+    _renderLogoPreview(base64);
+    showNotification('Logo saved', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeLogo() {
+  if (!APP_STATE.settings) return;
+  delete APP_STATE.settings.receiptLogo;
+  persistState();
+  _renderLogoPreview(null);
+  showNotification('Logo removed', 'success');
+}
+
+function _renderLogoPreview(base64) {
+  const img         = document.getElementById('logoPreview');
+  const placeholder = document.getElementById('logoPlaceholder');
+  const removeBtn   = document.getElementById('removeLogoBtn');
+  if (!img) return;
+  if (base64) {
+    img.src           = base64;
+    img.style.display = 'block';
+    if (placeholder) placeholder.style.display = 'none';
+    if (removeBtn)   removeBtn.style.display   = 'inline-flex';
+  } else {
+    img.src           = '';
+    img.style.display = 'none';
+    if (placeholder) placeholder.style.display = 'block';
+    if (removeBtn)   removeBtn.style.display   = 'none';
+  }
+}
+
+// Call on settings render to populate existing logo
+function renderLogoPreview() {
+  _renderLogoPreview(APP_STATE.settings?.receiptLogo || null);
+}
+
+window.handleLogoUpload  = handleLogoUpload;
+window.removeLogo        = removeLogo;
+window.renderLogoPreview = renderLogoPreview;

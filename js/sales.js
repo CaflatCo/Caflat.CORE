@@ -613,9 +613,11 @@ function openCheckoutModal() {
   const nameEl     = document.getElementById('checkoutCustomer');
   const tenderedEl = getElementByIds(['checkoutTendered']);
   const refEl      = document.getElementById('paymentReference');
+  const notesEl    = document.getElementById('checkoutOrderNotes');
   if (nameEl)     nameEl.value     = '';
   if (tenderedEl) tenderedEl.value = '';
   if (refEl)      refEl.value      = '';
+  if (notesEl)    notesEl.value    = '';
 
   // Reset payment to cash
   const payEl = document.getElementById('checkoutPayment');
@@ -674,7 +676,7 @@ function togglePaymentFields() {
 
 /* ── Transaction builder ── */
 function buildTransactionSnapshot({ status, paymentStatus, paymentMethod, tendered, change,
-    referenceNumber, customerName, cartOverride = null }) {
+    referenceNumber, customerName, orderNotes, cartOverride = null }) {
   const cart = Array.isArray(cartOverride) ? cartOverride : getCart();
   const items = cart.map(item => ({
     id: item.id, productId: item.productId, variantId: item.variantId || '',
@@ -695,6 +697,7 @@ function buildTransactionSnapshot({ status, paymentStatus, paymentMethod, tender
 
   return {
     id: generateId(), receiptNumber, status, paymentStatus, orderType,
+    notes: orderNotes || '',
     customer: { name: customerName || 'Walk-in Customer' },
     payment: {
       method: paymentMethod, tendered: Number(tendered || 0),
@@ -793,6 +796,7 @@ async function completeSale(forceStatus = 'COMPLETED') {
   const method = getSelectedPaymentMethod();
   const customerName = getCheckoutCustomerName();
   const referenceNumber = getPaymentReference();
+  const orderNotes = document.getElementById('checkoutOrderNotes')?.value?.trim() || '';
   const total = calculateCartTotal();
   const isPending = String(forceStatus).toUpperCase() === 'PENDING';
   const paymentStatus = isPending ? 'PENDING' : 'PAID';
@@ -855,7 +859,7 @@ async function completeSale(forceStatus = 'COMPLETED') {
   const transaction = buildTransactionSnapshot({
     status: isPending ? 'PENDING' : 'COMPLETED',
     paymentStatus, paymentMethod: method,
-    tendered, change, referenceNumber, customerName, cartOverride: cart
+    tendered, change, referenceNumber, customerName, orderNotes, cartOverride: cart
   });
 
   // Attach split payment info if active
@@ -948,12 +952,21 @@ function renderReceipt(transaction) {
 
   body.innerHTML = `
     <div class="receipt-header">
+      ${APP_STATE.settings?.receiptLogo ? `
+        <div style="text-align:center;margin-bottom:8px;">
+          <img src="${APP_STATE.settings.receiptLogo}" alt=""
+            style="max-height:48px;max-width:120px;object-fit:contain;" />
+        </div>` : ''}
       <div class="receipt-brand">${escapeHtml(brand)}</div>
       <div>${dateText}</div>
       <div>${escapeHtml(transaction.receiptNumber)}</div>
       <div style="font-size:10px;opacity:.6;">${escapeHtml(transaction.status)}</div>
     </div>
     <div class="receipt-line"><span>Customer</span><span>${escapeHtml(transaction.customer?.name || 'Walk-in')}</span></div>
+    ${transaction.notes ? `
+    <div class="receipt-line" style="color:var(--gray-500);font-style:italic;">
+      <span>Notes</span><span style="max-width:180px;text-align:right;">${escapeHtml(transaction.notes)}</span>
+    </div>` : ''}
     ${orderTypeLine}
     <div class="receipt-line"><span>Payment</span><span>${escapeHtml(transaction.payment?.method || 'cash').toUpperCase()}</span></div>
     ${referenceLine}

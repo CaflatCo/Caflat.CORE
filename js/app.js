@@ -67,6 +67,7 @@ function renderEverything() {
     'applySupplierCartButton',
     'renderCart',
     'refreshDashboard',
+    'updateNavBadges',
   ];
 
   renderCalls.forEach(fn => {
@@ -242,3 +243,20 @@ window.bindCheckoutInputs=bindCheckoutInputs;
 window.bindNavigation  = bindNavigation;
 window.switchPage      = switchPage;
 window.switchView      = switchPage;
+
+/* ═══════════════════════════════════════════════════════
+   OFFLINE INDICATOR
+═══════════════════════════════════════════════════════ */
+function _updateOfflineIndicator() {
+  const indicator = document.getElementById('offlineIndicator');
+  if (!indicator) return;
+  indicator.style.display = navigator.onLine ? 'none' : 'flex';
+}
+
+window.addEventListener('online',  _updateOfflineIndicator);
+window.addEventListener('offline', _updateOfflineIndicator);
+
+// Also check on init
+document.addEventListener('DOMContentLoaded', () => {
+  _updateOfflineIndicator();
+});

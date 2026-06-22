@@ -8,6 +8,7 @@ let dashboardChartInstance = null;
 
 /* ── Entry point ── */
 function refreshDashboard() {
+  updateNavBadges();
   const kpi = getKPISummary();
 
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
@@ -497,8 +498,40 @@ function setAnalyticsPeriod(period) {
   renderAnalyticsPanel();
 }
 
+/* ── Nav badges ── */
+function updateNavBadges() {
+  const navBtn = document.getElementById('navDashboard');
+  if (!navBtn) return;
+
+  const lowCount = typeof getLowStockItems === 'function'
+    ? getLowStockItems().length : 0;
+
+  let badge = document.getElementById('dashboardNavBadge');
+
+  if (lowCount > 0) {
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.id = 'dashboardNavBadge';
+      badge.style.cssText = `
+        display:inline-flex;align-items:center;justify-content:center;
+        min-width:16px;height:16px;padding:0 4px;
+        background:var(--danger);color:#fff;
+        font-size:9px;font-weight:900;border-radius:999px;
+        margin-left:5px;line-height:1;vertical-align:middle;
+        font-family:var(--font-main);letter-spacing:0;
+      `;
+      navBtn.appendChild(badge);
+    }
+    badge.textContent = lowCount > 99 ? '99+' : lowCount;
+    badge.style.display = 'inline-flex';
+  } else if (badge) {
+    badge.style.display = 'none';
+  }
+}
+
 /* ── Exports ── */
 window.refreshDashboard       = refreshDashboard;
+window.updateNavBadges        = updateNavBadges;
 window.renderChannelBreakdownDashboard = renderChannelBreakdownDashboard;
 window.renderDashboardChart   = renderDashboardChart;
 window.renderTopProducts      = renderTopProducts;
