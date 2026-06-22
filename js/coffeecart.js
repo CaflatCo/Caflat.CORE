@@ -574,36 +574,91 @@ function deletePackage(packageId) {
 }
 
 function renderPackagesTable() {
-  const tbody = document.querySelector('#packagesTable tbody');
-  if (!tbody) return;
+  const grid = document.getElementById('packagesGrid');
+  if (!grid) return;
   const packages = getEventPackages();
 
-  tbody.innerHTML = '';
   if (!packages.length) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No packages yet — build your first event package</td></tr>`;
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:40px 20px;
+        border:2px dashed var(--gray-300);border-radius:var(--radius-lg);color:var(--gray-400);">
+        <div style="font-size:28px;margin-bottom:8px;">📦</div>
+        <div style="font-weight:800;font-size:13px;margin-bottom:4px;">No packages yet</div>
+        <div style="font-size:12px;">Build your first event package to show clients</div>
+      </div>`;
     return;
   }
 
+  grid.innerHTML = '';
   packages.forEach(pkg => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td style="font-weight:700;">${escapeHtml(pkg.name)}</td>
-      <td style="font-weight:900;font-variant-numeric:tabular-nums;">
-        ${formatCurrency(pkg.price)}</td>
-      <td style="font-size:11px;color:var(--gray-500);">
-        ${pkg.minPax || pkg.maxPax
-          ? `${pkg.minPax || '?'} – ${pkg.maxPax || '?'} pax`
-          : '—'}</td>
-      <td style="font-size:11px;max-width:180px;overflow:hidden;
-        text-overflow:ellipsis;white-space:nowrap;">
-        ${(pkg.items || []).map(i => `${i.name} ×${i.qty}`).join(', ') || '—'}</td>
-      <td>
-        <div class="table-actions">
-          <button class="btn btn-sm" data-action="edit-package" data-id="${pkg.id}">Edit</button>
-          <button class="btn btn-sm btn-secondary" data-action="delete-package" data-id="${pkg.id}">Delete</button>
+    const paxLabel = (pkg.minPax || pkg.maxPax)
+      ? `${pkg.minPax || '?'} – ${pkg.maxPax || '?'} pax`
+      : null;
+
+    const itemsHtml = (pkg.items || []).length
+      ? (pkg.items || []).map(i => `
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;
+            border-bottom:1px solid var(--gray-200);">
+            <span style="width:20px;height:20px;border-radius:50%;background:var(--black);
+              color:var(--white);font-size:9px;font-weight:900;display:flex;
+              align-items:center;justify-content:center;flex-shrink:0;">${i.qty}</span>
+            <span style="font-size:12px;font-weight:700;">${escapeHtml(i.name)}</span>
+          </div>`).join('')
+      : `<div style="font-size:12px;color:var(--gray-400);padding:4px 0;">No items listed</div>`;
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+      border:1.5px solid var(--border);border-radius:var(--radius-lg);
+      background:var(--white);display:flex;flex-direction:column;
+      overflow:hidden;box-shadow:var(--shadow-xs);`;
+
+    card.innerHTML = `
+      <!-- Header band -->
+      <div style="background:var(--black);padding:18px 20px 16px;">
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;
+          color:rgba(255,255,255,.5);margin-bottom:6px;font-weight:800;">Package</div>
+        <div style="font-size:16px;font-weight:900;color:var(--white);
+          line-height:1.2;margin-bottom:10px;">${escapeHtml(pkg.name)}</div>
+        <div style="display:flex;align-items:baseline;gap:4px;">
+          <span style="font-size:26px;font-weight:900;color:var(--white);
+            font-variant-numeric:tabular-nums;letter-spacing:-0.5px;">${formatCurrency(pkg.price)}</span>
         </div>
-      </td>`;
-    tbody.appendChild(row);
+        ${paxLabel ? `
+        <div style="margin-top:10px;">
+          <span style="display:inline-flex;align-items:center;gap:5px;
+            padding:3px 10px;border-radius:var(--radius-full);
+            background:rgba(255,255,255,.12);
+            color:rgba(255,255,255,.85);font-size:10px;font-weight:800;
+            letter-spacing:.5px;">
+            👥 ${escapeHtml(paxLabel)}
+          </span>
+        </div>` : ''}
+      </div>
+
+      <!-- Description -->
+      ${pkg.description ? `
+      <div style="padding:12px 20px 0;font-size:12px;color:var(--gray-600);
+        line-height:1.5;font-style:italic;">
+        "${escapeHtml(pkg.description)}"
+      </div>` : ''}
+
+      <!-- Items list -->
+      <div style="padding:14px 20px;flex:1;">
+        <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+          color:var(--gray-400);font-weight:800;margin-bottom:8px;">Inclusions</div>
+        ${itemsHtml}
+      </div>
+
+      <!-- Actions -->
+      <div style="padding:12px 20px;border-top:1px solid var(--gray-200);
+        display:flex;gap:8px;justify-content:flex-end;background:var(--gray-50);">
+        <button class="btn btn-sm" data-action="edit-package"
+          data-id="${pkg.id}">Edit</button>
+        <button class="btn btn-sm btn-secondary" data-action="delete-package"
+          data-id="${pkg.id}">Delete</button>
+      </div>`;
+
+    grid.appendChild(card);
   });
 }
 
