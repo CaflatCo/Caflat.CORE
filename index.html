@@ -677,36 +677,45 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Reports &amp; Analytics</h2>
-            <button class="btn btn-secondary" type="button" id="profitabilityToggleBtn"
-              onclick="toggleProfitabilitySection()">
-              Show Profitability ▾
-            </button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-secondary" type="button"
+                id="profitabilityToggleBtn" onclick="toggleProfitabilitySection()">
+                Show Profitability ▾
+              </button>
+              <button class="btn btn-secondary" type="button" onclick="exportReportAsPDF()">
+                Export PDF
+              </button>
+            </div>
           </div>
 
+          <!-- Date filter -->
           <div class="filter-bar">
             <input id="reportFromDate" type="date" />
             <input id="reportToDate" type="date" />
             <button class="btn btn-secondary" type="button" data-action="refresh-reports">Apply Filter</button>
           </div>
 
-          <!-- KPI Cards -->
+          <!-- 1. KPI Cards -->
           <div class="stats-grid" id="reportStatsGrid"></div>
 
-          <!-- Revenue Trend -->
+          <!-- 2. Revenue Trend -->
           <div class="section-title">Revenue Trend</div>
-          <div class="chart-container">
+          <div class="chart-container" style="margin-bottom:28px;">
             <canvas id="reportRevenueChart"></canvas>
           </div>
 
+          <!-- 3. Void & Refund Summary -->
+          <div class="section-title">Void &amp; Refund Summary</div>
+          <div id="voidRefundContainer" style="margin-bottom:28px;"></div>
+
+          <!-- 4 + 5. When & How (Heatmap + Payment side by side) -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;">
-            <!-- Hourly Sales -->
             <div>
-              <div class="section-title">Hourly Sales Distribution</div>
-              <div class="chart-container" style="height:200px;">
-                <canvas id="reportHourlyChart"></canvas>
-              </div>
+              <div class="section-title">Sales by Hour &amp; Day</div>
+              <div id="hourlyHeatmapContainer"
+                style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
+                  padding:16px;background:var(--white);overflow-x:auto;"></div>
             </div>
-            <!-- Payment Breakdown -->
             <div>
               <div class="section-title">Payment Methods</div>
               <div class="stat-card" style="min-height:0;">
@@ -715,13 +724,17 @@
             </div>
           </div>
 
-          <!-- Category Performance -->
+          <!-- 6. Discount Analysis -->
+          <div class="section-title">Discount Analysis</div>
+          <div id="discountAnalysisContainer" style="margin-bottom:28px;"></div>
+
+          <!-- 7. Category Performance -->
           <div class="section-title">Category Performance</div>
           <div id="categoryPerformanceContainer" style="margin-bottom:28px;"></div>
 
-          <!-- Product Performance -->
+          <!-- 8. Product Performance -->
           <div class="section-title">Product Performance</div>
-          <div class="table-wrapper">
+          <div class="table-wrapper" style="margin-bottom:28px;">
             <table id="reportProductsTable">
               <thead>
                 <tr><th>Product</th><th>Qty Sold</th><th>Revenue</th><th>Cost</th><th>Profit</th></tr>
@@ -730,9 +743,9 @@
             </table>
           </div>
 
-          <!-- Ingredient Usage -->
+          <!-- 9. Ingredient Usage -->
           <div class="section-title">Ingredient Usage</div>
-          <div class="table-wrapper">
+          <div class="table-wrapper" style="margin-bottom:28px;">
             <table id="ingredientUsageTable">
               <thead>
                 <tr><th>Ingredient</th><th>Estimated Usage</th><th>Remaining Stock</th></tr>
@@ -741,17 +754,18 @@
             </table>
           </div>
 
-          <!-- Insights -->
+          <!-- 10. Operational Insights -->
           <div class="section-title">Operational Insights</div>
-          <div class="table-wrapper">
+          <div class="table-wrapper" style="margin-bottom:28px;">
             <table id="reportInsightsTable">
               <thead><tr><th>Metric</th><th>Value</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
 
-          <!-- ── PROFITABILITY ANALYSIS ── -->
-          <div id="profitabilitySection" style="display:none;margin-top:40px;padding-top:32px;border-top:2px solid var(--black);">
+          <!-- 11. Profitability Toggle Section -->
+          <div id="profitabilitySection" style="display:none;margin-top:40px;
+            padding-top:32px;border-top:2px solid var(--black);">
             <div style="margin-bottom:24px;">
               <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;
                 color:var(--gray-400);font-weight:800;margin-bottom:4px;">Deep Dive</div>
@@ -769,8 +783,7 @@
               <div>
                 <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
                   color:var(--gray-400);font-weight:800;margin-bottom:14px;">
-                  Cumulative Pure Profit
-                </div>
+                  Cumulative Pure Profit</div>
                 <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
                   padding:16px;background:var(--white);">
                   <canvas id="pureProfitCumulativeChart" height="180"></canvas>
@@ -779,19 +792,17 @@
               <div>
                 <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
                   color:var(--gray-400);font-weight:800;margin-bottom:14px;">
-                  Top 5 by Margin
-                </div>
+                  Top 5 by Margin</div>
                 <div id="bestMarginContainer"></div>
               </div>
             </div>
 
-            <!-- Row 2: Pure Profit by Category + Revenue vs Cost stacked -->
+            <!-- Row 2: Pure Profit by Category + Revenue vs Cost -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:40px;">
               <div>
                 <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
                   color:var(--gray-400);font-weight:800;margin-bottom:14px;">
-                  Pure Profit by Category
-                </div>
+                  Pure Profit by Category</div>
                 <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
                   padding:16px;background:var(--white);">
                   <canvas id="pureProfitByCategoryChart" height="180"></canvas>
@@ -800,8 +811,7 @@
               <div>
                 <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
                   color:var(--gray-400);font-weight:800;margin-bottom:14px;">
-                  Revenue vs Cost vs Profit
-                </div>
+                  Revenue vs Cost vs Profit</div>
                 <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
                   padding:16px;background:var(--white);">
                   <canvas id="revenueVsCostChart" height="180"></canvas>
@@ -809,10 +819,10 @@
               </div>
             </div>
 
-            <!-- Row 3: Dead Weight -->
+            <!-- Dead Weight -->
             <div id="deadWeightContainer" style="margin-bottom:16px;"></div>
-
           </div>
+
         </div>
       </section>
 
