@@ -398,23 +398,19 @@ function openLicenseModal() {
   const plans = [
     {
       tier:'FREE', price:'₱0', color:'#555', bg:'#f4f4f4', border:'#e0e0e0',
-      features:['Core POS, inventory, sales','Up to 50 products','Local storage only'],
-      missing:['Optional modes','Cloud backup','Auto sync'],
+      features:['Core POS, inventory & sales','Up to 50 products','Local storage only','—','—'],
     },
     {
       tier:'PRO', price:'₱499/mo', color:'#fff', bg:'#0f0f0f', border:'#0f0f0f',
-      features:['Unlimited products','All optional modes','Supplier, Production, Coffee Cart','Product Lab, Recipe Catalog','Manual cloud backup'],
-      missing:['Auto sync','Multi-device'],
+      features:['Unlimited products','All optional modes','Supplier, Production, Events','Product Lab & Recipe Catalog','Manual cloud backup'],
     },
     {
       tier:'CLOUD', price:'₱899/mo', color:'#fff', bg:'#2563eb', border:'#2563eb',
       features:['Everything in PRO','Auto sync after every sale','Multi-device (up to 2)','10 cloud backup snapshots','Restore from cloud anytime'],
-      missing:[],
     },
     {
       tier:'ENTERPRISE', price:'Custom', color:'#fff', bg:'#7e22ce', border:'#7e22ce',
       features:['Everything in CLOUD','Unlimited devices','Priority support','Custom onboarding','More features coming'],
-      missing:[],
     },
   ];
 
@@ -426,7 +422,8 @@ function openLicenseModal() {
         const isCurrent = p.tier.toLowerCase() === tier;
         return `
           <div style="border:2px solid ${isCurrent ? p.border : 'var(--border)'};
-            border-radius:var(--radius-lg);overflow:hidden;">
+            border-radius:var(--radius-lg);overflow:hidden;
+            display:flex;flex-direction:column;">
             <div style="background:${isCurrent ? p.bg : 'var(--gray-50)'};
               padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
               <span style="font-size:11px;font-weight:900;letter-spacing:1px;
@@ -434,20 +431,23 @@ function openLicenseModal() {
               <span style="font-size:11px;font-weight:800;
                 color:${isCurrent ? p.color : 'var(--gray-500)'};">${p.price}</span>
             </div>
-            <div style="padding:10px 12px;">
-              ${p.features.map(f => `<div style="font-size:11px;color:var(--gray-700);
-                margin-bottom:3px;display:flex;gap:5px;">
-                <span style="color:#16a34a;flex-shrink:0;">✓</span>${f}</div>`).join('')}
-              ${p.missing.map(f => `<div style="font-size:11px;color:var(--gray-300);
-                margin-bottom:3px;display:flex;gap:5px;">
-                <span style="flex-shrink:0;">—</span>${f}</div>`).join('')}
+            <div style="padding:10px 12px;flex:1;">
+              ${p.features.map(f => `
+                <div style="font-size:11px;margin-bottom:4px;display:flex;gap:5px;
+                  color:${f==='—'?'var(--gray-200)':'var(--gray-700)'};">
+                  <span style="flex-shrink:0;color:${f==='—'?'var(--gray-200)':'#16a34a'};">${f==='—'?'—':'✓'}</span>
+                  ${f==='—'?'':f}
+                </div>`).join('')}
             </div>
-            ${isCurrent ? `<div style="padding:5px 12px;background:${p.bg};
-              text-align:center;font-size:9px;font-weight:900;
-              letter-spacing:1px;color:${p.color};">CURRENT</div>` : ''}
+            <div style="padding:6px 12px;text-align:center;font-size:9px;font-weight:900;
+              letter-spacing:1px;background:${isCurrent ? p.bg : 'var(--gray-50)'};
+              color:${isCurrent ? p.color : 'var(--gray-200)'};">
+              ${isCurrent ? 'CURRENT PLAN' : '&nbsp;'}
+            </div>
           </div>`;
       }).join('')}
     </div>`;
+
 
   modal.innerHTML = `
     <div class="modal" style="max-width:500px;">
