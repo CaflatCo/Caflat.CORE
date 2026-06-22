@@ -643,8 +643,9 @@ function renderReceipt(transaction) {
 }
 
 function _generateReceiptQR(transaction) {
-  const container = document.getElementById('receiptQRContainer');
-  if (!container) return;
+  const qrDiv = document.getElementById('receiptQRDiv');
+  if (!qrDiv) return;
+  qrDiv.innerHTML = '';
 
   const brand   = APP_STATE.settings?.brandName || 'Caflat.Co';
   const receipt = transaction.receiptNumber || transaction.id || '';
@@ -657,30 +658,25 @@ function _generateReceiptQR(transaction) {
     ? `${baseUrl}?r=${encodeURIComponent(receipt)}`
     : [brand, receipt, total, date].filter(Boolean).join('\n');
 
-  const qrDiv = document.getElementById('receiptQRDiv');
-  if (!qrDiv) return;
-  qrDiv.innerHTML = '';
-
-  if (typeof QRCode !== 'undefined') {
-    try {
-      new QRCode(qrDiv, {
-        text,
-        width:          200,
-        height:         200,
-        colorDark:      '#000000',
-        colorLight:     '#ffffff',
-        correctLevel:   QRCode.CorrectLevel.M
-      });
-      return;
-    } catch(e) {
-      console.warn('QRCode failed:', e);
+  try {
+    // qrcode-generator: qr(typeNumber 0=auto, errorCorrectionLevel)
+    const qr = qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+    // createSvgTag(cellSize, margin) — pure SVG, works everywhere including Safari
+    qrDiv.innerHTML = qr.createSvgTag(5, 4);
+    // Make sure it's not too big or too small
+    const svg = qrDiv.querySelector('svg');
+    if (svg) {
+      svg.style.display = 'block';
+      svg.style.maxWidth = '200px';
+      svg.style.height = 'auto';
     }
+  } catch(e) {
+    console.warn('QR generation failed:', e);
+    qrDiv.innerHTML = `<div style="font-size:10px;color:#999;padding:8px;
+      word-break:break-all;">${escapeHtml(text)}</div>`;
   }
-
-  // Fallback: plain text
-  qrDiv.innerHTML = `<pre style="font-size:8px;text-align:left;background:#f4f4f4;
-    padding:8px;border-radius:4px;white-space:pre-wrap;word-break:break-all;">
-    ${escapeHtml(text)}</pre>`;
 }
 
 function _receiptQRFallback(container, text) {
