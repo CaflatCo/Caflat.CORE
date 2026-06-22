@@ -11,18 +11,43 @@ const FREE_PRODUCT_LIMIT    = 50;
 const REVALIDATE_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /* ── Tier definitions ──────────────────────────────── */
-const TIER_FREE = 'free';
-const TIER_PRO  = 'pro';
+const TIER_FREE       = 'free';
+const TIER_PRO        = 'pro';
+const TIER_CLOUD      = 'cloud';
+const TIER_ENTERPRISE = 'enterprise';
+
+const TIER_RANK = {
+  [TIER_FREE]:       0,
+  [TIER_PRO]:        1,
+  [TIER_CLOUD]:      2,
+  [TIER_ENTERPRISE]: 3,
+};
+
+const CORE_FEATURES = [
+  'pos', 'products', 'inventory', 'dashboard', 'sales', 'reports'
+];
+
+const PRO_FEATURES = [
+  ...CORE_FEATURES,
+  'supplier', 'production', 'coffeecart', 'productlab',
+  'recipecatalog', 'shoppinglist', 'finishedgoods'
+];
+
+const CLOUD_FEATURES = [
+  ...PRO_FEATURES,
+  'cloudsync', 'cloudbackup'
+];
+
+const ENTERPRISE_FEATURES = [
+  ...CLOUD_FEATURES,
+  'enterprise'
+];
 
 const TIER_FEATURES = {
-  [TIER_FREE]: [
-    'pos', 'products', 'inventory', 'dashboard', 'sales', 'reports'
-  ],
-  [TIER_PRO]: [
-    'pos', 'products', 'inventory', 'dashboard', 'sales', 'reports',
-    'supplier', 'production', 'coffeecart', 'productlab',
-    'recipecatalog', 'shoppinglist', 'finishedgoods'
-  ]
+  [TIER_FREE]:       CORE_FEATURES,
+  [TIER_PRO]:        PRO_FEATURES,
+  [TIER_CLOUD]:      CLOUD_FEATURES,
+  [TIER_ENTERPRISE]: ENTERPRISE_FEATURES,
 };
 
 /* ── Local license state ───────────────────────────── */
@@ -47,19 +72,18 @@ function _clearLicense() {
 /* ── Public API ────────────────────────────────────── */
 function getLicenseTier() {
   if (!_licenseState) return TIER_FREE;
-  if (_licenseState.tier === TIER_PRO) {
-    // Check expiry
-    if (_licenseState.expires_at && new Date(_licenseState.expires_at) < new Date()) {
-      return TIER_FREE; // expired
-    }
-    return TIER_PRO;
+  const t = String(_licenseState.tier || '').toLowerCase();
+  if (![TIER_PRO, TIER_CLOUD, TIER_ENTERPRISE].includes(t)) return TIER_FREE;
+  // Check expiry
+  if (_licenseState.expires_at && new Date(_licenseState.expires_at) < new Date()) {
+    return TIER_FREE;
   }
-  return TIER_FREE;
+  return t;
 }
 
-function isProTier() {
-  return getLicenseTier() === TIER_PRO;
-}
+function isProTier()        { return TIER_RANK[getLicenseTier()] >= TIER_RANK[TIER_PRO]; }
+function isCloudTier()      { return TIER_RANK[getLicenseTier()] >= TIER_RANK[TIER_CLOUD]; }
+function isEnterpriseTier() { return TIER_RANK[getLicenseTier()] >= TIER_RANK[TIER_ENTERPRISE]; }
 
 function getLicenseInfo() {
   return _licenseState;
@@ -79,9 +103,13 @@ function isAtProductLimit() {
   return (getProducts?.() || []).length >= FREE_PRODUCT_LIMIT;
 }
 
-/* Returns the tenant_id for this activated license, or null if free/unactivated */
 function getTenantId() {
   return _licenseState?.tenant_id || null;
+}
+
+function getTierLabel() {
+  const t = getLicenseTier();
+  return { free:'FREE', pro:'PRO', cloud:'CLOUD', enterprise:'ENTERPRISE' }[t] || 'FREE';
 }
 
 /* ── Supabase helpers ──────────────────────────────── */
@@ -211,53 +239,55 @@ async function _generateDeviceId() {
 
 /* ── Apply tier to app features ────────────────────── */
 function applyLicenseTier() {
-  const tier = getLicenseTier();
-  const isPro = tier === TIER_PRO;
+  const tier    = getLicenseTier();
+  const isPaid  = isProTier(); // true for pro/cloud/enterprise
+  const isCloud = isCloudTier();
 
   // Update Settings license section
   const statusLabel = document.getElementById('licenseStatusLabel');
   const statusSub   = document.getElementById('licenseStatusSub');
   const openBtn     = document.getElementById('openLicenseBtn');
+
+  const TIER_DISPLAY = {
+    free:       { label: 'Free Plan',       color: '' },
+    pro:        { label: '✓ PRO',           color: '#15803d' },
+    cloud:      { label: '✓ CLOUD',         color: '#2563eb' },
+    enterprise: { label: '✓ ENTERPRISE',    color: '#7e22ce' },
+  };
+  const display = TIER_DISPLAY[tier] || TIER_DISPLAY.free;
+
   if (statusLabel) {
-    if (isPro) {
-      statusLabel.textContent = '✓ PRO Plan';
-      statusLabel.style.color = '#15803d';
-      if (statusSub) {
-        const expiry = _licenseState?.expires_at
-          ? new Date(_licenseState.expires_at).toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'numeric'})
-          : 'Lifetime';
-        statusSub.textContent = `${_licenseState?.client_name || ''} · All features unlocked · Expires ${expiry}`;
-      }
-      if (openBtn) { openBtn.textContent = 'Manage License'; }
+    statusLabel.textContent = display.label;
+    statusLabel.style.color = display.color;
+  }
+  if (statusSub) {
+    if (isPaid) {
+      const expiry = _licenseState?.expires_at
+        ? new Date(_licenseState.expires_at).toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'numeric'})
+        : 'Lifetime';
+      const featureNote = isCloud ? 'Auto cloud sync enabled' : 'All features unlocked';
+      statusSub.textContent = `${_licenseState?.client_name || ''} · ${featureNote} · Expires ${expiry}`;
     } else {
-      statusLabel.textContent = 'Free Plan';
-      statusLabel.style.color = '';
-      if (statusSub) statusSub.textContent = 'Up to 50 products · Core features only';
-      if (openBtn) { openBtn.textContent = 'Enter License Key'; }
+      statusSub.textContent = `Up to ${FREE_PRODUCT_LIMIT} products · Core features only`;
     }
   }
+  if (openBtn) openBtn.textContent = isPaid ? 'Manage License' : 'Enter License Key';
 
   // Update nav badge
   _renderLicenseBadge();
 
-  // Gate optional modes — only show in settings if Pro
-  // The actual feature toggles in settings also need to be gated
+  // Gate optional modes — only available on PRO+
   const proOnlyToggles = [
-    'settingsSupplierMode',
-    'settingsProductionMode',
-    'settingsCoffeeCartMode',
-    'settingsProductLabMode',
-    'settingsRecipeCatalogMode',
-    'settingsShoppingList',
+    'settingsSupplierMode', 'settingsProductionMode', 'settingsCoffeeCartMode',
+    'settingsProductLabMode', 'settingsRecipeCatalogMode', 'settingsShoppingList',
   ];
 
   proOnlyToggles.forEach(id => {
     const row = document.getElementById(id)?.closest('.settings-toggle-row');
     if (row) {
-      if (!isPro) {
+      if (!isPaid) {
         row.style.opacity = '0.4';
         row.style.pointerEvents = 'none';
-        // Add lock badge if not already there
         if (!row.querySelector('.pro-lock-badge')) {
           const badge = document.createElement('span');
           badge.className = 'pro-lock-badge';
@@ -274,8 +304,8 @@ function applyLicenseTier() {
     }
   });
 
-  // If free tier, force-disable pro features in settings
-  if (!isPro && APP_STATE.settings) {
+  // Force-disable pro features on free tier
+  if (!isPaid && APP_STATE.settings) {
     APP_STATE.settings.supplierModeEnabled   = false;
     APP_STATE.settings.productionModeEnabled = false;
     APP_STATE.settings.coffeeCartModeEnabled = false;
@@ -283,7 +313,6 @@ function applyLicenseTier() {
     APP_STATE.settings.recipeCatalogEnabled  = false;
     APP_STATE.settings.shoppingListEnabled   = false;
 
-    // Hide any nav tabs that were enabled
     ['navSupply','navProduction','navCoffeeCart'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
@@ -293,13 +322,21 @@ function applyLicenseTier() {
       if (el) el.style.display = 'none';
     });
 
-    // Apply toggles
     if (typeof applySupplierModeToggle    === 'function') applySupplierModeToggle();
     if (typeof applyProductionModeToggle  === 'function') applyProductionModeToggle();
     if (typeof applyCoffeeCartModeToggle  === 'function') applyCoffeeCartModeToggle();
     if (typeof applyProductLabModeToggle  === 'function') applyProductLabModeToggle();
     if (typeof applyRecipeCatalogToggle   === 'function') applyRecipeCatalogToggle();
     if (typeof applyShoppingListToggle    === 'function') applyShoppingListToggle();
+  }
+
+  // Hide cloud upsell if already on CLOUD+
+  const upsellBanner = document.getElementById('cloudSyncUpsellBanner');
+  if (upsellBanner) upsellBanner.style.display = isCloud ? 'none' : 'block';
+
+  // Start sync engine if CLOUD/ENTERPRISE
+  if (isCloud && typeof initSyncEngine === 'function') {
+    initSyncEngine();
   }
 }
 
@@ -317,16 +354,16 @@ function _renderLicenseBadge() {
     if (brandName) brandName.insertAdjacentElement('afterend', badge);
   }
 
-  const tier = getLicenseTier();
-  if (tier === TIER_PRO) {
-    badge.textContent = 'PRO';
-    badge.style.background = '#0f0f0f';
-    badge.style.color = '#fff';
-  } else {
-    badge.textContent = 'FREE';
-    badge.style.background = '#f0f0f0';
-    badge.style.color = '#555';
-  }
+  const BADGE_STYLES = {
+    free:       { text: 'FREE',       bg: '#f0f0f0', color: '#555' },
+    pro:        { text: 'PRO',        bg: '#0f0f0f', color: '#fff' },
+    cloud:      { text: 'CLOUD',      bg: '#2563eb', color: '#fff' },
+    enterprise: { text: 'ENTERPRISE', bg: '#7e22ce', color: '#fff' },
+  };
+  const style = BADGE_STYLES[getLicenseTier()] || BADGE_STYLES.free;
+  badge.textContent        = style.text;
+  badge.style.background   = style.bg;
+  badge.style.color        = style.color;
 }
 
 /* ── License modal ─────────────────────────────────── */
@@ -342,37 +379,94 @@ function openLicenseModal() {
     });
   }
 
-  const info = getLicenseInfo();
-  const tier = getLicenseTier();
-  const isPro = tier === TIER_PRO;
-  const expiry = info?.expires_at
-    ? new Date(info.expires_at).toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' })
+  const info    = getLicenseInfo();
+  const tier    = getLicenseTier();
+  const isPaid  = isProTier();
+  const isCloud_ = isCloudTier();
+  const expiry  = info?.expires_at
+    ? new Date(info.expires_at).toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'numeric'})
     : null;
 
+  const TIER_COLORS = {
+    free:       { bg:'#f4f4f4', color:'#555',  border:'#e0e0e0' },
+    pro:        { bg:'#0f0f0f', color:'#fff',  border:'#0f0f0f' },
+    cloud:      { bg:'#1d4ed8', color:'#fff',  border:'#1d4ed8' },
+    enterprise: { bg:'#7e22ce', color:'#fff',  border:'#7e22ce' },
+  };
+  const tc = TIER_COLORS[tier] || TIER_COLORS.free;
+
+  const plans = [
+    {
+      tier:'FREE', price:'₱0', color:'#555', bg:'#f4f4f4', border:'#e0e0e0',
+      features:['Core POS, inventory, sales','Up to 50 products','Local storage only'],
+      missing:['Optional modes','Cloud backup','Auto sync'],
+    },
+    {
+      tier:'PRO', price:'₱499/mo', color:'#fff', bg:'#0f0f0f', border:'#0f0f0f',
+      features:['Unlimited products','All optional modes','Supplier, Production, Coffee Cart','Product Lab, Recipe Catalog','Manual cloud backup'],
+      missing:['Auto sync','Multi-device'],
+    },
+    {
+      tier:'CLOUD', price:'₱899/mo', color:'#fff', bg:'#2563eb', border:'#2563eb',
+      features:['Everything in PRO','Auto sync after every sale','Multi-device (up to 2)','10 cloud backup snapshots','Restore from cloud anytime'],
+      missing:[],
+    },
+    {
+      tier:'ENTERPRISE', price:'Custom', color:'#fff', bg:'#7e22ce', border:'#7e22ce',
+      features:['Everything in CLOUD','Unlimited devices','Priority support','Custom onboarding','More features coming'],
+      missing:[],
+    },
+  ];
+
+  const plansHtml = `
+    <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+      color:var(--gray-400);font-weight:800;margin-bottom:12px;">Plans</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;">
+      ${plans.map(p => {
+        const isCurrent = p.tier.toLowerCase() === tier;
+        return `
+          <div style="border:2px solid ${isCurrent ? p.border : 'var(--border)'};
+            border-radius:var(--radius-lg);overflow:hidden;">
+            <div style="background:${isCurrent ? p.bg : 'var(--gray-50)'};
+              padding:10px 12px;display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:11px;font-weight:900;letter-spacing:1px;
+                color:${isCurrent ? p.color : 'var(--black)'};">${p.tier}</span>
+              <span style="font-size:11px;font-weight:800;
+                color:${isCurrent ? p.color : 'var(--gray-500)'};">${p.price}</span>
+            </div>
+            <div style="padding:10px 12px;">
+              ${p.features.map(f => `<div style="font-size:11px;color:var(--gray-700);
+                margin-bottom:3px;display:flex;gap:5px;">
+                <span style="color:#16a34a;flex-shrink:0;">✓</span>${f}</div>`).join('')}
+              ${p.missing.map(f => `<div style="font-size:11px;color:var(--gray-300);
+                margin-bottom:3px;display:flex;gap:5px;">
+                <span style="flex-shrink:0;">—</span>${f}</div>`).join('')}
+            </div>
+            ${isCurrent ? `<div style="padding:5px 12px;background:${p.bg};
+              text-align:center;font-size:9px;font-weight:900;
+              letter-spacing:1px;color:${p.color};">CURRENT</div>` : ''}
+          </div>`;
+      }).join('')}
+    </div>`;
+
   modal.innerHTML = `
-    <div class="modal" style="max-width:420px;">
+    <div class="modal" style="max-width:500px;">
       <h3>License</h3>
-
-      <div style="padding:16px;border-radius:var(--radius-lg);
-        background:${isPro ? '#0f0f0f' : 'var(--gray-50)'};
-        border:1.5px solid ${isPro ? '#0f0f0f' : 'var(--border)'};
-        margin-bottom:20px;text-align:center;">
-        <div style="font-size:28px;font-weight:900;letter-spacing:1px;
-          color:${isPro ? '#fff' : 'var(--gray-400)'};">${isPro ? 'PRO' : 'FREE'}</div>
-        ${isPro ? `
-          <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px;">
-            ${info.client_name || ''}
-          </div>
-          ${expiry ? `<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">Expires ${expiry}</div>` : ''}
-        ` : `
-          <div style="font-size:12px;color:var(--gray-400);margin-top:4px;">
-            Up to ${FREE_PRODUCT_LIMIT} products · Core features only
-          </div>
-        `}
-      </div>
-
-      ${!isPro ? `
-        <div style="margin-bottom:16px;">
+      ${isPaid ? `
+        <div style="padding:16px;border-radius:var(--radius-lg);background:${tc.bg};
+          border:1.5px solid ${tc.border};margin-bottom:20px;text-align:center;">
+          <div style="font-size:24px;font-weight:900;letter-spacing:2px;color:${tc.color};">
+            ${tier.toUpperCase()}</div>
+          <div style="font-size:12px;color:${tc.color==='#fff'?'rgba(255,255,255,.6)':'#555'};margin-top:4px;">
+            ${info?.client_name || ''}${expiry ? ' · Expires '+expiry : ' · Lifetime'}</div>
+          ${isCloud_ ? '<div style="margin-top:6px;font-size:10px;font-weight:800;color:rgba(255,255,255,.8);letter-spacing:1px;">⚡ AUTO SYNC ACTIVE</div>' : ''}
+        </div>
+        <div style="text-align:center;margin-bottom:16px;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="_deactivateLicense()">
+            Remove License</button>
+        </div>
+      ` : `
+        <div style="margin-bottom:20px;">
           <div style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
             color:var(--gray-400);margin-bottom:8px;">Have a license key?</div>
           <div style="display:flex;gap:8px;">
@@ -386,45 +480,25 @@ function openLicenseModal() {
           <div id="licenseActivateError"
             style="display:none;font-size:12px;color:var(--danger);margin-top:8px;font-weight:600;"></div>
         </div>
-      ` : `
-        <div style="text-align:center;margin-bottom:16px;">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="_deactivateLicense()">
-            Remove License
-          </button>
-        </div>
       `}
-
-      ${!isPro ? `
-        <div style="background:#f8f9ff;border:1.5px solid #e0e7ff;border-radius:var(--radius-lg);
-          padding:14px 16px;margin-bottom:16px;">
-          <div style="font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
-            color:#4f46e5;margin-bottom:8px;">Upgrade to PRO — ₱499</div>
-          <div style="font-size:12px;color:#555;line-height:1.6;">
-            ✓ Supplier Mode &nbsp; ✓ Production Mode<br>
-            ✓ Product Lab &nbsp; ✓ Events Mode<br>
-            ✓ Recipe Catalog &nbsp; ✓ Shopping List<br>
-            ✓ Unlimited products
-          </div>
-        </div>
-      ` : ''}
-
+      ${plansHtml}
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary"
           onclick="document.getElementById('licenseModal').classList.remove('active')">
-          Close
-        </button>
+          Close</button>
       </div>
     </div>`;
 
   modal.classList.add('active');
 
-  if (!isPro) {
-    document.getElementById('licenseActivateBtn').addEventListener('click', _handleActivateClick);
-    document.getElementById('licenseKeyInput').addEventListener('keydown', e => {
+  if (!isPaid) {
+    document.getElementById('licenseActivateBtn')?.addEventListener('click', _handleActivateClick);
+    document.getElementById('licenseKeyInput')?.addEventListener('keydown', e => {
       if (e.key === 'Enter') _handleActivateClick();
     });
   }
 }
+
 
 async function _handleActivateClick() {
   const input  = document.getElementById('licenseKeyInput');
@@ -564,6 +638,9 @@ window.applyLicenseTier           = applyLicenseTier;
 window.openLicenseModal           = openLicenseModal;
 window.getLicenseTier             = getLicenseTier;
 window.isProTier                  = isProTier;
+window.isCloudTier                = isCloudTier;
+window.isEnterpriseTier           = isEnterpriseTier;
+window.getTierLabel               = getTierLabel;
 window.isFeatureAllowed           = isFeatureAllowed;
 window.getProductLimit            = getProductLimit;
 window.isAtProductLimit           = isAtProductLimit;

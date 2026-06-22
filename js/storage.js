@@ -52,9 +52,12 @@ function persistState() {
       recipeCatalog:       APP_STATE.recipeCatalog,
       shoppingLists:       APP_STATE.shoppingLists,
       productionJobs:      APP_STATE.productionJobs,
-      laborPeople:         APP_STATE.laborPeople
+      laborPeople:         APP_STATE.laborPeople,
+      productionTemplates: APP_STATE.productionTemplates
     }));
     if (typeof _checkStorageWarning === 'function') _checkStorageWarning();
+    // Notify sync engine
+    if (typeof onPersistState === 'function') onPersistState();
   } catch (error) {
     console.error('Failed to persist state', error);
   }
@@ -118,6 +121,7 @@ function restorePersistedState() {
   APP_STATE.shoppingLists        = Array.isArray(persisted.shoppingLists)        ? persisted.shoppingLists        : [];
   APP_STATE.productionJobs       = Array.isArray(persisted.productionJobs)       ? persisted.productionJobs       : [];
   APP_STATE.laborPeople          = Array.isArray(persisted.laborPeople)          ? persisted.laborPeople          : [];
+  APP_STATE.productionTemplates  = Array.isArray(persisted.productionTemplates)  ? persisted.productionTemplates  : [];
 }
 
 /* ── Export full backup ── */
