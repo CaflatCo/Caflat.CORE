@@ -98,7 +98,9 @@
 
   <label>Tier</label>
   <select id="tier">
-    <option value="pro">PRO — ₱499</option>
+    <option value="pro">PRO — ₱499/mo</option>
+    <option value="cloud">CLOUD — ₱899/mo</option>
+    <option value="enterprise">ENTERPRISE — Custom</option>
   </select>
 
   <label>Duration</label>
@@ -294,7 +296,9 @@ async function loadKeys() {
         : '<span class="badge badge-ok">UNUSED</span>';
 
     return `<div class="history-item">
-      <div class="hkey">${k.code} <span class="badge badge-pro">${k.tier.toUpperCase()}</span>${statusBadge}</div>
+      <div class="hkey">${k.code} <span class="badge badge-pro" style="background:${
+        k.tier==='enterprise'?'#7e22ce':k.tier==='cloud'?'#2563eb':'#0f0f0f'
+      };color:#fff;">${k.tier.toUpperCase()}</span>${statusBadge}</div>
       <div class="hmeta">
         ${k.client_name} · Created ${created} · Expires ${expiry}
         ${k.activated ? `<br>Activated ${new Date(k.activated_at).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}` : ''}

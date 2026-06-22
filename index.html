@@ -1109,14 +1109,30 @@
                 <div>
                   <div style="font-size:12px;font-weight:800;" id="syncStatusLabel">Not connected</div>
                   <div style="font-size:11px;color:var(--gray-400);margin-top:1px;" id="syncStatusSub">
-                    License data only · Full sync coming soon
+                    License data only
                   </div>
                 </div>
               </div>
-              <button type="button" class="btn btn-secondary btn-sm" id="syncNowBtn"
-                onclick="triggerLicenseRevalidation()">
-                Check Now
-              </button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-secondary btn-sm" id="syncNowBtn"
+                  onclick="typeof syncNow==='function' ? syncNow() : triggerLicenseRevalidation()">
+                  Sync Now
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm"
+                  onclick="triggerLicenseRevalidation()">
+                  Check License
+                </button>
+              </div>
+            </div>
+
+            <!-- Cloud sync info banner for non-CLOUD tiers -->
+            <div id="cloudSyncUpsellBanner" style="padding:12px 14px;border:1.5px solid #bfdbfe;
+              border-radius:var(--radius-lg);background:#eff6ff;margin-bottom:12px;">
+              <div style="font-size:11px;font-weight:800;color:#1d4ed8;margin-bottom:4px;
+                letter-spacing:.3px;">⚡ CLOUD Sync — ₱899/mo</div>
+              <div style="font-size:11px;color:#3b82f6;line-height:1.5;">
+                Auto-sync after every sale · Multi-device support · 10 cloud snapshots
+              </div>
             </div>
 
             <!-- Local storage bar -->
@@ -2854,6 +2870,7 @@
   <script src="./js/recipecatalog.js"></script>
   <script src="./js/shoppinglist.js"></script>
   <script src="./js/license.js"></script>
+  <script src="./js/sync.js"></script>
   <script src="./js/navigation.js"></script>
   <script src="./js/app.js"></script>
 
