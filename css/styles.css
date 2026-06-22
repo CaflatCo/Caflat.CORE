@@ -1691,3 +1691,42 @@ canvas { width: 100% !important; max-width: 100%; }
 .event-picker-option:last-child {
   margin-bottom: 0;
 }
+
+/* ═══════════════════════════════════════════════════
+   PRINT / PDF EXPORT
+═══════════════════════════════════════════════════ */
+@media print {
+  /* Hide everything except the reports panel */
+  header, nav, #loginScreen,
+  .filter-bar, #profitabilityToggleBtn,
+  button, .pos-products, .pos-cart,
+  #view-pos, #view-dashboard, #view-products,
+  #view-ingredients, #view-inventory, #view-sales,
+  #view-supply, #view-production, #view-coffeecart,
+  #view-lab, #view-settings,
+  .shopping-list-fab { display: none !important; }
+
+  #view-reports { display: block !important; }
+  #profitabilitySection { display: block !important; }
+
+  body { background: #fff !important; font-size: 11px; }
+  .panel { box-shadow: none !important; border: none !important; padding: 0 !important; }
+  .panel-header { border-bottom: 2px solid #000 !important; margin-bottom: 16px; }
+  .panel-header h2 { font-size: 18px !important; }
+
+  .section-title { font-size: 10px !important; margin-top: 20px !important; }
+
+  .stat-card { border: 1px solid #ccc !important; break-inside: avoid; }
+  .stats-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; }
+
+  .chart-container { break-inside: avoid; }
+  canvas { max-width: 100% !important; }
+
+  table { font-size: 10px !important; break-inside: auto; }
+  tr { break-inside: avoid; }
+
+  .table-wrapper { overflow: visible !important; }
+
+  /* Page breaks before major sections */
+  #profitabilitySection { page-break-before: always; }
+}
