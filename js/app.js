@@ -217,6 +217,7 @@ function switchPage(target) {
     if (openRecipesBtn) openRecipesBtn.textContent = 'Recipes ↗';
   }
   if (cleanTarget === 'production' && typeof renderProductionView === 'function') renderProductionView();
+  if (cleanTarget === 'settings'   && typeof renderCloudBackupList === 'function') renderCloudBackupList();
   if (cleanTarget === 'inventory') {
     if (typeof renderInventoryTable      === 'function') renderInventoryTable();
     if (typeof renderFinishedGoodsTable  === 'function') renderFinishedGoodsTable();

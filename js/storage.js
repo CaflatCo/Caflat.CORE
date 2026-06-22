@@ -361,3 +361,215 @@ function _checkStorageWarning() {
 window.getStorageUsageBytes   = getStorageUsageBytes;
 window.getStorageUsagePercent = getStorageUsagePercent;
 window.renderStorageUsage     = renderStorageUsage;
+
+/* ═══════════════════════════════════════════════════════
+   CLOUD BACKUP — Supabase
+   Requires: license.js loaded first (getTenantId, CAFLAT_SB_URL, CAFLAT_SB_ANON)
+═══════════════════════════════════════════════════════ */
+
+const CLOUD_BACKUP_LIMIT = 3; // keep last 3 cloud backups per tenant
+
+async function cloudBackup() {
+  const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
+  if (!tenantId) {
+    showNotification('Cloud backup requires a PRO license', 'error');
+    return { success: false, error: 'No tenant ID — activate a PRO license first.' };
+  }
+
+  const btn = document.getElementById('cloudBackupBtn');
+  if (btn) { btn.textContent = 'Backing up…'; btn.disabled = true; }
+
+  try {
+    const snapshot = {
+      exportedAt:           new Date().toISOString(),
+      version:              'v1B',
+      settings:             APP_STATE.settings,
+      receiptCounter:       APP_STATE.receiptCounter,
+      products:             APP_STATE.products,
+      ingredients:          APP_STATE.ingredients,
+      sales:                APP_STATE.sales,
+      categories:           APP_STATE.categories,
+      finishedGoods:        APP_STATE.finishedGoods,
+      fgMovements:          APP_STATE.fgMovements,
+      heldOrders:           APP_STATE.heldOrders,
+      inventoryMovements:   APP_STATE.inventoryMovements,
+      auditLog:             APP_STATE.auditLog,
+      supplyOrders:         APP_STATE.supplyOrders,
+      supplierClients:      APP_STATE.supplierClients,
+      supplyInvoiceCounter: APP_STATE.supplyInvoiceCounter,
+      stockReservations:    APP_STATE.stockReservations,
+      events:               APP_STATE.events,
+      activeEvent:          APP_STATE.activeEvent,
+      eventPackages:        APP_STATE.eventPackages,
+      leads:                APP_STATE.leads,
+      labDrafts:            APP_STATE.labDrafts,
+      labCategoryPresets:   APP_STATE.labCategoryPresets,
+      recipeCatalog:        APP_STATE.recipeCatalog,
+      shoppingLists:        APP_STATE.shoppingLists,
+      productionJobs:       APP_STATE.productionJobs,
+      laborPeople:          APP_STATE.laborPeople,
+    };
+
+    const deviceId = typeof _generateDeviceId === 'function'
+      ? await _generateDeviceId() : 'unknown';
+
+    // Insert new backup
+    const res = await fetch(`${CAFLAT_SB_URL}/rest/v1/backups`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        CAFLAT_SB_ANON,
+        'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+        'Prefer':        'return=representation'
+      },
+      body: JSON.stringify({
+        tenant_id:   tenantId,
+        snapshot,
+        app_version: 'v1B',
+        device_id:   deviceId
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Supabase error: ${res.status} — ${err}`);
+    }
+
+    // Prune old backups — keep only the latest CLOUD_BACKUP_LIMIT
+    const listRes = await fetch(
+      `${CAFLAT_SB_URL}/rest/v1/backups?tenant_id=eq.${tenantId}&select=id,created_at&order=created_at.desc`,
+      {
+        headers: {
+          'apikey':        CAFLAT_SB_ANON,
+          'Authorization': `Bearer ${CAFLAT_SB_ANON}`
+        }
+      }
+    );
+
+    if (listRes.ok) {
+      const all = await listRes.json();
+      const toDelete = all.slice(CLOUD_BACKUP_LIMIT);
+      for (const old of toDelete) {
+        await fetch(`${CAFLAT_SB_URL}/rest/v1/backups?id=eq.${old.id}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey':        CAFLAT_SB_ANON,
+            'Authorization': `Bearer ${CAFLAT_SB_ANON}`
+          }
+        });
+      }
+    }
+
+    const now = new Date().toLocaleString('en-PH', {
+      month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true
+    });
+    showNotification(`Backed up to cloud — ${now}`, 'success');
+    renderCloudBackupList();
+    return { success: true };
+
+  } catch (e) {
+    console.error('Cloud backup failed:', e);
+    showNotification('Cloud backup failed — check connection', 'error');
+    return { success: false, error: e.message };
+  } finally {
+    if (btn) { btn.textContent = 'Backup to Cloud'; btn.disabled = false; }
+  }
+}
+
+async function cloudRestore(backupId) {
+  const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
+  if (!tenantId) return;
+
+  if (!confirm('Restore from this cloud backup? Current data will be replaced.')) return;
+
+  try {
+    const res = await fetch(
+      `${CAFLAT_SB_URL}/rest/v1/backups?id=eq.${backupId}&tenant_id=eq.${tenantId}&select=snapshot`,
+      {
+        headers: {
+          'apikey':        CAFLAT_SB_ANON,
+          'Authorization': `Bearer ${CAFLAT_SB_ANON}`
+        }
+      }
+    );
+
+    if (!res.ok) throw new Error('Failed to fetch backup');
+    const rows = await res.json();
+    if (!rows.length) throw new Error('Backup not found');
+
+    // Re-use the existing importAllData logic by feeding it the snapshot
+    const snapshot = rows[0].snapshot;
+    if (typeof importAllData === 'function') {
+      // Create a fake File-like blob the importer can read
+      const blob = new Blob([JSON.stringify(snapshot)], { type: 'application/json' });
+      const fakeFile = new File([blob], 'cloud-restore.json', { type: 'application/json' });
+      importAllData(fakeFile);
+    }
+  } catch (e) {
+    console.error('Cloud restore failed:', e);
+    showNotification('Cloud restore failed — check connection', 'error');
+  }
+}
+
+async function renderCloudBackupList() {
+  const container = document.getElementById('cloudBackupList');
+  if (!container) return;
+
+  const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
+  if (!tenantId) {
+    container.innerHTML = `<div style="font-size:12px;color:var(--gray-400);">
+      Activate a PRO license to enable cloud backups.</div>`;
+    return;
+  }
+
+  container.innerHTML = `<div style="font-size:12px;color:var(--gray-400);">Loading…</div>`;
+
+  try {
+    const res = await fetch(
+      `${CAFLAT_SB_URL}/rest/v1/backups?tenant_id=eq.${tenantId}&select=id,created_at,app_version,device_id&order=created_at.desc&limit=3`,
+      {
+        headers: {
+          'apikey':        CAFLAT_SB_ANON,
+          'Authorization': `Bearer ${CAFLAT_SB_ANON}`
+        }
+      }
+    );
+
+    if (!res.ok) throw new Error('Failed to fetch');
+    const backups = await res.json();
+
+    if (!backups.length) {
+      container.innerHTML = `<div style="font-size:12px;color:var(--gray-400);">
+        No cloud backups yet.</div>`;
+      return;
+    }
+
+    container.innerHTML = backups.map(b => {
+      const date = new Date(b.created_at).toLocaleString('en-PH', {
+        month: 'short', day: 'numeric', year: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true
+      });
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;
+          padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-lg);
+          margin-bottom:8px;background:var(--white);">
+          <div>
+            <div style="font-size:12px;font-weight:700;">${date}</div>
+            <div style="font-size:10px;color:var(--gray-400);">
+              ${b.app_version || 'v1'}</div>
+          </div>
+          <button class="btn btn-sm btn-secondary" type="button"
+            onclick="cloudRestore('${b.id}')">Restore</button>
+        </div>`;
+    }).join('');
+
+  } catch (e) {
+    container.innerHTML = `<div style="font-size:12px;color:var(--gray-400);">
+      Could not load cloud backups.</div>`;
+  }
+}
+
+window.cloudBackup           = cloudBackup;
+window.cloudRestore          = cloudRestore;
+window.renderCloudBackupList = renderCloudBackupList;

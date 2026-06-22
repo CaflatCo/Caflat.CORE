@@ -79,6 +79,11 @@ function isAtProductLimit() {
   return (getProducts?.() || []).length >= FREE_PRODUCT_LIMIT;
 }
 
+/* Returns the tenant_id for this activated license, or null if free/unactivated */
+function getTenantId() {
+  return _licenseState?.tenant_id || null;
+}
+
 /* ── Supabase helpers ──────────────────────────────── */
 async function _sbFetch(path, options = {}) {
   const res = await fetch(`${CAFLAT_SB_URL}/rest/v1/${path}`, {
@@ -146,11 +151,12 @@ async function activateLicenseKey(code) {
     return { success: false, error: 'Activation failed. Please try again.' };
   }
 
-  // 4. Store locally
+  // 4. Store locally — include tenant_id from the license record
   const stored = {
     code:          clean,
     tier:          license.tier,
     client_name:   license.client_name,
+    tenant_id:     license.tenant_id || null,
     expires_at:    license.expires_at,
     activated_at:  new Date().toISOString(),
     device_id:     deviceId,
@@ -565,3 +571,4 @@ window.activateLicenseKey         = activateLicenseKey;
 window._deactivateLicense         = _deactivateLicense;
 window.updateSyncStatus           = updateSyncStatus;
 window.triggerLicenseRevalidation = triggerLicenseRevalidation;
+window.getTenantId                = getTenantId;
