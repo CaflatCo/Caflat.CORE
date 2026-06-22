@@ -677,6 +677,10 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Reports &amp; Analytics</h2>
+            <button class="btn btn-secondary" type="button" id="profitabilityToggleBtn"
+              onclick="toggleProfitabilitySection()">
+              Show Profitability ▾
+            </button>
           </div>
 
           <div class="filter-bar">
@@ -744,6 +748,70 @@
               <thead><tr><th>Metric</th><th>Value</th></tr></thead>
               <tbody></tbody>
             </table>
+          </div>
+
+          <!-- ── PROFITABILITY ANALYSIS ── -->
+          <div id="profitabilitySection" style="display:none;margin-top:40px;padding-top:32px;border-top:2px solid var(--black);">
+            <div style="margin-bottom:24px;">
+              <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;
+                color:var(--gray-400);font-weight:800;margin-bottom:4px;">Deep Dive</div>
+              <div style="font-size:20px;font-weight:900;">Profitability Analysis</div>
+              <div style="font-size:12px;color:var(--gray-500);margin-top:4px;">
+                Break-even, pure profit, and margin insights across your product line
+              </div>
+            </div>
+
+            <!-- Break-Even Table -->
+            <div id="reportBreakEvenContainer" style="margin-bottom:40px;"></div>
+
+            <!-- Row 1: Cumulative Pure Profit + Best Margin Products -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:40px;">
+              <div>
+                <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+                  color:var(--gray-400);font-weight:800;margin-bottom:14px;">
+                  Cumulative Pure Profit
+                </div>
+                <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
+                  padding:16px;background:var(--white);">
+                  <canvas id="pureProfitCumulativeChart" height="180"></canvas>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+                  color:var(--gray-400);font-weight:800;margin-bottom:14px;">
+                  Top 5 by Margin
+                </div>
+                <div id="bestMarginContainer"></div>
+              </div>
+            </div>
+
+            <!-- Row 2: Pure Profit by Category + Revenue vs Cost stacked -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:40px;">
+              <div>
+                <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+                  color:var(--gray-400);font-weight:800;margin-bottom:14px;">
+                  Pure Profit by Category
+                </div>
+                <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
+                  padding:16px;background:var(--white);">
+                  <canvas id="pureProfitByCategoryChart" height="180"></canvas>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+                  color:var(--gray-400);font-weight:800;margin-bottom:14px;">
+                  Revenue vs Cost vs Profit
+                </div>
+                <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
+                  padding:16px;background:var(--white);">
+                  <canvas id="revenueVsCostChart" height="180"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 3: Dead Weight -->
+            <div id="deadWeightContainer" style="margin-bottom:16px;"></div>
+
           </div>
         </div>
       </section>
