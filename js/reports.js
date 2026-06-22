@@ -644,6 +644,331 @@ function renderBreakEvenReport(fromDate, toDate) {
     </div>`;
 }
 
+/* ═══════════════════════════════════════════════════════
+   PROFITABILITY ANALYSIS — 5 new sections
+═══════════════════════════════════════════════════════ */
+
+let _pureProfitCumChart    = null;
+let _pureProfitCatChart    = null;
+let _revVsCostChart        = null;
+
+/* ── 1. Cumulative Pure Profit over time ── */
+function renderCumulativePureProfitChart(fromDate, toDate) {
+  const canvas = document.getElementById('pureProfitCumulativeChart');
+  if (!canvas) return;
+
+  const sales    = typeof getCompletedSales === 'function' ? getCompletedSales(fromDate, toDate) : [];
+  const products = APP_STATE.products || [];
+  const soldMap  = {};
+
+  // Build daily pure profit map
+  const dailyMap = {};
+  sales.forEach(sale => {
+    const day = (sale.audit?.completedAt || sale.createdAt || '').slice(0, 10);
+    if (!day) return;
+    (sale.items || []).forEach(item => {
+      const prod = products.find(p => String(p.id) === String(item.productId));
+      if (!prod) return;
+      const be = typeof calculateBreakEven === 'function' ? calculateBreakEven(prod) : null;
+      if (!be || !be.effectiveBatch) return;
+      soldMap[prod.id] = soldMap[prod.id] || { sold: 0, be };
+      const qty = Number(item.quantity || 0) * Number(item.multiplier || 1);
+      soldMap[prod.id].sold += qty;
+      const pureProfitQty = Math.max(0, soldMap[prod.id].sold - be.breakEvenUnits);
+      const prevPure      = Math.max(0, (soldMap[prod.id].sold - qty) - be.breakEvenUnits);
+      const dayProfit     = Math.max(0, pureProfitQty - prevPure) * be.pureProfit;
+      dailyMap[day] = (dailyMap[day] || 0) + dayProfit;
+    });
+  });
+
+  const sortedDays = Object.keys(dailyMap).sort();
+  if (!sortedDays.length) {
+    canvas.parentElement.innerHTML = `<div style="font-size:12px;color:var(--gray-400);
+      text-align:center;padding:40px 0;">No pure profit data in this period</div>`;
+    return;
+  }
+
+  // Cumulative
+  let running = 0;
+  const labels  = sortedDays.map(d => new Date(d + 'T00:00:00').toLocaleDateString('en-PH', {month:'short', day:'numeric'}));
+  const values  = sortedDays.map(d => { running += dailyMap[d]; return parseFloat(running.toFixed(2)); });
+
+  if (_pureProfitCumChart) { _pureProfitCumChart.destroy(); _pureProfitCumChart = null; }
+
+  _pureProfitCumChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Cumulative Pure Profit',
+        data: values,
+        borderColor: '#000',
+        backgroundColor: 'rgba(0,0,0,0.06)',
+        borderWidth: 2,
+        pointRadius: labels.length > 14 ? 0 : 4,
+        pointBackgroundColor: '#000',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + formatCurrency(ctx.parsed.y) } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 8 } },
+        y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 },
+          callback: v => '₱' + (v >= 1000 ? (v/1000).toFixed(1) + 'k' : v) } }
+      }
+    }
+  });
+}
+
+/* ── 2. Best Margin Products — top 5 ranked cards ── */
+function renderBestMarginProducts(fromDate, toDate) {
+  const container = document.getElementById('bestMarginContainer');
+  if (!container) return;
+
+  const analysis = typeof getBreakEvenAnalysis === 'function'
+    ? getBreakEvenAnalysis(fromDate, toDate) : [];
+
+  const ranked = analysis
+    .filter(p => p.margin > 0)
+    .sort((a, b) => b.margin - a.margin)
+    .slice(0, 5);
+
+  if (!ranked.length) {
+    container.innerHTML = `<div style="font-size:12px;color:var(--gray-400);padding:16px 0;">
+      No margin data — add recipes to your products</div>`;
+    return;
+  }
+
+  const medals = ['🥇', '🥈', '🥉', '4', '5'];
+  const maxMargin = ranked[0].margin;
+
+  container.innerHTML = ranked.map((p, i) => {
+    const barPct = Math.round((p.margin / maxMargin) * 100);
+    const isMedal = i < 3;
+    return `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;
+        border:1.5px solid var(--border);border-radius:var(--radius-lg);
+        margin-bottom:8px;background:${i===0?'var(--black)':'var(--white)'};
+        color:${i===0?'var(--white)':'var(--black)'};">
+        <div style="font-size:${isMedal?'18px':'12px'};font-weight:900;
+          min-width:24px;text-align:center;">${medals[i]}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:800;white-space:nowrap;
+            overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
+          <div style="margin-top:5px;height:5px;border-radius:999px;
+            background:${i===0?'rgba(255,255,255,.2)':'var(--gray-100)'};overflow:hidden;">
+            <div style="height:100%;width:${barPct}%;border-radius:999px;
+              background:${i===0?'var(--white)':'var(--black)'};
+              transition:width .4s ease;"></div>
+          </div>
+        </div>
+        <div style="font-size:15px;font-weight:900;flex-shrink:0;">
+          ${p.margin.toFixed(1)}%
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── 3. Pure Profit by Category ── */
+function renderPureProfitByCategory(fromDate, toDate) {
+  const canvas = document.getElementById('pureProfitByCategoryChart');
+  if (!canvas) return;
+
+  const analysis = typeof getBreakEvenAnalysis === 'function'
+    ? getBreakEvenAnalysis(fromDate, toDate) : [];
+
+  const catMap = {};
+  analysis.forEach(p => {
+    const cat = p.category || 'Uncategorised';
+    catMap[cat] = (catMap[cat] || 0) + p.actualPureProfit;
+  });
+
+  const entries = Object.entries(catMap)
+    .filter(([, v]) => v > 0)
+    .sort((a, b) => b[1] - a[1]);
+
+  if (!entries.length) {
+    canvas.parentElement.innerHTML = `<div style="font-size:12px;color:var(--gray-400);
+      text-align:center;padding:40px 0;">No category profit data yet</div>`;
+    return;
+  }
+
+  if (_pureProfitCatChart) { _pureProfitCatChart.destroy(); _pureProfitCatChart = null; }
+
+  _pureProfitCatChart = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: entries.map(([k]) => k),
+      datasets: [{
+        data: entries.map(([, v]) => parseFloat(v.toFixed(2))),
+        backgroundColor: entries.map((_, i) => i === 0 ? '#000' : `rgba(0,0,0,${0.12 + i * 0.08})`),
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + formatCurrency(ctx.parsed.x) } } },
+      scales: {
+        x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 },
+          callback: v => '₱' + (v >= 1000 ? (v/1000).toFixed(1) + 'k' : v) } },
+        y: { grid: { display: false }, ticks: { font: { size: 11, weight: '700' } } }
+      }
+    }
+  });
+}
+
+/* ── 4. Revenue vs Cost vs Pure Profit stacked bar ── */
+function renderRevenueVsCostChart(fromDate, toDate) {
+  const canvas = document.getElementById('revenueVsCostChart');
+  if (!canvas) return;
+
+  const analysis = typeof getBreakEvenAnalysis === 'function'
+    ? getBreakEvenAnalysis(fromDate, toDate) : [];
+
+  const top = analysis
+    .filter(p => p.soldQty > 0)
+    .sort((a, b) => (b.soldQty * b.price) - (a.soldQty * a.price))
+    .slice(0, 8);
+
+  if (!top.length) {
+    canvas.parentElement.innerHTML = `<div style="font-size:12px;color:var(--gray-400);
+      text-align:center;padding:40px 0;">No sales data in this period</div>`;
+    return;
+  }
+
+  const labels       = top.map(p => p.name.length > 12 ? p.name.slice(0, 12) + '…' : p.name);
+  const totalRevenue = top.map(p => parseFloat((p.soldQty * p.price).toFixed(2)));
+  const totalCost    = top.map(p => parseFloat((p.soldQty * p.costPerUnit).toFixed(2)));
+  const pureProfit   = top.map(p => parseFloat(p.actualPureProfit.toFixed(2)));
+
+  if (_revVsCostChart) { _revVsCostChart.destroy(); _revVsCostChart = null; }
+
+  _revVsCostChart = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Cost',        data: totalCost,    backgroundColor: '#e5e7eb', borderRadius: 0 },
+        { label: 'Break-Even',  data: top.map((p, i) => Math.max(0, Math.min(p.breakEvenUnits, p.soldQty) * p.pureProfit)), backgroundColor: '#9ca3af', borderRadius: 0 },
+        { label: 'Pure Profit', data: pureProfit,   backgroundColor: '#000',   borderRadius: { topLeft:4, topRight:4 } },
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10, padding: 12 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 9 } } },
+        y: { stacked: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 },
+          callback: v => '₱' + (v >= 1000 ? (v/1000).toFixed(1) + 'k' : v) } }
+      }
+    }
+  });
+}
+
+/* ── 5. Dead Weight — products that never broke even ── */
+function renderDeadWeightProducts(fromDate, toDate) {
+  const container = document.getElementById('deadWeightContainer');
+  if (!container) return;
+
+  const analysis = typeof getBreakEvenAnalysis === 'function'
+    ? getBreakEvenAnalysis(fromDate, toDate) : [];
+
+  const dead = analysis.filter(p =>
+    p.hasBatchContext && p.soldQty > 0 && p.status !== 'PROFITABLE'
+  );
+
+  if (!dead.length) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+      color:var(--gray-400);font-weight:800;margin-bottom:14px;">
+      Needs Attention
+    </div>
+    <div style="border:1.5px solid #fecaca;border-radius:var(--radius-lg);
+      background:#fef2f2;overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid #fecaca;
+        display:flex;align-items:center;gap:10px;">
+        <span style="font-size:15px;">⚠️</span>
+        <div>
+          <div style="font-size:13px;font-weight:900;color:#991b1b;">
+            ${dead.length} product${dead.length > 1 ? 's' : ''} haven't crossed break-even
+          </div>
+          <div style="font-size:11px;color:#b91c1c;margin-top:2px;">
+            Reprice, promote, or cut these to improve overall profitability
+          </div>
+        </div>
+      </div>
+      ${dead.map(p => `
+        <div style="display:flex;align-items:center;gap:12px;
+          padding:12px 18px;border-bottom:1px solid #fecaca;">
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:800;">${escapeHtml(p.name)}</div>
+            <div style="font-size:10px;color:#b91c1c;margin-top:2px;">
+              Sold ${p.soldQty} of ${p.breakEvenUnits} needed — ${p.progressPct}% there
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:11px;font-weight:800;color:#991b1b;">
+              ${formatCurrency(p.price)}
+            </div>
+            <div style="font-size:10px;color:#b91c1c;">${p.margin.toFixed(1)}% margin</div>
+          </div>
+          <div style="width:60px;">
+            <div style="height:6px;background:#fecaca;border-radius:999px;overflow:hidden;">
+              <div style="height:100%;width:${p.progressPct}%;background:#dc2626;
+                border-radius:999px;"></div>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+/* ── Toggle ── */
+function toggleProfitabilitySection() {
+  const section = document.getElementById('profitabilitySection');
+  const btn     = document.getElementById('profitabilityToggleBtn');
+  if (!section) return;
+  const isHidden = section.style.display === 'none';
+  section.style.display = isHidden ? 'block' : 'none';
+  if (btn) btn.textContent = isHidden ? 'Hide Profitability ▴' : 'Show Profitability ▾';
+  if (isHidden) {
+    const { fromDate, toDate } = getReportDateRange();
+    renderCumulativePureProfitChart(fromDate, toDate);
+    renderBestMarginProducts(fromDate, toDate);
+    renderPureProfitByCategory(fromDate, toDate);
+    renderRevenueVsCostChart(fromDate, toDate);
+    renderDeadWeightProducts(fromDate, toDate);
+  }
+}
+
+window.toggleProfitabilitySection = toggleProfitabilitySection;
+const _originalRenderReports = renderReports;
+renderReports = function() {
+  _originalRenderReports();
+  const section = document.getElementById('profitabilitySection');
+  if (section && section.style.display !== 'none') {
+    const { fromDate, toDate } = getReportDateRange();
+    renderCumulativePureProfitChart(fromDate, toDate);
+    renderBestMarginProducts(fromDate, toDate);
+    renderPureProfitByCategory(fromDate, toDate);
+    renderRevenueVsCostChart(fromDate, toDate);
+    renderDeadWeightProducts(fromDate, toDate);
+  }
+};
+
 window.renderReports              = renderReports;
 window.renderReportKPIs           = renderReportKPIs;
 window.renderRevenueChart         = renderRevenueChart;
