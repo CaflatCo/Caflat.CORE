@@ -580,11 +580,12 @@ function renderPackagesTable() {
 
   if (!packages.length) {
     grid.innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:40px 20px;
-        border:2px dashed var(--gray-300);border-radius:var(--radius-lg);color:var(--gray-400);">
-        <div style="font-size:28px;margin-bottom:8px;">📦</div>
-        <div style="font-weight:800;font-size:13px;margin-bottom:4px;">No packages yet</div>
-        <div style="font-size:12px;">Build your first event package to show clients</div>
+      <div style="grid-column:1/-1;padding:20px 0 8px;display:flex;align-items:center;gap:10px;
+        color:var(--gray-400);">
+        <span style="font-size:12px;">No packages yet.</span>
+        <button class="btn btn-sm btn-secondary" type="button" onclick="openPackageModal(null);">
+          + Create your first package
+        </button>
       </div>`;
     return;
   }

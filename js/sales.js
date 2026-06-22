@@ -14,7 +14,7 @@ function initializeSales() {
 function bindSalesLifecycle() {
   const ids = ['discountValue', 'discountType', 'checkoutPayment',
                'checkoutTendered', 'salesFromDate', 'salesToDate', 'salesPaymentFilter',
-               'salesSearch'];
+               'salesStatusFilter', 'salesSearch'];
   const handlers = {
     'discountValue':      ['input',  updateCartSummary],
     'discountType':       ['change', updateCartSummary],
@@ -23,6 +23,7 @@ function bindSalesLifecycle() {
     'salesFromDate':      ['change', renderSalesTable],
     'salesToDate':        ['change', renderSalesTable],
     'salesPaymentFilter': ['change', renderSalesTable],
+    'salesStatusFilter':  ['change', renderSalesTable],
     'salesSearch':        ['input',  renderSalesTable],
   };
   ids.forEach(id => {
@@ -703,6 +704,7 @@ function renderSalesTable() {
   const fromDate = document.getElementById('salesFromDate')?.value ? new Date(`${document.getElementById('salesFromDate').value}T00:00:00`) : null;
   const toDate = document.getElementById('salesToDate')?.value ? new Date(`${document.getElementById('salesToDate').value}T23:59:59`) : null;
   const paymentFilter = String(document.getElementById('salesPaymentFilter')?.value || '').toLowerCase();
+  const statusFilter  = String(document.getElementById('salesStatusFilter')?.value  || '').toUpperCase();
   const searchQuery   = String(document.getElementById('salesSearch')?.value || '').toLowerCase().trim();
 
   const sales = getSales().filter(sale => {
@@ -710,6 +712,7 @@ function renderSalesTable() {
     const matchesFrom    = !fromDate || saleDate >= fromDate;
     const matchesTo      = !toDate   || saleDate <= toDate;
     const matchesPayment = !paymentFilter || paymentFilter === 'all' || String(sale.payment?.method || sale.paymentMethod || '').toLowerCase() === paymentFilter;
+    const matchesStatus  = !statusFilter  || String(sale.status || '').toUpperCase() === statusFilter;
     const matchesSearch  = !searchQuery  || [
       sale.receiptNumber || '',
       sale.customer?.name || sale.customerName || '',
@@ -717,7 +720,7 @@ function renderSalesTable() {
       String(sale.totals?.total ?? sale.total ?? ''),
       ...(sale.items || []).map(i => i.name || i.productName || '')
     ].some(field => field.toLowerCase().includes(searchQuery));
-    return matchesFrom && matchesTo && matchesPayment && matchesSearch;
+    return matchesFrom && matchesTo && matchesPayment && matchesStatus && matchesSearch;
   });
 
   tableBody.innerHTML = '';

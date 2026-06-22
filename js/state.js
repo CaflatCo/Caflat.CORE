@@ -31,6 +31,10 @@ const APP_STATE = {
   supplyInvoiceCounter: 0,      // Sequential invoice counter
   stockReservations: [],        // Soft stock holds for ORDERED supply orders
   categories: ['Cookies', 'Chewy Cookies', 'Drinks'],
+  events: [],                   // Coffee Cart events
+  eventPackages: [],            // Coffee Cart packages
+  leads: [],                    // Coffee Cart leads/CRM
+  activeEvent: null,            // Currently active event session
 
   ui: {
     currentView: 'pos',
@@ -61,6 +65,10 @@ function resetState() {
   APP_STATE.supplierClients = [];
   APP_STATE.supplyInvoiceCounter = 0;
   APP_STATE.stockReservations = [];
+  APP_STATE.events = [];
+  APP_STATE.eventPackages = [];
+  APP_STATE.leads = [];
+  APP_STATE.activeEvent = null;
   persistState();
 }
 
