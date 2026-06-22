@@ -1099,9 +1099,10 @@
               <thead>
                 <tr style="border-bottom:2px solid var(--border);">
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Event</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Type</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Date</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Location</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Type</th>
+                  <th style="text-align:right;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Revenue</th>
                   <th style="text-align:right;padding:8px 10px;"></th>
                 </tr>
               </thead>
@@ -1120,6 +1121,7 @@
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Package</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Price</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Pax</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Items</th>
                   <th style="text-align:right;padding:8px 10px;"></th>
                 </tr>
               </thead>
@@ -1147,10 +1149,12 @@
               <thead>
                 <tr style="border-bottom:2px solid var(--border);">
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Client</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Contact</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Type</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Event Date</th>
+                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Pax / Budget</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Package</th>
                   <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Status</th>
-                  <th style="text-align:right;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Budget</th>
                   <th style="text-align:right;padding:8px 10px;"></th>
                 </tr>
               </thead>
@@ -2252,6 +2256,63 @@
         <div id="eventPickerList" style="max-height:360px;overflow-y:auto;margin-bottom:16px;"></div>
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="eventPickerModal">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EVENT PROFITABILITY MODAL ── -->
+    <div class="modal-overlay" id="eventProfitabilityModal">
+      <div class="modal" style="max-width:520px;">
+        <h3 id="profitEventName">Event Profitability</h3>
+        <input type="hidden" id="profitEventId" />
+
+        <!-- Summary cards -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+          <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
+            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Revenue</div>
+            <div style="font-size:20px;font-weight:900;" id="profitRevenue">₱0.00</div>
+          </div>
+          <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
+            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Net Profit</div>
+            <div style="font-size:20px;font-weight:900;" id="profitNetProfit">₱0.00</div>
+          </div>
+          <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
+            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Ingredient Cost</div>
+            <div style="font-size:16px;font-weight:800;" id="profitIngredientCost">₱0.00</div>
+          </div>
+          <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
+            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Expenses</div>
+            <div style="font-size:16px;font-weight:800;" id="profitExpenses">₱0.00</div>
+          </div>
+          <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
+            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Total Cost</div>
+            <div style="font-size:16px;font-weight:800;" id="profitTotalCost">₱0.00</div>
+          </div>
+          <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
+            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Margin / Orders</div>
+            <div style="font-size:16px;font-weight:800;">
+              <span id="profitMargin">0%</span>
+              <span style="font-size:11px;color:var(--gray-400);margin-left:6px;">· <span id="profitOrders">0</span> orders</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Expenses list -->
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);font-weight:800;margin-bottom:8px;">Expenses</div>
+        <div id="eventExpensesList" style="margin-bottom:14px;min-height:32px;"></div>
+
+        <!-- Add expense -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
+          <input id="expenseLabel" type="text" placeholder="Expense label (e.g. Booth fee)"
+            style="flex:2;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
+          <input id="expenseAmount" type="number" placeholder="Amount" min="0" step="0.01"
+            style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
+          <button class="btn btn-sm" type="button"
+            data-action="add-event-expense" data-event-id="">+ Add</button>
+        </div>
+
+        <div class="modal-actions" style="margin-top:20px;">
+          <button class="btn btn-secondary" type="button" data-close-modal="eventProfitabilityModal">Close</button>
         </div>
       </div>
     </div>
