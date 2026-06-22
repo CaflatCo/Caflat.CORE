@@ -515,6 +515,7 @@ function bindDelegatedActions() {
       case 'cancel-restock':        closeModal('restockModal'); break;
       case 'refresh-reports':       if (typeof renderReports === 'function') renderReports(); break;
       case 'report-preset':         _applyReportPreset(actionEl.dataset.preset || 'today'); break;
+      case 'print-supply-invoice':  printSupplyInvoice(actionEl.dataset.id || ''); break;
       case 'print-receipt':         printReceipt(); break;
       case 'complete-pending-sale': completePendingSale(actionEl.dataset.id || ''); break;
       case 'cancel-pending-sale':   cancelPendingSale(actionEl.dataset.id || ''); break;
