@@ -1655,3 +1655,39 @@ canvas { width: 100% !important; max-width: 100%; }
   color: var(--white) !important;
   border-color: #dc2626 !important;
 }
+
+/* ═══════════════════════════════════════════════════
+   EVENT PICKER MODAL
+═══════════════════════════════════════════════════ */
+
+.event-picker-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--black);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.event-picker-option:hover {
+  background: var(--gray-50);
+  border-color: var(--black);
+}
+
+.event-picker-option.active {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--white);
+}
+
+.event-picker-option:last-child {
+  margin-bottom: 0;
+}
