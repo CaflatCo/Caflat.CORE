@@ -1114,20 +1114,9 @@
             <div class="section-title" style="margin:0;">Packages</div>
             <button class="btn btn-secondary" type="button" onclick="openPackageModal(null);">+ Package</button>
           </div>
-          <div style="overflow-x:auto;margin-bottom:24px;">
-            <table id="packagesTable" style="width:100%;border-collapse:collapse;font-size:13px;">
-              <thead>
-                <tr style="border-bottom:2px solid var(--border);">
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Package</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Price</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Pax</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Items</th>
-                  <th style="text-align:right;padding:8px 10px;"></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <div id="packagesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px;"></div>
+          <!-- packagesTable kept hidden for any legacy references -->
+          <table id="packagesTable" style="display:none;"><tbody></tbody></table>
           <!-- Leads -->
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
             <div class="section-title" style="margin:0;">Leads</div>
