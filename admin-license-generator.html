@@ -94,7 +94,7 @@
   <p class="sub">Caflat.CORE · Private Admin Tool</p>
 
   <label>Client Name</label>
-  <input type="text" id="clientName" placeholder="" />
+  <input type="text" id="clientName" placeholder="e.g. Buzzd Cafe" />
 
   <label>Tier</label>
   <select id="tier">
@@ -103,6 +103,8 @@
 
   <label>Duration</label>
   <select id="duration">
+    <option value="-7">1 Week Trial</option>
+    <option value="-14">2 Week Trial</option>
     <option value="1">1 Month</option>
     <option value="3">3 Months</option>
     <option value="6" selected>6 Months</option>
@@ -163,7 +165,7 @@ function generateCode() {
 async function generateKey() {
   const clientName = document.getElementById('clientName').value.trim();
   const tier       = document.getElementById('tier').value;
-  const months     = parseInt(document.getElementById('duration').value);
+  const durationVal = parseInt(document.getElementById('duration').value);
   const errEl      = document.getElementById('genError');
   const btn        = document.getElementById('generateBtn');
 
@@ -175,12 +177,25 @@ async function generateKey() {
 
   const code = generateCode();
 
+  // Negative values = days (week trials), positive = months, 0 = lifetime
   let expires_at = null;
-  if (months > 0) {
+  let months = durationVal;
+  if (durationVal < 0) {
+    const days = Math.abs(durationVal);
     const d = new Date();
-    d.setMonth(d.getMonth() + months);
+    d.setDate(d.getDate() + days);
+    expires_at = d.toISOString();
+    months = 0; // store as 0 in duration_months for DB
+  } else if (durationVal > 0) {
+    const d = new Date();
+    d.setMonth(d.getMonth() + durationVal);
     expires_at = d.toISOString();
   }
+
+  const durationLabel = durationVal === -7  ? '1 Week Trial'
+                      : durationVal === -14 ? '2 Week Trial'
+                      : durationVal === 0   ? 'Lifetime'
+                      : durationVal + ' month' + (durationVal > 1 ? 's' : '');
 
   const res = await fetch(`${SB_URL}/rest/v1/licenses`, {
     method: 'POST',
@@ -204,7 +219,7 @@ async function generateKey() {
 
   document.getElementById('generatedKey').textContent = code;
   document.getElementById('keyMeta').textContent =
-    `${clientName} · ${tier.toUpperCase()} · ${months === 0 ? 'Lifetime' : months + ' month' + (months > 1 ? 's' : '')}` +
+    `${clientName} · ${tier.toUpperCase()} · ${durationLabel}` +
     (expires_at ? ` · Expires ${new Date(expires_at).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'})}` : '');
   document.getElementById('result').style.display = 'block';
   document.getElementById('clientName').value = '';
