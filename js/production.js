@@ -5,6 +5,10 @@
    labor roster, funding/payment tracking.
 ═══════════════════════════════════════════════════════ */
 
+/* ── View state — declared at top so all functions can access ── */
+let _prodView      = 'board';
+let _calWeekOffset = 0;
+
 const PRODUCTION_STATUSES = ['PLANNED','IN_PROGRESS','DONE','QC','PACKED','CANCELLED'];
 const PRODUCTION_STATUS_LABELS = {
   PLANNED:'Planned', IN_PROGRESS:'In Progress', DONE:'Done',
@@ -1137,8 +1141,6 @@ window._editingJob                 = null;
 /* ═══════════════════════════════════════════════════════
    PRODUCTION CALENDAR VIEW
 ═══════════════════════════════════════════════════════ */
-let _prodView = 'board';
-let _calWeekOffset = 0;
 
 function setProdView(view) {
   _prodView = view;
