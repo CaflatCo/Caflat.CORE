@@ -1063,7 +1063,12 @@ function applyProductionModeToggle() {
 }
 
 function renderProductionView() {
-  renderProductionBoard();
+  // Respect whichever view was last active
+  if (typeof setProdView === 'function') {
+    setProdView(_prodView || 'board');
+  } else {
+    renderProductionBoard();
+  }
   renderLaborRoster();
 }
 
@@ -1128,3 +1133,276 @@ window.applyProductionModeToggle   = applyProductionModeToggle;
 window._toggleFundingFields        = _toggleFundingFields;
 window._renderJobProductLines      = _renderJobProductLines;
 window._editingJob                 = null;
+
+/* ═══════════════════════════════════════════════════════
+   PRODUCTION CALENDAR VIEW
+═══════════════════════════════════════════════════════ */
+let _prodView = 'board';
+let _calWeekOffset = 0;
+
+function setProdView(view) {
+  _prodView = view;
+  const board = document.getElementById('prodJobCards');
+  const cal   = document.getElementById('prodCalendarContainer');
+  const filter = document.querySelector('[id="prodStatusFilter"]')?.parentElement;
+  const boardBtn = document.getElementById('prodViewBoard');
+  const calBtn   = document.getElementById('prodViewCal');
+
+  if (view === 'calendar') {
+    if (board)  board.style.display  = 'none';
+    if (cal)    cal.style.display    = 'block';
+    if (filter) filter.style.display = 'none';
+    if (boardBtn) { boardBtn.style.background='var(--white)'; boardBtn.style.color='var(--gray-500)'; }
+    if (calBtn)   { calBtn.style.background='var(--black)';   calBtn.style.color='var(--white)'; }
+    renderProductionCalendar();
+  } else {
+    if (board)  board.style.display  = '';
+    if (cal)    cal.style.display    = 'none';
+    if (filter) filter.style.display = '';
+    if (boardBtn) { boardBtn.style.background='var(--black)';  boardBtn.style.color='var(--white)'; }
+    if (calBtn)   { calBtn.style.background='var(--white)';    calBtn.style.color='var(--gray-500)'; }
+    renderProductionBoard();
+  }
+}
+
+function renderProductionCalendar() {
+  const container = document.getElementById('prodCalendarContainer');
+  if (!container) return;
+
+  // Build week starting Monday
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const startOfWeek = new Date(today);
+  const day = today.getDay();
+  const diffToMon = day === 0 ? -6 : 1 - day;
+  startOfWeek.setDate(today.getDate() + diffToMon + (_calWeekOffset * 7));
+
+  const days = Array.from({length:7}, (_, i) => {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    return d;
+  });
+
+  const weekLabel = `${days[0].toLocaleDateString('en-PH',{month:'short',day:'numeric'})} — ${days[6].toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}`;
+
+  const jobs = getProductionJobs();
+
+  // Map jobs to their scheduled date
+  const jobsByDate = {};
+  jobs.forEach(job => {
+    const d = (job.scheduledDate || job.createdAt || '').slice(0,10);
+    if (!jobsByDate[d]) jobsByDate[d] = [];
+    jobsByDate[d].push(job);
+  });
+
+  const STATUS_COLORS = {
+    PLANNED:     '#2563eb',
+    IN_PROGRESS: '#d97706',
+    DONE:        '#16a34a',
+    QC:          '#7e22ce',
+    PACKED:      '#0891b2',
+    CANCELLED:   '#9ca3af',
+  };
+
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  container.innerHTML = `
+    <!-- Week nav -->
+    <div style="display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:16px;padding:10px 0;">
+      <button type="button" onclick="moveCalWeek(-1)"
+        style="padding:6px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);
+          background:var(--white);font-size:12px;font-weight:800;font-family:var(--font-main);cursor:pointer;">
+        Prev
+      </button>
+      <div style="font-size:13px;font-weight:800;">${weekLabel}</div>
+      <div style="display:flex;gap:8px;">
+        <button type="button" onclick="moveCalWeek(0)"
+          style="padding:6px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);
+            background:var(--white);font-size:12px;font-weight:800;font-family:var(--font-main);cursor:pointer;">
+          Today
+        </button>
+        <button type="button" onclick="moveCalWeek(1)"
+          style="padding:6px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);
+            background:var(--white);font-size:12px;font-weight:800;font-family:var(--font-main);cursor:pointer;">
+          Next
+        </button>
+      </div>
+    </div>
+
+    <!-- Calendar grid -->
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;">
+      ${days.map((d, i) => {
+        const dateStr  = d.toISOString().slice(0,10);
+        const isToday  = dateStr === today.toISOString().slice(0,10);
+        const dayJobs  = jobsByDate[dateStr] || [];
+        const dayLabel = d.toLocaleDateString('en-PH',{day:'numeric'});
+
+        return `
+          <div style="min-height:120px;border:1.5px solid ${isToday?'var(--black)':'var(--border)'};
+            border-radius:var(--radius-lg);background:${isToday?'var(--gray-50)':'var(--white)'};
+            padding:10px 8px;">
+            <div style="font-size:10px;font-weight:800;letter-spacing:1px;
+              text-transform:uppercase;color:${isToday?'var(--black)':'var(--gray-400)'};
+              margin-bottom:6px;">
+              ${dayNames[i]}<br>
+              <span style="font-size:18px;letter-spacing:-1px;">${dayLabel}</span>
+            </div>
+            ${dayJobs.map(job => {
+              const color = STATUS_COLORS[job.status] || '#555';
+              const label = job.name || 'Untitled';
+              const prods = (job.products||[]).length;
+              return `
+                <div onclick="openProductionJobModal('${job.id}')"
+                  style="background:${color}14;border-left:3px solid ${color};
+                    border-radius:6px;padding:5px 7px;margin-bottom:5px;cursor:pointer;
+                    transition:opacity .15s;">
+                  <div style="font-size:11px;font-weight:800;color:${color};
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    ${escapeHtml(label)}</div>
+                  <div style="font-size:9px;color:#888;margin-top:1px;">
+                    ${prods} product${prods!==1?'s':''} · ${job.status}</div>
+                </div>`;
+            }).join('')}
+            ${!dayJobs.length ? `<div style="font-size:10px;color:var(--gray-300);padding-top:4px;">—</div>` : ''}
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function moveCalWeek(direction) {
+  // direction: -1 = prev, 0 = today, 1 = next
+  if (direction === 0) {
+    _calWeekOffset = 0;
+  } else {
+    _calWeekOffset += direction;
+  }
+  renderProductionCalendar();
+}
+
+window.moveCalWeek               = moveCalWeek;
+window.setProdView               = setProdView;
+window.renderProductionCalendar  = renderProductionCalendar;
+
+/* ═══════════════════════════════════════════════════════
+   PRODUCTION TEMPLATES
+═══════════════════════════════════════════════════════ */
+function getProductionTemplates() {
+  return Array.isArray(APP_STATE.productionTemplates) ? APP_STATE.productionTemplates : [];
+}
+
+function saveCurrentJobAsTemplate() {
+  if (!_editingJob) return;
+  const name = prompt('Template name:', _editingJob.name || 'Untitled Template');
+  if (!name) return;
+
+  const template = {
+    id:          generateId(),
+    name:        name.trim(),
+    fundingType: _editingJob.fundingType || 'RETAIL',
+    products:    (_editingJob.products || []).map(p => ({
+      productId:   p.productId,
+      productName: p.productName,
+      targetQty:   p.targetQty,
+      batchSize:   p.batchSize,
+    })),
+    laborAssignments: (_editingJob.laborAssignments || []).map(l => ({
+      personId: l.personId, hours: l.hours
+    })),
+    notes:       _editingJob.notes || '',
+    createdAt:   new Date().toISOString(),
+  };
+
+  const templates = getProductionTemplates();
+  templates.push(template);
+  updateState('productionTemplates', () => templates);
+  showNotification(`Template "${name}" saved`, 'success');
+}
+
+function openTemplatePickerModal() {
+  const list = document.getElementById('templatePickerList');
+  if (!list) return;
+  const templates = getProductionTemplates();
+
+  if (!templates.length) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:32px 0;color:var(--gray-400);">
+        <div style="font-size:28px;margin-bottom:8px;">📋</div>
+        <div style="font-weight:800;font-size:13px;margin-bottom:4px;">No templates yet</div>
+        <div style="font-size:12px;">
+          Open any production job and tap <strong>Save as Template</strong>
+        </div>
+      </div>`;
+  } else {
+    list.innerHTML = templates.map(t => {
+      const prodCount  = (t.products||[]).length;
+      const created    = new Date(t.createdAt).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+      return `
+        <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
+          padding:14px 16px;margin-bottom:10px;display:flex;
+          align-items:center;justify-content:space-between;gap:12px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:800;">${escapeHtml(t.name)}</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+              ${prodCount} product${prodCount!==1?'s':''} · ${t.fundingType} · Created ${created}
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0;">
+            <button class="btn btn-sm" type="button"
+              onclick="useProductionTemplate('${t.id}')">Use</button>
+            <button class="btn btn-sm btn-secondary" type="button"
+              onclick="deleteProductionTemplate('${t.id}')">Delete</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+  openModal('templatePickerModal');
+}
+
+function useProductionTemplate(templateId) {
+  const template = getProductionTemplates().find(t => t.id === templateId);
+  if (!template) return;
+
+  closeModal('templatePickerModal');
+
+  // Build a new blank job pre-filled from the template
+  _editingJob = {
+    id:              generateId(),
+    name:            template.name,
+    fundingType:     template.fundingType || 'RETAIL',
+    scheduledDate:   new Date().toISOString().slice(0,10),
+    clientName:'', totalValue:0, downPayment:0, fullPayment:0,
+    eventId: null,
+    notes:           template.notes || '',
+    products:        template.products.map(p => ({
+      id:          generateId(),
+      productId:   p.productId,
+      productName: p.productName,
+      targetQty:   p.targetQty,
+      batchSize:   p.batchSize,
+      status:      'PLANNED',
+      actualYield: 0, wasteLog: [], efficiency: null,
+      ingredientsDeducted: false,
+    })),
+    laborAssignments: template.laborAssignments.map(l => ({ ...l })),
+    status:          'PLANNED',
+    createdAt:       new Date().toISOString(),
+    updatedAt:       new Date().toISOString(),
+  };
+
+  _renderJobModal();
+  openModal('productionJobModal');
+}
+
+function deleteProductionTemplate(templateId) {
+  if (!confirm('Delete this template?')) return;
+  updateState('productionTemplates', () =>
+    getProductionTemplates().filter(t => t.id !== templateId)
+  );
+  openTemplatePickerModal(); // re-render list
+}
+
+window.saveCurrentJobAsTemplate  = saveCurrentJobAsTemplate;
+window.openTemplatePickerModal   = openTemplatePickerModal;
+window.useProductionTemplate     = useProductionTemplate;
+window.deleteProductionTemplate  = deleteProductionTemplate;
