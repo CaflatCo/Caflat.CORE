@@ -273,3 +273,31 @@ function updateOpsNavGroup() {
   group.style.display = anyVisible ? '' : 'none';
 }
 window.updateOpsNavGroup = updateOpsNavGroup;
+
+/* ═══════════════════════════════════════════════════════
+   SIDEBAR COLLAPSE
+═══════════════════════════════════════════════════════ */
+const SIDEBAR_KEY = 'caflat_sidebar_collapsed';
+
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  const isCollapsed = sidebar.classList.toggle('collapsed');
+  try { localStorage.setItem(SIDEBAR_KEY, isCollapsed ? '1' : '0'); } catch(e) {}
+}
+
+function initSidebarState() {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  // On mobile/portrait default to collapsed
+  const isMobile = window.innerWidth <= 768;
+  const stored   = localStorage.getItem(SIDEBAR_KEY);
+  const shouldCollapse = stored !== null ? stored === '1' : isMobile;
+  if (shouldCollapse) sidebar.classList.add('collapsed');
+}
+
+window.toggleSidebar    = toggleSidebar;
+window.initSidebarState = initSidebarState;
+
+// Init on load
+document.addEventListener('DOMContentLoaded', initSidebarState);
