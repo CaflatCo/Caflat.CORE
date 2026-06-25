@@ -100,11 +100,12 @@ header h1 {
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  background: var(--gray-50);
 }
 
 /* ═══ SIDEBAR ═══ */
 .sidebar {
-  width: 200px;
+  width: 220px;
   flex-shrink: 0;
   background: var(--white);
   border-right: 1px solid var(--border);
@@ -112,7 +113,7 @@ header h1 {
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px 8px;
+  padding: 12px 10px;
 }
 
 .sidebar nav {
@@ -128,10 +129,10 @@ header h1 {
 
 .nav-group-label {
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--gray-400);
+  color: var(--gray-300);
   padding: 8px 10px 4px;
 }
 
@@ -144,15 +145,14 @@ header h1 {
 .sidebar nav button {
   display: flex;
   align-items: center;
-  gap: 9px;
   width: 100%;
-  padding: 9px 10px;
+  padding: 9px 12px;
   border: none;
   background: transparent;
-  color: var(--gray-600);
+  color: var(--gray-500);
   cursor: pointer;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   font-family: var(--font-main);
   border-radius: var(--radius-sm);
   text-align: left;
@@ -161,7 +161,6 @@ header h1 {
   white-space: nowrap;
   letter-spacing: 0;
   text-transform: none;
-  position: relative;
 }
 
 .sidebar nav button:hover {
@@ -172,20 +171,11 @@ header h1 {
 .sidebar nav button.active {
   background: var(--black);
   color: var(--white);
-  font-weight: 700;
+  font-weight: 600;
 }
 
-.nav-icon {
-  font-size: 13px;
-  width: 16px;
-  text-align: center;
-  flex-shrink: 0;
-  opacity: .7;
-}
-
-.sidebar nav button.active .nav-icon {
-  opacity: 1;
-}
+/* remove nav-icon from CSS since icons are gone from HTML */
+.nav-icon { display: none; }
 
 /* ═══ LAYOUT ═══ */
 main {
