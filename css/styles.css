@@ -800,11 +800,8 @@ th {
 }
 
 /* Clip thead to wrapper border-radius using display:block on the table */
-.table-wrapper > table > thead > tr > th:first-child {
-  border-top-left-radius: calc(var(--radius-lg) - 1px);
-}
 .table-wrapper > table > thead > tr > th:last-child {
-  border-top-right-radius: calc(var(--radius-lg) - 1px);
+  width: 100%;
 }
 
 tbody tr:last-child td { border-bottom: none; }
