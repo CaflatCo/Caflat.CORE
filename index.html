@@ -304,6 +304,17 @@
 
     <header>
       <div style="display:flex;align-items:center;gap:12px;">
+        <button id="sidebarToggleBtn" onclick="toggleSidebar()"
+          style="background:none;border:none;cursor:pointer;padding:6px;
+            display:flex;align-items:center;justify-content:center;
+            border-radius:var(--radius-sm);transition:background var(--transition);"
+          title="Toggle sidebar">
+          <svg width="16" height="14" viewBox="0 0 16 14" fill="none">
+            <rect y="0"  width="16" height="2" rx="1" fill="rgba(255,255,255,.7)"/>
+            <rect y="6"  width="16" height="2" rx="1" fill="rgba(255,255,255,.7)"/>
+            <rect y="12" width="16" height="2" rx="1" fill="rgba(255,255,255,.7)"/>
+          </svg>
+        </button>
         <h1 id="brandName" data-brand-name>Caflat.Co POS</h1>
         <div class="role-badge" id="roleBadge">STAFF</div>
         <div id="offlineIndicator" style="display:none;align-items:center;gap:5px;
