@@ -1496,8 +1496,11 @@
                     <span style="font-size:11px;color:var(--gray-500);font-weight:600;">units</span>
                   </div>
                   <div style="display:flex;gap:5px;margin-top:8px;">
-                    ${[10,20,24,30,40].map(n => `<button type="button" class="lab-quick-btn"
-                      onclick="setBatchSize(${n})">${n}</button>`).join('')}
+                    <button type="button" class="lab-quick-btn" onclick="setBatchSize(10)">10</button>
+                    <button type="button" class="lab-quick-btn" onclick="setBatchSize(20)">20</button>
+                    <button type="button" class="lab-quick-btn" onclick="setBatchSize(24)">24</button>
+                    <button type="button" class="lab-quick-btn" onclick="setBatchSize(30)">30</button>
+                    <button type="button" class="lab-quick-btn" onclick="setBatchSize(40)">40</button>
                   </div>
                 </div>
 
