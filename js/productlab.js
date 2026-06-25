@@ -299,9 +299,11 @@ function labCalcMarginForPrice(price) {
 }
 
 function labCalcEffectiveMargin(price) {
+  if (!price) return 0;
   const waste      = (LAB_SESSION?.wastePercent || 0) / 100;
   const cost       = labCalcCostPerUnit();
   const effectiveRev = price * (1 - waste);
+  if (!effectiveRev) return 0;
   return ((effectiveRev - cost) / effectiveRev) * 100;
 }
 
@@ -950,8 +952,8 @@ function _updateScenarios() {
           <div style="text-align:right;">
             <div style="font-size:9px;font-weight:800;letter-spacing:1px;
               text-transform:uppercase;color:var(--gray-400);">Margin</div>
-            <div style="font-size:18px;font-weight:900;color:${sc.effectiveMargin > 0 ? '#16a34a' : 'var(--danger)'};">
-              ${sc.effectiveMargin.toFixed(1)}%
+            <div style="font-size:18px;font-weight:900;color:${sc.effectiveMargin !== 0 && isFinite(sc.effectiveMargin) ? (sc.effectiveMargin > 0 ? '#16a34a' : 'var(--danger)') : 'var(--gray-300)'};">
+              ${isFinite(sc.effectiveMargin) ? sc.effectiveMargin.toFixed(1) + '%' : '—'}
             </div>
           </div>
         </div>
@@ -977,7 +979,7 @@ function _updateScenarios() {
             <div style="font-size:9px;color:var(--gray-400);font-weight:700;
               letter-spacing:1px;text-transform:uppercase;">Batch Profit</div>
             <div style="font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;
-              color:${sc.batchProfit > 0 ? '#16a34a' : 'var(--danger)'};">
+              color:${sc.batchProfit > 0 ? '#16a34a' : sc.batchProfit < 0 ? 'var(--danger)' : 'var(--gray-400)'};">
               ${formatCurrency(sc.batchProfit)}</div>
           </div>
         </div>
