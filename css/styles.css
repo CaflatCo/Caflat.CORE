@@ -770,15 +770,13 @@ main {
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
-  border-radius: var(--radius-lg);
   border: 1px solid var(--border);
-  overflow: hidden;
+  border-radius: var(--radius-lg);
 }
 
 table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   font-size: 12px;
   min-width: 680px;
 }
@@ -801,8 +799,13 @@ th {
   border-bottom: none;
 }
 
-th:first-child { }
-th:last-child  { }
+/* Clip thead to wrapper border-radius using display:block on the table */
+.table-wrapper > table > thead > tr > th:first-child {
+  border-top-left-radius: calc(var(--radius-lg) - 1px);
+}
+.table-wrapper > table > thead > tr > th:last-child {
+  border-top-right-radius: calc(var(--radius-lg) - 1px);
+}
 
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: var(--gray-50); }
