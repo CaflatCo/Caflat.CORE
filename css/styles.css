@@ -772,6 +772,7 @@ main {
   overflow-x: auto;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
+  overflow: hidden;
 }
 
 table {
@@ -799,8 +800,8 @@ th {
   border-bottom: none;
 }
 
-th:first-child { border-radius: var(--radius-md) 0 0 0; }
-th:last-child { border-radius: 0 var(--radius-md) 0 0; min-width: 280px; }
+th:first-child { }
+th:last-child { min-width: 200px; }
 
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: var(--gray-50); }
@@ -1897,4 +1898,29 @@ canvas { width: 100% !important; max-width: 100%; }
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   #reportStatsGrid .stat-card { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════
+   THREE-DOT DROPDOWN MENU
+═══════════════════════════════════════════════════ */
+.three-dot-item {
+  display: block;
+  width: 100%;
+  padding: 9px 14px;
+  border: none;
+  background: none;
+  font-family: var(--font-main);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-700);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition);
+  border-bottom: 1px solid var(--border);
+}
+.three-dot-item:last-child { border-bottom: none; }
+.three-dot-item:hover { background: var(--gray-50); color: var(--black); }
+.three-dot-item[data-action="delete-product"] { color: var(--danger); }
+.three-dot-item[data-action="delete-product"]:hover {
+  background: var(--danger-bg);
 }
