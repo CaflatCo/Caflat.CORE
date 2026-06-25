@@ -1143,6 +1143,7 @@ function applySupplierModeToggle() {
   const enabled = APP_STATE.settings?.supplierModeEnabled === true;
   const navBtn  = document.getElementById('navSupply');
   if (navBtn) navBtn.style.display = enabled ? '' : 'none';
+  if (typeof updateOpsNavGroup === 'function') updateOpsNavGroup();
   if (typeof applySupplierCartButton === 'function') applySupplierCartButton();
 }
 

@@ -1329,7 +1329,7 @@ function openTemplatePickerModal() {
   if (!templates.length) {
     list.innerHTML = `
       <div style="text-align:center;padding:32px 0;color:var(--gray-400);">
-        <div style="font-size:28px;margin-bottom:8px;">📋</div>
+        
         <div style="font-weight:800;font-size:13px;margin-bottom:4px;">No templates yet</div>
         <div style="font-size:12px;">
           Open any production job and tap <strong>Save as Template</strong>

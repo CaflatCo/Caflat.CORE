@@ -260,3 +260,16 @@ window.addEventListener('offline', _updateOfflineIndicator);
 document.addEventListener('DOMContentLoaded', () => {
   _updateOfflineIndicator();
 });
+
+/* ── Sidebar ops group visibility ── */
+function updateOpsNavGroup() {
+  const group = document.getElementById('navOpsGroup');
+  if (!group) return;
+  const ids = ['navSupply', 'navProduction', 'navCoffeeCart'];
+  const anyVisible = ids.some(id => {
+    const el = document.getElementById(id);
+    return el && el.style.display !== 'none';
+  });
+  group.style.display = anyVisible ? '' : 'none';
+}
+window.updateOpsNavGroup = updateOpsNavGroup;

@@ -317,6 +317,7 @@ function applyLicenseTier() {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
+    if (typeof updateOpsNavGroup === 'function') updateOpsNavGroup();
     ['openLabBtn','openRecipesBtn'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
@@ -459,7 +460,7 @@ function openLicenseModal() {
             ${tier.toUpperCase()}</div>
           <div style="font-size:12px;color:${tc.color==='#fff'?'rgba(255,255,255,.6)':'#555'};margin-top:4px;">
             ${info?.client_name || ''}${expiry ? ' · Expires '+expiry : ' · Lifetime'}</div>
-          ${isCloud_ ? '<div style="margin-top:6px;font-size:10px;font-weight:800;color:rgba(255,255,255,.8);letter-spacing:1px;">⚡ AUTO SYNC ACTIVE</div>' : ''}
+          ${isCloud_ ? '<div style="margin-top:6px;font-size:10px;font-weight:800;color:rgba(255,255,255,.8);letter-spacing:1px;">AUTO SYNC ACTIVE</div>' : ''}
         </div>
         <div style="text-align:center;margin-bottom:16px;">
           <button type="button" class="btn btn-secondary btn-sm" onclick="_deactivateLicense()">

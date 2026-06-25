@@ -293,6 +293,7 @@ function applyCoffeeCartModeToggle() {
   const enabled = APP_STATE.settings?.coffeeCartModeEnabled === true;
   const navBtn  = document.getElementById('navCoffeeCart');
   if (navBtn) navBtn.style.display = enabled ? '' : 'none';
+  if (typeof updateOpsNavGroup === 'function') updateOpsNavGroup();
 
   // Always hide the old separate channel container — tabs are merged now
   const channelSel = document.getElementById('channelSelectorContainer');
