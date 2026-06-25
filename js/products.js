@@ -214,8 +214,22 @@ function renderProductsTable() {
       <td>
         <div class="table-actions">
           ${!window._staffMode ? `<button type="button" class="btn btn-sm" data-action="edit-product" data-id="${product.id}">Edit</button>` : ''}
-          ${!window._staffMode ? `<button type="button" class="btn btn-sm btn-secondary" data-action="clone-product" data-id="${product.id}">Clone</button>` : ''}
-          ${!window._staffMode ? `<button type="button" class="btn btn-sm btn-secondary" data-action="delete-product" data-id="${product.id}">Delete</button>` : ''}
+          ${!window._staffMode ? `
+          <div class="three-dot-wrap" style="position:relative;">
+            <button type="button" class="btn btn-sm btn-secondary three-dot-btn"
+              onclick="toggleProductMenu(this, '${product.id}')"
+              style="padding:5px 10px;font-size:14px;letter-spacing:2px;line-height:1;">···</button>
+            <div class="three-dot-menu" id="pmenu-${product.id}"
+              style="display:none;position:absolute;right:0;top:calc(100% + 4px);
+                background:var(--white);border:1.5px solid var(--border);
+                border-radius:var(--radius-md);box-shadow:var(--shadow-md);
+                min-width:130px;z-index:200;overflow:hidden;">
+              <button type="button" data-action="clone-product" data-id="${product.id}"
+                class="three-dot-item">Clone</button>
+              <button type="button" data-action="delete-product" data-id="${product.id}"
+                class="three-dot-item">Archive</button>
+            </div>
+          </div>` : ''}
         </div>
       </td>`;
     tableBody.appendChild(row);
@@ -293,6 +307,22 @@ window.deleteProduct = deleteProduct;
 window.renderProductsTable = renderProductsTable;
 window.renderPOSProducts = renderPOSProducts;
 window.clearProductForm = clearProductForm;
+
+function toggleProductMenu(btn, productId) {
+  const menu = document.getElementById('pmenu-' + productId);
+  if (!menu) return;
+  const isOpen = menu.style.display !== 'none';
+  document.querySelectorAll('.three-dot-menu').forEach(m => { m.style.display = 'none'; });
+  menu.style.display = isOpen ? 'none' : 'block';
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.three-dot-wrap')) {
+    document.querySelectorAll('.three-dot-menu').forEach(m => { m.style.display = 'none'; });
+  }
+});
+
+window.toggleProductMenu = toggleProductMenu;
 
 /* ═══════════════════════════════════════════════════════
    PRODUCT COST PREVIEW
