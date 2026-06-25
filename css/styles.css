@@ -1848,3 +1848,40 @@ canvas { width: 100% !important; max-width: 100%; }
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }
 }
+
+/* ═══════════════════════════════════════════════════
+   REPORTS ANIMATIONS
+═══════════════════════════════════════════════════ */
+@keyframes reportFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes statPulse {
+  0%   { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* KPI value pop-in when reports render */
+#reportStatsGrid .stat-card {
+  animation: statPulse .4s ease both;
+}
+#reportStatsGrid .stat-card:nth-child(1) { animation-delay: .05s; }
+#reportStatsGrid .stat-card:nth-child(2) { animation-delay: .10s; }
+#reportStatsGrid .stat-card:nth-child(3) { animation-delay: .15s; }
+#reportStatsGrid .stat-card:nth-child(4) { animation-delay: .20s; }
+#reportStatsGrid .stat-card:nth-child(5) { animation-delay: .25s; }
+#reportStatsGrid .stat-card:nth-child(6) { animation-delay: .30s; }
+
+/* Chart container hover lift */
+.chart-container {
+  transition: box-shadow .2s ease;
+}
+.chart-container:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  #reportStatsGrid .stat-card { animation: none; }
+}
