@@ -802,7 +802,7 @@ th {
 }
 
 th:first-child { }
-th:last-child  { min-width: 200px; }
+th:last-child  { }
 
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: var(--gray-50); }
@@ -813,7 +813,6 @@ tbody tr:hover td { background: var(--gray-50); }
   align-items: center;
   gap: 6px;
   white-space: nowrap;
-  min-width: 280px;
 }
 
 .low-stock-row td { background: #fffbfb !important; }
