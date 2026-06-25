@@ -777,7 +777,8 @@ main {
 
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 12px;
   min-width: 680px;
 }
@@ -801,7 +802,7 @@ th {
 }
 
 th:first-child { }
-th:last-child { min-width: 200px; }
+th:last-child  { min-width: 200px; }
 
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: var(--gray-50); }
