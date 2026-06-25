@@ -52,10 +52,8 @@ function renderReports() {
   renderIngredientUsageTable(fromDate, toDate);
   renderReportInsightsTable(fromDate, toDate);
   renderChannelBreakdownReport(fromDate, toDate);
-  const profSection = document.getElementById('profitabilitySection');
-  if (profSection && profSection.style.display !== 'none') {
-    renderAllProfitability(fromDate, toDate);
-  }
+  renderAllProfitability(fromDate, toDate);
+  _animateReportSections();
 }
 
 /* ── 1. KPIs + Period Comparison ── */
@@ -550,18 +548,8 @@ function renderAllProfitability(fromDate, toDate) {
   renderDeadWeightProducts(fromDate, toDate);
 }
 
-function toggleProfitabilitySection() {
-  const section = document.getElementById('profitabilitySection');
-  const btn     = document.getElementById('profitabilityToggleBtn');
-  if (!section) return;
-  const isHidden = section.style.display === 'none';
-  section.style.display = isHidden ? 'block' : 'none';
-  if (btn) btn.textContent = isHidden ? 'Hide Profitability ▴' : 'Show Profitability ▾';
-  if (isHidden) {
-    const { fromDate, toDate } = getReportDateRange();
-    renderAllProfitability(fromDate, toDate);
-  }
-}
+/* toggleProfitabilitySection — profitability now always visible */
+function toggleProfitabilitySection() { /* no-op */ }
 
 function renderBreakEvenReport(fromDate, toDate) {
   const container = document.getElementById('reportBreakEvenContainer');
@@ -674,7 +662,7 @@ function renderBestMarginProducts(fromDate, toDate) {
     container.innerHTML=`<div style="font-size:12px;color:var(--gray-400);padding:16px 0;">No margin data — add recipes to products</div>`;
     return;
   }
-  const medals=['🥇','🥈','🥉','4','5'],maxM=ranked[0].margin;
+  const medals=['1','2','3','4','5'],maxM=ranked[0].margin;
   container.innerHTML=ranked.map((p,i)=>`
     <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;
       border:1.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:8px;
@@ -751,7 +739,7 @@ function renderDeadWeightProducts(fromDate, toDate) {
     <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);font-weight:800;margin-bottom:14px;">Needs Attention</div>
     <div style="border:1.5px solid #fecaca;border-radius:var(--radius-lg);overflow:hidden;">
       <div style="padding:14px 18px;border-bottom:1px solid #fecaca;display:flex;align-items:center;gap:10px;">
-        <span style="font-size:15px;">⚠️</span>
+        <span style="font-size:12px;font-weight:900;">!</span>
         <div>
           <div style="font-size:13px;font-weight:900;color:#991b1b;">${dead.length} product${dead.length>1?'s':''} haven't crossed break-even</div>
           <div style="font-size:11px;color:#b91c1c;margin-top:2px;">Reprice, promote, or cut these to improve profitability</div>
@@ -778,17 +766,35 @@ function renderDeadWeightProducts(fromDate, toDate) {
 
 /* ── 13. PDF Export ── */
 function exportReportAsPDF() {
-  const profSection = document.getElementById('profitabilitySection');
-  const wasHidden   = profSection && profSection.style.display === 'none';
-  if (wasHidden) {
-    profSection.style.display = 'block';
-    const { fromDate, toDate } = getReportDateRange();
-    renderAllProfitability(fromDate, toDate);
-  }
-  setTimeout(() => {
-    window.print();
-    if (wasHidden && profSection) profSection.style.display = 'none';
-  }, 400);
+  setTimeout(() => { window.print(); }, 400);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   REPORT SECTION ANIMATIONS
+═══════════════════════════════════════════════════════ */
+function _animateReportSections() {
+  const panel = document.getElementById('view-reports');
+  if (!panel) return;
+
+  // Target all direct section blocks inside the reports panel
+  const sections = panel.querySelectorAll(
+    '#reportStatsGrid, .chart-container, #voidRefundContainer, ' +
+    '#hourlyHeatmapContainer, #paymentBreakdownContainer, ' +
+    '#discountAnalysisContainer, #categoryPerformanceContainer, ' +
+    '.table-wrapper, #profitabilitySection, #reportBreakEvenContainer'
+  );
+
+  sections.forEach((el, i) => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(14px)';
+    el.style.transition = 'none';
+    setTimeout(() => {
+      el.style.transition = 'opacity .35s ease, transform .35s ease';
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    }, i * 55);
+  });
 }
 
 /* ── Exports ── */
@@ -808,3 +814,4 @@ window.renderChannelBreakdownReport = renderChannelBreakdownReport;
 window.toggleProfitabilitySection   = toggleProfitabilitySection;
 window.renderBreakEvenReport        = renderBreakEvenReport;
 window.exportReportAsPDF            = exportReportAsPDF;
+window._animateReportSections       = _animateReportSections;
