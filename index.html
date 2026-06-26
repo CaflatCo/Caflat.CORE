@@ -351,6 +351,7 @@
             <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
             <button data-view="production" id="navProduction" style="display:none;">Production</button>
             <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">Events</button>
+            <button data-view="origin" id="navOrigin" style="display:none;">Origin</button>
           </div>
 
           <div class="nav-group nav-group-bottom">
@@ -1098,6 +1099,16 @@
           </div>
           <div class="settings-toggle-row">
             <div>
+              <div class="settings-toggle-label">Origin Mode</div>
+              <div class="settings-toggle-sub">Lot tracking, batch processing, yield analytics, and B2B wholesale orders for coffee roasters, cacao suppliers, and tea producers.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingsOriginMode" />
+              <div class="toggle-track"></div><div class="toggle-knob"></div>
+            </label>
+          </div>
+          <div class="settings-toggle-row">
+            <div>
               <div class="settings-toggle-label">Recipe Catalog</div>
               <div class="settings-toggle-sub">Standalone reference library for recipes — ingredients, steps, and notes. Not connected to costing or inventory.</div>
             </div>
@@ -1603,6 +1614,36 @@
               </div>
 
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ ORIGIN MODE VIEW ═══ -->
+      <section class="view" id="view-origin">
+        <div class="panel" style="display:flex;flex-direction:column;height:100%;padding:0;">
+
+          <!-- Origin Header -->
+          <div style="padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;
+            display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <h2 style="margin:0;">Origin</h2>
+            <!-- Sub-nav tabs -->
+            <div style="display:flex;gap:4px;background:var(--gray-50);padding:3px;
+              border-radius:var(--radius-sm);flex-wrap:wrap;">
+              ${['dashboard','lots','batches','profiles','orders','clients','trace'].map(tab => `
+                <button class="origin-tab-btn" data-tab="${tab}" type="button"
+                  onclick="switchOriginTab('${tab}')"
+                  style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
+                    font-weight:600;border:none;background:transparent;cursor:pointer;
+                    font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;
+                    text-transform:capitalize;">
+                  ${tab === 'dashboard' ? 'Overview' : tab.charAt(0).toUpperCase()+tab.slice(1)}
+                </button>`).join('')}
+            </div>
+          </div>
+
+          <!-- Sub-content container -->
+          <div id="originSubContent" style="flex:1;overflow-y:auto;padding:20px;">
+            <!-- Rendered by renderOriginView() -->
           </div>
         </div>
       </section>
@@ -3000,6 +3041,7 @@
   <script src="./js/endofday.js"></script>
   <script src="./js/production.js"></script>
   <script src="./js/coffeecart.js"></script>
+  <script src="./js/origin.js"></script>
   <script src="./js/productlab.js"></script>
   <script src="./js/recipecatalog.js"></script>
   <script src="./js/shoppinglist.js"></script>
