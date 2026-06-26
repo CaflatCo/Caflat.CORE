@@ -1622,11 +1622,12 @@
       <section class="view" id="view-origin">
         <div class="panel" style="display:flex;flex-direction:column;height:100%;padding:0;">
 
-          <!-- Origin Header — title row -->
-          <div style="padding:20px 24px 0;flex-shrink:0;">
-            <h2 style="margin:0 0 16px;">Origin</h2>
-            <!-- Sub-nav tabs on their own row -->
-            <div style="display:flex;gap:2px;border-bottom:1.5px solid var(--border);overflow-x:auto;">
+          <!-- Origin Header -->
+          <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);flex-shrink:0;">
+            <h2 style="margin:0 0 16px 0;">Origin</h2>
+            <!-- Sub-nav tabs -->
+            <div style="display:flex;gap:4px;background:var(--gray-100);padding:3px;
+              border-radius:var(--radius-md);width:fit-content;">
               <button class="origin-tab-btn active" data-tab="dashboard" type="button"
                 onclick="switchOriginTab('dashboard')">Overview</button>
               <button class="origin-tab-btn" data-tab="lots" type="button"
