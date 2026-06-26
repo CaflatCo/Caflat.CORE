@@ -797,11 +797,12 @@ th {
   text-transform: uppercase;
   font-weight: 700;
   border-bottom: none;
+  white-space: nowrap;
 }
 
-/* Clip thead to wrapper border-radius using display:block on the table */
-.table-wrapper > table > thead > tr > th:last-child {
-  width: 100%;
+/* Force last th to stretch to fill remaining width */
+th:last-child {
+  width: 99%;
 }
 
 tbody tr:last-child td { border-bottom: none; }
