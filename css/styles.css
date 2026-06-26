@@ -800,11 +800,6 @@ th {
   white-space: nowrap;
 }
 
-/* Force last th to stretch to fill remaining width */
-th:last-child {
-  width: 99%;
-}
-
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: var(--gray-50); }
 
