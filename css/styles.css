@@ -2092,24 +2092,25 @@ canvas { width: 100% !important; max-width: 100%; }
    ORIGIN MODE SUB-NAV TABS
 ═══════════════════════════════════════════════════ */
 .origin-tab-btn {
-  padding: 10px 16px;
+  padding: 7px 14px;
   border: none;
   background: transparent;
   cursor: pointer;
   font-family: var(--font-main);
   font-size: 12px;
   font-weight: 600;
-  color: var(--gray-400);
+  color: var(--gray-500);
   white-space: nowrap;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1.5px;
-  transition: color var(--transition), border-color var(--transition);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
 }
 .origin-tab-btn:hover {
+  background: var(--white);
   color: var(--black);
 }
 .origin-tab-btn.active {
+  background: var(--white);
   color: var(--black);
-  border-bottom-color: var(--black);
   font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
 }
