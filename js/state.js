@@ -6,9 +6,9 @@ const APP_STATE = {
   currentUserRole: 'STAFF',
 
   settings: {
-    brandName: 'Caflat.Co POS',
+    brandName: 'Caflat.CORE',
     taxRate: 0,
-    receiptFooter: 'Thank you for choosing Caflat.Co',
+    receiptFooter: 'Thank you for choosing Caflat.CORE',
     currency: 'PHP',
     orderTypes: ['Dine In', 'Take Out', 'Delivery'],
     lowStockThreshold: 5,
@@ -77,6 +77,12 @@ function resetState() {
   APP_STATE.eventPackages = [];
   APP_STATE.leads = [];
   APP_STATE.activeEvent = null;
+  APP_STATE.originLots = [];
+  APP_STATE.originBatches = [];
+  APP_STATE.originProcessingProfiles = [];
+  APP_STATE.originOrders = [];
+  APP_STATE.originClients = [];
+  APP_STATE.originOrderCounter = 0;
   persistState();
 }
 

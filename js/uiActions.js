@@ -587,18 +587,14 @@ function bindDelegatedActions() {
       case 'edit-lead':                openLeadModal(actionEl.dataset.id || ''); break;
       case 'delete-lead':              deleteLead(actionEl.dataset.id || ''); break;
       case 'save-lead':                saveLead(); break;
-      case 'open-refund-modal':     if(typeof openRefundModal==='function') openRefundModal(actionEl.dataset.id||''); break;
-      case 'confirm-refund':        if(typeof confirmRefund==='function') confirmRefund(); break;
-      case 'clone-product':         if(typeof cloneProduct==='function') cloneProduct(actionEl.dataset.id||''); break;
-      case 'run-integrity-check':      if(typeof renderIntegrityReport==='function') renderIntegrityReport(); break;
+      case 'open-refund-modal':           if(typeof openRefundModal==='function') openRefundModal(actionEl.dataset.id||''); break;
+      case 'confirm-refund':              if(typeof confirmRefund==='function') confirmRefund(); break;
+      case 'clone-product':               if(typeof cloneProduct==='function') cloneProduct(actionEl.dataset.id||''); break;
+      case 'run-integrity-check':         if(typeof renderIntegrityReport==='function') renderIntegrityReport(); break;
       case 'refresh-inventory-movements': if(typeof renderInventoryMovementHistory==='function') renderInventoryMovementHistory(); break;
-      case 'view-transaction-timeline': if(typeof renderTransactionTimeline==='function') renderTransactionTimeline(actionEl.dataset.id||''); break;
-      case 'add-packaging-row':     addPackagingRow(); break;
-      case 'open-refund-modal':     openRefundModal(actionEl.dataset.id || ''); break;
-      case 'confirm-refund':        confirmRefund(); break;
-      case 'clone-product':         cloneProduct(actionEl.dataset.id || ''); break;
-      case 'run-integrity-check':   renderIntegrityReport(); break;
-      case 'confirm-void':          confirmVoid(); break;
+      case 'view-transaction-timeline':   if(typeof renderTransactionTimeline==='function') renderTransactionTimeline(actionEl.dataset.id||''); break;
+      case 'add-packaging-row':           addPackagingRow(); break;
+      case 'confirm-void':                if(typeof confirmVoid==='function') confirmVoid(); break;
 
       // Supply actions
       case 'open-supplier-order-prompt': openSupplierOrderPrompt(); break;
@@ -840,7 +836,7 @@ function printReceipt() {
 }
 
 function _buildPrintHTML(receiptBody) {
-  const brand = APP_STATE.settings?.brandName || 'Caflat.Co POS';
+  const brand = APP_STATE.settings?.brandName || 'Caflat.CORE';
   // Clone so we can clean up SVG QR for print (SVG prints fine natively)
   const clone = receiptBody.cloneNode(true);
   return `<!DOCTYPE html><html><head>
@@ -1000,7 +996,7 @@ function _buildESCPOS(receiptBody) {
   // Init
   push(ESC, 0x40);  // ESC @ — initialize printer
 
-  const brand    = APP_STATE.settings?.brandName || 'Caflat.Co';
+  const brand    = APP_STATE.settings?.brandName || 'Caflat.CORE';
   const footer   = APP_STATE.settings?.receiptFooter || '';
 
   // Extract receipt data from DOM

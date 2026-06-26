@@ -52,7 +52,7 @@ function _renderEndOfDayContent() {
       const product = (APP_STATE.products || []).find(p => String(p.id) === String(productId));
       const revenue = todaySales.reduce((s, sale) =>
         s + (sale.items || []).filter(i => String(i.productId) === String(productId))
-          .reduce((ss, i) => ss + Number(i.lineTotal || 0), 0), 0);
+          .reduce((ss, i) => ss + Number(i.lineTotal || i.total || 0), 0), 0);
       return { name: product?.name || 'Unknown', qty, revenue };
     })
     .sort((a, b) => b.qty - a.qty)

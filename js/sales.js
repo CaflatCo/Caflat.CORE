@@ -740,6 +740,12 @@ function deductInventoryForCart(cart) {
 
   if (!ingredientDeltas.size) return;
 
+  // Capture previous stocks before update so movement log is accurate
+  const previousStocks = new Map();
+  getIngredients().forEach(ing => {
+    if (ingredientDeltas.has(ing.id)) previousStocks.set(ing.id, Number(ing.stock || 0));
+  });
+
   const updatedIngredients = getIngredients().map(ingredient => {
     if (!ingredientDeltas.has(ingredient.id)) return ingredient;
     return { ...ingredient, stock: Math.max(0, Number(ingredient.stock || 0) - ingredientDeltas.get(ingredient.id)) };
@@ -750,11 +756,12 @@ function deductInventoryForCart(cart) {
   ingredientDeltas.forEach((usedQty, ingredientId) => {
     const ingredient = getIngredientById(ingredientId);
     if (!ingredient) return;
+    const prevStock = previousStocks.get(ingredientId) ?? Number(ingredient.stock || 0) + usedQty;
     movements.push({
       id: generateId(), ingredientId, ingredientName: ingredient.name,
       type: 'sale-deduction', quantityAdded: 0, quantityUsed: usedQty,
-      reason: 'Sale deduction', previousStock: Number(ingredient.stock || 0),
-      newStock: Math.max(0, Number(ingredient.stock || 0) - usedQty),
+      reason: 'Sale deduction', previousStock: prevStock,
+      newStock: Number(ingredient.stock || 0),
       createdAt: new Date().toISOString(), createdBy: APP_STATE.currentUserRole || 'STAFF'
     });
   });
@@ -933,7 +940,7 @@ function renderReceipt(transaction) {
   const body = document.getElementById('receiptBody');
   if (!body) return;
 
-  const brand = APP_STATE.settings?.brandName || 'Caflat.Co POS';
+  const brand = APP_STATE.settings?.brandName || 'Caflat.CORE';
   const footer = APP_STATE.settings?.receiptFooter || '';
   const dateText = new Date(transaction.audit?.completedAt || transaction.audit?.createdAt).toLocaleString();
   const orderType = transaction.orderType || '';
@@ -999,7 +1006,7 @@ function _generateReceiptQR(transaction) {
   if (!qrDiv) return;
   qrDiv.innerHTML = '';
 
-  const brand   = APP_STATE.settings?.brandName || 'Caflat.Co';
+  const brand   = APP_STATE.settings?.brandName || 'Caflat.CORE';
   const receipt = transaction.receiptNumber || transaction.id || '';
   const total   = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
   const date    = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
@@ -1028,7 +1035,6 @@ function _receiptQRFallback(container, text) {
   container.innerHTML = `<pre style="font-size:8px;text-align:left;background:#f4f4f4;
     padding:8px;border-radius:4px;max-height:100px;overflow:auto;
     white-space:pre-wrap;word-break:break-all;">${escapeHtml(text)}</pre>`;
-  container.appendChild(pre);
 }
 
 function openSaleReceipt(saleId) {

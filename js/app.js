@@ -19,7 +19,7 @@ function initializeApp() {
     bindSearchFilters();
     setDefaultView();
 
-    console.log('Caflat.Co POS v1 initialized');
+    console.log('Caflat.CORE v1 initialized');
   } catch (error) {
     console.error('Initialization failed', error);
     showNotification('App initialization failed', 'error');
