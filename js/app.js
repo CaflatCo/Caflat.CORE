@@ -65,6 +65,8 @@ function renderEverything() {
     'renderLabDraftsList',
     'renderLabPresetsList',
     'applySupplierCartButton',
+    'applyOriginModeToggle',
+    'renderOriginDashboard',
     'renderCart',
     'refreshDashboard',
     'updateNavBadges',
@@ -218,6 +220,7 @@ function switchPage(target) {
     if (openRecipesBtn) openRecipesBtn.textContent = 'Recipes ↗';
   }
   if (cleanTarget === 'production' && typeof renderProductionView === 'function') renderProductionView();
+  if (cleanTarget === 'origin'     && typeof renderOriginView    === 'function') renderOriginView();
   if (cleanTarget === 'settings'   && typeof renderCloudBackupList === 'function') renderCloudBackupList();
   if (cleanTarget === 'inventory') {
     if (typeof renderInventoryTable      === 'function') renderInventoryTable();

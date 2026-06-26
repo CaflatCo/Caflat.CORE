@@ -53,7 +53,13 @@ function persistState() {
       shoppingLists:       APP_STATE.shoppingLists,
       productionJobs:      APP_STATE.productionJobs,
       laborPeople:         APP_STATE.laborPeople,
-      productionTemplates: APP_STATE.productionTemplates
+      productionTemplates: APP_STATE.productionTemplates,
+      originLots:               APP_STATE.originLots,
+      originBatches:            APP_STATE.originBatches,
+      originProcessingProfiles: APP_STATE.originProcessingProfiles,
+      originOrders:             APP_STATE.originOrders,
+      originClients:            APP_STATE.originClients,
+      originOrderCounter:       APP_STATE.originOrderCounter
     }));
     if (typeof _checkStorageWarning === 'function') _checkStorageWarning();
     // Notify sync engine
@@ -84,7 +90,8 @@ function restorePersistedState() {
     shoppingListEnabled: false,
     paymentMethods: [],
     paymentQRImages: {},
-    receiptBaseUrl: ""
+    receiptBaseUrl: "",
+    originModeEnabled: false
   }, persisted.settings || {});
 
   APP_STATE.receiptCounter     = Number(persisted.receiptCounter || 0);
@@ -122,6 +129,12 @@ function restorePersistedState() {
   APP_STATE.productionJobs       = Array.isArray(persisted.productionJobs)       ? persisted.productionJobs       : [];
   APP_STATE.laborPeople          = Array.isArray(persisted.laborPeople)          ? persisted.laborPeople          : [];
   APP_STATE.productionTemplates  = Array.isArray(persisted.productionTemplates)  ? persisted.productionTemplates  : [];
+  APP_STATE.originLots               = Array.isArray(persisted.originLots)               ? persisted.originLots               : [];
+  APP_STATE.originBatches            = Array.isArray(persisted.originBatches)            ? persisted.originBatches            : [];
+  APP_STATE.originProcessingProfiles = Array.isArray(persisted.originProcessingProfiles) ? persisted.originProcessingProfiles : [];
+  APP_STATE.originOrders             = Array.isArray(persisted.originOrders)             ? persisted.originOrders             : [];
+  APP_STATE.originClients            = Array.isArray(persisted.originClients)            ? persisted.originClients            : [];
+  APP_STATE.originOrderCounter       = Number(persisted.originOrderCounter || 0);
 }
 
 /* ── Export full backup ── */
@@ -194,7 +207,8 @@ function importAllData(file) {
     shoppingListEnabled: false,
         paymentMethods: [],
         paymentQRImages: {},
-    receiptBaseUrl: ""
+    receiptBaseUrl: "",
+    originModeEnabled: false
       }, data.settings || {});
       APP_STATE.receiptCounter     = Number(data.receiptCounter || 0);
       APP_STATE.products           = Array.isArray(data.products)           ? data.products           : [];
@@ -229,6 +243,12 @@ function importAllData(file) {
       APP_STATE.shoppingLists        = Array.isArray(data.shoppingLists)       ? data.shoppingLists       : [];
       APP_STATE.productionJobs       = Array.isArray(data.productionJobs)      ? data.productionJobs      : [];
       APP_STATE.laborPeople          = Array.isArray(data.laborPeople)         ? data.laborPeople         : [];
+      APP_STATE.originLots               = Array.isArray(data.originLots)               ? data.originLots               : [];
+      APP_STATE.originBatches            = Array.isArray(data.originBatches)            ? data.originBatches            : [];
+      APP_STATE.originProcessingProfiles = Array.isArray(data.originProcessingProfiles) ? data.originProcessingProfiles : [];
+      APP_STATE.originOrders             = Array.isArray(data.originOrders)             ? data.originOrders             : [];
+      APP_STATE.originClients            = Array.isArray(data.originClients)            ? data.originClients            : [];
+      APP_STATE.originOrderCounter       = Number(data.originOrderCounter || 0);
 
       persistState();
       if (typeof renderEverything === 'function') renderEverything();

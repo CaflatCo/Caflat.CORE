@@ -36,6 +36,14 @@ const APP_STATE = {
   leads: [],                    // Coffee Cart leads/CRM
   activeEvent: null,            // Currently active event session
 
+  // Origin Mode
+  originLots: [],               // Raw material lots
+  originBatches: [],            // Processing batches (roast, ferment, dry)
+  originProcessingProfiles: [], // Roast/processing profiles per category
+  originOrders: [],             // B2B wholesale orders
+  originClients: [],            // Origin Mode client directory
+  originOrderCounter: 0,        // Sequential origin order counter
+
   ui: {
     currentView: 'pos',
     activeCategory: 'All',
@@ -89,6 +97,31 @@ function generateInvoiceNumber() {
   persistState();
   return `INV-${year}-${seq}`;  // e.g. INV-25-00001
 }
+
+/* ── Origin lot/batch number generators ── */
+function generateLotNumber() {
+  const year = new Date().getFullYear();
+  const count = (APP_STATE.originLots || []).length + 1;
+  return `LOT-${year}-${String(count).padStart(3,'0')}`;
+}
+
+function generateBatchNumber() {
+  const year = new Date().getFullYear();
+  const count = (APP_STATE.originBatches || []).length + 1;
+  return `BATCH-${year}-${String(count).padStart(3,'0')}`;
+}
+
+function generateOriginOrderNumber() {
+  APP_STATE.originOrderCounter = Number(APP_STATE.originOrderCounter || 0) + 1;
+  const year = String(new Date().getFullYear()).slice(-2);
+  const seq  = String(APP_STATE.originOrderCounter).padStart(4,'0');
+  persistState();
+  return `ORG-${year}-${seq}`;
+}
+
+window.generateLotNumber         = generateLotNumber;
+window.generateBatchNumber       = generateBatchNumber;
+window.generateOriginOrderNumber = generateOriginOrderNumber;
 
 window.APP_STATE             = APP_STATE;
 window.updateState           = updateState;

@@ -280,6 +280,7 @@ function applyLicenseTier() {
   const proOnlyToggles = [
     'settingsSupplierMode', 'settingsProductionMode', 'settingsCoffeeCartMode',
     'settingsProductLabMode', 'settingsRecipeCatalogMode', 'settingsShoppingList',
+    'settingsOriginMode',
   ];
 
   proOnlyToggles.forEach(id => {
@@ -312,6 +313,7 @@ function applyLicenseTier() {
     APP_STATE.settings.productLabModeEnabled = false;
     APP_STATE.settings.recipeCatalogEnabled  = false;
     APP_STATE.settings.shoppingListEnabled   = false;
+    APP_STATE.settings.originModeEnabled     = false;
 
     ['navSupply','navProduction','navCoffeeCart'].forEach(id => {
       const el = document.getElementById(id);

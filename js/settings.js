@@ -196,7 +196,7 @@ function saveSettings() {
   }
 
   const supplierModeEnabled    = document.getElementById('settingsSupplierMode')?.checked    === true;
-  const productionModeEnabled  = document.getElementById('settingsProductionMode')?.checked  === true;
+  const originModeEnabled      = document.getElementById('settingsOriginMode')?.checked      === true;
   const coffeeCartModeEnabled  = document.getElementById('settingsCoffeeCartMode')?.checked  === true;
   const productLabModeEnabled  = document.getElementById('settingsProductLabMode')?.checked  === true;
   const recipeCatalogEnabled   = document.getElementById('settingsRecipeCatalogMode')?.checked === true;
@@ -214,6 +214,7 @@ function saveSettings() {
     productLabModeEnabled,
     recipeCatalogEnabled,
     shoppingListEnabled,
+    originModeEnabled,
     ...(voidPin ? { voidPin } : {})
   }));
 
@@ -264,6 +265,9 @@ function renderBranding() {
 
   const recipeCatalogToggle = document.getElementById('settingsRecipeCatalogMode');
   if (recipeCatalogToggle) recipeCatalogToggle.checked = APP_STATE.settings?.recipeCatalogEnabled === true;
+
+  const originToggle = document.getElementById('settingsOriginMode');
+  if (originToggle) originToggle.checked = APP_STATE.settings?.originModeEnabled === true;
 
   const shoppingListToggle = document.getElementById('settingsShoppingList');
   if (shoppingListToggle) shoppingListToggle.checked = APP_STATE.settings?.shoppingListEnabled === true;
@@ -880,3 +884,18 @@ function renderLogoPreview() {
 window.handleLogoUpload  = handleLogoUpload;
 window.removeLogo        = removeLogo;
 window.renderLogoPreview = renderLogoPreview;
+
+/* ═══════════════════════════════════════════════════════
+   ORIGIN MODE TOGGLE
+═══════════════════════════════════════════════════════ */
+function applyOriginModeToggle() {
+  const enabled = APP_STATE.settings?.originModeEnabled === true;
+  const navBtn  = document.getElementById('navOrigin');
+  if (navBtn) navBtn.style.display = enabled ? '' : 'none';
+  if (typeof updateOpsNavGroup === 'function') updateOpsNavGroup();
+  if (!enabled && APP_STATE.ui?.currentView === 'origin') {
+    if (typeof switchPage === 'function') switchPage('pos');
+  }
+}
+
+window.applyOriginModeToggle = applyOriginModeToggle;
