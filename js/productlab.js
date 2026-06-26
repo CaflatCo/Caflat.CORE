@@ -282,8 +282,10 @@ function labCalcTotalCost() {
 }
 
 function labCalcCostPerUnit() {
-  const batch = Math.max(1, LAB_SESSION?.batchSize || 1);
-  return labCalcTotalCost() / batch;
+  // labCalcIngredientCost() already returns per-unit cost in both modes
+  // labCalcPackagingCost() returns per-unit packaging cost
+  // So total is already per unit — no further division needed
+  return labCalcTotalCost();
 }
 
 function labCalcPriceForMargin(marginPct) {
@@ -308,9 +310,10 @@ function labCalcEffectiveMargin(price) {
 }
 
 function labCalcBreakEven(price) {
-  const totalBatchCost = labCalcTotalCost();
   if (!price) return 0;
-  return Math.ceil(totalBatchCost / price);
+  // Total batch cost = cost per unit × batch size
+  const batchCost = labCalcCostPerUnit() * Math.max(1, LAB_SESSION?.batchSize || 1);
+  return Math.ceil(batchCost / price);
 }
 
 function labCalcScenarios() {
@@ -329,11 +332,14 @@ function labCalcScenarios() {
 
 function labCalcBatchCurve() {
   const sizes = [6, 12, 24, 48, 96, 192];
-  const ingCost = labCalcIngredientCost();
-  const pkgCost = labCalcPackagingCost();
+  // labCalcIngredientCost() is already per-unit cost
+  // Scale back to batch total, then divide by each size
+  const currentBatch   = Math.max(1, LAB_SESSION?.batchSize || 1);
+  const batchIngCost   = labCalcIngredientCost() * currentBatch;
+  const pkgCostPerUnit = labCalcPackagingCost();
   return sizes.map(size => ({
     size,
-    costPerUnit: (ingCost + pkgCost) / size
+    costPerUnit: (batchIngCost / size) + pkgCostPerUnit
   }));
 }
 
