@@ -233,7 +233,7 @@ function saveSettings() {
 }
 
 function renderBranding() {
-  const brandName = APP_STATE.settings?.brandName || 'Caflat.Co POS';
+  const brandName = APP_STATE.settings?.brandName || 'Caflat.CORE';
   document.querySelectorAll('[data-brand-name]').forEach(el => { el.textContent = brandName; });
   const brandInput = document.getElementById('settingsBrandName');
   if (brandInput) brandInput.value = brandName;
@@ -516,7 +516,7 @@ function archiveAndResetEmail() {
   const date    = new Date().toISOString().slice(0, 10);
   const subject = encodeURIComponent(`${brand} Backup — ${date}`);
   const body    = encodeURIComponent(
-    `Caflat.Co End-of-Day Backup\n` +
+    `Caflat.CORE End-of-Day Backup\n` +
     `Brand: ${brand}\nDate: ${date}\n\n` +
     `The full backup JSON file has been downloaded to your device.\n` +
     `Please attach it to this email and send it to yourself for safekeeping.\n\n` +

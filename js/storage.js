@@ -75,9 +75,9 @@ function restorePersistedState() {
 
   // Merge settings carefully so new keys get defaults if missing from older backups
   APP_STATE.settings = Object.assign({
-    brandName: 'Caflat.Co POS',
+    brandName: 'Caflat.CORE',
     taxRate: 0,
-    receiptFooter: 'Thank you for choosing Caflat.Co',
+    receiptFooter: 'Thank you for choosing Caflat.CORE',
     currency: 'PHP',
     orderTypes: ['Dine In', 'Take Out', 'Delivery'],
     lowStockThreshold: 5,
@@ -166,7 +166,14 @@ function exportAllData() {
     recipeCatalog:     APP_STATE.recipeCatalog,
     shoppingLists:     APP_STATE.shoppingLists,
     productionJobs:    APP_STATE.productionJobs,
-    laborPeople:       APP_STATE.laborPeople
+    laborPeople:              APP_STATE.laborPeople,
+    productionTemplates:      APP_STATE.productionTemplates,
+    originLots:               APP_STATE.originLots,
+    originBatches:            APP_STATE.originBatches,
+    originProcessingProfiles: APP_STATE.originProcessingProfiles,
+    originOrders:             APP_STATE.originOrders,
+    originClients:            APP_STATE.originClients,
+    originOrderCounter:       APP_STATE.originOrderCounter
   };
   downloadTextFile(`caflat-backup-${Date.now()}.json`, JSON.stringify(data, null, 2));
   showNotification('Backup exported', 'success');
@@ -195,8 +202,8 @@ function importAllData(file) {
       if (!confirm('This will replace all current data. Continue?')) return;
 
       APP_STATE.settings           = Object.assign({
-        brandName: 'Caflat.Co POS', taxRate: 0,
-        receiptFooter: 'Thank you for choosing Caflat.Co',
+        brandName: 'Caflat.CORE', taxRate: 0,
+        receiptFooter: 'Thank you for choosing Caflat.CORE',
         currency: 'PHP', orderTypes: ['Dine In', 'Take Out', 'Delivery'],
         lowStockThreshold: 5, voidPin: '000000',
         supplierModeEnabled:   false,
@@ -288,9 +295,9 @@ function fullFactoryReset() {
   if (typeof resetState === 'function') resetState();
   APP_STATE.labCategoryPresets = [];
   APP_STATE.settings = {
-    brandName:            'Caflat.Co POS',
+    brandName:            'Caflat.CORE',
     taxRate:              0,
-    receiptFooter:        'Thank you for choosing Caflat.Co',
+    receiptFooter:        'Thank you for choosing Caflat.CORE',
     currency:             'PHP',
     orderTypes:           ['Dine In', 'Take Out', 'Delivery'],
     lowStockThreshold:    5,
@@ -303,7 +310,8 @@ function fullFactoryReset() {
     shoppingListEnabled: false,
     paymentMethods: [],
     paymentQRImages: {},
-    receiptBaseUrl: ""
+    receiptBaseUrl: "",
+    originModeEnabled: false
   };
   localStorage.removeItem(STORAGE_KEY);
   if (typeof renderEverything === 'function') renderEverything();
