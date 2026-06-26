@@ -1622,67 +1622,30 @@
       <section class="view" id="view-origin">
         <div class="panel" style="display:flex;flex-direction:column;height:100%;padding:0;">
 
-          <!-- Origin Header -->
-          <div style="padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;
-            display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-            <h2 style="margin:0;">Origin</h2>
-            <!-- Sub-nav tabs -->
-            <div style="display:flex;gap:4px;background:var(--gray-50);padding:3px;
-              border-radius:var(--radius-sm);flex-wrap:wrap;">
+          <!-- Origin Header — title row -->
+          <div style="padding:20px 24px 0;flex-shrink:0;">
+            <h2 style="margin:0 0 16px;">Origin</h2>
+            <!-- Sub-nav tabs on their own row -->
+            <div style="display:flex;gap:2px;border-bottom:1.5px solid var(--border);overflow-x:auto;">
               <button class="origin-tab-btn active" data-tab="dashboard" type="button"
-                onclick="switchOriginTab('dashboard')"
-                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
-                  font-weight:600;border:none;background:transparent;cursor:pointer;
-                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
-                Overview
-              </button>
+                onclick="switchOriginTab('dashboard')">Overview</button>
               <button class="origin-tab-btn" data-tab="lots" type="button"
-                onclick="switchOriginTab('lots')"
-                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
-                  font-weight:600;border:none;background:transparent;cursor:pointer;
-                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
-                Lots
-              </button>
+                onclick="switchOriginTab('lots')">Lots</button>
               <button class="origin-tab-btn" data-tab="batches" type="button"
-                onclick="switchOriginTab('batches')"
-                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
-                  font-weight:600;border:none;background:transparent;cursor:pointer;
-                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
-                Batches
-              </button>
+                onclick="switchOriginTab('batches')">Batches</button>
               <button class="origin-tab-btn" data-tab="profiles" type="button"
-                onclick="switchOriginTab('profiles')"
-                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
-                  font-weight:600;border:none;background:transparent;cursor:pointer;
-                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
-                Profiles
-              </button>
+                onclick="switchOriginTab('profiles')">Profiles</button>
               <button class="origin-tab-btn" data-tab="orders" type="button"
-                onclick="switchOriginTab('orders')"
-                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
-                  font-weight:600;border:none;background:transparent;cursor:pointer;
-                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
-                Orders
-              </button>
+                onclick="switchOriginTab('orders')">Orders</button>
               <button class="origin-tab-btn" data-tab="clients" type="button"
-                onclick="switchOriginTab('clients')"
-                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
-                  font-weight:600;border:none;background:transparent;cursor:pointer;
-                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
-                Clients
-              </button>
+                onclick="switchOriginTab('clients')">Clients</button>
               <button class="origin-tab-btn" data-tab="trace" type="button"
-                onclick="switchOriginTab('trace')"
-                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
-                  font-weight:600;border:none;background:transparent;cursor:pointer;
-                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
-                Trace
-              </button>
+                onclick="switchOriginTab('trace')">Trace</button>
             </div>
           </div>
 
           <!-- Sub-content container -->
-          <div id="originSubContent" style="flex:1;overflow-y:auto;padding:20px;">
+          <div id="originSubContent" style="flex:1;overflow-y:auto;padding:24px;">
             <!-- Rendered by renderOriginView() -->
           </div>
         </div>
