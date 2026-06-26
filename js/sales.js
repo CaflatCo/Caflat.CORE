@@ -1017,12 +1017,21 @@ function _generateReceiptQR(transaction) {
     ? `${baseUrl}?r=${encodeURIComponent(receipt)}`
     : [brand, receipt, total, date].filter(Boolean).join('\n');
 
-  if (typeof CaflatQR !== 'undefined' && CaflatQR.generateSVG) {
+  if (typeof QRCode !== 'undefined') {
     try {
-      qrDiv.innerHTML = CaflatQR.generateSVG(text, { size: 220 });
+      qrDiv.style.width  = '220px';
+      qrDiv.style.height = '220px';
+      new QRCode(qrDiv, {
+        text,
+        width:        220,
+        height:       220,
+        colorDark:    '#000000',
+        colorLight:   '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
       return;
     } catch(e) {
-      console.warn('CaflatQR failed:', e);
+      console.warn('QRCode generation failed:', e);
     }
   }
 
