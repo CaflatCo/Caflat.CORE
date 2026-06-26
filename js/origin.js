@@ -211,6 +211,7 @@ function renderOriginLots() {
             <th>Lot #</th><th>Product</th><th>Category</th>
             <th>Origin / Farmer</th><th>Purchased</th>
             <th>Remaining</th><th>Cost/kg</th><th>Status</th><th>Actions</th>
+            <th style="width:100%;"></th>
           </tr>
         </thead>
         <tbody id="originLotsBody"></tbody>
@@ -434,6 +435,7 @@ function renderOriginBatches() {
             <th>Batch #</th><th>Type</th><th>Source Lots</th>
             <th>Input</th><th>Output</th><th>Yield</th>
             <th>Cost / Unit Out</th><th>Operator</th><th>Status</th><th>Actions</th>
+            <th style="width:100%;"></th>
           </tr>
         </thead>
         <tbody id="originBatchesBody"></tbody>
@@ -950,7 +952,7 @@ function renderOriginClients() {
     <div class="table-wrapper">
       <table>
         <thead>
-          <tr><th>Client Name</th><th>Contact</th><th>Email</th><th>Address</th><th>Orders</th><th>Actions</th></tr>
+          <tr><th>Client Name</th><th>Contact</th><th>Email</th><th>Address</th><th>Orders</th><th>Actions</th><th style="width:100%;"></th></tr>
         </thead>
         <tbody>
           ${clients.length ? clients.map(c => {
@@ -1050,7 +1052,7 @@ function renderOriginOrders() {
     <div class="table-wrapper">
       <table>
         <thead>
-          <tr><th>Order #</th><th>Client</th><th>Items</th><th>Total</th><th>Delivery</th><th>Status</th><th>Actions</th></tr>
+          <tr><th>Order #</th><th>Client</th><th>Items</th><th>Total</th><th>Delivery</th><th>Status</th><th>Actions</th><th style="width:100%;"></th></tr>
         </thead>
         <tbody id="originOrdersBody"></tbody>
       </table>
