@@ -1629,15 +1629,55 @@
             <!-- Sub-nav tabs -->
             <div style="display:flex;gap:4px;background:var(--gray-50);padding:3px;
               border-radius:var(--radius-sm);flex-wrap:wrap;">
-              ${['dashboard','lots','batches','profiles','orders','clients','trace'].map(tab => `
-                <button class="origin-tab-btn" data-tab="${tab}" type="button"
-                  onclick="switchOriginTab('${tab}')"
-                  style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
-                    font-weight:600;border:none;background:transparent;cursor:pointer;
-                    font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;
-                    text-transform:capitalize;">
-                  ${tab === 'dashboard' ? 'Overview' : tab.charAt(0).toUpperCase()+tab.slice(1)}
-                </button>`).join('')}
+              <button class="origin-tab-btn active" data-tab="dashboard" type="button"
+                onclick="switchOriginTab('dashboard')"
+                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
+                  font-weight:600;border:none;background:transparent;cursor:pointer;
+                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
+                Overview
+              </button>
+              <button class="origin-tab-btn" data-tab="lots" type="button"
+                onclick="switchOriginTab('lots')"
+                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
+                  font-weight:600;border:none;background:transparent;cursor:pointer;
+                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
+                Lots
+              </button>
+              <button class="origin-tab-btn" data-tab="batches" type="button"
+                onclick="switchOriginTab('batches')"
+                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
+                  font-weight:600;border:none;background:transparent;cursor:pointer;
+                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
+                Batches
+              </button>
+              <button class="origin-tab-btn" data-tab="profiles" type="button"
+                onclick="switchOriginTab('profiles')"
+                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
+                  font-weight:600;border:none;background:transparent;cursor:pointer;
+                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
+                Profiles
+              </button>
+              <button class="origin-tab-btn" data-tab="orders" type="button"
+                onclick="switchOriginTab('orders')"
+                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
+                  font-weight:600;border:none;background:transparent;cursor:pointer;
+                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
+                Orders
+              </button>
+              <button class="origin-tab-btn" data-tab="clients" type="button"
+                onclick="switchOriginTab('clients')"
+                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
+                  font-weight:600;border:none;background:transparent;cursor:pointer;
+                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
+                Clients
+              </button>
+              <button class="origin-tab-btn" data-tab="trace" type="button"
+                onclick="switchOriginTab('trace')"
+                style="padding:6px 13px;border-radius:var(--radius-sm);font-size:11px;
+                  font-weight:600;border:none;background:transparent;cursor:pointer;
+                  font-family:var(--font-main);color:var(--gray-500);white-space:nowrap;">
+                Trace
+              </button>
             </div>
           </div>
 
