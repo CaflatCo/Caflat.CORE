@@ -196,6 +196,7 @@ function saveSettings() {
   }
 
   const supplierModeEnabled    = document.getElementById('settingsSupplierMode')?.checked    === true;
+  const productionModeEnabled  = document.getElementById('settingsProductionMode')?.checked  === true;
   const originModeEnabled      = document.getElementById('settingsOriginMode')?.checked      === true;
   const coffeeCartModeEnabled  = document.getElementById('settingsCoffeeCartMode')?.checked  === true;
   const productLabModeEnabled  = document.getElementById('settingsProductLabMode')?.checked  === true;
