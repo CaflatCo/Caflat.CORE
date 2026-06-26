@@ -227,6 +227,7 @@ function saveSettings() {
   applyProductLabModeToggle();
   if (typeof applyRecipeCatalogToggle   === 'function') applyRecipeCatalogToggle();
   if (typeof applyShoppingListToggle    === 'function') applyShoppingListToggle();
+  if (typeof applyOriginModeToggle      === 'function') applyOriginModeToggle();
   showNotification('Settings saved', 'success');
 }
 
