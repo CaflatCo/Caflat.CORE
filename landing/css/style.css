@@ -508,13 +508,22 @@ nav.scrolled {
 /* ─── Features Grid ──────────────────────────────────────────── */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 2px;
   background: var(--dark-border);
   border: 1px solid var(--dark-border);
   border-radius: var(--radius-xl);
   overflow: hidden;
 }
+
+/* Row 2 — Inventory, Sales & Reports, Dashboard: 3 equal thirds */
+.features-grid .feature-card:nth-child(2),
+.features-grid .feature-card:nth-child(3),
+.features-grid .feature-card:nth-child(4) { grid-column: span 2; }
+
+/* Row 3 — Products & Variants, Ingredients: 2 equal halves */
+.features-grid .feature-card:nth-child(5),
+.features-grid .feature-card:nth-child(6) { grid-column: span 3; }
 
 .feature-card {
   background: var(--dark-card);
@@ -1272,6 +1281,11 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   }
   .showcase-visual { transition-delay: 80ms; }
   .features-grid { grid-template-columns: 1fr 1fr; }
+  .features-grid .feature-card:nth-child(2),
+  .features-grid .feature-card:nth-child(3),
+  .features-grid .feature-card:nth-child(4),
+  .features-grid .feature-card:nth-child(5),
+  .features-grid .feature-card:nth-child(6) { grid-column: span 1; }
   .extras-grid   { grid-template-columns: 1fr 1fr; gap: 40px; }
   .feature-anchor { flex-direction: column; align-items: flex-start; gap: 24px; }
   .feature-anchor-text { flex-direction: column; gap: 12px; }
@@ -1280,6 +1294,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 
 @media (max-width: 720px) {
   .features-grid { grid-template-columns: 1fr; }
+  .features-grid .feature-card:nth-child(n) { grid-column: span 1; }
   .extras-grid   { grid-template-columns: 1fr; gap: 0; }
   .extra-card    { padding: 28px 0; }
   .hero-stat     { padding: 0 28px; }
