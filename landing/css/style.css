@@ -100,21 +100,28 @@ section { padding: 120px 0; }
 }
 .section-light .eyebrow { color: rgba(10,10,11,.3); }
 
+/* Mode name eyebrows inside showcase sections — need to punch through the dark bg */
+.showcase-text .eyebrow {
+  color: rgba(244,242,238,.72);
+  font-size: .72rem;
+  letter-spacing: .15em;
+}
+
 /* ─── Scroll Reveal (base) ───────────────────────────────────── */
 .reveal {
   opacity: 0;
-  transform: translateY(28px);
-  transition: opacity .72s cubic-bezier(.22,.61,.36,1), transform .72s cubic-bezier(.22,.61,.36,1);
+  transform: translateY(16px);
+  transition: opacity .55s cubic-bezier(.22,.61,.36,1), transform .55s cubic-bezier(.22,.61,.36,1);
 }
 .reveal-left {
   opacity: 0;
-  transform: translateX(-44px);
-  transition: opacity .72s cubic-bezier(.22,.61,.36,1), transform .72s cubic-bezier(.22,.61,.36,1);
+  transform: translateX(-28px);
+  transition: opacity .55s cubic-bezier(.22,.61,.36,1), transform .55s cubic-bezier(.22,.61,.36,1);
 }
 .reveal-right {
   opacity: 0;
-  transform: translateX(44px);
-  transition: opacity .72s cubic-bezier(.22,.61,.36,1), transform .72s cubic-bezier(.22,.61,.36,1);
+  transform: translateX(28px);
+  transition: opacity .55s cubic-bezier(.22,.61,.36,1), transform .55s cubic-bezier(.22,.61,.36,1);
 }
 .reveal.visible       { opacity: 1; transform: translateY(0); }
 .reveal-left.visible  { opacity: 1; transform: translateX(0); }
@@ -1110,7 +1117,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .showcase-flip  { direction: ltr; }
   .showcase-bg-num { display: none; }
   .reveal-left, .reveal-right {
-    transform: translateY(28px);
+    transform: translateY(16px);
   }
   .reveal-left.visible, .reveal-right.visible {
     transform: translateY(0);
