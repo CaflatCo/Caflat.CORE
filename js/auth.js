@@ -636,10 +636,135 @@ function bindLoginEvents() {
 }
 
 /* ═══════════════════════════════════════════════════════
+   ACCESS GATE
+   Validates an access code against Supabase before
+   showing login/setup. Token stored in localStorage so
+   the check only runs on first visit per browser.
+═══════════════════════════════════════════════════════ */
+const GATE_KEY = 'caflat_gate_v1';
+
+function _isGateUnlocked() {
+  try {
+    const raw = localStorage.getItem(GATE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    return !!(d && d.code);
+  } catch { return false; }
+}
+
+function _showGate() {
+  const gate  = document.getElementById('gateScreen');
+  const login = document.getElementById('loginScreen');
+  document.body.classList.add('login-active');
+  if (gate)  { gate.style.display = 'flex'; gate.style.visibility = 'visible';
+               gate.style.opacity = '1'; gate.style.pointerEvents = 'auto'; }
+  if (login) { login.style.display = 'none'; }
+
+  const btn   = document.getElementById('gateBtn');
+  const input = document.getElementById('gateCodeInput');
+  if (btn)   btn.onclick   = submitGateCode;
+  if (input) { input.onkeydown = e => { if (e.key === 'Enter') submitGateCode(); };
+               input.focus(); }
+}
+
+async function submitGateCode() {
+  const input = document.getElementById('gateCodeInput');
+  const btn   = document.getElementById('gateBtn');
+  const code  = String(input?.value || '').trim().toUpperCase();
+
+  if (!code) { _showGateError('Please enter your access code.'); return; }
+
+  if (btn) { btn.textContent = 'Checking…'; btn.disabled = true; }
+  _hideGateError();
+
+  try {
+    const res = await fetch(
+      `${CAFLAT_SB_URL}/rest/v1/licenses` +
+      `?code=eq.${encodeURIComponent(code)}` +
+      `&select=code,tier,client_name,tenant_id,expires_at,revoked`,
+      { headers: { 'apikey': CAFLAT_SB_ANON, 'Authorization': `Bearer ${CAFLAT_SB_ANON}` } }
+    );
+
+    if (!res.ok) throw new Error('server');
+    const rows = await res.json();
+
+    if (!rows.length) {
+      _showGateError('Invalid access code. Please check and try again.');
+    } else if (rows[0].revoked) {
+      _showGateError('This access code has been revoked. Contact support.');
+    } else if (rows[0].expires_at && new Date(rows[0].expires_at) < new Date()) {
+      _showGateError('This access code has expired. Contact support.');
+    } else {
+      const lic = rows[0];
+
+      // Store gate token
+      localStorage.setItem(GATE_KEY, JSON.stringify({
+        code: lic.code, validatedAt: new Date().toISOString()
+      }));
+
+      // Also activate the license locally so features unlock immediately
+      if (typeof _saveLicenseToStorage === 'function') {
+        _saveLicenseToStorage({
+          code:           lic.code,
+          tier:           lic.tier,
+          client_name:    lic.client_name,
+          tenant_id:      lic.tenant_id,
+          expires_at:     lic.expires_at,
+          last_validated: new Date().toISOString()
+        });
+      }
+
+      const gate = document.getElementById('gateScreen');
+      if (gate) gate.style.display = 'none';
+
+      _proceedAfterGate();
+    }
+  } catch (e) {
+    _showGateError('Could not connect. Check your internet and try again.');
+  } finally {
+    if (btn) { btn.textContent = 'Continue'; btn.disabled = false; }
+  }
+}
+
+function _showGateError(msg) {
+  const err  = document.getElementById('gateError');
+  const card = document.getElementById('gateCard');
+  if (err)  { err.textContent = msg; err.style.display = 'block'; }
+  if (card) { card.classList.remove('login-shake'); void card.offsetWidth; card.classList.add('login-shake'); }
+}
+
+function _hideGateError() {
+  const err = document.getElementById('gateError');
+  if (err) err.style.display = 'none';
+}
+
+function _proceedAfterGate() {
+  if (typeof initializeLicense === 'function') initializeLicense();
+  if (typeof applyLicenseTier  === 'function') applyLicenseTier();
+  showLoginShell();
+  if (isFirstLaunch()) { showSetupScreen(); return; }
+  const session = getAuthSession();
+  const creds   = getStoredCredentials();
+  if (session && creds && session.role) {
+    updateState('currentUserRole', () => session.role);
+    applyAuth(session.role);
+    return;
+  }
+  showLoginScreen();
+  bindLoginEvents();
+}
+
+/* ═══════════════════════════════════════════════════════
    INITIALIZE
 ═══════════════════════════════════════════════════════ */
 function initializeAuth() {
   showLoginShell();
+
+  // Gate — must pass before login or setup is shown
+  if (!_isGateUnlocked()) {
+    _showGate();
+    return;
+  }
 
   if (isFirstLaunch()) {
     showSetupScreen();
@@ -665,5 +790,6 @@ window.login                   = login;
 window.logout                  = logout;
 window.applyAuth               = applyAuth;
 window.initializeAuth          = initializeAuth;
+window.submitGateCode          = submitGateCode;
 window.openChangePasswordModal = openChangePasswordModal;
 window.showForgotPassword      = showForgotPassword;
