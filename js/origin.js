@@ -7,6 +7,7 @@
 
 /* ── Sub-view state ── */
 let _originView = 'dashboard'; // dashboard|lots|batches|profiles|orders|clients|trace
+let _lotPhotoBuffer = []; // base64 photos for lot being edited; reset on each modal open
 
 const ORIGIN_CATEGORIES = ['Coffee', 'Cacao', 'Tea'];
 
@@ -201,7 +202,10 @@ function renderOriginLots() {
           ${ORIGIN_CATEGORIES.map(c=>`<option>${c}</option>`).join('')}
         </select>
       </div>
-      <button class="btn" type="button" onclick="openOriginLotModal(null)">+ New Lot</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" type="button" onclick="openOriginLotModal(null, true)">Scan Label</button>
+        <button class="btn" type="button" onclick="openOriginLotModal(null)">+ New Lot</button>
+      </div>
     </div>
 
     <div class="table-wrapper">
@@ -271,9 +275,10 @@ function _renderOriginLotsBody() {
       <td style="font-variant-numeric:tabular-nums;">${_originFmt(costPerKg)}/kg</td>
       <td>${_statusPill(l.status)}</td>
       <td>
-        <div style="display:flex;gap:5px;">
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
           <button class="btn btn-sm" type="button" onclick="openOriginLotModal('${l.id}')">Edit</button>
           <button class="btn btn-sm btn-secondary" type="button" onclick="viewOriginLotTrace('${l.id}')">Trace</button>
+          <button class="btn btn-sm btn-secondary" type="button" onclick="printOriginLotLabel('${l.id}')">Label</button>
         </div>
       </td>
     </tr>`;
@@ -281,9 +286,12 @@ function _renderOriginLotsBody() {
 }
 
 /* ── Lot modal ── */
-function openOriginLotModal(id) {
+function openOriginLotModal(id, scanMode) {
   const lot = id ? (APP_STATE.originLots||[]).find(l=>l.id===id) : null;
   const isNew = !lot;
+
+  // Reset photo buffer for this editing session
+  _lotPhotoBuffer = lot ? (lot.photos || []).slice() : [];
 
   let m = document.getElementById('originLotModal');
   if (!m) { m = document.createElement('div'); m.id='originLotModal'; m.className='modal-overlay'; document.body.appendChild(m); }
@@ -291,6 +299,34 @@ function openOriginLotModal(id) {
   m.innerHTML = `
     <div class="modal" style="max-width:560px;">
       <h3>${isNew ? 'New Lot' : 'Edit Lot'}</h3>
+
+      <!-- Label scanner -->
+      <div style="margin-bottom:14px;padding:12px 14px;background:var(--gray-50);
+        border-radius:var(--radius-md);border:1.5px solid var(--border);">
+        <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+          color:var(--gray-400);margin-bottom:8px;">Scan Label</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <label style="cursor:pointer;display:inline-block;">
+            <span class="btn btn-secondary btn-sm" style="display:inline-block;">Take / Upload Photo</span>
+            <input id="olmScanInput" type="file" accept="image/*" capture="environment"
+              style="display:none;" onchange="_originScanLabelFile(this)" />
+          </label>
+          <div id="olmScanStatus" style="font-size:12px;color:var(--gray-400);">
+            Point your camera at the coffee label
+          </div>
+        </div>
+        <div id="olmScanProgressWrap" style="display:none;margin-top:8px;">
+          <div style="height:4px;background:var(--border);border-radius:999px;overflow:hidden;">
+            <div id="olmScanBar" style="height:100%;background:var(--black);border-radius:999px;
+              width:0%;transition:width 0.2s;"></div>
+          </div>
+        </div>
+        <div id="olmScanPreview" style="display:none;margin-top:8px;">
+          <img id="olmScanImg" style="max-height:90px;border-radius:var(--radius-sm);
+            border:1.5px solid var(--border);" />
+        </div>
+      </div>
+
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="form-group">
           <label>Lot Number</label>
@@ -350,6 +386,18 @@ function openOriginLotModal(id) {
           <label>Notes</label>
           <textarea id="olmNotes" rows="2" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font-main);font-size:13px;resize:vertical;">${escapeHtml(lot?.notes||'')}</textarea>
         </div>
+        <!-- Photo attachments -->
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Photos
+            <span style="font-size:10px;color:var(--gray-400);font-weight:normal;margin-left:4px;">bag, label, farm — stored locally</span>
+          </label>
+          <div id="olmPhotoGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;min-height:16px;"></div>
+          <label style="cursor:pointer;display:inline-block;">
+            <span class="btn btn-secondary btn-sm" style="display:inline-block;font-size:12px;">Add Photo</span>
+            <input id="olmPhotoInput" type="file" accept="image/*" capture="environment" multiple
+              style="display:none;" onchange="handleOriginLotPhotoUpload(this)" />
+          </label>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" type="button" onclick="closeModal('originLotModal')">Cancel</button>
@@ -360,6 +408,15 @@ function openOriginLotModal(id) {
     </div>`;
 
   openModal('originLotModal');
+  _renderLotPhotoThumbnails();
+
+  // If opened via "Scan Label", immediately trigger camera
+  if (scanMode) {
+    requestAnimationFrame(() => {
+      const scanInput = document.getElementById('olmScanInput');
+      if (scanInput) scanInput.click();
+    });
+  }
 }
 
 function saveOriginLot(id) {
@@ -387,6 +444,7 @@ function saveOriginLot(id) {
     processingMethod: sanitizeText(document.getElementById('olmProcessingMethod')?.value||''),
     status:           document.getElementById('olmStatus')?.value||'Active',
     notes:            document.getElementById('olmNotes')?.value||'',
+    photos:           _lotPhotoBuffer.slice(),
     createdAt:        existing?.createdAt || now,
     updatedAt:        now,
   };
@@ -404,6 +462,272 @@ function saveOriginLot(id) {
   persistState();
   closeModal('originLotModal');
   renderOriginLots();
+}
+
+/* ══════════════════════════════════════════════════════
+   LABEL SCANNER — OCR via Tesseract.js
+══════════════════════════════════════════════════════ */
+
+async function _originScanLabelFile(input) {
+  const file = input?.files?.[0];
+  if (!file) return;
+  input.value = '';
+
+  const statusEl  = document.getElementById('olmScanStatus');
+  const progressW = document.getElementById('olmScanProgressWrap');
+  const bar       = document.getElementById('olmScanBar');
+  const previewW  = document.getElementById('olmScanPreview');
+  const previewImg= document.getElementById('olmScanImg');
+
+  if (typeof Tesseract === 'undefined') {
+    if (statusEl) statusEl.textContent = 'Scanner not available — check internet connection.';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const src = e.target.result;
+
+    // Show image preview
+    if (previewImg) previewImg.src = src;
+    if (previewW)  previewW.style.display = 'block';
+    if (statusEl)  statusEl.textContent   = 'Reading label…';
+    if (progressW) progressW.style.display = 'block';
+    if (bar)       bar.style.width = '0%';
+
+    try {
+      const { data: { text } } = await Tesseract.recognize(src, 'eng', {
+        logger: m => {
+          if (m.status === 'recognizing text' && bar) {
+            bar.style.width = Math.round((m.progress || 0) * 100) + '%';
+          }
+        }
+      });
+
+      if (progressW) progressW.style.display = 'none';
+
+      const parsed = _parseOriginLabelText(text);
+      const filled = _fillLotFormFromScan(parsed);
+
+      if (statusEl) statusEl.textContent = filled
+        ? 'Label read — review the filled fields below'
+        : 'Scanned but could not extract fields — check the photo';
+
+      if (filled) showNotification('Label scanned — review and save', 'success');
+
+    } catch (err) {
+      console.error('OCR error:', err);
+      if (progressW) progressW.style.display = 'none';
+      if (statusEl)  statusEl.textContent = 'Could not read label. Try better lighting or hold the camera steady.';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function _parseOriginLabelText(rawText) {
+  const result = { productName:'', origin:'', farmer:'', processingMethod:'', harvestDate:'', notes:'' };
+  if (!rawText || !rawText.trim()) return result;
+
+  const lines    = rawText.split(/\n/).map(l => l.trim()).filter(Boolean);
+  const unmapped = [];
+
+  // Key → regex aliases
+  const aliases = [
+    ['productName',      /^(product|variety|cultivar|bean|name|coffee|item|blend|single.?origin|type)\s*[:\-]/i],
+    ['origin',           /^(origin|region|province|area|location|place|source|country|from|produced.?in|grown.?in)\s*[:\-]/i],
+    ['farmer',           /^(farm(er)?|producer|supplier|grower|cooperative|co-?op|mill|estate|plantation|brand|importer)\s*[:\-]/i],
+    ['processingMethod', /^(process(ing)?(\s+method)?|method|preparation)\s*[:\-]/i],
+    ['harvestDate',      /^(harvest(\s+date|\s+year)?|crop(\s+year)?|picked|season|vintage|date)\s*[:\-]/i],
+  ];
+
+  // Standalone process keywords (no key: prefix)
+  const processKws = ['washed','natural','honey','anaerobic','wet hulled','pulped natural',
+    'semi-washed','dry process','wet process','black honey','yellow honey','red honey'];
+
+  lines.forEach(line => {
+    let matched = false;
+
+    for (const [field, regex] of aliases) {
+      if (regex.test(line)) {
+        const value = line.replace(/^[^:\-]+[:\-]\s*/, '').trim();
+        if (value && !result[field]) result[field] = value;
+        matched = true;
+        break;
+      }
+    }
+
+    if (!matched) {
+      const low = line.toLowerCase();
+      const kwMatch = processKws.find(kw => low === kw || low.startsWith(kw + ' ') || low.endsWith(' ' + kw));
+      if (kwMatch && !result.processingMethod) { result.processingMethod = line; matched = true; }
+    }
+
+    if (!matched) unmapped.push(line);
+  });
+
+  // Fallback: first long unmapped line → productName
+  if (!result.productName) {
+    const idx = unmapped.findIndex(l => l.length > 4 && l.length < 80 && !/^\d/.test(l));
+    if (idx !== -1) { result.productName = unmapped.splice(idx, 1)[0]; }
+  }
+
+  // Normalize harvest date — if just a year, approximate to Jan 1
+  if (result.harvestDate) {
+    const yearMatch = result.harvestDate.match(/\b(\d{4})\b/);
+    if (yearMatch && !/\d{4}-\d{2}-\d{2}/.test(result.harvestDate)) {
+      result.harvestDate = yearMatch[1] + '-01-01';
+    }
+  }
+
+  // Altitude / elevation → notes
+  const altLine = unmapped.find(l => /\d+\s*(masl|m\.?a\.?s\.?l|meters?|ft|feet|elevation|altitude)/i.test(l));
+  if (altLine) {
+    unmapped.splice(unmapped.indexOf(altLine), 1);
+    unmapped.unshift('Altitude: ' + altLine);
+  }
+
+  if (unmapped.length) result.notes = unmapped.join('\n');
+
+  return result;
+}
+
+function _fillLotFormFromScan(parsed) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  let anyFilled = false;
+
+  if (parsed.productName)      { set('olmProductName', parsed.productName);           anyFilled = true; }
+  if (parsed.origin)           { set('olmOrigin', parsed.origin);                     anyFilled = true; }
+  if (parsed.farmer)           { set('olmFarmer', parsed.farmer);                     anyFilled = true; }
+  if (parsed.processingMethod) { set('olmProcessingMethod', parsed.processingMethod); anyFilled = true; }
+  if (parsed.harvestDate)      { set('olmHarvestDate', parsed.harvestDate);           anyFilled = true; }
+
+  if (parsed.notes) {
+    const notesEl = document.getElementById('olmNotes');
+    if (notesEl) { notesEl.value = notesEl.value ? notesEl.value + '\n' + parsed.notes : parsed.notes; }
+    anyFilled = true;
+  }
+
+  return anyFilled;
+}
+
+/* ── Photo attachment helpers ── */
+
+function handleOriginLotPhotoUpload(input) {
+  const files = Array.from(input?.files || []);
+  if (!files.length) return;
+  input.value = '';
+
+  if (_lotPhotoBuffer.length + files.length > 8) {
+    showNotification('Maximum 8 photos per lot', 'info');
+    return;
+  }
+
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX    = 800;
+        const scale  = Math.min(1, MAX / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width  = Math.round(img.width  * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        _lotPhotoBuffer.push(canvas.toDataURL('image/jpeg', 0.80));
+        _renderLotPhotoThumbnails();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function _renderLotPhotoThumbnails() {
+  const grid = document.getElementById('olmPhotoGrid');
+  if (!grid) return;
+  if (!_lotPhotoBuffer.length) {
+    grid.innerHTML = '<span style="font-size:11px;color:var(--gray-400);">No photos yet</span>';
+    return;
+  }
+  grid.innerHTML = _lotPhotoBuffer.map((b64, i) => `
+    <div style="position:relative;width:72px;height:72px;flex-shrink:0;">
+      <img src="${b64}" style="width:72px;height:72px;object-fit:cover;
+        border-radius:var(--radius-md);border:1.5px solid var(--border);" />
+      <button type="button" onclick="_removeLotPhoto(${i})"
+        style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;
+          border-radius:50%;background:var(--black);color:white;border:none;
+          cursor:pointer;font-size:11px;line-height:1;display:flex;
+          align-items:center;justify-content:center;padding:0;">✕</button>
+    </div>`).join('');
+}
+
+function _removeLotPhoto(index) {
+  _lotPhotoBuffer.splice(index, 1);
+  _renderLotPhotoThumbnails();
+}
+
+/* ── Printable lot label ── */
+
+function printOriginLotLabel(lotId) {
+  const lot = (APP_STATE.originLots||[]).find(l => l.id === lotId);
+  if (!lot) return;
+
+  const qrPayload = JSON.stringify({
+    _caflat: '1',
+    lot:     lot.lotNumber,
+    product: lot.productName,
+    origin:  lot.origin,
+    farmer:  lot.farmer,
+    process: lot.processingMethod,
+    harvest: lot.harvestDate,
+    category:lot.category
+  });
+
+  // Generate QR SVG using already-loaded QRCode.js
+  let qrHtml = '';
+  if (typeof QRCode !== 'undefined') {
+    const tmp = document.createElement('div');
+    tmp.style.cssText = 'position:absolute;left:-9999px;width:160px;height:160px;';
+    document.body.appendChild(tmp);
+    try {
+      new QRCode(tmp, { text: qrPayload, width: 160, height: 160,
+        colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+      const svg = tmp.querySelector('svg');
+      if (svg) { svg.setAttribute('width','160'); svg.setAttribute('height','160'); qrHtml = svg.outerHTML; }
+    } catch(e) { console.warn('QR for label failed:', e); }
+    document.body.removeChild(tmp);
+  }
+
+  const win = window.open('', '_blank', 'width=420,height=540');
+  if (!win) { showNotification('Allow popups to print labels', 'info'); return; }
+
+  win.document.write(`<!DOCTYPE html><html><head>
+<title>${lot.lotNumber}</title>
+<style>
+  body{font-family:sans-serif;margin:0;padding:20px;background:#fff;}
+  .card{width:300px;border:2px solid #000;border-radius:8px;padding:18px;margin:0 auto;}
+  .lot{font-size:20px;font-weight:900;letter-spacing:2px;font-family:monospace;margin-bottom:4px;}
+  .product{font-size:14px;font-weight:700;margin-bottom:12px;color:#333;}
+  .row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
+  .k{color:#666;text-transform:uppercase;letter-spacing:.8px;}
+  .qr{text-align:center;margin-top:14px;}
+  .brand{font-size:8px;text-align:center;color:#aaa;margin-top:8px;letter-spacing:2px;text-transform:uppercase;}
+  @media print{body{padding:0;}}
+</style></head><body>
+<div class="card">
+  <div class="lot">${escapeHtml(lot.lotNumber)}</div>
+  <div class="product">${escapeHtml(lot.productName)}</div>
+  <div class="row"><span class="k">Origin</span><span>${escapeHtml(lot.origin||'—')}</span></div>
+  <div class="row"><span class="k">Farm</span><span>${escapeHtml(lot.farmer||'—')}</span></div>
+  <div class="row"><span class="k">Process</span><span>${escapeHtml(lot.processingMethod||'—')}</span></div>
+  <div class="row"><span class="k">Harvest</span><span>${escapeHtml(lot.harvestDate||'—')}</span></div>
+  <div class="row"><span class="k">Category</span><span>${escapeHtml(lot.category||'—')}</span></div>
+  <div class="qr">${qrHtml || '<p style="font-size:10px;color:#aaa;">QR unavailable</p>'}</div>
+  <div class="brand">Caflat.CORE — Origin Traceability</div>
+</div>
+<script>window.onload=()=>{window.print();}<\/script>
+</body></html>`);
+  win.document.close();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1445,3 +1769,8 @@ window.runOriginTrace            = runOriginTrace;
 window.viewOriginLotTrace        = viewOriginLotTrace;
 window.viewOriginBatchTrace      = viewOriginBatchTrace;
 window.viewOriginOrderTrace      = viewOriginOrderTrace;
+window._originScanLabelFile      = _originScanLabelFile;
+window.handleOriginLotPhotoUpload= handleOriginLotPhotoUpload;
+window._renderLotPhotoThumbnails = _renderLotPhotoThumbnails;
+window._removeLotPhoto           = _removeLotPhoto;
+window.printOriginLotLabel       = printOriginLotLabel;
