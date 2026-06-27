@@ -6,6 +6,18 @@
 ═══════════════════════════════════════════════════════ */
 
 let reportChartInstance    = null;
+
+function getChartTheme() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  return {
+    line:  dark ? '#f0eeeb'               : '#000',
+    fill:  dark ? 'rgba(240,238,235,.06)' : 'rgba(0,0,0,.04)',
+    point: dark ? '#f0eeeb'               : '#000',
+    ptBorder: dark ? '#1a1a20'            : '#fff',
+    grid:  dark ? 'rgba(255,255,255,.07)' : '#f4f4f4',
+    tick:  dark ? 'rgba(240,238,235,.45)' : '#999',
+  };
+}
 let hourlyChartInstance    = null;
 let _categoryChartInstances = {};
 let _pureProfitCumChart    = null;
@@ -122,19 +134,20 @@ function renderRevenueChart(fromDate, toDate) {
     return;
   }
   canvas.style.display = '';
+  const ct = getChartTheme();
   const shortLabels = trend.labels.map(l =>
     new Date(l).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }));
   reportChartInstance = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: { labels: shortLabels, datasets: [{ label: 'Revenue', data: trend.values,
-      borderColor: '#000', backgroundColor: 'rgba(0,0,0,.04)', fill: true, tension: 0.35,
+      borderColor: ct.line, backgroundColor: ct.fill, fill: true, tension: 0.35,
       pointRadius: trend.labels.length > 20 ? 0 : 4,
-      pointBackgroundColor: '#000', pointBorderColor: '#fff', pointBorderWidth: 2 }] },
+      pointBackgroundColor: ct.point, pointBorderColor: ct.ptBorder, pointBorderWidth: 2 }] },
     options: { responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => formatCurrency(ctx.parsed.y) } } },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#999', maxTicksLimit: 10 } },
-        y: { grid: { color: '#f4f4f4' }, ticks: { font: { size: 11 }, color: '#999',
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: ct.tick, maxTicksLimit: 10 } },
+        y: { grid: { color: ct.grid }, ticks: { font: { size: 11 }, color: ct.tick,
           callback: v => '₱' + (v >= 1000 ? (v/1000).toFixed(1)+'k' : v) } } } }
   });
 }
@@ -796,6 +809,18 @@ function _animateReportSections() {
     }, i * 55);
   });
 }
+
+/* ── Re-render chart when theme changes ── */
+new MutationObserver(() => {
+  if (reportChartInstance) {
+    const canvas = document.getElementById('reportRevenueChart');
+    if (canvas) {
+      const fromDate = document.getElementById('reportFrom')?.value;
+      const toDate   = document.getElementById('reportTo')?.value;
+      if (fromDate && toDate) renderRevenueChart(fromDate, toDate);
+    }
+  }
+}).observe(document.documentElement, { attributeFilter: ['data-theme'] });
 
 /* ── Exports ── */
 window.renderReports                = renderReports;
