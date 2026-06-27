@@ -288,6 +288,26 @@
 </head>
 <body>
 
+  <!-- ═══ GATE ═══ -->
+  <div class="login-screen" id="gateScreen" style="display:none;">
+    <div class="login-card" id="gateCard">
+      <h2>Caflat.CORE</h2>
+      <div class="login-subtitle">Enter your access code to continue</div>
+      <input id="gateCodeInput" placeholder="Access Code" type="text"
+        autocomplete="off" spellcheck="false"
+        style="text-transform:uppercase;letter-spacing:0.08em;text-align:center;font-weight:700;" />
+      <button id="gateBtn" type="button">Continue</button>
+      <div id="gateError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;
+        border-radius:8px;padding:10px 14px;margin-bottom:4px;
+        font-size:12px;font-weight:600;color:#dc2626;text-align:center;"></div>
+      <div style="margin-top:14px;font-size:11px;color:var(--gray-400);text-align:center;">
+        Don't have an access code?
+        <a href="https://caflatcore.com" target="_blank"
+          style="color:var(--black);font-weight:700;">caflatcore.com</a>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ LOGIN ═══ -->
   <div class="login-screen" id="loginScreen">
     <div class="login-card" id="loginCard">
