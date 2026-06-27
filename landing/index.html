@@ -31,42 +31,63 @@
 <!-- ─── Hero ─────────────────────────────────────────────────── -->
 <section class="hero grain">
   <div class="hero-grid" aria-hidden="true"></div>
-  <div class="hero-rings" aria-hidden="true"></div>
-  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="hero-warm-glow" aria-hidden="true"></div>
 
-  <!-- Coffee-themed decorative elements -->
+  <!-- Café art — pour-over silhouette -->
+  <div class="hero-cafe-art" aria-hidden="true">
+    <svg viewBox="0 0 220 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Steam -->
+      <path d="M78 52 Q70 36 78 20 Q86 4 78 -12" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+      <path d="M110 44 Q102 28 110 12 Q118 -4 110 -20" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+      <path d="M142 52 Q134 36 142 20 Q150 4 142 -12" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+      <!-- V60 drip cone -->
+      <path d="M60 68 L110 148 L160 68 Z" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
+      <!-- Cone rim -->
+      <path d="M54 68 Q110 58 166 68" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      <!-- Cone ribs -->
+      <path d="M82 80 L105 138" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+      <path d="M138 80 L115 138" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+      <path d="M68 90 L102 140" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.25"/>
+      <!-- Drip -->
+      <path d="M110 148 L110 162" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+      <!-- Carafe body -->
+      <path d="M72 168 Q68 180 70 204 Q72 224 110 228 Q148 224 150 204 Q152 180 148 168 Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" fill="none"/>
+      <!-- Carafe neck -->
+      <path d="M88 162 Q88 156 92 154 L128 154 Q132 156 132 162 L148 168 L72 168 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
+      <!-- Carafe handle -->
+      <path d="M150 178 Q174 178 174 200 Q174 220 150 218" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+      <!-- Coffee level inside carafe -->
+      <path d="M76 208 Q110 214 144 208" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+    </svg>
+  </div>
+
+  <!-- Floating café decorations -->
   <div class="hero-deco" aria-hidden="true">
-    <!-- Bean top-left -->
     <svg class="deco-item deco-bean-1" viewBox="0 0 40 56" fill="currentColor">
       <ellipse cx="20" cy="28" rx="16" ry="24"/>
       <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
     </svg>
-    <!-- Bean top-right -->
     <svg class="deco-item deco-bean-2" viewBox="0 0 40 56" fill="currentColor">
       <ellipse cx="20" cy="28" rx="16" ry="24"/>
       <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
     </svg>
-    <!-- Small bean bottom-left -->
     <svg class="deco-item deco-bean-3" viewBox="0 0 40 56" fill="currentColor">
       <ellipse cx="20" cy="28" rx="16" ry="24"/>
       <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
     </svg>
-    <!-- Leaf right -->
     <svg class="deco-item deco-leaf" viewBox="0 0 30 54" fill="currentColor">
       <path d="M15 2 Q28 14 26 28 Q22 46 15 52 Q8 46 4 28 Q2 14 15 2Z"/>
       <path d="M15 2 Q15 28 15 52" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1.5"/>
       <path d="M15 19 Q21 16 26 19" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1.2"/>
       <path d="M15 31 Q9 28 4 31" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1.2"/>
     </svg>
-    <!-- Cookie bottom-right -->
-    <svg class="deco-item deco-cookie" viewBox="0 0 44 44" fill="currentColor">
-      <circle cx="22" cy="22" r="20"/>
-      <circle cx="14" cy="14" r="3" fill="rgba(0,0,0,.26)"/>
-      <circle cx="28" cy="17" r="2.5" fill="rgba(0,0,0,.26)"/>
-      <circle cx="17" cy="28" r="2.5" fill="rgba(0,0,0,.26)"/>
-      <circle cx="30" cy="28" r="2" fill="rgba(0,0,0,.26)"/>
+    <svg class="deco-item deco-cup" viewBox="0 0 50 46" fill="none">
+      <path d="M8 12 L6 36 Q6 40 10 40 L40 40 Q44 40 44 36 L42 12 Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+      <ellipse cx="25" cy="12" rx="17" ry="5" stroke="currentColor" stroke-width="2"/>
+      <path d="M44 18 Q52 18 52 25 Q52 32 44 32" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <ellipse cx="25" cy="40" rx="20" ry="5" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+      <path d="M19 24 Q22 20 25 24 Q28 28 31 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
     </svg>
-    <!-- Tiny bean far right -->
     <svg class="deco-item deco-bean-4" viewBox="0 0 40 56" fill="currentColor">
       <ellipse cx="20" cy="28" rx="16" ry="24"/>
       <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
@@ -80,13 +101,13 @@
     </div>
 
     <h1 class="hero-title">
-      The operating system<br>
-      behind <span class="hero-warm">every great café.</span>
+      Stop running your café<br>
+      <span class="hero-warm">from memory.</span>
     </h1>
 
     <p class="hero-body">
-      One platform for your entire café — from the first sale of the morning
-      to the last roast log of the week. Offline-first, always.
+      Caflat.CORE puts your POS, inventory, production, events, and origin traceability
+      on one screen — offline-first, built for the specialty café that takes its craft seriously.
     </p>
 
     <div class="hero-actions">
@@ -270,50 +291,51 @@
   <div class="container showcase-inner showcase-flip">
     <div class="showcase-text reveal">
       <span class="eyebrow">Production Mode</span>
-      <h2>Log the craft.<br>Refine the&nbsp;process.</h2>
-      <p>Record roast batches, espresso calibrations, and brew recipes. Build a technical history that makes every cup more intentional — and every dial-in faster.</p>
+      <h2>Built to run.<br>Tracked to the&nbsp;batch.</h2>
+      <p>Schedule multi-product production jobs for baking and prep. Assign your team, log waste, and track cost-per-unit — from planning through packing, with nothing slipping through.</p>
       <ul class="showcase-list">
-        <li>Roast batch logs with yield & loss</li>
-        <li>Espresso calibration records</li>
-        <li>Brew recipe library</li>
-        <li>Machine calibration history</li>
+        <li>Job board: Planned → In Progress → QC → Packed</li>
+        <li>Batch tracking with waste & spoilage logs</li>
+        <li>Labor roster with daily rate assignment</li>
+        <li>Ingredient cost forecasting per batch</li>
       </ul>
     </div>
     <div class="showcase-visual reveal-left">
       <div class="mock-panel mock-dark">
         <div class="mock-bar mock-bar-dark">
-          <span class="mock-title mock-title-light">Roast Log — Batch #47</span>
-          <span class="mock-tag mock-tag-dark">Ethiopia Natural</span>
+          <span class="mock-title mock-title-light">Production Jobs</span>
+          <span class="mock-tag mock-tag-dark">3 active</span>
         </div>
-        <div class="mock-lot-fields">
-          <div class="mock-field">
-            <span class="mock-field-label">Green Weight</span>
-            <span class="mock-field-val">2.00 kg</span>
+        <div class="mock-job-card">
+          <div class="mock-job-info">
+            <div class="mock-job-name">Ube Cheesecake — Batch #12</div>
+            <div class="mock-job-meta">36 pcs · Retail/Restock · 3 workers</div>
           </div>
-          <div class="mock-field">
-            <span class="mock-field-label">Roast Weight</span>
-            <span class="mock-field-val">1.74 kg</span>
-          </div>
-          <div class="mock-field">
-            <span class="mock-field-label">Weight Loss</span>
-            <span class="mock-field-val">13.0%</span>
-          </div>
-          <div class="mock-field">
-            <span class="mock-field-label">Roast Level</span>
-            <span class="mock-field-val">Light-Medium</span>
-          </div>
-          <div class="mock-field">
-            <span class="mock-field-label">First Crack</span>
-            <span class="mock-field-val">9m 42s</span>
-          </div>
-          <div class="mock-field">
-            <span class="mock-field-label">Total Time</span>
-            <span class="mock-field-val">11m 30s</span>
-          </div>
+          <span class="mock-pill mock-pill-inprog">In Progress</span>
         </div>
-        <div class="mock-roast-note">
-          <span class="mock-field-label">Roaster Notes</span>
-          <p>Bright acidity, fruity finish. Reduce development by 10s next batch.</p>
+        <div class="mock-job-card">
+          <div class="mock-job-info">
+            <div class="mock-job-name">Canelés — Client Order #08</div>
+            <div class="mock-job-meta">60 pcs · Client Order · 2 workers</div>
+          </div>
+          <span class="mock-pill mock-pill-qc">QC</span>
+        </div>
+        <div class="mock-job-card">
+          <div class="mock-job-info">
+            <div class="mock-job-name">Sourdough Loaves — Batch #09</div>
+            <div class="mock-job-meta">24 pcs · Retail/Restock · 4 workers</div>
+          </div>
+          <span class="mock-pill mock-pill-planned">Planned</span>
+        </div>
+        <div class="mock-lot-fields" style="padding-top:0;margin-top:4px;">
+          <div class="mock-field">
+            <span class="mock-field-label">Labor Today</span>
+            <span class="mock-field-val">₱4,800</span>
+          </div>
+          <div class="mock-field" style="border:none;">
+            <span class="mock-field-label">Est. Batch Cost</span>
+            <span class="mock-field-val">₱12,400</span>
+          </div>
         </div>
       </div>
     </div>
@@ -326,53 +348,53 @@
   <div class="container showcase-inner">
     <div class="showcase-text reveal">
       <span class="eyebrow">Events Mode</span>
-      <h2>Workshops, cuppings,<br>and more — managed.</h2>
-      <p>Plan and run in-café events with seat management, ticketing, and attendance tracking. From latte art workshops to origin cuppings — every detail in one place.</p>
+      <h2>Take your coffee<br>beyond the counter.</h2>
+      <p>Manage coffee cart gigs, weekend markets, and corporate events from lead to payout. Build packages, track your pipeline, and see profitability per event — all in one place.</p>
       <ul class="showcase-list">
-        <li>Event scheduling & seat caps</li>
-        <li>Per-pax pricing & ticket tracking</li>
-        <li>Guest list & attendance logs</li>
-        <li>Revenue per event reporting</li>
+        <li>Coffee cart, pop-up & corporate event management</li>
+        <li>Lead pipeline: Inquiry → Quoted → Booked</li>
+        <li>Package builder with per-pax pricing</li>
+        <li>Event profitability & expense tracking</li>
       </ul>
     </div>
     <div class="showcase-visual reveal-right">
       <div class="mock-panel mock-light">
         <div class="mock-bar">
-          <span class="mock-title">Upcoming Events</span>
-          <span class="mock-tag">4 scheduled</span>
+          <span class="mock-title">Events & Gigs</span>
+          <span class="mock-tag">5 active</span>
         </div>
         <div class="mock-event-card">
           <div class="mock-event-date">
             <span class="mock-event-month">JUL</span>
-            <span class="mock-event-day">12</span>
+            <span class="mock-event-day">15</span>
           </div>
           <div class="mock-event-info">
-            <div class="mock-event-name">Latte Art Workshop</div>
-            <div class="mock-event-meta">2:00 PM · 20 seats · ₱350/pax</div>
+            <div class="mock-event-name">SM City Corporate Pop-up</div>
+            <div class="mock-event-meta">Corporate · 200 pax · ₱85,000</div>
           </div>
-          <span class="mock-pill mock-pill-ok">Open</span>
+          <span class="mock-pill mock-pill-ok">Booked</span>
         </div>
         <div class="mock-event-card">
           <div class="mock-event-date">
             <span class="mock-event-month">JUL</span>
-            <span class="mock-event-day">19</span>
+            <span class="mock-event-day">20</span>
           </div>
           <div class="mock-event-info">
-            <div class="mock-event-name">Mt. Province Cupping</div>
-            <div class="mock-event-meta">10:00 AM · 12 seats · ₱500/pax</div>
+            <div class="mock-event-name">Weekend Market — BGC</div>
+            <div class="mock-event-meta">Market · Cart setup · ₱12,000</div>
           </div>
-          <span class="mock-pill mock-pill-ok">Open</span>
+          <span class="mock-pill mock-pill-ok">Booked</span>
         </div>
         <div class="mock-event-card">
           <div class="mock-event-date">
             <span class="mock-event-month">AUG</span>
-            <span class="mock-event-day">3</span>
+            <span class="mock-event-day">5</span>
           </div>
           <div class="mock-event-info">
-            <div class="mock-event-name">Brew Methods Masterclass</div>
-            <div class="mock-event-meta">3:00 PM · 8 seats · ₱650/pax</div>
+            <div class="mock-event-name">Private Wedding — Tagaytay</div>
+            <div class="mock-event-meta">Private · 80 pax · Negotiating</div>
           </div>
-          <span class="mock-pill mock-pill-low">2 left</span>
+          <span class="mock-pill mock-pill-warn">Quoted</span>
         </div>
       </div>
     </div>
@@ -386,12 +408,12 @@
     <div class="showcase-text reveal">
       <span class="eyebrow">Origin Mode</span>
       <h2>Traceability that<br>tells a&nbsp;story.</h2>
-      <p>Record every lot from farm to cup — origin, farmer, process method, harvest season, and cupping notes. Scan QR codes to autofill. Print traceability labels for bags.</p>
+      <p>Track every Coffee, Cacao, and Tea lot from farm to finished batch — origin, farmer, process, and harvest logged in full. Build the wholesale story your B2B buyers want to see.</p>
       <ul class="showcase-list">
-        <li>Full lot traceability records</li>
-        <li>QR scan & autofill on intake</li>
-        <li>Photo attachments per lot</li>
-        <li>Printable traceability labels</li>
+        <li>Coffee, Cacao & Tea lot management</li>
+        <li>Full traceability: farm → batch → wholesale</li>
+        <li>QR scan & autofill on lot intake</li>
+        <li>B2B wholesale orders & client profiles</li>
       </ul>
     </div>
     <div class="showcase-visual reveal-left">
