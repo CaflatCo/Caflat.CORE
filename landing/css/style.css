@@ -508,22 +508,13 @@ nav.scrolled {
 /* ─── Features Grid ──────────────────────────────────────────── */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 2px;
   background: var(--dark-border);
   border: 1px solid var(--dark-border);
   border-radius: var(--radius-xl);
   overflow: hidden;
 }
-
-/* Row 2 — Inventory, Sales & Reports, Dashboard: 3 equal thirds */
-.features-grid .feature-card:nth-child(2),
-.features-grid .feature-card:nth-child(3),
-.features-grid .feature-card:nth-child(4) { grid-column: span 2; }
-
-/* Row 3 — Products & Variants, Ingredients: 2 equal halves */
-.features-grid .feature-card:nth-child(5),
-.features-grid .feature-card:nth-child(6) { grid-column: span 3; }
 
 .feature-card {
   background: var(--dark-card);
@@ -546,68 +537,6 @@ nav.scrolled {
 
 .feature-body h3 { color: var(--text-white); margin-bottom: 9px; }
 .feature-body p  { font-size: .875rem; color: var(--text-dim); line-height: 1.7; }
-
-/* Anchor card — POS spans full grid width */
-.feature-anchor {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 52px;
-}
-.feature-anchor-text {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-  flex: 1;
-}
-.feature-anchor-text .feature-icon { flex-shrink: 0; margin-bottom: 0; }
-.feature-anchor-text .feature-body h3 { font-size: 1.2rem; margin-bottom: 10px; }
-.feature-anchor-text .feature-body p  { max-width: 380px; font-size: .9rem; }
-.feature-anchor-mock { flex: 0 0 230px; }
-
-/* Mini POS mock */
-.mock-mini {
-  background: var(--dark-card-2);
-  border: 1px solid var(--dark-border-hi);
-  border-radius: var(--radius);
-  padding: 16px;
-}
-.mock-mini-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: .78rem;
-  padding: 4px 0;
-  color: var(--text-dim);
-}
-.mock-mini-row span:last-child { color: var(--text-white); font-weight: 600; }
-.mock-mini-divider { height: 1px; background: var(--dark-border); margin: 8px 0; }
-.mock-mini-total {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 700;
-  color: var(--text-white);
-  font-size: .88rem;
-  padding: 4px 0 12px;
-}
-.mock-mini-val { font-size: 1rem; }
-.mock-mini-btns { display: flex; gap: 6px; }
-.mock-mini-btn {
-  flex: 1;
-  text-align: center;
-  padding: 6px 0;
-  border-radius: 6px;
-  font-size: .68rem;
-  font-weight: 600;
-  background: rgba(255,255,255,.04);
-  border: 1px solid var(--dark-border);
-  color: var(--text-muted);
-}
-.mock-mini-btn-active {
-  background: rgba(200,163,117,.12);
-  border-color: rgba(200,163,117,.30);
-  color: var(--coffee);
-}
 
 /* ─── Mode Showcase Sections ─────────────────────────────────── */
 .showcase { padding: 120px 0; position: relative; overflow: hidden; }
@@ -1283,24 +1212,14 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   }
   .showcase-visual { transition-delay: 80ms; }
   .features-grid { grid-template-columns: 1fr 1fr; }
-  .features-grid .feature-card:nth-child(2),
-  .features-grid .feature-card:nth-child(3),
-  .features-grid .feature-card:nth-child(4),
-  .features-grid .feature-card:nth-child(5),
-  .features-grid .feature-card:nth-child(6) { grid-column: span 1; }
   .extras-grid   { grid-template-columns: 1fr 1fr; gap: 40px; }
-  .feature-anchor { flex-direction: column; align-items: flex-start; gap: 24px; }
-  .feature-anchor-text { flex-direction: column; gap: 12px; }
-  .feature-anchor-mock { width: 100%; flex: none; }
 }
 
 @media (max-width: 720px) {
   .features-grid { grid-template-columns: 1fr; }
-  .features-grid .feature-card:nth-child(n) { grid-column: span 1; }
   .extras-grid   { grid-template-columns: 1fr; gap: 0; }
   .extra-card    { padding: 28px 0; }
   .hero-stat     { padding: 0 28px; }
-  .feature-anchor-mock { display: none; }
   .trust-inner   { gap: 16px; }
   .trust-rule    { display: none; }
 }
