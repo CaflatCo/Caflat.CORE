@@ -15,12 +15,14 @@ const TIER_FREE       = 'free';
 const TIER_PRO        = 'pro';
 const TIER_CLOUD      = 'cloud';
 const TIER_ENTERPRISE = 'enterprise';
+const TIER_GOD        = 'god';
 
 const TIER_RANK = {
   [TIER_FREE]:       0,
   [TIER_PRO]:        1,
   [TIER_CLOUD]:      2,
   [TIER_ENTERPRISE]: 3,
+  [TIER_GOD]:        99,
 };
 
 const CORE_FEATURES = [
@@ -43,11 +45,17 @@ const ENTERPRISE_FEATURES = [
   'enterprise'
 ];
 
+const GOD_FEATURES = [
+  ...ENTERPRISE_FEATURES,
+  'god', 'origin', 'events', 'leads', 'labdrafts'
+];
+
 const TIER_FEATURES = {
   [TIER_FREE]:       CORE_FEATURES,
   [TIER_PRO]:        PRO_FEATURES,
   [TIER_CLOUD]:      CLOUD_FEATURES,
   [TIER_ENTERPRISE]: ENTERPRISE_FEATURES,
+  [TIER_GOD]:        GOD_FEATURES,
 };
 
 /* ── Local license state ───────────────────────────── */
@@ -73,13 +81,17 @@ function _clearLicense() {
 function getLicenseTier() {
   if (!_licenseState) return TIER_FREE;
   const t = String(_licenseState.tier || '').toLowerCase();
-  if (![TIER_PRO, TIER_CLOUD, TIER_ENTERPRISE].includes(t)) return TIER_FREE;
+  if (![TIER_PRO, TIER_CLOUD, TIER_ENTERPRISE, TIER_GOD].includes(t)) return TIER_FREE;
+  // GOD tier never expires
+  if (t === TIER_GOD) return TIER_GOD;
   // Check expiry
   if (_licenseState.expires_at && new Date(_licenseState.expires_at) < new Date()) {
     return TIER_FREE;
   }
   return t;
 }
+
+function isGodTier() { return getLicenseTier() === TIER_GOD; }
 
 function isProTier()        { return TIER_RANK[getLicenseTier()] >= TIER_RANK[TIER_PRO]; }
 function isCloudTier()      { return TIER_RANK[getLicenseTier()] >= TIER_RANK[TIER_CLOUD]; }
@@ -109,7 +121,7 @@ function getTenantId() {
 
 function getTierLabel() {
   const t = getLicenseTier();
-  return { free:'FREE', pro:'PRO', cloud:'CLOUD', enterprise:'ENTERPRISE' }[t] || 'FREE';
+  return { free:'FREE', pro:'PRO', cloud:'CLOUD', enterprise:'ENTERPRISE', god:'GOD' }[t] || 'FREE';
 }
 
 /* ── Supabase helpers ──────────────────────────────── */
@@ -148,7 +160,8 @@ async function activateLicenseKey(code) {
     return { success: false, error: 'This license has been revoked.' };
   }
 
-  if (license.activated) {
+  // GOD tier can be used on any device without restriction
+  if (license.activated && license.tier !== TIER_GOD) {
     return { success: false, error: 'This key has already been used on another device.' };
   }
 
@@ -253,6 +266,7 @@ function applyLicenseTier() {
     pro:        { label: '✓ PRO',           color: '#15803d' },
     cloud:      { label: '✓ CLOUD',         color: '#2563eb' },
     enterprise: { label: '✓ ENTERPRISE',    color: '#7e22ce' },
+    god:        { label: '⚡ GOD MODE',      color: '#b8860b' },
   };
   const display = TIER_DISPLAY[tier] || TIER_DISPLAY.free;
 
@@ -362,6 +376,7 @@ function _renderLicenseBadge() {
     pro:        { text: 'PRO',        bg: '#0f0f0f', color: '#fff' },
     cloud:      { text: 'CLOUD',      bg: '#2563eb', color: '#fff' },
     enterprise: { text: 'ENTERPRISE', bg: '#7e22ce', color: '#fff' },
+    god:        { text: '⚡ GOD',     bg: '#c8a96e', color: '#0a0a0b' },
   };
   const style = BADGE_STYLES[getLicenseTier()] || BADGE_STYLES.free;
   badge.textContent        = style.text;
@@ -391,10 +406,11 @@ function openLicenseModal() {
     : null;
 
   const TIER_COLORS = {
-    free:       { bg:'#f4f4f4', color:'#555',  border:'#e0e0e0' },
-    pro:        { bg:'#0f0f0f', color:'#fff',  border:'#0f0f0f' },
-    cloud:      { bg:'#1d4ed8', color:'#fff',  border:'#1d4ed8' },
-    enterprise: { bg:'#7e22ce', color:'#fff',  border:'#7e22ce' },
+    free:       { bg:'#f4f4f4', color:'#555',    border:'#e0e0e0' },
+    pro:        { bg:'#0f0f0f', color:'#fff',    border:'#0f0f0f' },
+    cloud:      { bg:'#1d4ed8', color:'#fff',    border:'#1d4ed8' },
+    enterprise: { bg:'#7e22ce', color:'#fff',    border:'#7e22ce' },
+    god:        { bg:'#c8a96e', color:'#0a0a0b', border:'#b8860b' },
   };
   const tc = TIER_COLORS[tier] || TIER_COLORS.free;
 
@@ -414,6 +430,10 @@ function openLicenseModal() {
     {
       tier:'ENTERPRISE', price:'Custom', color:'#fff', bg:'#7e22ce', border:'#7e22ce',
       features:['Everything in CLOUD','Unlimited devices','Priority support','Custom onboarding','More features coming'],
+    },
+    {
+      tier:'GOD', price:'Owner Only', color:'#0a0a0b', bg:'#c8a96e', border:'#b8860b',
+      features:['Everything unlocked','No limits, no expiry','All current & future features','Highest priority access','Reserved for Caflat owner'],
     },
   ];
 
@@ -643,6 +663,7 @@ window.getLicenseTier             = getLicenseTier;
 window.isProTier                  = isProTier;
 window.isCloudTier                = isCloudTier;
 window.isEnterpriseTier           = isEnterpriseTier;
+window.isGodTier                  = isGodTier;
 window.getTierLabel               = getTierLabel;
 window.isFeatureAllowed           = isFeatureAllowed;
 window.getProductLimit            = getProductLimit;
