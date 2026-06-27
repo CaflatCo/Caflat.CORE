@@ -94,7 +94,7 @@ form.addEventListener('submit', async (e) => {
     showToast('Something went wrong. Email us at hello@caflatcore.com', 'error');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Request Access';
+    btn.textContent = 'Send Application';
   }
 });
 
