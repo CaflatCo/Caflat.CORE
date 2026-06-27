@@ -2110,3 +2110,198 @@ canvas { width: 100% !important; max-width: 100%; }
   font-weight: 700;
   box-shadow: 0 1px 3px rgba(0,0,0,.08);
 }
+
+/* ═══════════════════════════════════════════════════
+   THEME TOGGLE BUTTON
+═══════════════════════════════════════════════════ */
+#themeToggleBtn {
+  background: none;
+  border: 1px solid rgba(255,255,255,.18);
+  cursor: pointer;
+  padding: 5px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition);
+  color: rgba(255,255,255,.6);
+  font-family: var(--font-main);
+  flex-shrink: 0;
+}
+#themeToggleBtn:hover {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.3);
+  color: rgba(255,255,255,.9);
+}
+.toggle-icon { font-size: 13px; line-height: 1; }
+.toggle-label { font-size: 9px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; }
+
+/* ═══════════════════════════════════════════════════
+   DARK MODE — html[data-theme="dark"]
+═══════════════════════════════════════════════════ */
+html[data-theme="dark"] {
+  --white:    #111116;
+  --gray-50:  #0d0d11;
+  --gray-100: #151519;
+  --gray-200: #1c1c23;
+  --gray-300: #272732;
+  --border:   rgba(255,255,255,.09);
+  --gray-400: #484858;
+  --gray-500: #72727f;
+  --gray-600: #9696a4;
+  --gray-700: #bbbbc8;
+  --gray-800: #dcdce4;
+  --gray-900: #f0eeeb;
+  --danger-bg:     rgba(220,38,38,.12);
+  --danger-border: rgba(220,38,38,.25);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.35);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.45);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,.55);
+  --shadow-xl: 0 24px 64px rgba(0,0,0,.65);
+}
+
+/* Header text on black bg — --white remapped to dark, needs explicit override */
+html[data-theme="dark"] header,
+html[data-theme="dark"] header h1 { color: #f0eeeb; }
+
+/* Primary buttons: flip to cream on dark */
+html[data-theme="dark"] .btn { background: #f0eeeb; color: #0c0b0a; border-color: #f0eeeb; }
+html[data-theme="dark"] .btn:hover { background: #fff; border-color: #fff; }
+html[data-theme="dark"] .btn-secondary { background: var(--gray-200); color: var(--gray-900); border-color: var(--border); }
+html[data-theme="dark"] .btn-secondary:hover { background: var(--gray-300); border-color: rgba(255,255,255,.15); }
+html[data-theme="dark"] .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+/* Checkout */
+html[data-theme="dark"] .checkout-btn { background: #f0eeeb; color: #0c0b0a; border-color: #f0eeeb; }
+html[data-theme="dark"] .checkout-btn:hover { background: #fff; }
+
+/* Sidebar nav */
+html[data-theme="dark"] .sidebar nav button { color: var(--gray-500); }
+html[data-theme="dark"] .sidebar nav button:hover { background: rgba(255,255,255,.05); color: var(--gray-900); }
+html[data-theme="dark"] .sidebar nav button.active { background: #f0eeeb; color: #0c0b0a; }
+html[data-theme="dark"] .nav-group-label { color: var(--gray-400); }
+html[data-theme="dark"] .nav-group-bottom { border-top-color: var(--border); }
+
+/* Table */
+html[data-theme="dark"] th { background: #000; color: rgba(240,238,235,.70); }
+html[data-theme="dark"] td { color: var(--gray-800); }
+html[data-theme="dark"] tbody tr:hover td { background: rgba(255,255,255,.03); }
+html[data-theme="dark"] .low-stock-row td { background: rgba(220,38,38,.08) !important; }
+
+/* Dark panels — .gray-900 remapped to cream, force these to stay dark */
+html[data-theme="dark"] .dark-panel { background: #000; color: #f0eeeb; }
+html[data-theme="dark"] .stat-card.dark { background: #000 !important; border-color: #000 !important; }
+html[data-theme="dark"] .stat-card.dark .value { color: #f0eeeb; }
+html[data-theme="dark"] .stat-card.dark .label,
+html[data-theme="dark"] .stat-card.dark .sub { color: rgba(240,238,235,.45); }
+
+/* Panel & modal borders */
+html[data-theme="dark"] .panel-header { border-bottom-color: rgba(255,255,255,.12); }
+html[data-theme="dark"] .modal h3 { border-bottom-color: rgba(255,255,255,.12); color: var(--gray-900); }
+html[data-theme="dark"] .modal-actions { border-top-color: var(--border); }
+html[data-theme="dark"] .cart-header { border-bottom-color: rgba(255,255,255,.14); }
+html[data-theme="dark"] .cart-summary { background: var(--gray-50); border-top-color: rgba(255,255,255,.14); }
+html[data-theme="dark"] .cart-row.total { border-top-color: rgba(255,255,255,.14); color: var(--gray-900); }
+html[data-theme="dark"] .cart-item-count { background: #f0eeeb; color: #0c0b0a; }
+html[data-theme="dark"] #heldOrdersModal .modal-content { background: var(--gray-100) !important; border-color: var(--border) !important; }
+html[data-theme="dark"] #heldOrdersModal .modal-header { border-bottom-color: rgba(255,255,255,.12); }
+html[data-theme="dark"] .held-order-card { background: var(--gray-200) !important; border-color: var(--border) !important; }
+html[data-theme="dark"] .held-order-card:hover { border-color: rgba(255,255,255,.25) !important; }
+html[data-theme="dark"] #closeHeldOrdersBtn { background: var(--gray-200); border-color: var(--border); color: var(--gray-900); }
+
+/* Category / filter tabs */
+html[data-theme="dark"] .category-tabs button { background: var(--gray-200); color: var(--gray-600); border-color: var(--border); }
+html[data-theme="dark"] .category-tabs button:hover { border-color: rgba(255,255,255,.2); color: var(--gray-900); }
+html[data-theme="dark"] .category-tabs button.active { background: #f0eeeb; color: #0c0b0a; border-color: #f0eeeb; }
+html[data-theme="dark"] .order-type-btn { background: var(--gray-200); color: var(--gray-600); border-color: var(--border); }
+html[data-theme="dark"] .order-type-btn.active { background: #f0eeeb; color: #0c0b0a; border-color: #f0eeeb; }
+html[data-theme="dark"] .date-preset-btn { background: var(--gray-200); color: var(--gray-600); border-color: var(--border); }
+html[data-theme="dark"] .date-preset-btn:hover { color: var(--gray-900); border-color: rgba(255,255,255,.2); }
+html[data-theme="dark"] .date-preset-btn.active { background: #f0eeeb; color: #0c0b0a; border-color: #f0eeeb; }
+
+/* POS product card */
+html[data-theme="dark"] .pos-card-cart-qty { background: #f0eeeb; color: #0c0b0a; }
+html[data-theme="dark"] .pos-options-btn { background: var(--gray-200); color: var(--gray-600); border-color: var(--border); }
+html[data-theme="dark"] .pos-options-btn:hover { background: #f0eeeb; color: #0c0b0a; border-color: #f0eeeb; }
+html[data-theme="dark"] .pos-product-card.out-of-stock::after { background: #000; color: #f0eeeb; }
+html[data-theme="dark"] .pos-search-wrap input { background: var(--gray-200); border-color: var(--border); color: var(--gray-900); }
+html[data-theme="dark"] .pos-search-wrap input:focus { border-color: rgba(255,255,255,.25); }
+
+/* Cart controls */
+html[data-theme="dark"] .cart-line-controls button { background: var(--gray-200); border-color: var(--border); color: var(--gray-700); }
+html[data-theme="dark"] .cart-line-controls button:hover { background: #f0eeeb; border-color: #f0eeeb; color: #0c0b0a; }
+html[data-theme="dark"] .cart-remove-btn { background: var(--gray-200) !important; border-color: var(--border) !important; color: var(--gray-500) !important; }
+html[data-theme="dark"] .cart-remove-btn:hover { background: var(--danger-bg) !important; border-color: var(--danger-border) !important; color: var(--danger) !important; }
+html[data-theme="dark"] .cart-actions-row button { background: var(--gray-200); border-color: var(--border); color: var(--gray-700); }
+html[data-theme="dark"] .cart-actions-row button:hover { background: var(--gray-300); }
+html[data-theme="dark"] .quick-amount-btn { background: var(--gray-200); border-color: var(--border); color: var(--gray-700); }
+html[data-theme="dark"] .quick-amount-btn:hover { background: #f0eeeb; color: #0c0b0a; border-color: #f0eeeb; }
+html[data-theme="dark"] .discount-input input,
+html[data-theme="dark"] .discount-input select { background: var(--gray-200); border-color: var(--border); color: var(--gray-900); }
+html[data-theme="dark"] .discount-input input:focus,
+html[data-theme="dark"] .discount-input select:focus { border-color: rgba(255,255,255,.3); }
+
+/* Payment */
+html[data-theme="dark"] .payment-badge { background: #f0eeeb; color: #0c0b0a; }
+
+/* Variant / recipe builder */
+html[data-theme="dark"] .variant-row { background: var(--gray-200); border-color: var(--border); }
+html[data-theme="dark"] .variant-row input { background: var(--white); border-color: var(--border); color: var(--gray-900); }
+html[data-theme="dark"] .variant-option { background: var(--gray-200); border-color: var(--border); color: var(--gray-900); }
+html[data-theme="dark"] .variant-option:hover { background: #f0eeeb; color: #0c0b0a; border-color: #f0eeeb; }
+html[data-theme="dark"] .variant-option:hover .variant-option-price { color: rgba(12,11,10,.6); }
+html[data-theme="dark"] .recipe-row { background: var(--gray-200); border-color: var(--border); }
+html[data-theme="dark"] .recipe-row select,
+html[data-theme="dark"] .recipe-row input { background: var(--white); border-color: var(--border); color: var(--gray-900); }
+
+/* Event picker */
+html[data-theme="dark"] .event-picker-option { background: var(--gray-200); border-color: var(--border); color: var(--gray-900); }
+html[data-theme="dark"] .event-picker-option:hover { background: var(--gray-300); border-color: rgba(255,255,255,.15); }
+html[data-theme="dark"] .event-picker-option.active { background: #f0eeeb; color: #0c0b0a; border-color: #f0eeeb; }
+
+/* Product Lab */
+html[data-theme="dark"] .lab-results-panel { background: var(--gray-50); }
+html[data-theme="dark"] .lab-mode-btn { background: var(--gray-200); border-color: var(--border); color: var(--gray-600); }
+html[data-theme="dark"] .lab-mode-btn.lab-mode-active { background: #f0eeeb; color: #0c0b0a; border-color: #f0eeeb; }
+html[data-theme="dark"] .lab-stepper-btn { background: var(--gray-200); border-color: var(--border); }
+html[data-theme="dark"] .lab-quick-btn { background: var(--gray-200); border-color: var(--border); color: var(--gray-600); }
+html[data-theme="dark"] .lab-quick-btn:hover,
+html[data-theme="dark"] .lab-quick-btn.lab-quick-active { background: #f0eeeb; color: #0c0b0a; border-color: #f0eeeb; }
+
+/* Origin mode tabs */
+html[data-theme="dark"] .origin-tab-btn { color: var(--gray-500); }
+html[data-theme="dark"] .origin-tab-btn:hover { background: var(--gray-200); color: var(--gray-900); }
+html[data-theme="dark"] .origin-tab-btn.active { background: var(--gray-200); color: var(--gray-900); box-shadow: none; }
+
+/* Three-dot menu */
+html[data-theme="dark"] .three-dot-item { background: var(--gray-100); border-bottom-color: var(--border); color: var(--gray-700); }
+html[data-theme="dark"] .three-dot-item:hover { background: var(--gray-200); color: var(--gray-900); }
+html[data-theme="dark"] .three-dot-item[data-action="delete-product"] { color: var(--danger); }
+html[data-theme="dark"] .three-dot-item[data-action="delete-product"]:hover { background: var(--danger-bg); }
+
+/* Category chips */
+html[data-theme="dark"] #categoryList .category-chip { background: var(--gray-200); border-color: var(--border); color: var(--gray-900); }
+
+/* Chart container */
+html[data-theme="dark"] .chart-container { background: var(--white); border-color: var(--border); }
+
+/* Cost preview */
+html[data-theme="dark"] .cost-preview-card { background: var(--gray-100); border-color: var(--border); }
+
+/* Login */
+html[data-theme="dark"] .login-screen { background: var(--gray-50); }
+html[data-theme="dark"] .login-card { background: var(--gray-100); border-color: rgba(255,255,255,.12); }
+html[data-theme="dark"] .login-card h2 { color: var(--gray-900); }
+html[data-theme="dark"] .login-card input { background: var(--white); border-color: var(--border); color: var(--gray-900); }
+html[data-theme="dark"] .login-card input:focus { border-color: rgba(255,255,255,.3); }
+html[data-theme="dark"] .login-card button { background: #f0eeeb; color: #0c0b0a; }
+html[data-theme="dark"] .login-card button:hover { background: #fff; }
+
+/* Notifications */
+html[data-theme="dark"] .notification { background: var(--gray-100); border-color: var(--border); }
+html[data-theme="dark"] .notification.info { border-left-color: #f0eeeb; }
+html[data-theme="dark"] .notification-content { color: var(--gray-900); }
+
+/* Misc */
+html[data-theme="dark"] .section-title::after { background: var(--gray-200); }
+html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--gray-400); }

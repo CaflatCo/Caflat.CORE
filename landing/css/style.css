@@ -216,36 +216,31 @@ nav.scrolled {
   z-index: 0;
 }
 
-/* Coffee-ring ripple */
-.hero-rings {
+/* Warm coffee glow — replaces the old rings */
+.hero-warm-glow {
   position: absolute;
-  top: 42%;
+  top: -8%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 560px;
-  height: 560px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,.03);
-  box-shadow:
-    0 0 0 80px  rgba(255,255,255,.015),
-    0 0 0 160px rgba(255,255,255,.01),
-    0 0 0 240px rgba(255,255,255,.006),
-    0 0 0 340px rgba(255,255,255,.003),
-    0 0 0 460px rgba(255,255,255,.0015);
+  transform: translateX(-50%);
+  width: 1100px;
+  height: 700px;
+  background:
+    radial-gradient(ellipse 55% 38% at 50% 12%, rgba(200,163,117,.09) 0%, transparent 70%),
+    radial-gradient(ellipse 80% 60% at 50% 22%, rgba(255,255,255,.022) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
 
-.hero-glow {
+/* Pour-over café art */
+.hero-cafe-art {
   position: absolute;
-  top: -5%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 1000px;
-  height: 640px;
-  background: radial-gradient(ellipse at 50% 18%, rgba(255,255,255,.036) 0%, transparent 62%);
+  right: 4%;
+  top: 50%;
+  transform: translateY(-52%);
+  width: clamp(180px, 18vw, 300px);
+  color: rgba(200,163,117,.07);
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
 }
 
 /* ─── Hero Coffee Decorations ────────────────────────────────── */
@@ -286,7 +281,7 @@ nav.scrolled {
   top: 32%; left: 5%;
   animation: leaf-float 10s ease-in-out infinite 0.4s;
 }
-.deco-cookie {
+.deco-cup {
   width: 46px;
   bottom: 22%; right: 10%;
   animation: bean-float-1 8.5s ease-in-out infinite 1.8s;
@@ -723,11 +718,36 @@ nav.scrolled {
   padding: 3px 8px;
   border-radius: 5px;
   letter-spacing: .04em;
-  justify-self: start;
+  flex-shrink: 0;
 }
-.mock-pill-ok  { background: rgba(61,189,122,.1);  color: var(--green); border: 1px solid rgba(61,189,122,.22); }
-.mock-pill-low { background: rgba(212,168,0,.1);   color: var(--amber); border: 1px solid rgba(212,168,0,.22); }
-.mock-pill-out { background: rgba(224,92,92,.1);   color: var(--red);   border: 1px solid rgba(224,92,92,.22); }
+.mock-pill-ok      { background: rgba(61,189,122,.1);   color: var(--green);  border: 1px solid rgba(61,189,122,.22); }
+.mock-pill-low     { background: rgba(212,168,0,.1);    color: var(--amber);  border: 1px solid rgba(212,168,0,.22); }
+.mock-pill-out     { background: rgba(224,92,92,.1);    color: var(--red);    border: 1px solid rgba(224,92,92,.22); }
+.mock-pill-warn    { background: rgba(212,168,0,.1);    color: var(--amber);  border: 1px solid rgba(212,168,0,.22); }
+.mock-pill-inprog  { background: rgba(200,163,117,.14); color: var(--coffee); border: 1px solid rgba(200,163,117,.28); }
+.mock-pill-qc      { background: rgba(61,189,122,.1);   color: var(--green);  border: 1px solid rgba(61,189,122,.22); }
+.mock-pill-planned { background: rgba(255,255,255,.06); color: var(--text-dim); border: 1px solid rgba(255,255,255,.1); }
+
+/* Production job cards (dark panel) */
+.mock-job-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--dark-border);
+}
+.mock-job-card:last-child { border: none; }
+.mock-job-info { flex: 1; min-width: 0; }
+.mock-job-name {
+  font-weight: 700;
+  font-size: .82rem;
+  color: var(--text-white);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mock-job-meta { font-size: .68rem; color: var(--text-muted); }
 
 /* Supplier cards (light panel) */
 .mock-supplier-card {
@@ -1088,7 +1108,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   h2 { font-size: 1.85rem; }
   .nav-links { display: none; }
   .hero-actions { flex-direction: column; align-items: center; }
-  .hero-rings { width: 280px; height: 280px; }
+  .hero-cafe-art { display: none; }
   .hero-stat-div { display: none; }
   .hero-stats { gap: 36px; flex-wrap: wrap; justify-content: center; }
   .hero-stat  { padding: 0; }

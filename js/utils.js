@@ -83,6 +83,18 @@ function downloadTextFile(filename, content) {
   URL.revokeObjectURL(url);
 }
 
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  html.dataset.theme = next;
+  localStorage.setItem('caflat-theme', next);
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) {
+    btn.querySelector('.toggle-icon').textContent = next === 'dark' ? '☀' : '☽';
+    btn.querySelector('.toggle-label').textContent = next === 'dark' ? 'Light' : 'Dark';
+  }
+}
+
 window.generateId        = generateId;
 window.formatCurrency    = formatCurrency;
 window.safeNumber        = safeNumber;
@@ -94,3 +106,4 @@ window.closeModal        = closeModal;
 window.setElementValue   = setElementValue;
 window.getElementValue   = getElementValue;
 window.downloadTextFile  = downloadTextFile;
+window.toggleTheme       = toggleTheme;
