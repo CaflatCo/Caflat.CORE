@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Caflat.CORE — Operations System for Specialty Coffee</title>
-  <meta name="description" content="The all-in-one operations system built for specialty coffee cafes. POS, inventory, origin traceability, production, events, and more — offline-first, no subscription required.">
+  <meta name="description" content="The all-in-one operations system built for specialty coffee cafes. POS, inventory, origin traceability, production, and more — offline-first, no subscription required.">
   <meta property="og:title" content="Caflat.CORE — Operations System for Specialty Coffee">
   <meta property="og:description" content="The all-in-one operations system built for specialty coffee cafes.">
   <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -18,268 +18,608 @@
 <!-- ─── Nav ──────────────────────────────────────────────────── -->
 <nav>
   <div class="container nav-inner">
-    <a class="nav-logo" href="#">
-      <div class="nav-logo-mark">CF</div>
-      Caflat.CORE
-    </a>
+    <a class="nav-logo" href="#">Caflat.CORE</a>
     <ul>
       <li><a href="#features">Features</a></li>
-      <li><a href="#origin">Origin Mode</a></li>
       <li><a href="#pricing">Pricing</a></li>
-      <li><a href="#access" class="nav-cta">Request Access</a></li>
+      <li><a href="#access" class="nav-cta">Request Demo</a></li>
     </ul>
   </div>
 </nav>
 
 <!-- ─── Hero ─────────────────────────────────────────────────── -->
-<section id="hero">
-  <div class="hero-grid"></div>
-  <div class="hero-glow"></div>
+<section id="hero" class="section-dark">
   <div class="container">
     <div class="hero-content">
-      <div class="hero-badge">
-        <span class="dot"></span>
-        Now accepting early access requests
-      </div>
-      <h1 class="hero-title">
-        The operations system<br>
-        your café <span class="accent">actually</span> needs
-      </h1>
-      <p class="hero-subtitle">
-        Built for specialty coffee. POS, inventory, origin traceability, production,
-        events — all in one system that works offline, first.
+      <p class="hero-eyebrow reveal">For specialty coffee cafés</p>
+      <h1 class="hero-title reveal">The operating system<br>behind great cafés.</h1>
+      <p class="hero-body reveal">
+        Great cafés aren't built on recipes alone — they're built on systems.
+        Caflat.CORE runs your whole shop: point of sale, inventory, production,
+        supply and reporting, in one refined, offline-first platform.
       </p>
-      <div class="hero-actions">
-        <a href="#access" class="btn btn-primary">
-          Request Early Access
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-        <a href="#features" class="btn btn-outline">See What's Included</a>
-      </div>
-
-      <div class="stats-row">
-        <div class="stat">
-          <div class="stat-num" data-target="12" data-suffix="+">0+</div>
-          <div class="stat-label">Core Modules</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num" data-target="100" data-suffix="%">0%</div>
-          <div class="stat-label">Offline-First</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num" data-target="0" data-suffix=" sub">0 sub</div>
-          <div class="stat-label">No Per-Month Fee</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num" data-target="1" data-suffix=" key">0 key</div>
-          <div class="stat-label">One License Key</div>
-        </div>
+      <div class="hero-actions reveal">
+        <a href="#access" class="btn btn-white">Request Demo</a>
+        <a href="#features" class="btn btn-ghost">See what's inside</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── Features ─────────────────────────────────────────────── -->
-<section id="features">
+<!-- ─── Features Overview ─────────────────────────────────────── -->
+<section id="features" class="section-light">
   <div class="container">
     <div class="section-header reveal">
-      <div class="label">Everything you need</div>
-      <h2>Built module by module, for coffee</h2>
-      <p>Not a generic POS bolted with coffee add-ons. Every feature was designed around how specialty cafes actually operate.</p>
+      <p class="section-eyebrow">The Platform</p>
+      <h2>Built for how cafés actually work</h2>
     </div>
-
     <div class="features-grid">
-      <div class="feature-card reveal">
-        <div class="feature-icon">☕</div>
-        <h3>Point of Sale</h3>
-        <p>Fast checkout with product variants, discounts, split payments, and receipt generation. Works completely offline.</p>
+
+      <div class="feature-item reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="2"/>
+            <line x1="8" y1="7" x2="16" y2="7"/>
+            <line x1="8" y1="11" x2="16" y2="11"/>
+            <line x1="8" y1="15" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="feature-text">
+          <h3>Point of Sale</h3>
+          <p>Fast checkout with product variants, discounts, split payments, and offline receipt generation.</p>
+        </div>
       </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon">📦</div>
-        <h3>Inventory Management</h3>
-        <p>Track ingredients, finished goods, and supply orders. Get low-stock alerts before you run out mid-service.</p>
+
+      <div class="feature-item reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 8l-4-4H7L3 8v2h18V8z"/>
+            <rect x="3" y="10" width="18" height="11" rx="1"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+        </div>
+        <div class="feature-text">
+          <h3>Inventory</h3>
+          <p>Track ingredients and finished goods. Low-stock alerts before you run out mid-service.</p>
+        </div>
       </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon">🌱</div>
-        <h3>Origin Mode</h3>
-        <p>Full coffee traceability — from farm to cup. Lot tracking, OCR label scanning, photo attachments, and printable QR labels.</p>
+
+      <div class="feature-item reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <div class="feature-text">
+          <h3>Sales &amp; Reports</h3>
+          <p>Daily, weekly, and monthly breakdowns. Best sellers, revenue trends, no spreadsheet needed.</p>
+        </div>
       </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon">🧪</div>
-        <h3>Recipe & Lab</h3>
-        <p>Build and version your recipes. Compare extraction parameters. Save brew profiles with ingredients and ratios.</p>
+
+      <div class="feature-item reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </div>
+        <div class="feature-text">
+          <h3>Dashboard</h3>
+          <p>Live overview of sales, stock levels, and production status — all at a glance.</p>
+        </div>
       </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon">🏭</div>
-        <h3>Production Jobs</h3>
-        <p>Schedule roasting and production runs with templates. Track batch outputs and link them to inventory automatically.</p>
+
+      <div class="feature-item reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="9" y1="6" x2="20" y2="6"/>
+            <line x1="9" y1="12" x2="20" y2="12"/>
+            <line x1="9" y1="18" x2="20" y2="18"/>
+            <circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/>
+            <circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+            <circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="feature-text">
+          <h3>Products &amp; Variants</h3>
+          <p>Build your full menu with sizes and modifiers. Update prices instantly across everything.</p>
+        </div>
       </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon">🎉</div>
-        <h3>Events & Packages</h3>
-        <p>Manage private events, cuppings, and workshops. Build packages, track RSVPs, and handle deposits.</p>
+
+      <div class="feature-item reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 2h4v5h4l-6 8-6-8h4V2z"/>
+            <path d="M6 18h12M8 21h8"/>
+          </svg>
+        </div>
+        <div class="feature-text">
+          <h3>Ingredients</h3>
+          <p>Link raw ingredients to recipes. Stock auto-deducts on every sale — no manual counting.</p>
+        </div>
       </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon">🤝</div>
-        <h3>Supplier & Client CRM</h3>
-        <p>Maintain supplier profiles, track purchase history, and manage B2B client accounts and orders in one place.</p>
-      </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon">📊</div>
-        <h3>Sales Analytics</h3>
-        <p>Daily, weekly, and monthly breakdowns. Best sellers, revenue trends, and category performance — no spreadsheet needed.</p>
-      </div>
-      <div class="feature-card reveal">
-        <div class="feature-icon">☁️</div>
-        <h3>Cloud Sync & Backup</h3>
-        <p>Sync across devices via Supabase. Automatic backups keep your data safe even if the device is lost.</p>
-      </div>
+
     </div>
   </div>
 </section>
 
-<!-- ─── Origin Mode Callout ───────────────────────────────────── -->
-<section id="origin">
+<!-- ─── POS Showcase ──────────────────────────────────────────── -->
+<section class="showcase section-dark">
   <div class="container">
-    <div class="origin-card grid-2 reveal">
-      <div class="origin-left">
-        <div class="label">Origin Mode</div>
+    <div class="showcase-inner">
+
+      <div class="showcase-text showcase-dark reveal">
+        <p class="showcase-tag showcase-tag-dark">Point of Sale</p>
+        <h2>Checkout that keeps up with your bar</h2>
+        <p>Built for speed — product variants, split payments, discounts, and QR receipt generation in a few taps. Works entirely offline, so a lost connection never stops a sale.</p>
+        <ul class="showcase-checklist">
+          <li>Customizable product variants — size, temp, add-ons</li>
+          <li>Split payments across cash, card, and digital wallets</li>
+          <li>Discount codes and item-level discounts</li>
+          <li>QR receipts — no printer needed</li>
+          <li>Order history and void controls</li>
+        </ul>
+        <a href="#access" class="btn btn-white">Get access</a>
+      </div>
+
+      <div class="reveal">
+        <div class="mock-panel mock-light">
+          <div class="mock-header">
+            <span class="mock-header-title">Order #042</span>
+            <span class="mock-badge" style="background:rgba(61,189,122,.1);color:#3dbd7a;border:1px solid rgba(61,189,122,.2);">Open</span>
+          </div>
+          <div class="mock-body">
+            <ul class="pos-order-list">
+              <li class="pos-order-item">
+                <span class="pos-item-name">Flat White <span class="pos-item-qty">× 2</span></span>
+                <span class="pos-item-price">₱260</span>
+              </li>
+              <li class="pos-order-item">
+                <span class="pos-item-name">Matcha Latte <span class="pos-item-qty">× 1</span></span>
+                <span class="pos-item-price">₱180</span>
+              </li>
+              <li class="pos-order-item">
+                <span class="pos-item-name">Butter Croissant <span class="pos-item-qty">× 1</span></span>
+                <span class="pos-item-price">₱95</span>
+              </li>
+              <li class="pos-order-item">
+                <span class="pos-item-name">Cold Brew <span class="pos-item-qty">× 1</span></span>
+                <span class="pos-item-price">₱165</span>
+              </li>
+            </ul>
+            <div class="pos-total-row">
+              <span>Total</span>
+              <span>₱700</span>
+            </div>
+            <div class="pos-payment-row">
+              <button class="pos-pay-btn pos-pay-primary">Cash</button>
+              <button class="pos-pay-btn pos-pay-ghost">Card</button>
+              <button class="pos-pay-btn pos-pay-ghost">GCash</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── Inventory Showcase ────────────────────────────────────── -->
+<section class="showcase section-light">
+  <div class="container">
+    <div class="showcase-inner flipped">
+
+      <div class="showcase-text showcase-light reveal">
+        <p class="showcase-tag showcase-tag-light">Inventory</p>
+        <h2>Always know what you have — and what you don't</h2>
+        <p>Track ingredients, raw materials, and finished goods in real time. Every sale deducts from stock automatically, so you're never caught off guard at the bar.</p>
+        <ul class="showcase-checklist">
+          <li>Live stock levels updated on every POS transaction</li>
+          <li>Low-stock alerts with configurable thresholds</li>
+          <li>Manual stock adjustments with reason logging</li>
+          <li>Ingredient-level tracking tied to recipes</li>
+          <li>Purchase order history and reorder tracking</li>
+        </ul>
+        <a href="#access" class="btn btn-outline-dark">Get access</a>
+      </div>
+
+      <div class="reveal">
+        <div class="mock-panel mock-dark">
+          <div class="mock-header">
+            <span class="mock-header-title">Stock Levels</span>
+            <span class="mock-badge mock-badge-white">Live</span>
+          </div>
+          <div class="mock-body">
+            <table class="inv-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="inv-name">Espresso Beans</td>
+                  <td class="inv-qty">2.4 kg</td>
+                  <td><span class="inv-status inv-ok">OK</span></td>
+                </tr>
+                <tr>
+                  <td class="inv-name">Whole Milk</td>
+                  <td class="inv-qty">6 L</td>
+                  <td><span class="inv-status inv-low">LOW</span></td>
+                </tr>
+                <tr>
+                  <td class="inv-name">Matcha Powder</td>
+                  <td class="inv-qty">480 g</td>
+                  <td><span class="inv-status inv-ok">OK</span></td>
+                </tr>
+                <tr>
+                  <td class="inv-name">Oat Milk</td>
+                  <td class="inv-qty">2 L</td>
+                  <td><span class="inv-status inv-low">LOW</span></td>
+                </tr>
+                <tr>
+                  <td class="inv-name">Heavy Cream</td>
+                  <td class="inv-qty">3.2 L</td>
+                  <td><span class="inv-status inv-ok">OK</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── Sales & Reports Showcase ─────────────────────────────── -->
+<section class="showcase section-dark">
+  <div class="container">
+    <div class="showcase-inner">
+
+      <div class="showcase-text showcase-dark reveal">
+        <p class="showcase-tag showcase-tag-dark">Sales &amp; Reports</p>
+        <h2>Every peso tracked, every trend visible</h2>
+        <p>Your sales data is always there — by day, week, or month. See your best-selling products, busiest hours, and revenue by category without opening a single spreadsheet.</p>
+        <ul class="showcase-checklist">
+          <li>Daily, weekly, and monthly revenue summaries</li>
+          <li>Best-selling products and categories ranked</li>
+          <li>Hourly sales breakdown — know your peak hours</li>
+          <li>Average order value and transaction count</li>
+          <li>Exportable reports for your accountant</li>
+        </ul>
+        <a href="#access" class="btn btn-white">Get access</a>
+      </div>
+
+      <div class="reveal">
+        <div class="mock-panel mock-light">
+          <div class="mock-header">
+            <span class="mock-header-title">Today's Summary</span>
+            <span class="mock-badge" style="background:rgba(10,10,11,.06);color:#6b6870;border:1px solid #e4e1db;">Jun 27</span>
+          </div>
+          <div class="mock-body">
+            <div class="sales-stats">
+              <div class="sales-stat">
+                <div class="sales-stat-label">Revenue</div>
+                <div class="sales-stat-val">₱12,480</div>
+                <div class="sales-stat-sub">+14% vs yesterday</div>
+              </div>
+              <div class="sales-stat">
+                <div class="sales-stat-label">Orders</div>
+                <div class="sales-stat-val">87</div>
+                <div class="sales-stat-sub">+8 vs yesterday</div>
+              </div>
+              <div class="sales-stat">
+                <div class="sales-stat-label">Avg. Order</div>
+                <div class="sales-stat-val">₱143</div>
+                <div class="sales-stat-sub">&nbsp;</div>
+              </div>
+              <div class="sales-stat">
+                <div class="sales-stat-label">Top Item</div>
+                <div class="sales-stat-val" style="font-size:1rem;">Flat White</div>
+                <div class="sales-stat-sub">34 sold</div>
+              </div>
+            </div>
+            <div class="sales-bar-chart">
+              <div class="bar" style="height:45%;"></div>
+              <div class="bar" style="height:62%;"></div>
+              <div class="bar" style="height:55%;"></div>
+              <div class="bar" style="height:80%;"></div>
+              <div class="bar" style="height:70%;"></div>
+              <div class="bar bar-active" style="height:100%;"></div>
+              <div class="bar" style="height:30%;"></div>
+            </div>
+            <div class="sales-bar-labels">
+              <span class="bar-label">Mon</span>
+              <span class="bar-label">Tue</span>
+              <span class="bar-label">Wed</span>
+              <span class="bar-label">Thu</span>
+              <span class="bar-label">Fri</span>
+              <span class="bar-label">Sat</span>
+              <span class="bar-label">Sun</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── Origin Mode Showcase ──────────────────────────────────── -->
+<section class="showcase section-light">
+  <div class="container">
+    <div class="showcase-inner flipped">
+
+      <div class="showcase-text showcase-light reveal">
+        <p class="showcase-tag showcase-tag-light">Origin Mode</p>
         <h2>Full traceability, from farm to cup</h2>
-        <p>
-          Know exactly where every gram came from. Scan a coffee bag label with your phone camera — OCR reads the text and auto-fills your lot record in seconds.
-        </p>
-        <ul class="origin-checklist">
-          <li>OCR label scanner — photograph any bag, data fills automatically</li>
-          <li>Lot tracking with farm, farmer, region, variety &amp; process</li>
-          <li>Photo attachments — bag, farm, and label photos on each lot</li>
-          <li>Printable QR labels your own lots can be scanned back in</li>
+        <p>Know exactly where every gram came from. Scan a coffee bag label with your phone camera — it reads the text and auto-fills your lot record in seconds. Attach photos, link batches, and print QR labels for your own bags.</p>
+        <ul class="showcase-checklist">
+          <li>Camera label scanner — photograph any bag to auto-fill</li>
+          <li>Lot tracking: farm, farmer, region, variety, and process</li>
+          <li>Photo attachments — bag, farm, and label shots on each lot</li>
+          <li>Printable QR labels that scan right back into the app</li>
           <li>Full trace view linking lots to batches, recipes, and orders</li>
         </ul>
+        <a href="#access" class="btn btn-outline-dark">Get access</a>
       </div>
-      <div class="origin-right">
-        <div class="lot-mock">
+
+      <div class="reveal">
+        <div class="mock-panel mock-dark lot-mock">
           <div class="lot-mock-header">
-            <span class="lot-mock-title">LOT-2024-038</span>
-            <span class="lot-mock-badge">Active</span>
+            <span class="lot-number">LOT-2024-038</span>
+            <span class="mock-badge mock-badge-green">Active</span>
           </div>
-          <div class="lot-field">
-            <div class="lot-field-label">Product</div>
-            <div class="lot-field-value">Geisha Natural</div>
+          <div class="lot-fields">
+            <div class="lot-field">
+              <div class="lot-field-label">Product</div>
+              <div class="lot-field-val">Geisha Natural</div>
+            </div>
+            <div class="lot-field">
+              <div class="lot-field-label">Origin</div>
+              <div class="lot-field-val">Benguet, Philippines</div>
+            </div>
+            <div class="lot-field">
+              <div class="lot-field-label">Farmer</div>
+              <div class="lot-field-val">Juan Cruz Estate</div>
+            </div>
+            <div class="lot-field">
+              <div class="lot-field-label">Process</div>
+              <div class="lot-field-val">Natural — 30 day raised bed</div>
+            </div>
+            <div class="lot-field">
+              <div class="lot-field-label">Harvest</div>
+              <div class="lot-field-val">February 2024</div>
+            </div>
           </div>
-          <div class="lot-field">
-            <div class="lot-field-label">Origin</div>
-            <div class="lot-field-value">Benguet, Philippines</div>
-          </div>
-          <div class="lot-field">
-            <div class="lot-field-label">Farmer</div>
-            <div class="lot-field-value">Juan Cruz Estate</div>
-          </div>
-          <div class="lot-field">
-            <div class="lot-field-label">Process</div>
-            <div class="lot-field-value">Natural — 30 day raised bed</div>
-          </div>
-          <div class="lot-field">
-            <div class="lot-field-label">Harvest</div>
-            <div class="lot-field-value">February 2024</div>
-          </div>
-          <div class="scan-strip">
-            <div class="scan-icon">📷</div>
+          <div class="lot-scan-strip">
+            <div class="scan-icon-box">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(255,255,255,.4)">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </div>
             Filled by label scan · 3 photos attached
           </div>
         </div>
       </div>
+
     </div>
   </div>
 </section>
 
-<!-- ─── How It Works ──────────────────────────────────────────── -->
-<section id="how">
+<!-- ─── Supplier Mode Showcase ────────────────────────────────── -->
+<section class="showcase section-dark">
   <div class="container">
-    <div class="section-header reveal">
-      <div class="label">Getting started</div>
-      <h2>Up and running in minutes</h2>
-      <p>No installation. No server setup. Open the browser, enter your access code, and start operating.</p>
+    <div class="showcase-inner">
+
+      <div class="showcase-text showcase-dark reveal">
+        <p class="showcase-tag showcase-tag-dark">Supplier Mode</p>
+        <h2>Your sourcing relationships, organized</h2>
+        <p>Keep every supplier, purchase order, and delivery history in one place. Track payment terms, evaluate reliability, and know exactly who your best partners are — without digging through messages.</p>
+        <ul class="showcase-checklist">
+          <li>Supplier profiles with contact details and terms</li>
+          <li>Purchase order tracking from request to delivery</li>
+          <li>Full order history and spend summaries per supplier</li>
+          <li>Payment status — paid, pending, overdue</li>
+          <li>Link suppliers directly to your Origin lots</li>
+        </ul>
+        <a href="#access" class="btn btn-white">Get access</a>
+      </div>
+
+      <div class="reveal">
+        <div class="mock-panel mock-light">
+          <div class="supplier-header">
+            <div class="supplier-name">Juan Cruz Estate</div>
+            <div class="supplier-location">Benguet, Philippines · Green Beans</div>
+          </div>
+          <div class="supplier-stats">
+            <div class="supplier-stat">
+              <div class="supplier-stat-label">Total Spend</div>
+              <div class="supplier-stat-val">₱148,500</div>
+            </div>
+            <div class="supplier-stat">
+              <div class="supplier-stat-label">Orders</div>
+              <div class="supplier-stat-val">12</div>
+            </div>
+            <div class="supplier-stat">
+              <div class="supplier-stat-label">Terms</div>
+              <div class="supplier-stat-val">Net 30</div>
+            </div>
+          </div>
+          <div class="supplier-orders">
+            <div class="supplier-order-row">
+              <span>PO #024 · Mar 15 2024</span>
+              <span class="supplier-order-amount">₱24,500</span>
+            </div>
+            <div class="supplier-order-row">
+              <span>PO #019 · Jan 28 2024</span>
+              <span class="supplier-order-amount">₱18,200</span>
+            </div>
+            <div class="supplier-order-row">
+              <span>PO #014 · Nov 10 2023</span>
+              <span class="supplier-order-amount">₱31,000</span>
+            </div>
+            <div class="supplier-order-row">
+              <span>PO #009 · Sep 02 2023</span>
+              <span class="supplier-order-amount">₱22,800</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
-    <div class="steps">
-      <div class="step reveal">
-        <div class="step-num">1</div>
-        <h3>Request Access</h3>
-        <p>Fill in the form below. We review every application and issue a license key within 24–48 hours.</p>
+  </div>
+</section>
+
+<!-- ─── Production Showcase ────────────────────────────────────── -->
+<section class="showcase section-light">
+  <div class="container">
+    <div class="showcase-inner flipped">
+
+      <div class="showcase-text showcase-light reveal">
+        <p class="showcase-tag showcase-tag-light">Production</p>
+        <h2>From roaster to counter, one continuous flow</h2>
+        <p>Schedule production runs, log your outputs, and transfer finished goods directly to counter stock. Every batch is traceable back to its ingredients and source lots.</p>
+        <ul class="showcase-checklist">
+          <li>Production job templates for roasting and prep</li>
+          <li>Batch outputs auto-deduct raw material stock</li>
+          <li>Finished goods transferred to counter inventory</li>
+          <li>Link production batches to Origin lots</li>
+          <li>Recipe-based jobs with ingredient auto-scaling</li>
+        </ul>
+        <a href="#access" class="btn btn-outline-dark">Get access</a>
       </div>
-      <div class="step reveal">
-        <div class="step-num">2</div>
-        <h3>Enter Your Key</h3>
-        <p>Open the app in any modern browser, enter your access code, and set up your café profile in under 5 minutes.</p>
+
+      <div class="reveal">
+        <div class="mock-panel mock-dark">
+          <div class="mock-header">
+            <span class="mock-header-title">Production</span>
+            <span class="mock-badge mock-badge-white">3 active</span>
+          </div>
+          <div class="mock-body">
+            <table class="inv-table">
+              <thead>
+                <tr>
+                  <th>Batch</th>
+                  <th>Output</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="inv-name">Espresso Roast #18</td>
+                  <td class="inv-qty">4.8 kg</td>
+                  <td><span class="inv-status inv-ok">Done</span></td>
+                </tr>
+                <tr>
+                  <td class="inv-name">Cold Brew Batch #6</td>
+                  <td class="inv-qty">12 L</td>
+                  <td><span class="inv-status" style="background:rgba(255,220,60,.08);color:#d4a800;border:1px solid rgba(255,220,60,.2);">Brewing</span></td>
+                </tr>
+                <tr>
+                  <td class="inv-name">Matcha Syrup #4</td>
+                  <td class="inv-qty">6 L</td>
+                  <td><span class="inv-status" style="background:rgba(255,220,60,.08);color:#d4a800;border:1px solid rgba(255,220,60,.2);">Brewing</span></td>
+                </tr>
+                <tr>
+                  <td class="inv-name">Single Origin Drip #9</td>
+                  <td class="inv-qty">3.2 kg</td>
+                  <td><span class="inv-status inv-ok">Done</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <div class="step reveal">
-        <div class="step-num">3</div>
-        <h3>Start Operating</h3>
-        <p>Add your menu, import or build your inventory, and go. The system works offline from day one.</p>
-      </div>
+
     </div>
   </div>
 </section>
 
 <!-- ─── Pricing ───────────────────────────────────────────────── -->
-<section id="pricing">
+<section id="pricing" class="section-dark">
   <div class="container">
-    <div class="section-header reveal">
-      <div class="label">Pricing</div>
+    <div class="section-header section-header-dark reveal">
+      <p class="section-eyebrow section-eyebrow-dim">Pricing</p>
       <h2>Simple, one-time licensing</h2>
-      <p>Pay once, run forever. No per-transaction fees, no monthly bills, no surprises.</p>
+      <p style="color:rgba(255,255,255,.45);margin-top:8px;">Pay once, run forever. No per-transaction fees, no monthly bills.</p>
     </div>
-    <div class="pricing-grid">
+    <div class="pricing-grid reveal">
 
-      <div class="pricing-card reveal">
-        <div class="pricing-tier">Pro</div>
-        <div class="pricing-price">Contact <span>us</span></div>
-        <p class="pricing-desc">For single-outlet cafes getting started with full operations management.</p>
+      <div class="pricing-card">
+        <div class="pricing-tier">Free</div>
+        <div class="pricing-price">₱0</div>
+        <div class="pricing-price-note">Always free</div>
+        <p class="pricing-desc">Get started with the essentials. Perfect for a single-staff café testing the system.</p>
         <hr class="pricing-divider">
         <ul class="pricing-features">
-          <li><span class="check">✓</span> POS &amp; Sales</li>
+          <li><span class="check">✓</span> Basic POS</li>
+          <li><span class="check">✓</span> Up to 50 orders / day</li>
+          <li><span class="check">✓</span> Product catalog</li>
+          <li><span class="check">✓</span> Offline-first</li>
+          <li><span class="x">—</span> Inventory management</li>
+          <li><span class="x">—</span> Reports</li>
+          <li><span class="x">—</span> Cloud sync</li>
+        </ul>
+        <a href="#access" class="btn btn-outline-dark" style="width:100%;justify-content:center;border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.6);">Request Access</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-tier">Pro</div>
+        <div class="pricing-price">One-time</div>
+        <div class="pricing-price-note">Contact for pricing</div>
+        <p class="pricing-desc">Full operations management for a single outlet — POS, inventory, production, and events.</p>
+        <hr class="pricing-divider">
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> Full POS — unlimited orders</li>
           <li><span class="check">✓</span> Inventory management</li>
           <li><span class="check">✓</span> Recipe &amp; Lab</li>
           <li><span class="check">✓</span> Production jobs</li>
           <li><span class="check">✓</span> Events module</li>
-          <li><span class="check">✓</span> Offline-first</li>
+          <li><span class="check">✓</span> Sales reports</li>
           <li><span class="x">—</span> Cloud sync</li>
-          <li><span class="x">—</span> Origin Mode</li>
         </ul>
-        <a href="#access" class="btn btn-outline" style="width:100%;justify-content:center;">Request Access</a>
+        <a href="#access" class="btn btn-outline-dark" style="width:100%;justify-content:center;border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.6);">Request Access</a>
       </div>
 
-      <div class="pricing-card featured reveal">
-        <div class="pricing-featured-badge">Most Popular</div>
+      <div class="pricing-card featured">
         <div class="pricing-tier">Cloud</div>
-        <div class="pricing-price">Contact <span>us</span></div>
-        <p class="pricing-desc">Full access including cloud sync, backups, and Origin Mode for traceability-focused roasters.</p>
+        <div class="pricing-price">One-time</div>
+        <div class="pricing-price-note">Contact for pricing</div>
+        <p class="pricing-desc">Everything in Pro plus cloud sync, Origin Mode, and Supplier Mode for traceability-focused operations.</p>
         <hr class="pricing-divider">
         <ul class="pricing-features">
           <li><span class="check">✓</span> Everything in Pro</li>
           <li><span class="check">✓</span> Cloud sync across devices</li>
           <li><span class="check">✓</span> Automatic cloud backups</li>
-          <li><span class="check">✓</span> Origin Mode — full traceability</li>
-          <li><span class="check">✓</span> OCR label scanner</li>
-          <li><span class="check">✓</span> Lot photo attachments</li>
+          <li><span class="check">✓</span> Origin Mode</li>
+          <li><span class="check">✓</span> Supplier Mode</li>
           <li><span class="check">✓</span> Priority support</li>
         </ul>
-        <a href="#access" class="btn btn-primary" style="width:100%;justify-content:center;">Request Access</a>
+        <a href="#access" class="btn btn-white" style="width:100%;justify-content:center;">Request Access</a>
       </div>
 
-      <div class="pricing-card reveal">
+      <div class="pricing-card">
         <div class="pricing-tier">Enterprise</div>
         <div class="pricing-price">Custom</div>
-        <p class="pricing-desc">Multi-outlet groups, roasteries, and businesses with custom workflow requirements.</p>
+        <div class="pricing-price-note">Multi-outlet &amp; bespoke</div>
+        <p class="pricing-desc">For groups, roasteries, and businesses with custom workflow requirements and multiple locations.</p>
         <hr class="pricing-divider">
         <ul class="pricing-features">
           <li><span class="check">✓</span> Everything in Cloud</li>
-          <li><span class="check">✓</span> Multiple outlets / tenants</li>
-          <li><span class="check">✓</span> Custom feature development</li>
+          <li><span class="check">✓</span> Multiple outlets</li>
+          <li><span class="check">✓</span> Custom development</li>
           <li><span class="check">✓</span> Dedicated onboarding</li>
           <li><span class="check">✓</span> SLA-backed support</li>
           <li><span class="check">✓</span> White-label option</li>
         </ul>
-        <a href="#access" class="btn btn-outline" style="width:100%;justify-content:center;">Contact Us</a>
+        <a href="#access" class="btn btn-outline-dark" style="width:100%;justify-content:center;border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.6);">Get in Touch</a>
       </div>
 
     </div>
@@ -287,27 +627,29 @@
 </section>
 
 <!-- ─── Request Access ────────────────────────────────────────── -->
-<section id="access">
+<section id="access" class="section-light">
   <div class="container">
     <div class="access-inner">
-      <div class="label reveal">Early Access</div>
-      <h2 class="reveal">Ready to run a tighter operation?</h2>
-      <p class="reveal">Tell us about your café and we'll send your access code. Every request is reviewed personally.</p>
+      <div class="reveal">
+        <p class="section-eyebrow" style="text-align:center;">Early Access</p>
+        <h2 style="text-align:center;color:var(--text-dark);margin:10px 0 16px;">Ready to run a tighter operation?</h2>
+        <p style="text-align:center;color:var(--text-gray);font-size:1.05rem;margin-bottom:48px;">Tell us about your café and we'll send your access code. Every request is reviewed personally.</p>
+      </div>
 
       <form class="access-form reveal" id="accessForm" novalidate>
         <div class="form-row">
           <div class="form-group">
-            <label for="cafe_name">Café / Business Name *</label>
+            <label for="cafe_name">Café / Business Name</label>
             <input type="text" id="cafe_name" name="cafe_name" placeholder="Caflat Specialty Coffee" required>
           </div>
           <div class="form-group">
-            <label for="contact_name">Your Name *</label>
+            <label for="contact_name">Your Name</label>
             <input type="text" id="contact_name" name="contact_name" placeholder="Juan dela Cruz" required>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label for="email">Email Address *</label>
+            <label for="email">Email Address</label>
             <input type="email" id="email" name="email" placeholder="hello@yourcafe.com" required>
           </div>
           <div class="form-group">
@@ -316,11 +658,12 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="tier">License Tier You're Interested In *</label>
+          <label for="tier">License Tier You're Interested In</label>
           <select id="tier" name="tier" required>
             <option value="" disabled selected>Select a tier…</option>
-            <option value="pro">Pro — Single outlet, offline-first</option>
-            <option value="cloud">Cloud — Sync + Origin Mode (recommended)</option>
+            <option value="free">Free — Get started</option>
+            <option value="pro">Pro — Single outlet</option>
+            <option value="cloud">Cloud — Sync + Origin Mode</option>
             <option value="enterprise">Enterprise — Multi-outlet / custom</option>
           </select>
         </div>
@@ -328,7 +671,7 @@
           <label for="message">Tell us about your café</label>
           <textarea id="message" name="message" placeholder="How many outlets, how you currently manage operations, what you're hoping to improve…"></textarea>
         </div>
-        <button type="submit" class="btn btn-primary form-submit">Request Access</button>
+        <button type="submit" class="btn btn-black form-submit">Send Application</button>
         <p class="form-note">We typically respond within 24–48 hours. No spam, ever.</p>
       </form>
     </div>
@@ -337,22 +680,17 @@
 
 <!-- ─── Footer ────────────────────────────────────────────────── -->
 <footer>
-  <div class="container">
-    <div class="footer-inner">
-      <a class="footer-logo" href="#">
-        <div class="nav-logo-mark">CF</div>
-        Caflat.CORE
-      </a>
-      <div class="footer-links">
-        <a href="#features">Features</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#access">Request Access</a>
-        <a href="mailto:hello@caflatcore.com">Contact</a>
-      </div>
+  <div class="container footer-inner">
+    <a class="footer-logo" href="#">Caflat.CORE</a>
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#access">Request Demo</a>
+      <a href="mailto:hello@caflatcore.com">Contact</a>
     </div>
-    <p class="footer-copy">
-      &copy; 2024 Caflat.CORE. Built for specialty coffee professionals.
-    </p>
+  </div>
+  <div class="container">
+    <p class="footer-copy">&copy; 2025 Caflat.CORE. Built for specialty coffee professionals.</p>
   </div>
 </footer>
 
