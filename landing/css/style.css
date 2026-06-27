@@ -838,7 +838,9 @@ nav.scrolled {
 .pricing-card.featured { background: var(--dark-card-2); }
 
 .pricing-badge {
-  display: inline-block;
+  position: absolute;
+  top: 20px;
+  right: 20px;
   font-size: .58rem;
   font-weight: 700;
   letter-spacing: .12em;
@@ -848,7 +850,6 @@ nav.scrolled {
   border: 1px solid var(--dark-border-hi);
   border-radius: 6px;
   padding: 4px 10px;
-  margin-bottom: 20px;
 }
 
 .pricing-top { margin-bottom: 24px; }
