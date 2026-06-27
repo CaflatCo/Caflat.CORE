@@ -97,10 +97,11 @@
   <input type="text" id="clientName" placeholder="" />
 
   <label>Tier</label>
-  <select id="tier">
+  <select id="tier" onchange="onTierChange()">
     <option value="pro">PRO — ₱499/mo</option>
     <option value="cloud">CLOUD — ₱899/mo</option>
     <option value="enterprise">ENTERPRISE — Custom</option>
+    <option value="god">⚡ GOD — Owner Only</option>
   </select>
 
   <label>Duration</label>
@@ -184,6 +185,17 @@ function changeGeneratorPassword() {
 document.getElementById('adminPass')?.addEventListener('keydown', e => {
   if (e.key === 'Enter') checkAdminAuth();
 });
+
+function onTierChange() {
+  const tier     = document.getElementById('tier').value;
+  const duration = document.getElementById('duration');
+  if (tier === 'god') {
+    duration.value = '0'; // force Lifetime for GOD
+    duration.disabled = true;
+  } else {
+    duration.disabled = false;
+  }
+}
 
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
