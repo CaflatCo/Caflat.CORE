@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Caflat.CORE — Operations System for Specialty Coffee</title>
-  <meta name="description" content="The all-in-one operations system built for specialty coffee cafes. POS, inventory, origin traceability, production, and more — offline-first, starting at ₱499/mo.">
+  <meta name="description" content="The all-in-one operations system built for specialty coffee cafés. POS, inventory, origin traceability, production, events, and more — offline-first.">
   <meta property="og:title" content="Caflat.CORE — Operations System for Specialty Coffee">
-  <meta property="og:description" content="The all-in-one operations system built for specialty coffee cafes.">
+  <meta property="og:description" content="The complete operations platform built for specialty coffee cafés.">
   <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -21,8 +21,9 @@
     <a class="nav-logo" href="#">Caflat.CORE</a>
     <div class="nav-links">
       <a href="#features">Features</a>
+      <a href="#modes">Modes</a>
       <a href="#pricing">Pricing</a>
-      <a href="#access" class="nav-cta">Request Demo</a>
+      <a href="#access" class="nav-cta">Request Access</a>
     </div>
   </div>
 </nav>
@@ -33,20 +34,59 @@
   <div class="hero-rings" aria-hidden="true"></div>
   <div class="hero-glow" aria-hidden="true"></div>
 
+  <!-- Coffee-themed decorative elements -->
+  <div class="hero-deco" aria-hidden="true">
+    <!-- Bean top-left -->
+    <svg class="deco-item deco-bean-1" viewBox="0 0 40 56" fill="currentColor">
+      <ellipse cx="20" cy="28" rx="16" ry="24"/>
+      <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <!-- Bean top-right -->
+    <svg class="deco-item deco-bean-2" viewBox="0 0 40 56" fill="currentColor">
+      <ellipse cx="20" cy="28" rx="16" ry="24"/>
+      <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <!-- Small bean bottom-left -->
+    <svg class="deco-item deco-bean-3" viewBox="0 0 40 56" fill="currentColor">
+      <ellipse cx="20" cy="28" rx="16" ry="24"/>
+      <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <!-- Leaf right -->
+    <svg class="deco-item deco-leaf" viewBox="0 0 30 54" fill="currentColor">
+      <path d="M15 2 Q28 14 26 28 Q22 46 15 52 Q8 46 4 28 Q2 14 15 2Z"/>
+      <path d="M15 2 Q15 28 15 52" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1.5"/>
+      <path d="M15 19 Q21 16 26 19" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1.2"/>
+      <path d="M15 31 Q9 28 4 31" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1.2"/>
+    </svg>
+    <!-- Cookie bottom-right -->
+    <svg class="deco-item deco-cookie" viewBox="0 0 44 44" fill="currentColor">
+      <circle cx="22" cy="22" r="20"/>
+      <circle cx="14" cy="14" r="3" fill="rgba(0,0,0,.26)"/>
+      <circle cx="28" cy="17" r="2.5" fill="rgba(0,0,0,.26)"/>
+      <circle cx="17" cy="28" r="2.5" fill="rgba(0,0,0,.26)"/>
+      <circle cx="30" cy="28" r="2" fill="rgba(0,0,0,.26)"/>
+    </svg>
+    <!-- Tiny bean far right -->
+    <svg class="deco-item deco-bean-4" viewBox="0 0 40 56" fill="currentColor">
+      <ellipse cx="20" cy="28" rx="16" ry="24"/>
+      <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+
   <div class="container hero-content reveal">
     <div class="hero-badge">
       <span class="hero-badge-dot"></span>
-      Now available — Cloud sync across all branches
+      Made for specialty cafés · Early Access
     </div>
 
     <h1 class="hero-title">
-      The operating&nbsp;system<br>
-      <em>behind great&nbsp;cafés.</em>
+      The operating system<br>
+      behind <span class="hero-warm">every great café.</span>
     </h1>
 
     <p class="hero-body">
-      One platform for your entire café — POS, inventory, origin traceability,
-      production, and supplier records. Built for the complexity of specialty coffee.
+      One platform for your entire café — from the first sale of the morning
+      to the last roast log of the week. Offline-first, always.
     </p>
 
     <div class="hero-actions">
@@ -59,31 +99,32 @@
     <div class="hero-stats">
       <div class="hero-stat">
         <span class="stat-num" data-target="12" data-suffix="+">12+</span>
-        <span class="stat-label">Operational Modules</span>
+        <span class="stat-label">Modules</span>
+      </div>
+      <div class="hero-stat-div" aria-hidden="true"></div>
+      <div class="hero-stat">
+        <span class="stat-num">4</span>
+        <span class="stat-label">Operational Modes</span>
       </div>
       <div class="hero-stat-div" aria-hidden="true"></div>
       <div class="hero-stat">
         <span class="stat-num">100%</span>
         <span class="stat-label">Offline-First</span>
       </div>
-      <div class="hero-stat-div" aria-hidden="true"></div>
-      <div class="hero-stat">
-        <span class="stat-num">₱499</span>
-        <span class="stat-label">Starting / Month</span>
-      </div>
     </div>
   </div>
 </section>
 
-<!-- ─── Features Grid ─────────────────────────────────────────── -->
+<!-- ─── Core Features ─────────────────────────────────────────── -->
 <section class="section-dark2" id="features">
   <div class="container">
     <div class="section-label reveal">
-      <span class="eyebrow">Platform</span>
-      <h2 class="section-heading">Everything your café needs.<br><span class="text-dim">Nothing it doesn't.</span></h2>
+      <span class="eyebrow">Core Features</span>
+      <h2 class="section-heading">Everything your café needs.</h2>
+      <p class="section-subhead">The daily essentials, built to be fast and dependable — from the first sale to the end-of-day report.</p>
     </div>
 
-    <div class="features-grid reveal">
+    <div class="features-grid stagger">
 
       <div class="feature-card">
         <div class="feature-icon">
@@ -95,7 +136,7 @@
         </div>
         <div class="feature-body">
           <h3>Point of Sale</h3>
-          <p>Fast, keyboard-friendly POS designed for high-volume service. Offline-capable so a dropped connection never stops your bar.</p>
+          <p>Fast order entry designed for the counter — handle queues, discounts, and payments without missing a beat. Fully offline.</p>
         </div>
       </div>
 
@@ -108,8 +149,8 @@
           </svg>
         </div>
         <div class="feature-body">
-          <h3>Inventory Control</h3>
-          <p>Track every gram of coffee, every supply item — with depletion alerts, variance tracking, and full audit trails.</p>
+          <h3>Inventory</h3>
+          <p>Track every gram and every supply item. Depletion alerts fire before you run out — variance and wastage included.</p>
         </div>
       </div>
 
@@ -123,49 +164,50 @@
         </div>
         <div class="feature-body">
           <h3>Sales & Reports</h3>
-          <p>Revenue breakdowns, product performance, and shift summaries — presented clearly, exportable on demand.</p>
+          <p>Revenue totals, product rankings, shift breakdowns — clear data at the end of every day. Exportable on demand.</p>
         </div>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="9" r="4"/>
-            <path d="M3 19c0-3.3 3.6-6 8-6s8 2.7 8 6"/>
-            <path d="M15 5c1.1.8 2 2 2 4"/>
+            <rect x="2" y="2" width="8" height="8" rx="1.5"/>
+            <rect x="12" y="2" width="8" height="5" rx="1.5"/>
+            <rect x="12" y="9" width="8" height="11" rx="1.5"/>
+            <rect x="2" y="12" width="8" height="8" rx="1.5"/>
           </svg>
         </div>
         <div class="feature-body">
-          <h3>Origin Mode</h3>
-          <p>Full lot traceability — farm, farmer, process, harvest date, cupping score. Scan labels, attach photos, print QR codes.</p>
+          <h3>Dashboard</h3>
+          <p>A live view of your café — today's revenue, open orders, low stock alerts, and recent activity all in one place.</p>
         </div>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 8h1a3 3 0 0 1 0 6h-1"/>
-            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
-            <path d="M6 1v3M10 1v3M14 1v3"/>
+            <path d="M3 3h7l9 9a2.83 2.83 0 0 1 0 4L15 20a2.83 2.83 0 0 1-4 0L3 11V3z"/>
+            <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
           </svg>
         </div>
         <div class="feature-body">
-          <h3>Supplier Mode</h3>
-          <p>Manage all vendor relationships — orders, outstanding balances, delivery tracking, and contact records in one place.</p>
+          <h3>Products & Variants</h3>
+          <p>Build your full menu with size variants, add-ons, and modifiers. Link products to ingredients for automatic depletion.</p>
         </div>
       </div>
 
       <div class="feature-card">
         <div class="feature-icon">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
+            <path d="M9 2v8l-5 8h14L13 10V2"/>
+            <path d="M9 2h4"/>
+            <circle cx="10.5" cy="15.5" r="1" fill="currentColor" stroke="none"/>
+            <circle cx="13.5" cy="17.5" r="1" fill="currentColor" stroke="none"/>
           </svg>
         </div>
         <div class="feature-body">
-          <h3>Production</h3>
-          <p>Log roast batches, espresso calibrations, brew recipes, and yield data. The technical record behind every cup.</p>
+          <h3>Ingredients</h3>
+          <p>Manage raw materials with unit conversions, reorder thresholds, and cost tracking — the backbone of every product margin.</p>
         </div>
       </div>
 
@@ -173,177 +215,178 @@
   </div>
 </section>
 
-<!-- ─── Showcase 01: POS ──────────────────────────────────────── -->
+<!-- ─── Mode Showcases ────────────────────────────────────────── -->
+<div id="modes">
+
+<!-- Showcase 01: Supplier Mode -->
 <section class="showcase section-dark grain">
   <span class="showcase-bg-num" aria-hidden="true">01</span>
-  <div class="container showcase-inner reveal">
-    <div class="showcase-text">
-      <span class="eyebrow">Point of Sale</span>
-      <h2>Built for the&nbsp;bar.<br>Not the&nbsp;boardroom.</h2>
-      <p>Designed for speed at the counter — add items, apply discounts, and close orders in seconds. Works without internet. Never loses a sale.</p>
+  <div class="container showcase-inner">
+    <div class="showcase-text reveal">
+      <span class="eyebrow">Supplier Mode</span>
+      <h2>Every vendor.<br>Every peso&nbsp;owed.</h2>
+      <p>Manage all supplier relationships from one panel — open orders, delivery tracking, outstanding balances, and contact history. No more scattered messages or forgotten invoices.</p>
       <ul class="showcase-list">
-        <li>Keyboard-first order entry</li>
-        <li>Split payments & custom discounts</li>
-        <li>Queue management & order notes</li>
-        <li>Full offline mode with auto-sync</li>
+        <li>Supplier profiles & contact records</li>
+        <li>Purchase orders & delivery tracking</li>
+        <li>Outstanding balance management</li>
+        <li>One-tap reorder from history</li>
       </ul>
     </div>
-    <div class="showcase-visual">
+    <div class="showcase-visual reveal-right">
       <div class="mock-panel mock-light">
         <div class="mock-bar">
-          <span class="mock-title">New Order — Table 4</span>
-          <span class="mock-tag">Open</span>
+          <span class="mock-title">Suppliers</span>
+          <span class="mock-tag">6 active</span>
         </div>
-        <div class="mock-order-items">
-          <div class="mock-order-item">
-            <span class="mock-item-name">Flat White</span>
-            <span class="mock-item-qty">×2</span>
-            <span class="mock-item-price">₱280</span>
-          </div>
-          <div class="mock-order-item">
-            <span class="mock-item-name">Pourover — Benguet</span>
-            <span class="mock-item-qty">×1</span>
-            <span class="mock-item-price">₱220</span>
-          </div>
-          <div class="mock-order-item">
-            <span class="mock-item-name">Croissant</span>
-            <span class="mock-item-qty">×1</span>
-            <span class="mock-item-price">₱95</span>
-          </div>
+        <div class="mock-supplier-card">
+          <div class="mock-supplier-name">Cordillera Coffee Co.</div>
+          <div class="mock-supplier-meta">Last order: Jun 20 &nbsp;·&nbsp; ₱12,500 outstanding</div>
+          <div class="mock-supplier-status mock-supplier-open">1 open order</div>
         </div>
-        <div class="mock-divider"></div>
-        <div class="mock-total-row">
-          <span class="mock-label-sm">Subtotal</span><span>₱595</span>
+        <div class="mock-supplier-card">
+          <div class="mock-supplier-name">Manila Dairy Supply</div>
+          <div class="mock-supplier-meta">Last order: Jun 24 &nbsp;·&nbsp; ₱0 outstanding</div>
+          <div class="mock-supplier-status mock-supplier-clear">Settled</div>
         </div>
-        <div class="mock-total-row">
-          <span class="mock-label-sm">Discount (10%)</span><span class="mock-neg">−₱59.50</span>
+        <div class="mock-supplier-card">
+          <div class="mock-supplier-name">Benguet Highlands Farm</div>
+          <div class="mock-supplier-meta">Last order: Jun 15 &nbsp;·&nbsp; ₱8,200 outstanding</div>
+          <div class="mock-supplier-status mock-supplier-open">2 open orders</div>
         </div>
-        <div class="mock-total-row mock-bold">
-          <span>Total</span><span>₱535.50</span>
-        </div>
-        <div class="mock-actions">
-          <div class="mock-btn mock-btn-outline">Hold</div>
-          <div class="mock-btn mock-btn-primary">Charge</div>
+        <div class="mock-supplier-card">
+          <div class="mock-supplier-name">Sagada Organics</div>
+          <div class="mock-supplier-meta">Last order: Jun 10 &nbsp;·&nbsp; ₱0 outstanding</div>
+          <div class="mock-supplier-status mock-supplier-clear">Settled</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── Showcase 02: Inventory ────────────────────────────────── -->
+<!-- Showcase 02: Production Mode -->
 <section class="showcase section-light">
   <span class="showcase-bg-num" aria-hidden="true">02</span>
-  <div class="container showcase-inner showcase-flip reveal">
-    <div class="showcase-text">
-      <span class="eyebrow">Inventory</span>
-      <h2>Know exactly what you have.<br><span class="text-dim">Before you run out.</span></h2>
-      <p>Real-time stock levels across all ingredient categories. Depletion alerts fire before you're empty — not after.</p>
+  <div class="container showcase-inner showcase-flip">
+    <div class="showcase-text reveal">
+      <span class="eyebrow">Production Mode</span>
+      <h2>Log the craft.<br>Refine the&nbsp;process.</h2>
+      <p>Record roast batches, espresso calibrations, and brew recipes. Build a technical history that makes every cup more intentional — and every dial-in faster.</p>
       <ul class="showcase-list">
-        <li>Ingredient-level tracking</li>
-        <li>Low-stock & depletion alerts</li>
-        <li>Variance & wastage logging</li>
-        <li>Supplier order integration</li>
+        <li>Roast batch logs with yield & loss</li>
+        <li>Espresso calibration records</li>
+        <li>Brew recipe library</li>
+        <li>Machine calibration history</li>
       </ul>
     </div>
-    <div class="showcase-visual">
+    <div class="showcase-visual reveal-left">
       <div class="mock-panel mock-dark">
         <div class="mock-bar mock-bar-dark">
-          <span class="mock-title mock-title-light">Inventory — Coffee</span>
-          <span class="mock-tag mock-tag-dark">24 items</span>
+          <span class="mock-title mock-title-light">Roast Log — Batch #47</span>
+          <span class="mock-tag mock-tag-dark">Ethiopia Natural</span>
         </div>
-        <div class="mock-table-head">
-          <span>Item</span><span>Stock</span><span>Status</span>
+        <div class="mock-lot-fields">
+          <div class="mock-field">
+            <span class="mock-field-label">Green Weight</span>
+            <span class="mock-field-val">2.00 kg</span>
+          </div>
+          <div class="mock-field">
+            <span class="mock-field-label">Roast Weight</span>
+            <span class="mock-field-val">1.74 kg</span>
+          </div>
+          <div class="mock-field">
+            <span class="mock-field-label">Weight Loss</span>
+            <span class="mock-field-val">13.0%</span>
+          </div>
+          <div class="mock-field">
+            <span class="mock-field-label">Roast Level</span>
+            <span class="mock-field-val">Light-Medium</span>
+          </div>
+          <div class="mock-field">
+            <span class="mock-field-label">First Crack</span>
+            <span class="mock-field-val">9m 42s</span>
+          </div>
+          <div class="mock-field">
+            <span class="mock-field-label">Total Time</span>
+            <span class="mock-field-val">11m 30s</span>
+          </div>
         </div>
-        <div class="mock-table-row">
-          <span>Benguet Blend — 1kg</span>
-          <span>4.2 kg</span>
-          <span class="mock-pill mock-pill-ok">OK</span>
-        </div>
-        <div class="mock-table-row">
-          <span>Ethiopia Natural — 250g</span>
-          <span>0.8 kg</span>
-          <span class="mock-pill mock-pill-low">Low</span>
-        </div>
-        <div class="mock-table-row">
-          <span>House Espresso — 1kg</span>
-          <span>6.5 kg</span>
-          <span class="mock-pill mock-pill-ok">OK</span>
-        </div>
-        <div class="mock-table-row">
-          <span>Washed Gesha — 250g</span>
-          <span>0.0 kg</span>
-          <span class="mock-pill mock-pill-out">Out</span>
-        </div>
-        <div class="mock-table-row">
-          <span>Colombia Pink Bourbon</span>
-          <span>1.5 kg</span>
-          <span class="mock-pill mock-pill-ok">OK</span>
+        <div class="mock-roast-note">
+          <span class="mock-field-label">Roaster Notes</span>
+          <p>Bright acidity, fruity finish. Reduce development by 10s next batch.</p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── Showcase 03: Sales & Reports ──────────────────────────── -->
+<!-- Showcase 03: Events Mode -->
 <section class="showcase section-dark grain">
   <span class="showcase-bg-num" aria-hidden="true">03</span>
-  <div class="container showcase-inner reveal">
-    <div class="showcase-text">
-      <span class="eyebrow">Sales & Reports</span>
-      <h2>See the story<br>in your&nbsp;numbers.</h2>
-      <p>Daily revenue, shift breakdowns, product rankings — all visible at a glance. No spreadsheets. No exports needed.</p>
+  <div class="container showcase-inner">
+    <div class="showcase-text reveal">
+      <span class="eyebrow">Events Mode</span>
+      <h2>Workshops, cuppings,<br>and more — managed.</h2>
+      <p>Plan and run in-café events with seat management, ticketing, and attendance tracking. From latte art workshops to origin cuppings — every detail in one place.</p>
       <ul class="showcase-list">
-        <li>Real-time revenue dashboard</li>
-        <li>Product & category performance</li>
-        <li>Shift summaries & peak hour view</li>
-        <li>Exportable reports (PDF/CSV)</li>
+        <li>Event scheduling & seat caps</li>
+        <li>Per-pax pricing & ticket tracking</li>
+        <li>Guest list & attendance logs</li>
+        <li>Revenue per event reporting</li>
       </ul>
     </div>
-    <div class="showcase-visual">
+    <div class="showcase-visual reveal-right">
       <div class="mock-panel mock-light">
         <div class="mock-bar">
-          <span class="mock-title">Today's Summary</span>
-          <span class="mock-label-sm">Jun 27, 2026</span>
+          <span class="mock-title">Upcoming Events</span>
+          <span class="mock-tag">4 scheduled</span>
         </div>
-        <div class="mock-metrics-row">
-          <div class="mock-metric">
-            <span class="mock-metric-num">₱18,240</span>
-            <span class="mock-metric-label">Revenue</span>
+        <div class="mock-event-card">
+          <div class="mock-event-date">
+            <span class="mock-event-month">JUL</span>
+            <span class="mock-event-day">12</span>
           </div>
-          <div class="mock-metric">
-            <span class="mock-metric-num">142</span>
-            <span class="mock-metric-label">Orders</span>
+          <div class="mock-event-info">
+            <div class="mock-event-name">Latte Art Workshop</div>
+            <div class="mock-event-meta">2:00 PM · 20 seats · ₱350/pax</div>
           </div>
-          <div class="mock-metric">
-            <span class="mock-metric-num">₱128</span>
-            <span class="mock-metric-label">Avg. Order</span>
-          </div>
+          <span class="mock-pill mock-pill-ok">Open</span>
         </div>
-        <div class="mock-chart-label">Revenue by Hour</div>
-        <div class="mock-bar-chart">
-          <div class="mock-bar-col" style="height:38%"><span>8A</span></div>
-          <div class="mock-bar-col" style="height:55%"><span>9A</span></div>
-          <div class="mock-bar-col" style="height:82%"><span>10A</span></div>
-          <div class="mock-bar-col mock-bar-active" style="height:100%"><span>11A</span></div>
-          <div class="mock-bar-col" style="height:90%"><span>12P</span></div>
-          <div class="mock-bar-col" style="height:72%"><span>1P</span></div>
-          <div class="mock-bar-col" style="height:48%"><span>2P</span></div>
-          <div class="mock-bar-col" style="height:60%"><span>3P</span></div>
-          <div class="mock-bar-col" style="height:44%"><span>4P</span></div>
+        <div class="mock-event-card">
+          <div class="mock-event-date">
+            <span class="mock-event-month">JUL</span>
+            <span class="mock-event-day">19</span>
+          </div>
+          <div class="mock-event-info">
+            <div class="mock-event-name">Mt. Province Cupping</div>
+            <div class="mock-event-meta">10:00 AM · 12 seats · ₱500/pax</div>
+          </div>
+          <span class="mock-pill mock-pill-ok">Open</span>
+        </div>
+        <div class="mock-event-card">
+          <div class="mock-event-date">
+            <span class="mock-event-month">AUG</span>
+            <span class="mock-event-day">3</span>
+          </div>
+          <div class="mock-event-info">
+            <div class="mock-event-name">Brew Methods Masterclass</div>
+            <div class="mock-event-meta">3:00 PM · 8 seats · ₱650/pax</div>
+          </div>
+          <span class="mock-pill mock-pill-low">2 left</span>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── Showcase 04: Origin Mode ──────────────────────────────── -->
+<!-- Showcase 04: Origin Mode -->
 <section class="showcase section-light">
   <span class="showcase-bg-num" aria-hidden="true">04</span>
-  <div class="container showcase-inner showcase-flip reveal">
-    <div class="showcase-text">
+  <div class="container showcase-inner showcase-flip">
+    <div class="showcase-text reveal">
       <span class="eyebrow">Origin Mode</span>
       <h2>Traceability that<br>tells a&nbsp;story.</h2>
-      <p>Record every lot from farm to cup — origin, farmer, process method, harvest season, and cupping notes. Scan QR codes to autofill. Print labels for bags.</p>
+      <p>Record every lot from farm to cup — origin, farmer, process method, harvest season, and cupping notes. Scan QR codes to autofill. Print traceability labels for bags.</p>
       <ul class="showcase-list">
         <li>Full lot traceability records</li>
         <li>QR scan & autofill on intake</li>
@@ -351,7 +394,7 @@
         <li>Printable traceability labels</li>
       </ul>
     </div>
-    <div class="showcase-visual">
+    <div class="showcase-visual reveal-left">
       <div class="mock-panel mock-dark">
         <div class="mock-bar mock-bar-dark">
           <span class="mock-title mock-title-light">LOT-2026-041</span>
@@ -385,7 +428,7 @@
         </div>
         <div class="mock-lot-qr">
           <div class="mock-qr-box">
-            <svg viewBox="0 0 40 40" fill="currentColor" width="40" height="40" opacity="0.5">
+            <svg viewBox="0 0 40 40" fill="currentColor" width="36" height="36" opacity="0.45">
               <rect x="2" y="2" width="14" height="14" rx="1.5"/><rect x="4" y="4" width="10" height="10" rx="0.5" fill="var(--dark-card)"/>
               <rect x="6" y="6" width="6" height="6" rx="0.3"/>
               <rect x="24" y="2" width="14" height="14" rx="1.5"/><rect x="26" y="4" width="10" height="10" rx="0.5" fill="var(--dark-card)"/>
@@ -407,119 +450,101 @@
   </div>
 </section>
 
-<!-- ─── Showcase 05: Supplier Mode ───────────────────────────── -->
-<section class="showcase section-dark grain">
-  <span class="showcase-bg-num" aria-hidden="true">05</span>
-  <div class="container showcase-inner reveal">
-    <div class="showcase-text">
-      <span class="eyebrow">Supplier Mode</span>
-      <h2>Every vendor.<br>Every peso&nbsp;owed.</h2>
-      <p>Manage all your supplier relationships — open orders, outstanding balances, delivery history, and contacts — from a single view.</p>
-      <ul class="showcase-list">
-        <li>Supplier profiles & contacts</li>
-        <li>Purchase orders & delivery tracking</li>
-        <li>Outstanding balance management</li>
-        <li>Order history & reorder shortcuts</li>
-      </ul>
-    </div>
-    <div class="showcase-visual">
-      <div class="mock-panel mock-light">
-        <div class="mock-bar">
-          <span class="mock-title">Suppliers</span>
-          <span class="mock-tag">6 active</span>
-        </div>
-        <div class="mock-supplier-card">
-          <div class="mock-supplier-name">Cordillera Coffee Co.</div>
-          <div class="mock-supplier-meta">Last order: Jun 20 &nbsp;·&nbsp; ₱12,500 outstanding</div>
-          <div class="mock-supplier-status mock-supplier-open">1 open order</div>
-        </div>
-        <div class="mock-supplier-card">
-          <div class="mock-supplier-name">Manila Dairy Supply</div>
-          <div class="mock-supplier-meta">Last order: Jun 24 &nbsp;·&nbsp; ₱0 outstanding</div>
-          <div class="mock-supplier-status mock-supplier-clear">Settled</div>
-        </div>
-        <div class="mock-supplier-card">
-          <div class="mock-supplier-name">Benguet Highlands Farm</div>
-          <div class="mock-supplier-meta">Last order: Jun 15 &nbsp;·&nbsp; ₱8,200 outstanding</div>
-          <div class="mock-supplier-status mock-supplier-open">2 open orders</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+</div><!-- /modes -->
 
-<!-- ─── Showcase 06: Production ───────────────────────────────── -->
-<section class="showcase section-light">
-  <span class="showcase-bg-num" aria-hidden="true">06</span>
-  <div class="container showcase-inner showcase-flip reveal">
-    <div class="showcase-text">
-      <span class="eyebrow">Production</span>
-      <h2>Log the craft.<br>Refine the&nbsp;process.</h2>
-      <p>Record roast batches, espresso calibrations, and brew parameters. Build a technical history that makes every shot more consistent.</p>
-      <ul class="showcase-list">
-        <li>Roast batch logging with yield</li>
-        <li>Espresso dial-in records</li>
-        <li>Brew recipe library</li>
-        <li>Calibration history per machine</li>
-      </ul>
+<!-- ─── Built-in Tools ────────────────────────────────────────── -->
+<section class="section-dark2" id="extras">
+  <div class="container">
+    <div class="section-label reveal">
+      <span class="eyebrow">Built-in Tools</span>
+      <h2 class="section-heading">Beyond the&nbsp;daily grind.</h2>
+      <p class="section-subhead">Extra tools that live inside Caflat.CORE — no integrations, no add-ons required.</p>
     </div>
-    <div class="showcase-visual">
-      <div class="mock-panel mock-dark">
-        <div class="mock-bar mock-bar-dark">
-          <span class="mock-title mock-title-light">Espresso Calibration</span>
-          <span class="mock-tag mock-tag-dark">Today</span>
+
+    <div class="extras-grid stagger">
+
+      <div class="extra-card">
+        <div class="extra-tag">Included</div>
+        <div class="extra-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 2v4M14 2v4M4 6h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
+            <circle cx="11" cy="13" r="3"/>
+            <path d="M11 10v2M11 14v2M8 13H6M16 13h-2"/>
+          </svg>
         </div>
-        <div class="mock-table-head mock-table-head-dark">
-          <span>Parameter</span><span>Value</span><span>Result</span>
-        </div>
-        <div class="mock-table-row mock-table-row-dark">
-          <span>Dose</span><span>18.5 g</span>
-          <span class="mock-pill mock-pill-ok">OK</span>
-        </div>
-        <div class="mock-table-row mock-table-row-dark">
-          <span>Yield</span><span>36.0 g</span>
-          <span class="mock-pill mock-pill-ok">OK</span>
-        </div>
-        <div class="mock-table-row mock-table-row-dark">
-          <span>Time</span><span>28 sec</span>
-          <span class="mock-pill mock-pill-ok">OK</span>
-        </div>
-        <div class="mock-table-row mock-table-row-dark">
-          <span>Grind Size</span><span>3.2</span>
-          <span class="mock-pill mock-pill-low">Adjust</span>
-        </div>
-        <div class="mock-table-row mock-table-row-dark">
-          <span>Temp</span><span>93.5°C</span>
-          <span class="mock-pill mock-pill-ok">OK</span>
-        </div>
+        <h3>Product Labs</h3>
+        <p>Test and prototype new menu items in a sandboxed environment before they go live. Experiment with pricing, recipes, and names without touching your active menu.</p>
       </div>
+
+      <div class="extra-card">
+        <div class="extra-tag">Included</div>
+        <div class="extra-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14"/>
+            <path d="M2 19h18"/>
+            <path d="M8 7h6M8 11h6M8 15h4"/>
+          </svg>
+        </div>
+        <h3>Recipe Catalog</h3>
+        <p>A curated library of brew recipes with parameters, yield targets, and tasting notes. Keep your team aligned on what good tastes like for every drink on the menu.</p>
+      </div>
+
+      <div class="extra-card">
+        <div class="extra-tag">Included</div>
+        <div class="extra-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 5H7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+            <rect x="9" y="3" width="4" height="4" rx="1"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <h3>Shopping List</h3>
+        <p>Auto-generated purchase lists based on current stock levels and upcoming order demand. Know exactly what to buy before your next supplier run — no guesswork.</p>
+      </div>
+
     </div>
   </div>
 </section>
 
 <!-- ─── Pricing ───────────────────────────────────────────────── -->
-<section class="section-dark2" id="pricing">
+<section class="section-dark" id="pricing">
   <div class="container">
     <div class="section-label reveal">
       <span class="eyebrow">Pricing</span>
       <h2 class="section-heading">Simple plans.<br><span class="text-dim">Serious tools.</span></h2>
     </div>
 
-    <div class="pricing-grid reveal">
+    <div class="pricing-grid stagger">
+
+      <div class="pricing-card">
+        <div class="pricing-top">
+          <div class="pricing-tier">Free</div>
+          <div class="pricing-price">Free</div>
+          <p class="pricing-desc">Explore the essentials. No credit card, no commitment — just the core tools to get started.</p>
+        </div>
+        <ul class="pricing-features">
+          <li>Basic POS & Inventory</li>
+          <li>Up to 50 products</li>
+          <li>Single device</li>
+          <li>Daily summary report</li>
+          <li>Community support</li>
+        </ul>
+        <a href="#access" class="pricing-cta">Get Started</a>
+      </div>
 
       <div class="pricing-card">
         <div class="pricing-top">
           <div class="pricing-tier">Pro</div>
           <div class="pricing-price">₱499<span class="pricing-per">/mo</span></div>
-          <p class="pricing-desc">For independent cafés that need a complete operational backbone, offline-first.</p>
+          <p class="pricing-desc">For independent cafés that need a complete operational backbone — all modules, offline-first.</p>
         </div>
         <ul class="pricing-features">
-          <li>All 12+ operational modules</li>
+          <li>All 12+ modules</li>
+          <li>Unlimited products</li>
           <li>Unlimited transactions</li>
-          <li>Local data storage</li>
-          <li>Origin Mode & traceability</li>
-          <li>Print & export reports</li>
-          <li>Single-location</li>
+          <li>All 4 operational modes</li>
+          <li>Export reports (PDF/CSV)</li>
+          <li>Single location</li>
         </ul>
         <a href="#access" class="pricing-cta">Apply for Access</a>
       </div>
@@ -529,7 +554,7 @@
         <div class="pricing-top">
           <div class="pricing-tier">Cloud</div>
           <div class="pricing-price">₱899<span class="pricing-per">/mo</span></div>
-          <p class="pricing-desc">Multi-branch operations with cloud sync, remote reporting, and real-time visibility.</p>
+          <p class="pricing-desc">Multi-branch operations with cloud sync, remote reporting, and real-time visibility across locations.</p>
         </div>
         <ul class="pricing-features">
           <li>Everything in Pro</li>
@@ -546,11 +571,11 @@
         <div class="pricing-top">
           <div class="pricing-tier">Enterprise</div>
           <div class="pricing-price">Custom</div>
-          <p class="pricing-desc">For roastery-café groups and multi-location brands that need custom configuration.</p>
+          <p class="pricing-desc">For roastery groups and multi-location brands that need tailored configuration and direct support.</p>
         </div>
         <ul class="pricing-features">
           <li>Everything in Cloud</li>
-          <li>Custom module configuration</li>
+          <li>Custom module setup</li>
           <li>Dedicated onboarding</li>
           <li>SLA-backed uptime</li>
           <li>White-label options</li>
@@ -596,6 +621,7 @@
         <label for="tier">Tier</label>
         <select class="form-input" id="tier" name="tier" required>
           <option value="">Select a plan</option>
+          <option value="free">Free</option>
           <option value="pro">Pro — ₱499/mo</option>
           <option value="cloud">Cloud — ₱899/mo</option>
           <option value="enterprise">Enterprise — Custom</option>

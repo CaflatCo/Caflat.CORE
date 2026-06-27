@@ -12,9 +12,23 @@ const revealObserver = new IntersectionObserver((entries) => {
       revealObserver.unobserve(e.target);
     }
   });
-}, { threshold: 0.12 });
+}, { threshold: 0.1, rootMargin: '0px 0px -48px 0px' });
 
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => {
+  revealObserver.observe(el);
+});
+
+/* ─── Stagger grid children ─────────────────────────────────── */
+// .stagger containers: each child gets .reveal + a staggered delay
+document.querySelectorAll('.stagger').forEach(parent => {
+  const cols = window.innerWidth > 1000 ? 3 : window.innerWidth > 720 ? 2 : 1;
+  Array.from(parent.children).forEach((child, i) => {
+    const colIndex = i % cols;
+    child.style.transitionDelay = `${colIndex * 80}ms`;
+    child.classList.add('reveal');
+    revealObserver.observe(child);
+  });
+});
 
 /* ─── Counter animation ─────────────────────────────────────── */
 function animateCount(el, target, suffix = '') {
