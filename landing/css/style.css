@@ -100,9 +100,15 @@ section { padding: 120px 0; }
 }
 .section-light .eyebrow { color: rgba(10,10,11,.3); }
 
-/* Mode name eyebrows inside showcase sections — need to punch through the dark bg */
-.showcase-text .eyebrow {
+/* Showcase eyebrows — scoped to section type so light/dark backgrounds both work */
+.section-dark  .showcase-text .eyebrow,
+.section-dark2 .showcase-text .eyebrow {
   color: rgba(244,242,238,.72);
+  font-size: .72rem;
+  letter-spacing: .15em;
+}
+.section-light .showcase-text .eyebrow {
+  color: rgba(10,10,11,.62);
   font-size: .72rem;
   letter-spacing: .15em;
 }
@@ -260,38 +266,41 @@ nav.scrolled {
 }
 .deco-item {
   position: absolute;
-  color: rgba(139, 86, 44, 0.26);
+  color: rgba(200,163,117,.44);
 }
+.deco-ring  { color: rgba(200,163,117,.26); }
+.deco-leaf  { color: rgba(130,182,100,.32); }
+.deco-steam { color: rgba(200,163,117,.30); }
 
 .deco-bean-1 {
-  width: 54px;
-  top: 18%; left: 7%;
+  width: 62px;
+  top: 16%; left: 6%;
   animation: bean-float-1 7s ease-in-out infinite;
 }
 .deco-bean-2 {
-  width: 38px;
-  top: 20%; right: 8%;
+  width: 46px;
+  top: 18%; right: 7%;
   animation: bean-float-2 9s ease-in-out infinite 1.2s;
 }
-.deco-bean-3 {
-  width: 26px;
-  bottom: 26%; left: 13%;
-  animation: bean-float-3 8s ease-in-out infinite 2.4s;
-}
-.deco-bean-4 {
-  width: 20px;
-  top: 38%; right: 5%;
-  animation: bean-float-2 6.5s ease-in-out infinite 0.8s;
+.deco-ring {
+  width: 44px;
+  bottom: 28%; left: 10%;
+  animation: ring-drift 11s ease-in-out infinite 0.6s;
 }
 .deco-leaf {
-  width: 36px;
-  top: 32%; left: 5%;
+  width: 40px;
+  top: 32%; left: 4%;
   animation: leaf-float 10s ease-in-out infinite 0.4s;
 }
+.deco-steam {
+  width: 30px;
+  top: 35%; right: 4%;
+  animation: steam-rise 8s ease-in-out infinite 1.8s;
+}
 .deco-cup {
-  width: 46px;
-  bottom: 22%; right: 10%;
-  animation: bean-float-1 8.5s ease-in-out infinite 1.8s;
+  width: 52px;
+  bottom: 20%; right: 9%;
+  animation: bean-float-1 8.5s ease-in-out infinite 2.2s;
 }
 
 @keyframes bean-float-1 {
@@ -302,13 +311,17 @@ nav.scrolled {
   0%, 100% { transform: rotate(14deg) translateY(0); }
   50%       { transform: rotate(14deg) translateY(-8px); }
 }
-@keyframes bean-float-3 {
-  0%, 100% { transform: rotate(42deg) translateY(0); }
-  50%       { transform: rotate(42deg) translateY(-12px); }
+@keyframes ring-drift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-8px) rotate(20deg); }
 }
 @keyframes leaf-float {
-  0%, 100% { transform: rotate(-10deg) translateY(0); }
-  50%       { transform: rotate(-7deg) translateY(-8px); }
+  0%, 100% { transform: rotate(-12deg) translateY(0); }
+  50%       { transform: rotate(-8deg) translateY(-9px); }
+}
+@keyframes steam-rise {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50%       { transform: translateY(-14px); opacity: 0.6; }
 }
 
 /* ─── Hero Content ────────────────────────────────────────────── */
@@ -511,8 +524,8 @@ nav.scrolled {
   user-select: none;
   z-index: 0;
 }
-.section-dark  .showcase-bg-num { color: rgba(255,255,255,.022); }
-.section-light .showcase-bg-num { color: rgba(0,0,0,.032); }
+.section-dark  .showcase-bg-num { color: rgba(255,255,255,.06); }
+.section-light .showcase-bg-num { color: rgba(0,0,0,.07); }
 
 .showcase-inner {
   display: grid;
