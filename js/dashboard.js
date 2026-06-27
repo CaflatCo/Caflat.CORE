@@ -311,8 +311,8 @@ function renderAnalyticsPanel() {
           <button onclick="setAnalyticsPeriod('${p}')"
             style="padding:6px 14px;border:none;border-radius:7px;font-size:11px;
               font-weight:${_analyticsPeriod === p ? '800' : '500'};cursor:pointer;
-              background:${_analyticsPeriod === p ? '#000' : 'transparent'};
-              color:${_analyticsPeriod === p ? '#fff' : '#999'};
+              background:${_analyticsPeriod === p ? 'var(--gray-900)' : 'transparent'};
+              color:${_analyticsPeriod === p ? 'var(--gray-50)' : 'var(--gray-500)'};
               font-family:inherit;transition:all 0.15s;letter-spacing:0.02em;">
             ${p.charAt(0).toUpperCase() + p.slice(1)}
           </button>`).join('')}
@@ -398,7 +398,7 @@ function renderAnalyticsPanel() {
                         <span style="font-size:11px;color:var(--gray-400);">${pct}%</span>
                       </div>
                       <div style="height:4px;background:var(--gray-100);border-radius:2px;">
-                        <div style="width:${pct}%;height:100%;background:#000;border-radius:2px;"></div>
+                        <div style="width:${pct}%;height:100%;background:var(--gray-900);border-radius:2px;"></div>
                       </div>
                       <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${formatCurrency(val)}</div>
                     </div>`;
@@ -428,7 +428,7 @@ function renderAnalyticsPanel() {
                         <span style="font-size:11px;color:var(--gray-400);">${pct}%</span>
                       </div>
                       <div style="height:4px;background:var(--gray-100);border-radius:2px;">
-                        <div style="width:${pct}%;height:100%;background:#000;border-radius:2px;"></div>
+                        <div style="width:${pct}%;height:100%;background:var(--gray-900);border-radius:2px;"></div>
                       </div>
                       <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${formatCurrency(c.revenue||0)}</div>
                     </div>`;

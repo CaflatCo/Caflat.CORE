@@ -2209,7 +2209,7 @@ html[data-theme="dark"] {
 }
 
 /* Body background darker than card surface so panels lift off */
-html[data-theme="dark"] body { background: var(--gray-50); }
+html[data-theme="dark"] body { background: var(--gray-50); color: var(--gray-900); }
 
 /* Header text on black bg — --white remapped to dark, needs explicit override */
 html[data-theme="dark"] header,
@@ -2286,6 +2286,8 @@ html[data-theme="dark"] .date-preset-btn:hover { color: var(--gray-900); border-
 html[data-theme="dark"] .date-preset-btn.active { background: #f4f2ee; color: #0c0b0a; border-color: #f4f2ee; }
 
 /* POS product card */
+html[data-theme="dark"] .pos-product-price { color: var(--gray-900); }
+html[data-theme="dark"] .pos-product-name  { color: var(--gray-900); }
 html[data-theme="dark"] .pos-card-cart-qty { background: #f4f2ee; color: #0c0b0a; }
 html[data-theme="dark"] .pos-options-btn { background: var(--gray-200); color: var(--gray-600); border-color: var(--border); }
 html[data-theme="dark"] .pos-options-btn:hover { background: #f4f2ee; color: #0c0b0a; border-color: #f4f2ee; }
