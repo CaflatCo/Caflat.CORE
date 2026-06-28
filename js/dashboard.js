@@ -547,7 +547,7 @@ function updateNavBadges() {
 
 /* ── Re-render charts when theme changes ── */
 new MutationObserver(() => {
-  if (dashboardChartInstance) renderDashboardChart();
+  renderDashboardChart();
   if (_analyticsChartInstance) renderAnalyticsPanel();
 }).observe(document.documentElement, { attributeFilter: ['data-theme'] });
 

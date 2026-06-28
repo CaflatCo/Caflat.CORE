@@ -849,7 +849,17 @@ function _animateReportSections() {
 /* ── Re-render all charts when theme changes ── */
 new MutationObserver(() => {
   const { fromDate, toDate } = getReportDateRange();
-  if (!fromDate || !toDate) return;
+  if (!fromDate || !toDate) {
+    // Destroy stale instances so dark-mode colors don't show on light background
+    if (reportChartInstance) { reportChartInstance.destroy(); reportChartInstance = null; }
+    if (hourlyChartInstance) { hourlyChartInstance.destroy(); hourlyChartInstance = null; }
+    Object.values(_categoryChartInstances).forEach(c => { try { c.destroy(); } catch(e) {} });
+    _categoryChartInstances = {};
+    if (_pureProfitCumChart) { _pureProfitCumChart.destroy(); _pureProfitCumChart = null; }
+    if (_pureProfitCatChart) { _pureProfitCatChart.destroy(); _pureProfitCatChart = null; }
+    if (_revVsCostChart)     { _revVsCostChart.destroy();     _revVsCostChart     = null; }
+    return;
+  }
   if (reportChartInstance) renderRevenueChart(fromDate, toDate);
   renderHourlyHeatmap(fromDate, toDate);
   renderCategoryPerformance(fromDate, toDate);
