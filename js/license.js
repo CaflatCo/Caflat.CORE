@@ -6,9 +6,10 @@
 const CAFLAT_SB_URL  = 'https://tkrsebalgonimmozbgqc.supabase.co';
 const CAFLAT_SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcnNlYmFsZ29uaW1tb3piZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMjc5NzEsImV4cCI6MjA5NzYwMzk3MX0.OKp5NCLYnL-5CFWnvXpA2E78jNi5r63Jzs2zABAkzsw';
 
-const LICENSE_STORAGE_KEY   = 'caflat_license_v1';
-const FREE_PRODUCT_LIMIT    = 50;
-const REVALIDATE_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const LICENSE_STORAGE_KEY    = 'caflat_license_v1';
+const INTEGRITY_STORAGE_KEY  = '_cflx3';              // intentionally obscured
+const FREE_PRODUCT_LIMIT     = 50;
+const REVALIDATE_INTERVAL_MS = 24 * 60 * 60 * 1000;  // 24 hours (was 7 days)
 
 /* ── Tier definitions ──────────────────────────────── */
 const TIER_FREE       = 'free';
@@ -61,20 +62,56 @@ const TIER_FEATURES = {
 /* ── Local license state ───────────────────────────── */
 let _licenseState = null;
 
-function _loadLicenseFromStorage() {
+async function _loadLicenseFromStorage() {
   try {
-    const raw = localStorage.getItem(LICENSE_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    const raw  = localStorage.getItem(LICENSE_STORAGE_KEY);
+    const hash = localStorage.getItem(INTEGRITY_STORAGE_KEY);
+    if (!raw) return null;
+
+    const license = JSON.parse(raw);
+
+    if (hash) {
+      const expected = await _computeIntegrityHash(license);
+      if (expected !== hash) {
+        // Tamper detected — wipe and fall back to free tier
+        localStorage.removeItem(LICENSE_STORAGE_KEY);
+        localStorage.removeItem(INTEGRITY_STORAGE_KEY);
+        return null;
+      }
+    }
+
+    return license;
   } catch { return null; }
 }
 
-function _saveLicenseToStorage(data) {
+async function _saveLicenseToStorage(data) {
   localStorage.setItem(LICENSE_STORAGE_KEY, JSON.stringify(data));
+  localStorage.setItem(INTEGRITY_STORAGE_KEY, await _computeIntegrityHash(data));
 }
 
 function _clearLicense() {
   localStorage.removeItem(LICENSE_STORAGE_KEY);
+  localStorage.removeItem(INTEGRITY_STORAGE_KEY);
   _licenseState = null;
+}
+
+// Binds tier + expiry + device to a hash — changing any field without
+// recomputing the hash (key is in source, so this deters casual tampering)
+async function _computeIntegrityHash(license) {
+  const canonical = [
+    license.code         || '',
+    license.tier         || '',
+    license.expires_at   || 'lifetime',
+    license.device_id    || '',
+    license.activated_at || '',
+    LICENSE_STORAGE_KEY,
+  ].join('');
+  const buf = await crypto.subtle.digest(
+    'SHA-256', new TextEncoder().encode(canonical)
+  );
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 /* ── Public API ────────────────────────────────────── */
@@ -204,21 +241,21 @@ async function activateLicenseKey(code) {
     last_validated: new Date().toISOString()
   };
 
-  _saveLicenseToStorage(stored);
+  await _saveLicenseToStorage(stored);
   _licenseState = stored;
 
   return { success: true, license: stored };
 }
 
 /* ── Periodic revalidation ─────────────────────────── */
-async function revalidateLicense() {
+async function revalidateLicense(force = false) {
   if (!_licenseState) return;
 
   const lastCheck = new Date(_licenseState.last_validated || 0);
-  if (Date.now() - lastCheck.getTime() < REVALIDATE_INTERVAL_MS) return;
+  if (!force && Date.now() - lastCheck.getTime() < REVALIDATE_INTERVAL_MS) return;
 
   const result = await _sbFetch(
-    `licenses?code=eq.${encodeURIComponent(_licenseState.code)}&select=revoked,activated,expires_at`
+    `licenses?code=eq.${encodeURIComponent(_licenseState.code)}&select=revoked,activated,expires_at,tier`
   );
 
   if (!result.ok || !Array.isArray(result.data) || result.data.length === 0) return;
@@ -232,9 +269,13 @@ async function revalidateLicense() {
     return;
   }
 
-  // Update last_validated timestamp locally
+  // Sync tier from server in case it was changed (e.g. downgrade)
+  if (remote.tier && remote.tier !== _licenseState.tier) {
+    _licenseState.tier = remote.tier;
+  }
+
   _licenseState.last_validated = new Date().toISOString();
-  _saveLicenseToStorage(_licenseState);
+  await _saveLicenseToStorage(_licenseState);
 }
 
 /* ── Device fingerprint ────────────────────────────── */
@@ -602,9 +643,7 @@ async function triggerLicenseRevalidation() {
 
       // Also revalidate current license
       if (_licenseState) {
-        await revalidateLicense();
-        _licenseState.last_validated = new Date().toISOString();
-        _saveLicenseToStorage(_licenseState);
+        await revalidateLicense(true); // force — user triggered a manual check
       }
 
       updateSyncStatus('connected', `Last checked ${now} · License data only`);
@@ -620,35 +659,33 @@ async function triggerLicenseRevalidation() {
 }
 
 /* ── Initialize ────────────────────────────────────── */
-function initializeLicense() {
-  _licenseState = _loadLicenseFromStorage();
+async function initializeLicense() {
+  // Verify integrity before trusting local state
+  _licenseState = await _loadLicenseFromStorage();
 
-  // Revalidate in background and update sync status
-  (async () => {
-    updateSyncStatus('syncing', 'Connecting…');
-    try {
-      const res = await fetch(`${CAFLAT_SB_URL}/rest/v1/licenses?limit=1`, {
-        headers: { 'apikey': CAFLAT_SB_ANON, 'Authorization': `Bearer ${CAFLAT_SB_ANON}` }
+  // Apply tier immediately with what local storage gives us
+  applyLicenseTier();
+
+  // Always validate against Supabase on every startup (not just every 24h)
+  updateSyncStatus('syncing', 'Connecting…');
+  try {
+    const res = await fetch(`${CAFLAT_SB_URL}/rest/v1/licenses?limit=1`, {
+      headers: { 'apikey': CAFLAT_SB_ANON, 'Authorization': `Bearer ${CAFLAT_SB_ANON}` }
+    });
+    if (res.ok) {
+      await revalidateLicense(true); // force=true — always re-check on startup
+      applyLicenseTier();            // re-apply in case tier/revoke changed server-side
+      const now = new Date().toLocaleString('en-PH', {
+        month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true
       });
-      if (res.ok) {
-        await revalidateLicense();
-        const now = new Date().toLocaleString('en-PH', {
-          month: 'short', day: 'numeric',
-          hour: 'numeric', minute: '2-digit', hour12: true
-        });
-        updateSyncStatus('connected', `Last checked ${now} · License data only`);
-      } else {
-        updateSyncStatus('error', 'Could not reach Supabase');
-      }
-    } catch (e) {
-      updateSyncStatus('offline', 'No internet — using local data');
+      updateSyncStatus('connected', `Last checked ${now} · License data only`);
+    } else {
+      updateSyncStatus('error', 'Could not reach Supabase');
     }
-  })();
-
-  // Apply tier on init
-  requestAnimationFrame(() => {
-    applyLicenseTier();
-  });
+  } catch (e) {
+    updateSyncStatus('offline', 'No internet — using local data');
+  }
 }
 
 /* ── Exports ───────────────────────────────────────── */

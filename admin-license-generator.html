@@ -79,7 +79,19 @@
 </head>
 <body>
 
-<!-- Auth gate — simple password so only Clyde can access -->
+<!-- First-time setup — shown only when no password exists in localStorage yet -->
+<div class="card" id="setupScreen" style="display:none;">
+  <h1>🔐 Set Admin Password</h1>
+  <p class="sub">No password configured. Create one before you can access the generator.</p>
+  <label>New Password (min 10 characters)</label>
+  <input type="password" id="setupPass1" placeholder="Choose a strong password" />
+  <label>Confirm Password</label>
+  <input type="password" id="setupPass2" placeholder="Repeat your password" />
+  <button onclick="setupAdminPassword()">Set Password & Continue</button>
+  <div class="error" id="setupError"></div>
+</div>
+
+<!-- Auth gate -->
 <div class="card" id="authScreen">
   <h1>🔐 Admin Access</h1>
   <p class="sub">License Generator — Caflat.CORE</p>
@@ -151,34 +163,83 @@
 const SB_URL  = 'https://tkrsebalgonimmozbgqc.supabase.co';
 const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcnNlYmFsZ29uaW1tb3piZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMjc5NzEsImV4cCI6MjA5NzYwMzk3MX0.OKp5NCLYnL-5CFWnvXpA2E78jNi5r63Jzs2zABAkzsw';
 
-// Simple admin password — stored in localStorage so it can be changed
-const DEFAULT_PASS = 'caflat-admin-2026';
-function _getAdminPass() {
-  return localStorage.getItem('caflat_gen_pass') || DEFAULT_PASS;
+// Password lives ONLY in localStorage — no hardcoded default anywhere in source.
+// First visit shows the setup screen to create one.
+const MAX_ATTEMPTS = 3;
+const LOCKOUT_MS   = 60 * 60 * 1000; // 1 hour
+
+function _getAdminPass()  { return localStorage.getItem('caflat_gen_pass') || null; }
+function _getAuthState()  { try { return JSON.parse(localStorage.getItem('_cadmin_auth') || '{}'); } catch { return {}; } }
+function _setAuthState(s) { localStorage.setItem('_cadmin_auth', JSON.stringify(s)); }
+
+// On load: route to setup screen if no password set yet
+window.addEventListener('DOMContentLoaded', function () {
+  if (!_getAdminPass()) {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('setupScreen').style.display = 'block';
+  } else {
+    const state = _getAuthState();
+    if (state.lockedUntil && Date.now() < state.lockedUntil) {
+      const mins = Math.ceil((state.lockedUntil - Date.now()) / 60000);
+      document.getElementById('authError').textContent =
+        `Too many failed attempts. Try again in ${mins} minute(s).`;
+    }
+  }
+});
+
+function setupAdminPassword() {
+  const p1  = document.getElementById('setupPass1').value;
+  const p2  = document.getElementById('setupPass2').value;
+  const err = document.getElementById('setupError');
+  if (p1.length < 10) { err.textContent = 'Password must be at least 10 characters.'; return; }
+  if (p1 !== p2)      { err.textContent = 'Passwords do not match.'; return; }
+  localStorage.setItem('caflat_gen_pass', p1);
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('mainScreen').style.display  = 'block';
 }
 
 function checkAdminAuth() {
-  const pass = document.getElementById('adminPass').value;
-  if (pass === _getAdminPass()) {
+  const state = _getAuthState();
+  if (state.lockedUntil && Date.now() < state.lockedUntil) {
+    const mins = Math.ceil((state.lockedUntil - Date.now()) / 60000);
+    document.getElementById('authError').textContent =
+      `Too many failed attempts. Try again in ${mins} minute(s).`;
+    return;
+  }
+
+  const entered = document.getElementById('adminPass').value;
+  const stored  = _getAdminPass();
+
+  if (stored && entered === stored) {
+    _setAuthState({ attempts: 0 });
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('mainScreen').style.display = 'block';
   } else {
-    document.getElementById('authError').textContent = 'Incorrect password.';
+    const attempts = (state.attempts || 0) + 1;
+    if (attempts >= MAX_ATTEMPTS) {
+      _setAuthState({ attempts, lockedUntil: Date.now() + LOCKOUT_MS });
+      document.getElementById('authError').textContent =
+        'Too many failed attempts. This page is locked for 1 hour.';
+    } else {
+      _setAuthState({ attempts });
+      document.getElementById('authError').textContent =
+        `Incorrect password. ${MAX_ATTEMPTS - attempts} attempt(s) remaining.`;
+    }
   }
 }
 
 function changeGeneratorPassword() {
-  const p1 = document.getElementById('newPass1').value.trim();
-  const p2 = document.getElementById('newPass2').value.trim();
+  const p1  = document.getElementById('newPass1').value.trim();
+  const p2  = document.getElementById('newPass2').value.trim();
   const msg = document.getElementById('changePassMsg');
-  if (!p1) { msg.style.color = '#ef4444'; msg.textContent = 'Password cannot be empty.'; return; }
-  if (p1 !== p2) { msg.style.color = '#ef4444'; msg.textContent = 'Passwords do not match.'; return; }
-  if (p1.length < 6) { msg.style.color = '#ef4444'; msg.textContent = 'Minimum 6 characters.'; return; }
+  if (!p1)        { msg.style.color = '#ef4444'; msg.textContent = 'Password cannot be empty.'; return; }
+  if (p1 !== p2)  { msg.style.color = '#ef4444'; msg.textContent = 'Passwords do not match.'; return; }
+  if (p1.length < 10) { msg.style.color = '#ef4444'; msg.textContent = 'Minimum 10 characters.'; return; }
   localStorage.setItem('caflat_gen_pass', p1);
   document.getElementById('newPass1').value = '';
   document.getElementById('newPass2').value = '';
   msg.style.color = '#16a34a';
-  msg.textContent = 'Password updated successfully.';
+  msg.textContent = 'Password updated.';
   setTimeout(() => msg.textContent = '', 3000);
 }
 
@@ -322,7 +383,7 @@ async function loadKeys() {
 }
 
 async function revokeKey(code) {
-  if (!confirm(`Revoke key ${code}?\n\nThe client's app will revert to free plan on next check (within 7 days).`)) return;
+  if (!confirm(`Revoke key ${code}?\n\nThe client's app will revert to free plan on next startup (within 24 hours).`)) return;
 
   const res = await fetch(`${SB_URL}/rest/v1/licenses?code=eq.${encodeURIComponent(code)}`, {
     method: 'PATCH',
