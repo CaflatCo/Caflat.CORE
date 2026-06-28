@@ -91,69 +91,93 @@
       <a href="#features" class="btn-hero-ghost">See what's inside</a>
     </div>
 
-    <!-- iPad mockup — POS preview -->
+    <!-- iPad mockup — Origin Mode dashboard -->
     <div class="hero-ipad">
       <div class="ipad-frame">
         <div class="ipad-notch" aria-hidden="true"></div>
         <div class="ipad-screen">
-          <div class="ipad-bar">
-            <span class="ipad-bar-logo">Caflat<span class="ipad-bar-dot">.</span>CORE</span>
-            <div class="ipad-bar-tabs">
-              <span class="ipad-tab ipad-tab-active">Point of Sale</span>
-              <span class="ipad-tab">Inventory</span>
-              <span class="ipad-tab">Reports</span>
-            </div>
-            <span class="ipad-bar-time">4:45 PM</span>
+          <!-- App top bar -->
+          <div class="ipad-topbar">
+            <span class="ipad-topbar-logo">Caflat.CORE</span>
+            <span class="ipad-topbar-biz">Brew &amp; Co. ▾</span>
           </div>
-          <div class="ipad-body">
-            <div class="ipad-products">
-              <div class="ipad-cat-row">
-                <span class="ipad-cat ipad-cat-active">All</span>
-                <span class="ipad-cat">Coffee</span>
-                <span class="ipad-cat">Pastry</span>
-                <span class="ipad-cat">Supply</span>
+          <!-- App body: sidebar + main -->
+          <div class="ipad-app-body">
+            <!-- Sidebar -->
+            <aside class="ipad-sidebar">
+              <div class="ipad-nav-group">
+                <div class="ipad-nav-label">Main</div>
+                <div class="ipad-nav-item">POS</div>
+                <div class="ipad-nav-item">Dashboard</div>
+                <div class="ipad-nav-item">Sales</div>
+                <div class="ipad-nav-item">Reports</div>
               </div>
-              <div class="ipad-product-grid">
-                <div class="ipad-product">
-                  <div class="ipad-product-dot" style="background:rgba(200,163,117,.25)"></div>
-                  <span>Flat White</span><span class="ipad-product-price">₱120</span>
+              <div class="ipad-nav-group">
+                <div class="ipad-nav-label">Catalog</div>
+                <div class="ipad-nav-item">Products</div>
+                <div class="ipad-nav-item">Inventory</div>
+              </div>
+              <div class="ipad-nav-group">
+                <div class="ipad-nav-label">Ops</div>
+                <div class="ipad-nav-item ipad-nav-active">Origin</div>
+              </div>
+            </aside>
+            <!-- Main: Origin dashboard -->
+            <div class="ipad-main">
+              <!-- Sub-tabs -->
+              <div class="ipad-subtabs">
+                <span class="ipad-subtab ipad-subtab-active">Dashboard</span>
+                <span class="ipad-subtab">Lots</span>
+                <span class="ipad-subtab">Batches</span>
+                <span class="ipad-subtab">Orders</span>
+                <span class="ipad-subtab">Trace</span>
+              </div>
+              <!-- KPI row -->
+              <div class="ipad-kpi-row">
+                <div class="ipad-kpi">
+                  <div class="ipad-kpi-val">3</div>
+                  <div class="ipad-kpi-label">Active Lots</div>
+                  <div class="ipad-kpi-sub">Raw materials</div>
                 </div>
-                <div class="ipad-product ipad-product-sel">
-                  <div class="ipad-product-dot" style="background:rgba(200,163,117,.45)"></div>
-                  <span>Canelé</span><span class="ipad-product-price">₱80</span>
+                <div class="ipad-kpi">
+                  <div class="ipad-kpi-val">1</div>
+                  <div class="ipad-kpi-label">In Progress</div>
+                  <div class="ipad-kpi-sub">Processing</div>
                 </div>
-                <div class="ipad-product">
-                  <div class="ipad-product-dot" style="background:rgba(255,255,255,.08)"></div>
-                  <span>Cold Brew</span><span class="ipad-product-price">₱150</span>
+                <div class="ipad-kpi">
+                  <div class="ipad-kpi-val">94.2%</div>
+                  <div class="ipad-kpi-label">Avg Yield</div>
+                  <div class="ipad-kpi-sub">Completed batches</div>
                 </div>
-                <div class="ipad-product">
-                  <div class="ipad-product-dot" style="background:rgba(255,255,255,.08)"></div>
-                  <span>Croissant</span><span class="ipad-product-price">₱95</span>
-                </div>
-                <div class="ipad-product">
-                  <div class="ipad-product-dot" style="background:rgba(255,255,255,.08)"></div>
-                  <span>Latte</span><span class="ipad-product-price">₱135</span>
-                </div>
-                <div class="ipad-product">
-                  <div class="ipad-product-dot" style="background:rgba(255,255,255,.08)"></div>
-                  <span>Espresso</span><span class="ipad-product-price">₱90</span>
+                <div class="ipad-kpi">
+                  <div class="ipad-kpi-val">2</div>
+                  <div class="ipad-kpi-label">Pending Orders</div>
+                  <div class="ipad-kpi-sub">Awaiting fulfilment</div>
                 </div>
               </div>
-            </div>
-            <div class="ipad-order">
-              <div class="ipad-order-title">Current Order</div>
-              <div class="ipad-order-items">
-                <div class="ipad-order-row"><span>Flat White × 1</span><span>₱120</span></div>
-                <div class="ipad-order-row"><span>Canelé × 2</span><span>₱160</span></div>
+              <!-- Panels row -->
+              <div class="ipad-panels">
+                <div class="ipad-panel">
+                  <div class="ipad-panel-title">Recent Activity</div>
+                  <div class="ipad-panel-body">
+                    <div class="ipad-act-row"><span class="ipad-act-dot green"></span><span class="ipad-act-text">Lot LOT-001 received — Benguet Arabica</span><span class="ipad-act-date">Jun 20</span></div>
+                    <div class="ipad-act-row"><span class="ipad-act-dot blue"></span><span class="ipad-act-text">Batch B-004 — Roast</span><span class="ipad-act-date">Jun 22</span></div>
+                    <div class="ipad-act-row"><span class="ipad-act-dot purple"></span><span class="ipad-act-text">Order ORD-002 — Sip &amp; Gather</span><span class="ipad-act-date">Jun 24</span></div>
+                    <div class="ipad-act-row"><span class="ipad-act-dot green"></span><span class="ipad-act-text">Lot LOT-002 received — Sagada Natural</span><span class="ipad-act-date">Jun 25</span></div>
+                  </div>
+                </div>
+                <div class="ipad-panel">
+                  <div class="ipad-panel-title">Active Lots — Stock</div>
+                  <table class="ipad-table">
+                    <thead><tr><th>Lot</th><th>Product</th><th class="right">Remaining</th></tr></thead>
+                    <tbody>
+                      <tr><td class="mono">LOT-001</td><td>Benguet Arabica</td><td class="right bold">18.50 kg</td></tr>
+                      <tr><td class="mono">LOT-002</td><td>Sagada Natural</td><td class="right bold">12.00 kg</td></tr>
+                      <tr><td class="mono">LOT-003</td><td>Mt. Apo Cacao</td><td class="right bold">5.25 kg</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <div class="ipad-order-div"></div>
-              <div class="ipad-order-total"><span>Total</span><span>₱280</span></div>
-              <div class="ipad-pay-btns">
-                <div class="ipad-pay-btn">Cash</div>
-                <div class="ipad-pay-btn ipad-pay-active">GCash</div>
-                <div class="ipad-pay-btn">Card</div>
-              </div>
-              <div class="ipad-charge-btn">Charge ₱280</div>
             </div>
           </div>
         </div>
