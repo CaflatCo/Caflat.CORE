@@ -218,6 +218,7 @@ function saveSettings() {
     originModeEnabled,
     ...(voidPin ? { voidPin } : {})
   }));
+  persistState();
 
   renderBranding();
   renderCheckoutPaymentOptions();
