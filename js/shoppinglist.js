@@ -71,10 +71,9 @@ function _swRenderTabBar() {
     const btn = document.getElementById(id);
     if (!btn) return;
     const active = mode === _swMode;
-    btn.style.background = active ? 'var(--black)' : 'white';
-    btn.style.color       = active ? 'white' : 'var(--gray-400)';
+    btn.style.background = active ? 'var(--black)' : 'transparent';
+    btn.style.color       = active ? 'white' : 'var(--gray-500)';
   });
-  // Hide production tab if not enabled
   const prodTab = document.getElementById('swTabProduction');
   if (prodTab) prodTab.style.display = APP_STATE.settings?.productionModeEnabled ? 'block' : 'none';
 }
@@ -246,23 +245,25 @@ function _swRenderList() {
       : item.isCustom && item.pkgCost > 0
         ? formatCurrency(item.pkgCost)
         : '—';
-    return `<div style="display:flex;align-items:flex-start;gap:8px;
-      padding:10px 0;border-bottom:1px solid var(--border);
+    return `<div style="display:flex;align-items:center;gap:12px;
+      padding:13px 0;border-bottom:1px solid var(--border);
       opacity:${item.checked ? '0.4' : '1'};">
-      <input type="checkbox" ${item.checked ? 'checked' : ''}
-        onchange="_swToggleCheck(${idx}, this.checked)"
-        style="margin-top:3px;width:15px;height:15px;cursor:pointer;flex-shrink:0;" />
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:800;
-          ${item.checked ? 'text-decoration:line-through;' : ''}">
-          ${escapeHtml(item.name)}
+      <label style="display:flex;align-items:center;flex:1;min-width:0;gap:12px;cursor:pointer;">
+        <input type="checkbox" ${item.checked ? 'checked' : ''}
+          onchange="_swToggleCheck(${idx}, this.checked)"
+          style="width:20px;height:20px;cursor:pointer;flex-shrink:0;accent-color:var(--black);" />
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:800;
+            ${item.checked ? 'text-decoration:line-through;' : ''}">
+            ${escapeHtml(item.name)}
+          </div>
+          ${qty || pkgLine ? `<div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+            ${qty}${pkgLine ? ` · ${pkgLine}` : ''}
+          </div>` : ''}
         </div>
-        <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
-          ${qty}${pkgLine ? ` · ${pkgLine}` : ''}
-        </div>
-      </div>
+      </label>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:13px;font-weight:900;
+        <div style="font-size:14px;font-weight:900;
           color:${costDisplay === '—' ? 'var(--gray-300)' : 'var(--black)'};">
           ${costDisplay}
         </div>
@@ -270,7 +271,7 @@ function _swRenderList() {
       ${item.isFreeItem ? `
       <button type="button" onclick="_swRemoveFree(${idx})"
         style="background:none;border:none;cursor:pointer;color:var(--gray-300);
-          font-size:16px;padding:0 2px;flex-shrink:0;line-height:1;">✕</button>` : ''}
+          font-size:20px;padding:0 4px;flex-shrink:0;line-height:1;">✕</button>` : ''}
     </div>`;
   }).join('');
 
