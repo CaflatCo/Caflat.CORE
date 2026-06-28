@@ -440,7 +440,7 @@ nav.scrolled {
   gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 72px;
+  margin-bottom: 40px;
 }
 
 .btn-hero-primary {
@@ -472,6 +472,78 @@ nav.scrolled {
   transition: border-color .18s, color .18s;
 }
 .btn-hero-ghost:hover { border-color: rgba(255,255,255,.3); color: var(--text-white); }
+
+/* ─── Hero iPad Mockup ───────────────────────────────────────── */
+.hero-ipad {
+  margin: 0 auto 48px;
+  max-width: 680px;
+  perspective: 1400px;
+}
+.ipad-frame {
+  background: #1a1a1f;
+  border-radius: 22px;
+  border: 1.5px solid rgba(255,255,255,.09);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.04),
+    0 32px 80px rgba(0,0,0,.65),
+    0 0 50px rgba(200,163,117,.05);
+  padding: 16px 16px 20px;
+  transform: rotateX(3deg);
+  transform-origin: center top;
+}
+.ipad-notch {
+  width: 60px; height: 6px;
+  background: rgba(255,255,255,.08);
+  border-radius: 3px;
+  margin: 0 auto 12px;
+}
+.ipad-screen {
+  background: #0a0a0b;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.05);
+}
+.ipad-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  background: #111114;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  gap: 12px;
+}
+.ipad-bar-logo { font-size: .65rem; font-weight: 800; letter-spacing: -.01em; color: var(--text-white); white-space: nowrap; }
+.ipad-bar-dot  { color: var(--coffee); }
+.ipad-bar-tabs { display: flex; gap: 4px; }
+.ipad-tab { font-size: .6rem; font-weight: 600; letter-spacing: .03em; padding: 3px 9px; border-radius: 5px; color: var(--text-muted); }
+.ipad-tab-active { background: rgba(255,255,255,.07); color: var(--text-white); }
+.ipad-bar-time { font-size: .6rem; color: var(--text-muted); white-space: nowrap; }
+.ipad-body { display: grid; grid-template-columns: 1fr 200px; min-height: 200px; }
+.ipad-products { padding: 12px; border-right: 1px solid rgba(255,255,255,.06); }
+.ipad-cat-row { display: flex; gap: 5px; margin-bottom: 10px; }
+.ipad-cat { font-size: .58rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; color: var(--text-muted); }
+.ipad-cat-active { background: rgba(255,255,255,.07); color: var(--text-white); }
+.ipad-product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.ipad-product {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 7px;
+  padding: 8px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.ipad-product-sel { border-color: rgba(200,163,117,.25); background: rgba(200,163,117,.06); }
+.ipad-product-dot { width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; }
+.ipad-product > span:not(.ipad-product-price) { font-size: .62rem; font-weight: 600; color: var(--text-white); }
+.ipad-product-price { font-size: .58rem; color: var(--text-muted); }
+.ipad-order { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.ipad-order-title { font-size: .62rem; font-weight: 700; color: var(--text-dim); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 4px; }
+.ipad-order-row { display: flex; justify-content: space-between; font-size: .62rem; color: var(--text-dim); padding: 2px 0; }
+.ipad-order-div { height: 1px; background: rgba(255,255,255,.06); margin: 4px 0; }
+.ipad-order-total { display: flex; justify-content: space-between; font-size: .78rem; font-weight: 800; color: var(--text-white); }
+.ipad-pay-btns { display: flex; gap: 4px; margin-top: 4px; }
+.ipad-pay-btn { flex: 1; text-align: center; padding: 5px 0; font-size: .58rem; font-weight: 700; border-radius: 5px; border: 1px solid rgba(255,255,255,.08); color: var(--text-muted); }
+.ipad-pay-active { background: rgba(200,163,117,.12); border-color: rgba(200,163,117,.28); color: var(--coffee); }
+.ipad-charge-btn { margin-top: 6px; background: var(--coffee); color: #0a0a0b; font-size: .68rem; font-weight: 800; text-align: center; border-radius: 7px; padding: 8px; letter-spacing: .02em; }
 
 .hero-rule {
   width: 100%;
@@ -1178,6 +1250,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .nav-links { display: none; }
   .hero-actions { flex-direction: column; align-items: center; }
   .hero-photo-right { width: 100%; opacity: 0.22; }
+  .hero-ipad { display: none; }
   .hero-stat-div { display: none; }
   .hero-stats { gap: 36px; flex-wrap: wrap; justify-content: center; }
   .hero-stat  { padding: 0; }
