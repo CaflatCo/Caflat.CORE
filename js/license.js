@@ -644,19 +644,27 @@ async function triggerLicenseRevalidation() {
     // 2. Revalidate license
     if (_licenseState) await revalidateLicense(true);
 
-    // 3. If on cloud tier, also test sync_log table (the actual sync target)
+    // 3. If on cloud tier, test sync_log INSERT permission (the actual failing operation)
     if (typeof isCloudTier === 'function' && isCloudTier()) {
-      const syncRes = await fetch(`${CAFLAT_SB_URL}/rest/v1/sync_log?limit=1`, {
-        headers: { 'apikey': CAFLAT_SB_ANON, 'Authorization': `Bearer ${CAFLAT_SB_ANON}` }
+      const syncRes = await fetch(`${CAFLAT_SB_URL}/rest/v1/sync_log`, {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'apikey':        CAFLAT_SB_ANON,
+          'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+          'Prefer':        'return=minimal'
+        },
+        body: JSON.stringify({ _test: true }) // intentionally invalid — 400 = allowed, 403 = blocked
       });
-      if (!syncRes.ok) {
+      if (syncRes.status === 403 || syncRes.status === 401) {
         const body = await syncRes.text().catch(() => '');
-        const detail = `sync_log: HTTP ${syncRes.status}${body ? ' — ' + body.slice(0, 80) : ''}`;
+        const detail = `sync_log INSERT blocked (HTTP ${syncRes.status}) — run the RLS policy SQL in Supabase`;
         updateSyncStatus('error', detail);
-        showNotification('Sync table error: ' + detail, 'error');
+        showNotification('Sync blocked: RLS policy missing on sync_log. Check Settings for fix.', 'error');
         if (checkBtn) { checkBtn.textContent = 'Check License'; checkBtn.disabled = false; }
         return;
       }
+      // 400 = permission ok, just bad data (expected) — that's fine
     }
 
     const now = new Date().toLocaleString('en-PH', {
