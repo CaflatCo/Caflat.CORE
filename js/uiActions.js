@@ -630,81 +630,6 @@ function bindDelegatedActions() {
   });
 }
 
-/* ── Category / order type ── */
-function setActiveCategory(category = 'All') {
-  updateState('ui', current => ({ ...current, activeCategory: category }));
-  renderCategoryTabs();
-  renderPOSProducts();
-}
-
-function setOrderType(type) {
-  updateState('ui', current => ({ ...current, orderType: type }));
-  renderOrderTypeTabs();
-}
-
-function renderOrderTypeTabs() {
-  const container = document.getElementById('orderTypeTabs');
-  if (!container) return;
-
-  const coffeeCartOn = APP_STATE.settings?.coffeeCartModeEnabled === true;
-
-  if (coffeeCartOn) {
-    // Coffee Cart Mode: show channels instead of order types
-    // Hide the old separate channel container
-    const chanSel = document.getElementById('channelSelectorContainer');
-    if (chanSel) chanSel.style.display = 'none';
-
-    const current = APP_STATE.ui?.activeChannel || APP_STATE.ui?.orderType || 'Dine In';
-    const channels = Object.keys(typeof CART_CHANNELS !== 'undefined' ? CART_CHANNELS : {});
-    const available = channels.length
-      ? channels
-      : ['Dine In', 'Take Out', 'Delivery'];
-
-    container.innerHTML = available.map(ch => `
-      <button type="button" class="order-type-btn${current === ch ? ' active' : ''}"
-        data-action="set-channel" data-channel="${escapeHtml(ch)}">${escapeHtml(ch)}</button>`
-    ).join('');
-  } else {
-    // Normal mode: show order types
-    const chanSel = document.getElementById('channelSelectorContainer');
-    if (chanSel) chanSel.style.display = 'none';
-
-    const types   = APP_STATE.settings?.orderTypes || ['Dine In', 'Take Out', 'Delivery'];
-    const current = APP_STATE.ui?.orderType || 'Dine In';
-    container.innerHTML = types.map(t => `
-      <button type="button" class="order-type-btn${current === t ? ' active' : ''}"
-        data-action="set-order-type" data-type="${escapeHtml(t)}">${escapeHtml(t)}</button>`
-    ).join('');
-  }
-}
-
-function renderCategoryTabs() {
-  const container = document.getElementById('categoryTabs');
-  if (!container) return;
-  const categories = Array.isArray(APP_STATE.categories) ? APP_STATE.categories : [];
-  const active = APP_STATE.ui?.activeCategory || 'All';
-  container.innerHTML = '';
-
-  const allBtn = document.createElement('button');
-  allBtn.type = 'button';
-  allBtn.textContent = 'All';
-  allBtn.dataset.action = 'filter-category';
-  allBtn.dataset.category = 'All';
-  if (active === 'All') allBtn.classList.add('active');
-  container.appendChild(allBtn);
-
-  categories.forEach(cat => {
-    const catName = typeof cat === 'object' ? cat.name : cat;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = catName;
-    btn.dataset.action = 'filter-category';
-    btn.dataset.category = catName;
-    if (String(active) === String(catName)) btn.classList.add('active');
-    container.appendChild(btn);
-  });
-}
-
 /* ── Variant / Recipe builders ── */
 function addVariantRow(variant = null) {
   const container = document.getElementById('variantBuilder');
@@ -825,8 +750,4 @@ window.addVariantRow        = addVariantRow;
 window.addRecipeRow         = addRecipeRow;
 window.addPackagingRow      = addPackagingRow;
 window.openVariantSelector  = openVariantSelector;
-window.renderCategoryTabs   = renderCategoryTabs;
-window.renderOrderTypeTabs  = renderOrderTypeTabs;
-window.setActiveCategory    = setActiveCategory;
-window.setOrderType         = setOrderType;
 window.bindSupplyFilters     = bindSupplyFilters;
