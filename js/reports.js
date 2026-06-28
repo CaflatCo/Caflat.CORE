@@ -797,6 +797,65 @@ function _animateReportSections() {
   });
 }
 
+/* ── Report date presets ── */
+function _applyReportPreset(preset) {
+  const fromEl = document.getElementById('reportFromDate');
+  const toEl   = document.getElementById('reportToDate');
+  if (!fromEl || !toEl) return;
+
+  const fmt = d => d.toISOString().slice(0, 10);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let from, to = new Date();
+
+  switch (preset) {
+    case 'today':
+      from = new Date(today);
+      to   = new Date(today);
+      break;
+    case 'yesterday': {
+      const y = new Date(today);
+      y.setDate(y.getDate() - 1);
+      from = to = y;
+      break;
+    }
+    case 'week': {
+      from = new Date(today);
+      from.setDate(today.getDate() - today.getDay()); // Sunday start
+      to = new Date(today);
+      break;
+    }
+    case 'month':
+      from = new Date(today.getFullYear(), today.getMonth(), 1);
+      to   = new Date(today);
+      break;
+    case 'last30':
+      from = new Date(today);
+      from.setDate(today.getDate() - 29);
+      to = new Date(today);
+      break;
+    case 'all':
+    default:
+      fromEl.value = '';
+      toEl.value   = '';
+      document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
+      const allBtn = document.querySelector('.date-preset-btn[data-preset="all"]');
+      if (allBtn) allBtn.classList.add('active');
+      if (typeof renderReports === 'function') renderReports();
+      return;
+  }
+
+  fromEl.value = fmt(from);
+  toEl.value   = fmt(to);
+
+  document.querySelectorAll('.date-preset-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.querySelector(`.date-preset-btn[data-preset="${preset}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  if (typeof renderReports === 'function') renderReports();
+}
+
 /* ── Exports ── */
 window.renderReports                = renderReports;
 window.renderReportKPIs             = renderReportKPIs;
@@ -815,3 +874,4 @@ window.toggleProfitabilitySection   = toggleProfitabilitySection;
 window.renderBreakEvenReport        = renderBreakEvenReport;
 window.exportReportAsPDF            = exportReportAsPDF;
 window._animateReportSections       = _animateReportSections;
+window._applyReportPreset           = _applyReportPreset;
