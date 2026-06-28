@@ -190,8 +190,16 @@ header h1 {
   padding-left: 9px;
 }
 
-/* remove nav-icon from CSS since icons are gone from HTML */
-.nav-icon { display: none; }
+.nav-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  margin-right: 8px;
+  opacity: .65;
+  transition: opacity var(--transition);
+}
+.sidebar nav button:hover .nav-icon,
+.sidebar nav button.active .nav-icon { opacity: 1; }
 
 /* ═══ LAYOUT ═══ */
 main {
