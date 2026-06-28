@@ -480,97 +480,196 @@ nav.scrolled {
   perspective: 1400px;
 }
 
-/* Realistic iPad Pro shell — space gray aluminum */
+/* ── Realistic iPad Pro 11" — space gray ─────────── */
 .ipad-device {
   position: relative;
-  background: linear-gradient(155deg,
-    #56565a 0%,
-    #3a3a3c 12%,
-    #2c2c2e 45%,
-    #1e1e20 80%,
-    #111113 100%
+  background: linear-gradient(148deg,
+    #838386 0%,
+    #6d6d70 8%,
+    #57575a 20%,
+    #464648 38%,
+    #383839 58%,
+    #2b2b2d 78%,
+    #1c1c1e 100%
   );
-  border-radius: 28px;
-  padding: 13px 11px 11px;
+  border-radius: 32px;
+  padding: 15px 15px 13px 14px;
   box-shadow:
-    0 0 0 1px rgba(255,255,255,.13),
-    inset 0 1px 0 rgba(255,255,255,.08),
-    inset 0 0 0 1px rgba(0,0,0,.55),
-    0 48px 100px rgba(0,0,0,.75),
-    0 12px 36px rgba(0,0,0,.45);
-  transform: rotateX(3deg);
+    /* Polished chamfered edge — bright top/left, dark bottom/right */
+    inset 0 1.5px 0 rgba(255,255,255,.30),
+    inset 1.5px 0 0 rgba(255,255,255,.13),
+    inset 0 -1.5px 0 rgba(0,0,0,.52),
+    inset -1.5px 0 0 rgba(0,0,0,.38),
+    /* Hard outer rim */
+    0 0 0 1px rgba(0,0,0,.72),
+    /* Layered drop shadow */
+    0 1px 4px rgba(0,0,0,.28),
+    0 8px 24px rgba(0,0,0,.50),
+    0 28px 68px rgba(0,0,0,.58),
+    0 60px 130px rgba(0,0,0,.42);
+  transform: rotateX(4deg);
   transform-origin: center top;
 }
 
-/* Metallic sheen overlay */
+/* Anodized aluminum surface sheen */
 .ipad-device::before {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 28px;
-  background: linear-gradient(155deg,
-    rgba(255,255,255,.13) 0%,
-    rgba(255,255,255,.04) 20%,
-    transparent 50%,
-    rgba(255,255,255,.02) 100%
+  border-radius: 32px;
+  background: linear-gradient(148deg,
+    rgba(255,255,255,.22) 0%,
+    rgba(255,255,255,.10) 14%,
+    rgba(255,255,255,.04) 30%,
+    transparent 52%,
+    rgba(255,255,255,.02) 75%,
+    transparent 100%
   );
   pointer-events: none;
   z-index: 2;
 }
 
-/* Camera dot — top edge, slightly left of center */
+/* Camera — top long edge, right of center (iPad Pro M4 landscape) */
 .ipad-cam {
   position: absolute;
-  top: 5.5px;
-  left: 50%;
-  transform: translateX(-12px);
-  width: 7px; height: 7px;
+  top: 5px;
+  left: 58%;
+  width: 9px; height: 9px;
   border-radius: 50%;
-  background: radial-gradient(circle at 38% 35%, #3a3a3c, #0a0a0a);
-  border: 1px solid rgba(0,0,0,.7);
-  box-shadow: 0 0 0 1px rgba(255,255,255,.07);
+  background: radial-gradient(circle at 33% 28%, #2c2c36, #060610);
+  border: 1.5px solid rgba(0,0,0,.85);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.07),
+    0 0 0 2.5px rgba(0,0,0,.50),
+    inset 0 0 4px rgba(0,0,0,.95);
+  z-index: 3;
+}
+/* Lens inner ring */
+.ipad-cam::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 28%, #14143a, #02020a);
+  box-shadow: inset 0 0 3px rgba(50,80,200,.22);
 }
 
-/* Power button — right short edge */
+/* Power / Touch ID — right edge, near top */
 .ipad-btn-power {
   position: absolute;
-  top: 22px;
-  right: -3px;
-  width: 3px; height: 32px;
-  background: linear-gradient(90deg, #222224, #3a3a3c, #2c2c2e);
-  border-radius: 0 2px 2px 0;
-  box-shadow: 1px 0 2px rgba(0,0,0,.5);
+  top: 20px;
+  right: -5px;
+  width: 5px; height: 42px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(90deg,
+    #1c1c1e 0%,
+    #3a3a3c 33%,
+    #525254 50%,
+    #3c3c3e 67%,
+    #1c1c1e 100%
+  );
+  box-shadow:
+    3px 0 6px rgba(0,0,0,.65),
+    inset 0 1.5px 0 rgba(255,255,255,.18),
+    inset 0 -1.5px 0 rgba(0,0,0,.50);
 }
 
-/* Volume buttons — left short edge */
+/* Volume Up — right edge */
 .ipad-btn-vol {
   position: absolute;
-  bottom: 42px;
-  left: -3px;
-  width: 3px; height: 22px;
-  background: linear-gradient(270deg, #222224, #3a3a3c, #2c2c2e);
-  border-radius: 2px 0 0 2px;
-  box-shadow: -1px 0 2px rgba(0,0,0,.5);
+  top: 76px;
+  right: -5px;
+  width: 5px; height: 32px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(90deg,
+    #1c1c1e 0%,
+    #3a3a3c 33%,
+    #525254 50%,
+    #3c3c3e 67%,
+    #1c1c1e 100%
+  );
+  box-shadow:
+    3px 0 6px rgba(0,0,0,.65),
+    inset 0 1.5px 0 rgba(255,255,255,.18),
+    inset 0 -1.5px 0 rgba(0,0,0,.50);
 }
+
+/* Volume Down — right edge */
 .ipad-btn-vol2 {
   position: absolute;
-  bottom: 16px;
-  left: -3px;
-  width: 3px; height: 22px;
-  background: linear-gradient(270deg, #222224, #3a3a3c, #2c2c2e);
-  border-radius: 2px 0 0 2px;
-  box-shadow: -1px 0 2px rgba(0,0,0,.5);
+  top: 116px;
+  right: -5px;
+  width: 5px; height: 32px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(90deg,
+    #1c1c1e 0%,
+    #3a3a3c 33%,
+    #525254 50%,
+    #3c3c3e 67%,
+    #1c1c1e 100%
+  );
+  box-shadow:
+    3px 0 6px rgba(0,0,0,.65),
+    inset 0 1.5px 0 rgba(255,255,255,.18),
+    inset 0 -1.5px 0 rgba(0,0,0,.50);
+}
+
+/* USB-C port — left short edge, centered */
+.ipad-usbc {
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px; height: 16px;
+  border-radius: 2px;
+  background: #080808;
+  box-shadow:
+    inset 0 0 3px rgba(0,0,0,.95),
+    0 0 0 1px rgba(255,255,255,.05);
+}
+
+/* Speaker grills — bottom long edge, symmetric 6-dot clusters */
+.ipad-spk-l {
+  position: absolute;
+  bottom: 4px;
+  left: 22px;
+  width: 2.5px; height: 6px;
+  border-radius: 1.5px;
+  background: rgba(0,0,0,.62);
+  box-shadow:
+    5px 0 0 rgba(0,0,0,.62),
+    10px 0 0 rgba(0,0,0,.62),
+    15px 0 0 rgba(0,0,0,.62),
+    20px 0 0 rgba(0,0,0,.62),
+    25px 0 0 rgba(0,0,0,.62);
+}
+.ipad-spk-r {
+  position: absolute;
+  bottom: 4px;
+  right: 22px;
+  width: 2.5px; height: 6px;
+  border-radius: 1.5px;
+  background: rgba(0,0,0,.62);
+  box-shadow:
+    -5px 0 0 rgba(0,0,0,.62),
+    -10px 0 0 rgba(0,0,0,.62),
+    -15px 0 0 rgba(0,0,0,.62),
+    -20px 0 0 rgba(0,0,0,.62),
+    -25px 0 0 rgba(0,0,0,.62);
 }
 
 .ipad-screen {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  border: 1px solid rgba(0,0,0,.18);
   position: relative;
   z-index: 1;
   font-family: 'Nunito', 'Inter', system-ui, sans-serif;
   text-align: left;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.22),
+    inset 0 0 0 1px rgba(255,255,255,.85),
+    inset 2px 2px 8px rgba(0,0,0,.06);
 }
 
 /* Top bar — black like the actual app header */
