@@ -479,29 +479,96 @@ nav.scrolled {
   max-width: 740px;
   perspective: 1400px;
 }
-.ipad-frame {
-  background: #1c1c1e;
-  border-radius: 22px;
-  border: 1.5px solid rgba(255,255,255,.09);
+
+/* Realistic iPad Pro shell — space gray aluminum */
+.ipad-device {
+  position: relative;
+  background: linear-gradient(155deg,
+    #56565a 0%,
+    #3a3a3c 12%,
+    #2c2c2e 45%,
+    #1e1e20 80%,
+    #111113 100%
+  );
+  border-radius: 28px;
+  padding: 13px 11px 11px;
   box-shadow:
-    0 0 0 1px rgba(255,255,255,.04),
-    0 32px 80px rgba(0,0,0,.70),
-    0 0 60px rgba(200,163,117,.04);
-  padding: 14px 14px 18px;
+    0 0 0 1px rgba(255,255,255,.13),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 0 0 1px rgba(0,0,0,.55),
+    0 48px 100px rgba(0,0,0,.75),
+    0 12px 36px rgba(0,0,0,.45);
   transform: rotateX(3deg);
   transform-origin: center top;
 }
-.ipad-notch {
-  width: 56px; height: 5px;
-  background: rgba(255,255,255,.10);
-  border-radius: 3px;
-  margin: 0 auto 10px;
+
+/* Metallic sheen overlay */
+.ipad-device::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  background: linear-gradient(155deg,
+    rgba(255,255,255,.13) 0%,
+    rgba(255,255,255,.04) 20%,
+    transparent 50%,
+    rgba(255,255,255,.02) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
 }
+
+/* Camera dot — top edge, slightly left of center */
+.ipad-cam {
+  position: absolute;
+  top: 5.5px;
+  left: 50%;
+  transform: translateX(-12px);
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, #3a3a3c, #0a0a0a);
+  border: 1px solid rgba(0,0,0,.7);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.07);
+}
+
+/* Power button — right short edge */
+.ipad-btn-power {
+  position: absolute;
+  top: 22px;
+  right: -3px;
+  width: 3px; height: 32px;
+  background: linear-gradient(90deg, #222224, #3a3a3c, #2c2c2e);
+  border-radius: 0 2px 2px 0;
+  box-shadow: 1px 0 2px rgba(0,0,0,.5);
+}
+
+/* Volume buttons — left short edge */
+.ipad-btn-vol {
+  position: absolute;
+  bottom: 42px;
+  left: -3px;
+  width: 3px; height: 22px;
+  background: linear-gradient(270deg, #222224, #3a3a3c, #2c2c2e);
+  border-radius: 2px 0 0 2px;
+  box-shadow: -1px 0 2px rgba(0,0,0,.5);
+}
+.ipad-btn-vol2 {
+  position: absolute;
+  bottom: 16px;
+  left: -3px;
+  width: 3px; height: 22px;
+  background: linear-gradient(270deg, #222224, #3a3a3c, #2c2c2e);
+  border-radius: 2px 0 0 2px;
+  box-shadow: -1px 0 2px rgba(0,0,0,.5);
+}
+
 .ipad-screen {
   background: #fff;
-  border-radius: 10px;
+  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid #d0d0d0;
+  border: 1px solid rgba(0,0,0,.18);
+  position: relative;
+  z-index: 1;
   font-family: 'Nunito', 'Inter', system-ui, sans-serif;
   text-align: left;
 }
