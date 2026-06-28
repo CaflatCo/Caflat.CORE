@@ -652,6 +652,30 @@ function _isGateUnlocked() {
   } catch { return false; }
 }
 
+function showGatePanel(panel) {
+  const signInPanel = document.getElementById('gateSignInPanel');
+  const createPanel = document.getElementById('gateCreatePanel');
+  const signInTab   = document.getElementById('gateTabSignIn');
+  const createTab   = document.getElementById('gateTabCreate');
+
+  const activeStyle   = { background: 'var(--black)', color: 'white' };
+  const inactiveStyle = { background: 'transparent',  color: 'var(--gray-500)' };
+
+  if (panel === 'create') {
+    if (signInPanel) signInPanel.style.display = 'none';
+    if (createPanel) createPanel.style.display = '';
+    if (signInTab)   Object.assign(signInTab.style, inactiveStyle);
+    if (createTab)   Object.assign(createTab.style,  activeStyle);
+  } else {
+    if (signInPanel) signInPanel.style.display = '';
+    if (createPanel) createPanel.style.display = 'none';
+    if (signInTab)   Object.assign(signInTab.style,  activeStyle);
+    if (createTab)   Object.assign(createTab.style, inactiveStyle);
+    const input = document.getElementById('gateCodeInput');
+    if (input) setTimeout(() => input.focus(), 50);
+  }
+}
+
 function _showGate() {
   const gate  = document.getElementById('gateScreen');
   const login = document.getElementById('loginScreen');
@@ -793,3 +817,4 @@ window.initializeAuth          = initializeAuth;
 window.submitGateCode          = submitGateCode;
 window.openChangePasswordModal = openChangePasswordModal;
 window.showForgotPassword      = showForgotPassword;
+window.showGatePanel           = showGatePanel;
