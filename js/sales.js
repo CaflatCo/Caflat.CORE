@@ -878,11 +878,6 @@ async function completeSale(forceStatus = 'COMPLETED') {
     tendered = total;
   }
 
-  if (!isPending && method !== 'cash' && !isCashLike && !referenceNumber) {
-    showNotification('Reference number is required for this payment method', 'error');
-    return;
-  }
-
   // Validate split payment
   if (!isPending && typeof isSplitActive === 'function' && isSplitActive()) {
     const split = getSplitPaymentData();
@@ -891,13 +886,6 @@ async function completeSale(forceStatus = 'COMPLETED') {
     }
     if (split.amount >= total) {
       showNotification('Split amount must be less than the total', 'error'); return;
-    }
-    const splitIsCash = split.method === 'cash';
-    const methods = APP_STATE.settings?.paymentMethods || [];
-    const splitMatched = methods.find(m => m.name.toLowerCase().replace(/\s+/g,'_') === split.method);
-    const splitIsCashLike = splitIsCash || splitMatched?.type === 'cash';
-    if (!splitIsCashLike && !split.reference) {
-      showNotification('Reference number required for split payment method', 'error'); return;
     }
   }
 
