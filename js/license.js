@@ -693,12 +693,64 @@ async function triggerLicenseRevalidation() {
 }
 
 /* ── Initialize ────────────────────────────────────── */
+function _showFirstRunOnboarding() {
+  let overlay = document.getElementById('firstRunOverlay');
+  if (overlay) return;
+  overlay = document.createElement('div');
+  overlay.id = 'firstRunOverlay';
+  overlay.style.cssText = [
+    'position:fixed;inset:0;z-index:9000',
+    'background:rgba(0,0,0,.82);backdrop-filter:blur(6px)',
+    'display:flex;align-items:center;justify-content:center;padding:24px',
+  ].join(';');
+  overlay.innerHTML = `
+    <div style="background:#111;border:1.5px solid rgba(255,255,255,.12);border-radius:18px;
+      padding:40px 36px;max-width:440px;width:100%;text-align:center;">
+      <div style="font-size:2rem;margin-bottom:4px;">☕</div>
+      <h2 style="color:#fff;font-size:1.35rem;font-weight:800;margin-bottom:10px;letter-spacing:-.02em;">
+        Welcome to Caflat.CORE
+      </h2>
+      <p style="color:rgba(255,255,255,.55);font-size:.88rem;line-height:1.65;margin-bottom:28px;">
+        You're running on the free plan. To unlock all features,
+        enter your license key below.
+      </p>
+      <input id="firstRunKeyInput" type="text" placeholder="CAFL-XXXX-XXXX-XXXX"
+        style="width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);
+          border-radius:10px;padding:13px 16px;color:#fff;font-size:1rem;font-family:monospace;
+          text-align:center;letter-spacing:.06em;text-transform:uppercase;outline:none;
+          margin-bottom:14px;box-sizing:border-box;">
+      <button onclick="(async()=>{
+          const k=document.getElementById('firstRunKeyInput').value.trim();
+          if(!k)return;
+          const r=await activateLicenseKey(k);
+          if(r.success){document.getElementById('firstRunOverlay').remove();}
+          else{showNotification(r.error,'error');}
+        })()"
+        style="width:100%;background:#fff;color:#000;border:none;border-radius:10px;
+          padding:14px;font-size:.95rem;font-weight:800;cursor:pointer;margin-bottom:12px;">
+        Activate License
+      </button>
+      <button onclick="document.getElementById('firstRunOverlay').remove()"
+        style="background:none;border:none;color:rgba(255,255,255,.35);font-size:.82rem;
+          cursor:pointer;padding:4px;">
+        Continue on free plan
+      </button>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('firstRunKeyInput')?.focus(), 100);
+}
+
 async function initializeLicense() {
   // Verify integrity before trusting local state
   _licenseState = await _loadLicenseFromStorage();
 
   // Apply tier immediately with what local storage gives us
   applyLicenseTier();
+
+  // Show onboarding for first-time users with no license
+  if (!_licenseState) {
+    setTimeout(_showFirstRunOnboarding, 800);
+  }
 
   // Always validate against Supabase on every startup (not just every 24h)
   updateSyncStatus('syncing', 'Connecting…');
