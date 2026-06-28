@@ -309,7 +309,7 @@ function applyLicenseTier() {
     pro:        { label: '✓ PRO',           color: '#15803d' },
     cloud:      { label: '✓ CLOUD',         color: '#2563eb' },
     enterprise: { label: '✓ ENTERPRISE',    color: '#7e22ce' },
-    god:        { label: 'GOD MODE',           color: '#b8860b' },
+    god:        { label: 'GOD MODE',         color: 'var(--black)' },
   };
   const display = TIER_DISPLAY[tier] || TIER_DISPLAY.free;
 
@@ -419,7 +419,7 @@ function _renderLicenseBadge() {
     pro:        { text: 'PRO',        bg: '#0f0f0f', color: '#fff' },
     cloud:      { text: 'CLOUD',      bg: '#2563eb', color: '#fff' },
     enterprise: { text: 'ENTERPRISE', bg: '#7e22ce', color: '#fff' },
-    god:        { text: 'GOD',         bg: '#c8a96e', color: '#0a0a0b' },
+    god:        { text: 'GOD',        bg: '#fff',    color: '#0a0a0b' },
   };
   const style = BADGE_STYLES[getLicenseTier()] || BADGE_STYLES.free;
   badge.textContent        = style.text;
@@ -453,7 +453,7 @@ function openLicenseModal() {
     pro:        { bg:'#0f0f0f', color:'#fff',    border:'#0f0f0f' },
     cloud:      { bg:'#1d4ed8', color:'#fff',    border:'#1d4ed8' },
     enterprise: { bg:'#7e22ce', color:'#fff',    border:'#7e22ce' },
-    god:        { bg:'#c8a96e', color:'#0a0a0b', border:'#b8860b' },
+    god:        { bg:'#0a0a0b', color:'#fff',    border:'#0a0a0b' },
   };
   const tc = TIER_COLORS[tier] || TIER_COLORS.free;
 
