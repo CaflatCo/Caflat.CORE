@@ -1182,7 +1182,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .form-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
 /* ─── Dark Form Section Overrides ────────────────────────────── */
-.section-form .form-intro .eyebrow { color: rgba(200,163,117,.75); }
+.section-form .form-intro .eyebrow { color: rgba(255,255,255,.45); }
 .section-form .form-intro h2       { color: var(--text-white); }
 .section-form .form-intro > p      { color: var(--text-dim); }
 
