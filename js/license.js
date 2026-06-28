@@ -667,6 +667,16 @@ async function triggerLicenseRevalidation() {
       // 400 = permission ok, just bad data (expected) — that's fine
     }
 
+    // 4. If on cloud tier, do a real sync push now to clear any stale error indicator
+    if (typeof isCloudTier === 'function' && isCloudTier() &&
+        typeof syncNow === 'function') {
+      if (checkBtn) checkBtn.textContent = 'Syncing…';
+      const result = await syncNow();
+      // syncNow already shows a notification; just update the sub-label
+      if (checkBtn) { checkBtn.textContent = 'Check License'; checkBtn.disabled = false; }
+      return;
+    }
+
     const now = new Date().toLocaleString('en-PH', {
       month: 'short', day: 'numeric',
       hour: 'numeric', minute: '2-digit', hour12: true
