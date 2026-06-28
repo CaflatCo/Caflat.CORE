@@ -1250,11 +1250,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .nav-links { display: none; }
   .hero-actions { flex-direction: column; align-items: center; }
   .hero-photo-right { width: 100%; opacity: 0.22; }
-  .hero-ipad { max-width: 100%; }
-  .ipad-frame { transform: none; }
-  .ipad-bar-tabs { display: none; }
-  .ipad-product-grid { grid-template-columns: repeat(2, 1fr); }
-  .ipad-body { grid-template-columns: 1fr 160px; }
+  .hero-ipad { display: none; }
   .hero-stat-div { display: none; }
   .hero-stats { gap: 36px; flex-wrap: wrap; justify-content: center; }
   .hero-stat  { padding: 0; }
