@@ -324,6 +324,55 @@ nav.scrolled {
   50%       { transform: translateY(-14px); opacity: 0.6; }
 }
 
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ─── Marquee ticker strip ────────────────────────────────────── */
+.marquee-strip {
+  background: var(--dark-card);
+  border-top: 1px solid var(--dark-border);
+  border-bottom: 1px solid var(--dark-border);
+  padding: 18px 0;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  animation: marquee-scroll 28s linear infinite;
+  will-change: transform;
+}
+
+.marquee-strip:hover .marquee-track { animation-play-state: paused; }
+
+.marquee-item {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0 28px;
+  transition: color .2s;
+}
+
+.marquee-strip:hover .marquee-item { color: var(--text-white); }
+
+.marquee-dot {
+  color: var(--coffee);
+  font-size: .7rem;
+  opacity: .6;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+}
+
 /* ─── Hero Content ────────────────────────────────────────────── */
 .hero-content {
   position: relative;
