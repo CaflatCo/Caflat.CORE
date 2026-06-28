@@ -801,7 +801,21 @@ function renderDeadWeightProducts(fromDate, toDate) {
 
 /* ── 13. PDF Export ── */
 function exportReportAsPDF() {
-  setTimeout(() => { window.print(); }, 400);
+  // Flush any in-progress reveal animations so nothing prints at opacity 0
+  const panel = document.getElementById('view-reports');
+  if (panel) {
+    panel.querySelectorAll(
+      '#reportStatsGrid, .chart-container, #voidRefundContainer, ' +
+      '#hourlyHeatmapContainer, #paymentBreakdownContainer, ' +
+      '#discountAnalysisContainer, #categoryPerformanceContainer, ' +
+      '.table-wrapper, #profitabilitySection, #reportBreakEvenContainer'
+    ).forEach(el => {
+      el.style.opacity    = '1';
+      el.style.transform  = 'none';
+      el.style.transition = 'none';
+    });
+  }
+  setTimeout(() => { window.print(); }, 150);
 }
 
 

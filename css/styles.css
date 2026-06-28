@@ -1802,39 +1802,99 @@ canvas { width: 100% !important; max-width: 100%; }
    PRINT / PDF EXPORT
 ═══════════════════════════════════════════════════ */
 @media print {
-  /* Hide everything except the reports panel */
-  header, nav, #loginScreen,
-  .filter-bar, #profitabilityToggleBtn,
-  button, .pos-products, .pos-cart,
+  /* ─── Reset page geometry — flatten the SPA shell ─── */
+  html, body {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11px;
+    display: block !important;
+  }
+
+  /* ─── Hide everything except the report panel ─── */
+  header, .sidebar, #loginScreen, #notificationContainer,
+  .filter-bar, #profitabilityToggleBtn, button,
   #view-pos, #view-dashboard, #view-products,
   #view-ingredients, #view-inventory, #view-sales,
   #view-supply, #view-production, #view-coffeecart,
   #view-lab, #view-settings,
   .shopping-list-fab { display: none !important; }
 
-  #view-reports { display: block !important; }
+  /* ─── Flatten flex/overflow containers so content flows ─── */
+  #app, .app-body, main {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    background: #fff !important;
+  }
+
+  #view-reports {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
   #profitabilitySection { display: block !important; }
 
-  body { background: #fff !important; font-size: 11px; }
-  .panel { box-shadow: none !important; border: none !important; padding: 0 !important; }
-  .panel-header { border-bottom: 2px solid #000 !important; margin-bottom: 16px; }
-  .panel-header h2 { font-size: 18px !important; }
+  /* ─── Panel ─── */
+  .panel {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+  .panel-header {
+    border-bottom: 2px solid #000 !important;
+    border-top: none !important;
+    margin-bottom: 16px;
+  }
+  .panel-header h2 { font-size: 18px !important; color: #000 !important; }
+  .section-title   { font-size: 10px !important; margin-top: 20px !important; color: #555 !important; }
 
-  .section-title { font-size: 10px !important; margin-top: 20px !important; }
-
-  .stat-card { border: 1px solid #ccc !important; break-inside: avoid; }
+  /* ─── Stat cards — force light background regardless of theme ─── */
+  .stat-card {
+    border: 1px solid #ccc !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    color: #000 !important;
+    break-inside: avoid;
+  }
+  .stat-card .label, .stat-card .sub { color: #555 !important; }
+  .stat-card .value { color: #000 !important; }
+  .stat-card.dark   { background: #111 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .stats-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; }
 
-  .chart-container { break-inside: avoid; }
+  /* ─── Charts ─── */
+  .chart-container {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #ddd !important;
+    background: #fff !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
   canvas { max-width: 100% !important; }
 
-  table { font-size: 10px !important; break-inside: auto; }
-  tr { break-inside: avoid; }
-
+  /* ─── Tables ─── */
   .table-wrapper { overflow: visible !important; }
+  table { font-size: 10px !important; break-inside: auto; width: 100% !important; }
+  tr { break-inside: avoid; }
+  th {
+    background: #000 !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 
-  /* Page breaks before major sections */
-  #profitabilitySection { page-break-before: always; }
+  /* ─── Page break before profitability deep-dive ─── */
+  #profitabilitySection { break-before: page; page-break-before: always; }
 }
 
 /* ═══════════════════════════════════════════════════
