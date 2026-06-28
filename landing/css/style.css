@@ -473,6 +473,27 @@ nav.scrolled {
 .btn-hero-ghost:hover { border-color: rgba(255,255,255,.3); color: var(--text-white); }
 
 /* ─── Hero Screenshot Fan ────────────────────────────────────── */
+
+/* Entrance keyframes — used once via JS inline style to avoid re-trigger on click */
+@keyframes fan-enter-left {
+  from { opacity: 0; transform: translateX(72px) rotate(-22deg) translateY(70px) scale(.95); }
+  to   { opacity: 1; transform: translateX(72px) rotate(-8deg)  translateY(28px) scale(1); }
+}
+@keyframes fan-enter-center {
+  from { opacity: 0; transform: translateX(0) rotate(3deg) translateY(56px) scale(.96); }
+  to   { opacity: 1; transform: translateX(0) rotate(0deg) translateY(0px)  scale(1); }
+}
+@keyframes fan-enter-right {
+  from { opacity: 0; transform: translateX(-72px) rotate(22deg) translateY(70px) scale(.95); }
+  to   { opacity: 1; transform: translateX(-72px) rotate(8deg)  translateY(28px) scale(1); }
+}
+
+/* Bar chart grow — scaleY from bottom, staggered per bar */
+@keyframes bar-grow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
 .hero-card-fan {
   display: flex;
   justify-content: center;
@@ -491,15 +512,29 @@ nav.scrolled {
   font-family: 'Inter', system-ui, sans-serif;
   position: relative;
   will-change: transform;
+  filter: brightness(1);
   /* transform-only — no layout reflow, GPU-composited */
   transition: transform .52s cubic-bezier(.34,1.56,.64,1),
-              box-shadow .52s cubic-bezier(.22,.61,.36,1);
+              box-shadow .52s cubic-bezier(.22,.61,.36,1),
+              filter .18s ease;
 }
 
 .fan-card-left,
 .fan-card-right { cursor: pointer; }
-.fan-card-left:hover  { box-shadow: -8px 12px 60px rgba(0,0,0,.68), 0 0 0 1px rgba(255,255,255,.16); }
-.fan-card-right:hover { box-shadow:  8px 12px 60px rgba(0,0,0,.68), 0 0 0 1px rgba(255,255,255,.16); }
+
+/* Hover: lean slightly toward center, brighten */
+.fan-card-left:hover {
+  filter: brightness(1.06);
+  transform: translateX(72px) rotate(-5deg) translateY(22px) scale(1.025);
+  box-shadow: -8px 12px 64px rgba(0,0,0,.70), 0 0 0 1px rgba(255,255,255,.18);
+  transition: transform .22s ease-out, box-shadow .22s ease-out, filter .18s ease;
+}
+.fan-card-right:hover {
+  filter: brightness(1.06);
+  transform: translateX(-72px) rotate(5deg) translateY(22px) scale(1.025);
+  box-shadow:  8px 12px 64px rgba(0,0,0,.70), 0 0 0 1px rgba(255,255,255,.18);
+  transition: transform .22s ease-out, box-shadow .22s ease-out, filter .18s ease;
+}
 
 /* Overlap is encoded in translateX so only transform animates — no margin changes */
 .fan-card-left {
@@ -527,7 +562,22 @@ nav.scrolled {
   background: #000;
 }
 .fan-logo { font-size: .72rem; font-weight: 900; color: #fff; letter-spacing: -.02em; }
-.fan-screen-label { font-size: .6rem; font-weight: 700; color: rgba(255,255,255,.45); letter-spacing: .08em; text-transform: uppercase; }
+.fan-screen-label {
+  font-size: .6rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.42);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 2px 0;
+  border-radius: 4px;
+  transition: color .35s, background .35s, padding .35s;
+}
+/* Active card gets a pill badge on its screen label */
+.fan-card-center .fan-screen-label {
+  color: rgba(255,255,255,.9);
+  background: rgba(255,255,255,.12);
+  padding: 2px 8px;
+}
 
 /* Fan card body */
 .fan-body { text-align: left; }
@@ -676,9 +726,20 @@ nav.scrolled {
   background: #111;
   border-radius: 3px 3px 0 0;
   min-height: 4px;
+  transform-origin: bottom center;
+  animation: bar-grow .55s cubic-bezier(.22,.61,.36,1) both;
 }
 .fan-bar-dim { background: #d0d0d0; }
 .fan-bar-label { font-size: .48rem; font-weight: 600; color: #aaa; }
+
+/* Stagger each bar so they grow left-to-right */
+.fan-bar-group:nth-child(1) .fan-bar { animation-delay: 1.30s; }
+.fan-bar-group:nth-child(2) .fan-bar { animation-delay: 1.40s; }
+.fan-bar-group:nth-child(3) .fan-bar { animation-delay: 1.50s; }
+.fan-bar-group:nth-child(4) .fan-bar { animation-delay: 1.60s; }
+.fan-bar-group:nth-child(5) .fan-bar { animation-delay: 1.70s; }
+.fan-bar-group:nth-child(6) .fan-bar { animation-delay: 1.78s; }
+.fan-bar-group:nth-child(7) .fan-bar { animation-delay: 1.85s; }
 
 .fan-top-products {}
 .fan-tp-row {

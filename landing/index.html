@@ -708,6 +708,25 @@
   var assignment = ['left', 'center', 'right'];
   var locked = false;
 
+  /* ── Staggered entrance ───────────────────────────────────────
+     Applied via inline style so the keyframe never re-fires when
+     the click handler swaps classes. Cleaned up after first play. */
+  var enterAnim  = { left: 'fan-enter-left', center: 'fan-enter-center', right: 'fan-enter-right' };
+  var enterDelay = { left: 500,  center: 200, right: 720 };
+  var enterDur   = { left: 680,  center: 720, right: 680 };
+  var easing     = 'cubic-bezier(.22,.61,.36,1)';
+
+  cards.forEach(function (card, i) {
+    var pos = assignment[i];
+    card.style.animation =
+      enterAnim[pos] + ' ' + enterDur[pos] + 'ms ' + easing + ' ' + enterDelay[pos] + 'ms both';
+
+    card.addEventListener('animationend', function () {
+      card.style.animation = '';
+    }, { once: true });
+  });
+
+  /* ── Click-to-swap ────────────────────────────────────────── */
   fan.addEventListener('click', function (e) {
     if (locked) return;
     var card = e.target.closest('.fan-card');
