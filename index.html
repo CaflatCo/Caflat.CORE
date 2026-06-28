@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script>(function(){var t=localStorage.getItem('caflat-theme');if(t)document.documentElement.dataset.theme=t;document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('themeToggleBtn');if(b&&document.documentElement.dataset.theme==='dark'){b.querySelector('.toggle-icon').textContent='☀';b.querySelector('.toggle-label').textContent='Light';}});}());</script>
-  <link href="css/styles.css" rel="stylesheet" />
+  <link href="css/styles.css?v=20260628a" rel="stylesheet" />
   <style>
     /* ── Semantic color overrides ── */
     :root {
@@ -527,7 +527,7 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Products</h2>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div class="flex-wrap-row">
               <button class="btn btn-secondary" id="openLabBtn" type="button" style="display:none;" onclick="switchPage('lab');">Product Lab</button>
               <button class="btn btn-secondary" id="openRecipesBtn" type="button" style="display:none;" onclick="switchPage('recipes');">Recipe Catalog</button>
               <button class="btn" id="addProductBtn" type="button">+ Add Product</button>
@@ -760,7 +760,7 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Reports &amp; Analytics</h2>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div class="flex-wrap-row">
               <button class="btn btn-secondary" type="button" onclick="exportReportAsPDF()">
                 Export PDF
               </button>
@@ -918,7 +918,7 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Supply Orders</h2>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div class="flex-wrap-row">
               <button class="btn" id="addSupplyOrderBtn" type="button">+ New Order</button>
               <button class="btn btn-secondary" id="exportSupplyBtn" type="button">Export CSV</button>
             </div>
@@ -995,7 +995,7 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Settings</h2>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div class="flex-wrap-row">
               <button class="btn" id="saveSettingsBtn" type="button">Save Settings</button>
               <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
             </div>
@@ -1018,7 +1018,7 @@
                   style="width:100%;height:100%;object-fit:contain;display:none;" />
                 <span id="logoPlaceholder" style="font-size:18px;">◻</span>
               </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div class="flex-wrap-row">
                 <label class="btn btn-secondary btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;">
                   Upload Logo
                   <input id="logoUploadInput" type="file" accept="image/png,image/jpeg,image/webp"
@@ -1177,7 +1177,7 @@
                   </div>
                 </div>
               </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div class="flex-wrap-row">
                 <button type="button" class="btn btn-secondary btn-sm" id="syncNowBtn"
                   onclick="typeof syncNow==='function' ? syncNow() : triggerLicenseRevalidation()">
                   Sync Now
@@ -1325,7 +1325,7 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Coffee Cart</h2>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div class="flex-wrap-row">
               <button class="btn" type="button" onclick="openEventModal(null);">+ New Event</button>
             </div>
           </div>
@@ -1341,19 +1341,19 @@
           <!-- Lead KPIs -->
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
             <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
-              <div style="font-size:22px;font-weight:900;" id="leadKpiTotal">0</div>
+              <div class="text-xl" id="leadKpiTotal">0</div>
               <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Total Leads</div>
             </div>
             <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
-              <div style="font-size:22px;font-weight:900;" id="leadKpiBooked">0</div>
+              <div class="text-xl" id="leadKpiBooked">0</div>
               <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Booked</div>
             </div>
             <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
-              <div style="font-size:22px;font-weight:900;" id="leadKpiConv">0%</div>
+              <div class="text-xl" id="leadKpiConv">0%</div>
               <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Conv. Rate</div>
             </div>
             <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;text-align:center;">
-              <div style="font-size:22px;font-weight:900;" id="leadKpiPipeline">₱0</div>
+              <div class="text-xl" id="leadKpiPipeline">₱0</div>
               <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-400);margin-top:2px;">Pipeline</div>
             </div>
           </div>
@@ -1363,10 +1363,10 @@
             <table id="eventsTable" style="width:100%;border-collapse:collapse;font-size:13px;">
               <thead>
                 <tr style="border-bottom:2px solid var(--border);">
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Event</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Type</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Date</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Location</th>
+                  <th class="th-label">Event</th>
+                  <th class="th-label">Type</th>
+                  <th class="th-label">Date</th>
+                  <th class="th-label">Location</th>
                   <th style="text-align:right;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Revenue</th>
                   <th style="text-align:right;padding:8px 10px;"></th>
                 </tr>
@@ -1412,13 +1412,13 @@
             <table id="leadsTable" style="width:100%;border-collapse:collapse;font-size:13px;">
               <thead>
                 <tr style="border-bottom:2px solid var(--border);">
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Client</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Contact</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Type</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Event Date</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Pax / Budget</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Package</th>
-                  <th style="text-align:left;padding:8px 10px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">Status</th>
+                  <th class="th-label">Client</th>
+                  <th class="th-label">Contact</th>
+                  <th class="th-label">Type</th>
+                  <th class="th-label">Event Date</th>
+                  <th class="th-label">Pax / Budget</th>
+                  <th class="th-label">Package</th>
+                  <th class="th-label">Status</th>
                   <th style="text-align:right;padding:8px 10px;"></th>
                 </tr>
               </thead>
@@ -1683,7 +1683,7 @@
         <div class="panel">
           <div class="panel-header">
             <h2>Recipe Catalog</h2>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div class="flex-wrap-row">
               <button class="btn btn-secondary" type="button" onclick="switchPage('products');">← Back to Products</button>
               <button class="btn" type="button" onclick="openRecipeForm(null);">+ New Recipe</button>
             </div>
@@ -1721,10 +1721,10 @@
           <div id="recipeFormView" style="display:none;">
             <input type="hidden" id="rcFormId" />
             <div class="form-group">
-              <label>Recipe Name <span style="color:var(--danger);">*</span></label>
+              <label>Recipe Name <span class="required-star">*</span></label>
               <input id="rcFormName" type="text" placeholder="e.g. Brown Butter Cookie Dough" />
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="grid-2">
               <div class="form-group">
                 <label>Category</label>
                 <select id="rcFormCategory">
@@ -1934,7 +1934,7 @@
 
         <div class="form-group">
           <label>Total Due</label>
-          <input id="checkoutTotal" readonly type="text" style="font-size:22px;font-weight:900;" />
+          <input id="checkoutTotal" readonly type="text" class="text-xl" />
         </div>
 
         <div class="form-row">
@@ -2073,13 +2073,13 @@
               style="background:var(--gray-50);font-family:var(--font-mono);font-weight:700;" />
           </div>
           <div class="form-group">
-            <label>Order Date <span style="color:var(--danger);">*</span></label>
+            <label>Order Date <span class="required-star">*</span></label>
             <input id="supplyOrderDate" type="date" />
           </div>
         </div>
 
         <div class="form-group">
-          <label>Client <span style="color:var(--danger);">*</span></label>
+          <label>Client <span class="required-star">*</span></label>
           <select id="supplyClientSelect" class="supply-client-select"></select>
         </div>
 
@@ -2125,7 +2125,7 @@
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <span style="font-size:10px;letter-spacing:2px;text-transform:uppercase;
               font-weight:800;color:var(--gray-400);">Grand Total</span>
-            <span id="supplyOrderTotal" style="font-size:22px;font-weight:900;">₱0.00</span>
+            <span id="supplyOrderTotal" class="text-xl">₱0.00</span>
           </div>
         </div>
 
@@ -2150,7 +2150,7 @@
         <h3>Client</h3>
         <input id="clientId" type="hidden" />
         <div class="form-group">
-          <label>Client Name <span style="color:var(--danger);">*</span></label>
+          <label>Client Name <span class="required-star">*</span></label>
           <input id="clientName" type="text" placeholder="e.g. Caflat Café Makati" />
         </div>
         <div class="form-row">
@@ -2200,7 +2200,7 @@
         </div>
 
         <div class="form-group">
-          <label>Client <span style="color:var(--danger);">*</span></label>
+          <label>Client <span class="required-star">*</span></label>
           <select id="supplierOrderClientSelect" class="supply-client-select"></select>
         </div>
 
@@ -2260,7 +2260,7 @@
         </div>
 
         <div class="form-group">
-          <label>Reason for Refund <span style="color:var(--danger);">*</span></label>
+          <label>Reason for Refund <span class="required-star">*</span></label>
           <textarea id="refundReason" rows="2"
             placeholder="e.g. Wrong order, customer complaint, damaged item…"></textarea>
         </div>
@@ -2336,13 +2336,13 @@
         </div>
 
         <div class="form-group">
-          <label>Reason for Void <span style="color:var(--danger);">*</span></label>
+          <label>Reason for Void <span class="required-star">*</span></label>
           <textarea id="voidReason" rows="2"
             placeholder="e.g. Wrong order, customer request, duplicate transaction…"></textarea>
         </div>
 
         <div class="form-group">
-          <label>Admin Void PIN <span style="color:var(--danger);">*</span></label>
+          <label>Admin Void PIN <span class="required-star">*</span></label>
           <div class="pin-dots" id="voidPinDots">
             <div class="pin-dot"></div><div class="pin-dot"></div>
             <div class="pin-dot"></div><div class="pin-dot"></div>
@@ -2391,10 +2391,10 @@
         <h3>Production Job</h3>
         <input type="hidden" id="prodJobId" />
         <div class="form-group">
-          <label>Job Name <span style="color:var(--danger);">*</span></label>
+          <label>Job Name <span class="required-star">*</span></label>
           <input id="prodJobName" type="text" placeholder="e.g. Weekend Cookie Batch" />
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="grid-2">
           <div class="form-group">
             <label>Scheduled Date</label>
             <input id="prodJobScheduledDate" type="date" />
@@ -2477,14 +2477,14 @@
         <h3>Labor Person</h3>
         <input type="hidden" id="laborPersonId" />
         <div class="form-group">
-          <label>Name <span style="color:var(--danger);">*</span></label>
+          <label>Name <span class="required-star">*</span></label>
           <input id="laborPersonName" type="text" placeholder="e.g. Maria Santos" />
         </div>
         <div class="form-group">
           <label>Role</label>
           <input id="laborPersonRole" type="text" placeholder="e.g. Baker, Barista" />
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="grid-2">
           <div class="form-group">
             <label>Daily Rate (₱)</label>
             <input id="laborPersonRate" type="number" min="0" />
@@ -2548,10 +2548,10 @@
         <h3>Event</h3>
         <input type="hidden" id="eventId" />
         <div class="form-group">
-          <label>Event Name <span style="color:var(--danger);">*</span></label>
+          <label>Event Name <span class="required-star">*</span></label>
           <input id="eventName" type="text" placeholder="e.g. Eastwood Night Market" />
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="grid-2">
           <div class="form-group">
             <label>Date</label>
             <input id="eventDate" type="date" />
@@ -2588,7 +2588,7 @@
         <h3>Package</h3>
         <input type="hidden" id="packageId" />
         <div class="form-group">
-          <label>Package Name <span style="color:var(--danger);">*</span></label>
+          <label>Package Name <span class="required-star">*</span></label>
           <input id="packageName" type="text" placeholder="e.g. Signature Coffee Package" />
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
@@ -2625,9 +2625,9 @@
       <div class="modal" style="max-width:540px;">
         <h3>Lead</h3>
         <input type="hidden" id="leadId" />
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="grid-2">
           <div class="form-group">
-            <label>Client Name <span style="color:var(--danger);">*</span></label>
+            <label>Client Name <span class="required-star">*</span></label>
             <input id="leadClientName" type="text" />
           </div>
           <div class="form-group">
@@ -2639,7 +2639,7 @@
           <label>Email</label>
           <input id="leadEmail" type="email" />
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="grid-2">
           <div class="form-group">
             <label>Event Type</label>
             <select id="leadEventType">
@@ -2655,7 +2655,7 @@
             <input id="leadEventDate" type="date" />
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="grid-2">
           <div class="form-group">
             <label>Pax</label>
             <input id="leadPax" type="number" min="0" />
@@ -2665,7 +2665,7 @@
             <input id="leadBudget" type="number" min="0" />
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="grid-2">
           <div class="form-group">
             <label>Package</label>
             <select id="leadPackageRef">
@@ -2714,27 +2714,27 @@
         <!-- Summary cards -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
           <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
-            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Revenue</div>
+            <div class="label-micro">Revenue</div>
             <div style="font-size:20px;font-weight:900;" id="profitRevenue">₱0.00</div>
           </div>
           <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
-            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Net Profit</div>
+            <div class="label-micro">Net Profit</div>
             <div style="font-size:20px;font-weight:900;" id="profitNetProfit">₱0.00</div>
           </div>
           <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
-            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Ingredient Cost</div>
+            <div class="label-micro">Ingredient Cost</div>
             <div style="font-size:16px;font-weight:800;" id="profitIngredientCost">₱0.00</div>
           </div>
           <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
-            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Expenses</div>
+            <div class="label-micro">Expenses</div>
             <div style="font-size:16px;font-weight:800;" id="profitExpenses">₱0.00</div>
           </div>
           <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
-            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Total Cost</div>
+            <div class="label-micro">Total Cost</div>
             <div style="font-size:16px;font-weight:800;" id="profitTotalCost">₱0.00</div>
           </div>
           <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
-            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400);margin-bottom:4px;">Margin / Orders</div>
+            <div class="label-micro">Margin / Orders</div>
             <div style="font-size:16px;font-weight:800;">
               <span id="profitMargin">0%</span>
               <span style="font-size:11px;color:var(--gray-400);margin-left:6px;">· <span id="profitOrders">0</span> orders</span>
@@ -2810,10 +2810,10 @@
       <div class="modal" style="max-width:480px;">
         <h3>Category Preset</h3>
         <div class="form-group">
-          <label>Category Name <span style="color:var(--danger);">*</span></label>
+          <label>Category Name <span class="required-star">*</span></label>
           <input id="labPresetCategory" type="text" placeholder="e.g. Cookies" />
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="grid-2">
           <div class="form-group">
             <label>Default Batch Size</label>
             <input id="labPresetBatchSize" type="number" min="1" value="1" />
@@ -2839,7 +2839,7 @@
       <div class="modal" style="max-width:500px;">
         <h3>Convert to Product</h3>
         <div class="form-group">
-          <label>Product Name <span style="color:var(--danger);">*</span></label>
+          <label>Product Name <span class="required-star">*</span></label>
           <input id="labConvertName" type="text" />
         </div>
         <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:10px;">Select Price Scenario</div>
@@ -2924,7 +2924,7 @@
         <h3 id="paymentMethodModalTitle">Add Payment Method</h3>
         <input type="hidden" id="pmEditId" />
         <div class="form-group">
-          <label>Method Name <span style="color:var(--danger);">*</span></label>
+          <label>Method Name <span class="required-star">*</span></label>
           <input id="pmName" type="text" placeholder="e.g. GCash, Maya, Cash, Bank Transfer" />
         </div>
         <div class="form-group">

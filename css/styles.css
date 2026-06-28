@@ -2304,4 +2304,13 @@ html[data-theme="dark"] .notification-content { color: var(--gray-900); }
 
 /* Misc */
 html[data-theme="dark"] .section-title::after { background: var(--gray-200); }
+
+/* ── Utility classes ──────────────────────────────────────────────────────── */
+.required-star { color: var(--danger); }
+.grid-2        { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.flex-wrap-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.th-label      { text-align: left; padding: 8px 10px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--gray-400); }
+.label-micro   { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray-400); margin-bottom: 4px; }
+.text-xl       { font-size: 22px; font-weight: 900; }
+.section-head  { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--gray-400); }
