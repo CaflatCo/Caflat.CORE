@@ -490,30 +490,30 @@ nav.scrolled {
   overflow: hidden;
   font-family: 'Inter', system-ui, sans-serif;
   position: relative;
-  transition: transform .42s cubic-bezier(.22,.61,.36,1),
-              box-shadow .42s cubic-bezier(.22,.61,.36,1),
-              margin .42s cubic-bezier(.22,.61,.36,1);
+  will-change: transform;
+  /* transform-only — no layout reflow, GPU-composited */
+  transition: transform .52s cubic-bezier(.34,1.56,.64,1),
+              box-shadow .52s cubic-bezier(.22,.61,.36,1);
 }
 
 .fan-card-left,
 .fan-card-right { cursor: pointer; }
-.fan-card-left:hover  { box-shadow: -8px 12px 56px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.14); }
-.fan-card-right:hover { box-shadow:  8px 12px 56px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.14); }
+.fan-card-left:hover  { box-shadow: -8px 12px 60px rgba(0,0,0,.68), 0 0 0 1px rgba(255,255,255,.16); }
+.fan-card-right:hover { box-shadow:  8px 12px 60px rgba(0,0,0,.68), 0 0 0 1px rgba(255,255,255,.16); }
 
+/* Overlap is encoded in translateX so only transform animates — no margin changes */
 .fan-card-left {
-  transform: rotate(-8deg) translateY(28px);
-  margin-right: -72px;
+  transform: translateX(72px) rotate(-8deg) translateY(28px);
   z-index: 1;
   box-shadow: -8px 12px 48px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08);
 }
 .fan-card-center {
-  transform: rotate(0deg);
+  transform: translateX(0px) rotate(0deg) translateY(0px);
   z-index: 3;
   box-shadow: 0 16px 64px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.12);
 }
 .fan-card-right {
-  transform: rotate(8deg) translateY(28px);
-  margin-left: -72px;
+  transform: translateX(-72px) rotate(8deg) translateY(28px);
   z-index: 2;
   box-shadow: 8px 12px 48px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08);
 }
