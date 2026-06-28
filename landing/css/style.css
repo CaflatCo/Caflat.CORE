@@ -1265,9 +1265,9 @@ nav.scrolled {
   display: block;
   text-align: center;
   padding: 13px 20px;
-  background: rgba(255,255,255,.05);
-  color: var(--text-dim);
-  border: 1px solid var(--dark-border-hi);
+  background: rgba(255,255,255,.08);
+  color: var(--text-white);
+  border: 1px solid rgba(255,255,255,.25);
   border-radius: var(--radius);
   font-weight: 700;
   font-size: .82rem;
@@ -1275,9 +1275,9 @@ nav.scrolled {
   transition: background .18s, color .18s, border-color .18s;
 }
 .pricing-cta:hover {
-  background: rgba(255,255,255,.1);
-  color: var(--text-white);
-  border-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  border-color: rgba(255,255,255,.4);
 }
 .pricing-cta-featured {
   background: #fff;
