@@ -735,6 +735,9 @@
 
     locked = true;
 
+    // Use smooth ease-out easing for auto-restore (overrides spring bounce)
+    fan.classList.add('fan-restoring');
+
     // Pin the card flying INTO center (same logic as click handler).
     // Do NOT pin the outgoing center card — that would keep it on top
     // of the incoming card the whole way, causing the glitchy overlap.
@@ -750,6 +753,7 @@
     incomingCenter.addEventListener('transitionend', function done(evt) {
       if (evt.propertyName !== 'transform') return;
       incomingCenter.style.zIndex = '';
+      fan.classList.remove('fan-restoring');
       locked = false;
       incomingCenter.removeEventListener('transitionend', done);
     });

@@ -569,6 +569,16 @@ nav.scrolled {
   transition: transform .22s ease-out, box-shadow .22s ease-out, filter .18s ease;
 }
 
+/* During auto-restore: override spring easing with smooth ease-out on all cards,
+   including the hover states so the .22s override can't interfere */
+.hero-card-fan.fan-restoring .fan-card,
+.hero-card-fan.fan-restoring .fan-card-left:hover,
+.hero-card-fan.fan-restoring .fan-card-right:hover {
+  transition: transform .70s cubic-bezier(.25,.46,.45,.94),
+              box-shadow .70s cubic-bezier(.22,.61,.36,1),
+              filter .25s ease;
+}
+
 /* Overlap is encoded in translateX so only transform animates — no margin changes */
 .fan-card-left {
   transform: translateX(72px) rotate(-8deg) translateY(28px);
