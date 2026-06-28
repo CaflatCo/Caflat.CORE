@@ -11,7 +11,8 @@
 
 -- ── Helper: extract tenant_id from request header ────
 -- Returns NULL if the header is absent (blocks access).
-CREATE OR REPLACE FUNCTION auth.tenant_id() RETURNS uuid
+-- Note: placed in public schema (auth schema is Supabase-managed).
+CREATE OR REPLACE FUNCTION public.tenant_id() RETURNS uuid
   LANGUAGE sql STABLE
 AS $$
   SELECT NULLIF(
@@ -26,8 +27,8 @@ DROP POLICY IF EXISTS "tenant_own_backups"    ON public.backups;
 
 CREATE POLICY "tenant_own_backups" ON public.backups
   FOR ALL TO anon
-  USING     (tenant_id = auth.tenant_id())
-  WITH CHECK(tenant_id = auth.tenant_id());
+  USING     (tenant_id = public.tenant_id())
+  WITH CHECK(tenant_id = public.tenant_id());
 
 -- ── SYNC_LOG — tenant-isolated ────────────────────────
 DROP POLICY IF EXISTS "anon_all_sync_log"     ON public.sync_log;
@@ -35,8 +36,8 @@ DROP POLICY IF EXISTS "tenant_own_sync_log"   ON public.sync_log;
 
 CREATE POLICY "tenant_own_sync_log" ON public.sync_log
   FOR ALL TO anon
-  USING     (tenant_id = auth.tenant_id())
-  WITH CHECK(tenant_id = auth.tenant_id());
+  USING     (tenant_id = public.tenant_id())
+  WITH CHECK(tenant_id = public.tenant_id());
 
 -- ── LICENSES — unchanged (anon reads any, updates own) ─
 -- No change needed — license lookup is by code, not tenant.
