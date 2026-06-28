@@ -3241,12 +3241,12 @@
   <!-- ══ SHOPPING LIST FAB ══ -->
   <button id="shoppingWidgetFab" onclick="toggleShoppingWidget();"
     style="display:none;position:fixed;bottom:24px;right:24px;z-index:800;
-      width:56px;height:56px;border-radius:50%;
-      background:var(--black);color:var(--white);
-      border:none;cursor:pointer;
-      font-size:24px;line-height:1;
+      width:52px;height:52px;border-radius:50%;
+      background:var(--white);color:var(--black);
+      border:1.5px solid var(--border);cursor:pointer;
+      font-size:22px;line-height:1;
       align-items:center;justify-content:center;
-      box-shadow:0 6px 20px rgba(0,0,0,.25);
+      box-shadow:0 4px 16px rgba(0,0,0,.12);
       transition:transform .15s ease, box-shadow .15s ease;"
     title="Shopping List">🛒
     <span id="swBadge"
@@ -3261,24 +3261,18 @@
 
   <!-- ══ SHOPPING LIST MODAL ══ -->
   <div id="shoppingWidgetPanel" class="modal-overlay">
-    <div class="modal" style="max-width:480px;display:flex;flex-direction:column;
+    <div class="modal" style="max-width:460px;display:flex;flex-direction:column;
       max-height:88vh;padding:0;overflow:hidden;">
 
-      <!-- Header -->
-      <div style="padding:20px 20px 14px;border-bottom:1.5px solid var(--border);flex-shrink:0;">
+      <!-- Header: title + close only -->
+      <div style="padding:18px 20px 14px;border-bottom:1.5px solid var(--border);flex-shrink:0;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div style="font-size:16px;font-weight:900;letter-spacing:-.4px;">Shopping List</div>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <button type="button" onclick="saveShoppingList();"
-              class="btn btn-secondary btn-sm">Save</button>
-            <button type="button" onclick="shareShoppingList();"
-              class="btn btn-secondary btn-sm">Share</button>
-            <button type="button" onclick="toggleShoppingWidget();"
-              style="background:none;border:none;cursor:pointer;font-size:22px;
-                color:var(--gray-400);padding:0 4px;line-height:1;font-family:var(--font-main);">✕</button>
-          </div>
+          <div style="font-size:16px;font-weight:900;letter-spacing:-.4px;">🛒 Shopping List</div>
+          <button type="button" onclick="toggleShoppingWidget();"
+            style="background:none;border:none;cursor:pointer;font-size:22px;
+              color:var(--gray-400);padding:0 4px;line-height:1;font-family:var(--font-main);">✕</button>
         </div>
-        <!-- Tab bar — grouped pill container -->
+        <!-- Tab bar -->
         <div style="display:flex;gap:3px;background:var(--gray-100);
           border-radius:var(--radius-full);padding:3px;">
           <button id="swTabProduction" type="button" onclick="switchWidgetMode('production');"
@@ -3297,76 +3291,91 @@
             style="flex:1;padding:8px 10px;border:none;
               border-radius:var(--radius-full);font-size:11px;font-weight:800;
               cursor:pointer;font-family:var(--font-main);transition:all .15s;">
-            Manual
+            Custom
           </button>
         </div>
       </div>
 
-      <!-- Manual add rows (shown in free mode) -->
-      <div id="swFreeAddRow" style="display:none;padding:16px 20px;
-        border-bottom:1.5px solid var(--border);flex-shrink:0;background:var(--gray-50);">
+      <!-- Add panel (Custom mode only) -->
+      <div id="swFreeAddRow" style="display:none;padding:14px 20px;
+        border-bottom:1.5px solid var(--border);flex-shrink:0;">
 
-        <!-- From Ingredients -->
-        <div style="font-size:10px;font-weight:800;letter-spacing:.5px;
-          text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">
-          From Ingredients
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
+        <!-- Ingredient picker row -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
           <select id="swIngSelect"
             style="flex:1;min-width:0;padding:10px 10px;border:1.5px solid var(--border);
               border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);
-              background:var(--white);">
+              background:var(--white);color:var(--black);">
             <option value="">Select ingredient…</option>
           </select>
           <input id="swIngQty" type="number" min="0" placeholder="Qty"
-            style="width:72px;padding:10px 8px;border:1.5px solid var(--border);
+            style="width:68px;padding:10px 8px;border:1.5px solid var(--border);
               border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);
               text-align:center;" />
-          <button type="button" onclick="addFreeListItem();"
-            class="btn btn-sm" style="padding:10px 16px;">Add</button>
+          <button type="button" onclick="addFreeListItem();" class="btn"
+            style="padding:10px 16px;font-size:13px;">＋</button>
         </div>
 
-        <!-- Custom Item -->
-        <div style="font-size:10px;font-weight:800;letter-spacing:.5px;
-          text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">
-          Custom Item
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-          <input id="swCustomName" type="text" placeholder="Item name"
-            style="padding:10px 10px;border:1.5px solid var(--border);
-              border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
-          <div style="display:flex;gap:6px;">
+        <!-- Custom item toggle -->
+        <button type="button" id="swCustomToggle" onclick="_swToggleCustomAdd();"
+          style="background:none;border:none;cursor:pointer;font-size:12px;
+            font-weight:700;color:var(--gray-400);padding:0;font-family:var(--font-main);
+            display:flex;align-items:center;gap:4px;">
+          <span id="swCustomToggleArrow">▸</span> Add unlisted item
+        </button>
+
+        <!-- Custom item form (collapsed by default) -->
+        <div id="swCustomAddRow" style="display:none;margin-top:12px;padding-top:12px;
+          border-top:1px solid var(--border);">
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input id="swCustomName" type="text" placeholder="Item name"
+              style="flex:1;padding:10px 10px;border:1.5px solid var(--border);
+                border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
             <input id="swCustomQty" type="number" min="0" placeholder="Qty"
-              style="flex:1;min-width:0;padding:10px 8px;border:1.5px solid var(--border);
-                border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);
-                text-align:center;" />
-            <input id="swCustomUnit" type="text" placeholder="unit"
-              style="width:60px;padding:10px 8px;border:1.5px solid var(--border);
+              style="width:68px;padding:10px 8px;border:1.5px solid var(--border);
                 border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);
                 text-align:center;" />
           </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input id="swCustomCost" type="number" min="0" placeholder="₱ Cost (optional)"
-            style="flex:1;padding:10px 10px;border:1.5px solid var(--border);
-              border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
-          <button type="button" onclick="addCustomListItem();"
-            class="btn btn-sm" style="padding:10px 16px;">Add</button>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="swCustomUnit" type="text" placeholder="Unit (e.g. kg)"
+              style="width:100px;padding:10px 8px;border:1.5px solid var(--border);
+                border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
+            <input id="swCustomCost" type="number" min="0" placeholder="₱ Cost"
+              style="flex:1;padding:10px 10px;border:1.5px solid var(--border);
+                border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
+            <button type="button" onclick="addCustomListItem();" class="btn"
+              style="padding:10px 16px;font-size:13px;">＋</button>
+          </div>
         </div>
       </div>
 
-      <!-- List (scrollable) -->
+      <!-- List (scrollable) — unchecked first, checked at bottom -->
       <div id="shoppingWidgetList"
         style="flex:1;overflow-y:auto;padding:4px 20px 8px;min-height:0;"></div>
 
-      <!-- Footer -->
-      <div style="padding:14px 20px;border-top:1.5px solid var(--border);
-        flex-shrink:0;display:flex;justify-content:space-between;align-items:center;
-        background:var(--gray-50);">
-        <span style="font-size:11px;font-weight:800;letter-spacing:.5px;
-          text-transform:uppercase;color:var(--gray-400);">Est. Total</span>
-        <span id="swTotal" style="font-size:20px;font-weight:900;
-          font-variant-numeric:tabular-nums;">₱0.00</span>
+      <!-- Footer: total + progress + actions -->
+      <div style="padding:14px 20px;border-top:1.5px solid var(--border);flex-shrink:0;
+        display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div>
+          <div style="font-size:20px;font-weight:900;font-variant-numeric:tabular-nums;
+            line-height:1.1;" id="swTotal">₱0.00</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:2px;"
+            id="swProgress">0 items</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" onclick="saveShoppingList();"
+            class="btn btn-secondary btn-sm">Save</button>
+          <button type="button" onclick="shareShoppingList();"
+            class="btn btn-sm">
+            Share
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              style="margin-left:4px;flex-shrink:0;">
+              <path d="M8 1v10M4 5l4-4 4 4"/>
+              <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
