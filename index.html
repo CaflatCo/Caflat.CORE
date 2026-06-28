@@ -105,7 +105,7 @@
       position: absolute; inset: 0; background: var(--gray-200);
       border-radius: 12px; transition: background .2s ease;
     }
-    .toggle-switch input:checked + .toggle-track { background: var(--black); }
+    .toggle-switch input:checked + .toggle-track { background: #16a34a; }
     .toggle-knob {
       position: absolute; top: 3px; left: 3px;
       width: 18px; height: 18px; background: white;
@@ -1047,6 +1047,7 @@
             <h2>Settings</h2>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button class="btn" id="saveSettingsBtn" type="button">Save Settings</button>
+              <button class="btn btn-secondary" type="button" onclick="openChangePasswordModal()">Change Credentials</button>
               <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
             </div>
           </div>
@@ -3103,7 +3104,7 @@
 
   <script src="./js/utils.js"></script>
   <script src="./js/state.js"></script>
-  <script src="./js/storage.js"></script>
+  <script src="./js/storage.js?v=20260628j"></script>
   <script src="./js/auth.js?v=20260628i"></script>
   <script src="./js/analytics.js"></script>
   <script src="./js/dashboard.js"></script>
