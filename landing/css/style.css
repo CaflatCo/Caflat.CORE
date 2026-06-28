@@ -490,7 +490,15 @@ nav.scrolled {
   overflow: hidden;
   font-family: 'Inter', system-ui, sans-serif;
   position: relative;
+  transition: transform .42s cubic-bezier(.22,.61,.36,1),
+              box-shadow .42s cubic-bezier(.22,.61,.36,1),
+              margin .42s cubic-bezier(.22,.61,.36,1);
 }
+
+.fan-card-left,
+.fan-card-right { cursor: pointer; }
+.fan-card-left:hover  { box-shadow: -8px 12px 56px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.14); }
+.fan-card-right:hover { box-shadow:  8px 12px 56px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.14); }
 
 .fan-card-left {
   transform: rotate(-8deg) translateY(28px);

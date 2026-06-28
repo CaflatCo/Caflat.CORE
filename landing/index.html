@@ -700,5 +700,31 @@
 </footer>
 
 <script src="./js/main.js"></script>
+<script>
+(function () {
+  var fan = document.querySelector('.hero-card-fan');
+  if (!fan) return;
+  var cards = Array.from(fan.querySelectorAll('.fan-card'));
+  // assignment[i] = current position class suffix for cards[i]
+  var assignment = ['left', 'center', 'right'];
+
+  fan.addEventListener('click', function (e) {
+    var card = e.target.closest('.fan-card');
+    if (!card) return;
+    var clicked = cards.indexOf(card);
+    var center  = assignment.indexOf('center');
+    if (clicked === center) return;
+
+    var tmp = assignment[clicked];
+    assignment[clicked] = 'center';
+    assignment[center]  = tmp;
+
+    cards.forEach(function (c, i) {
+      c.classList.remove('fan-card-left', 'fan-card-center', 'fan-card-right');
+      c.classList.add('fan-card-' + assignment[i]);
+    });
+  });
+})();
+</script>
 </body>
 </html>
