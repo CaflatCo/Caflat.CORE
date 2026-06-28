@@ -104,13 +104,13 @@ section { padding: 120px 0; }
 .section-dark  .showcase-text .eyebrow,
 .section-dark2 .showcase-text .eyebrow {
   color: rgba(244,242,238,.72);
-  font-size: .72rem;
-  letter-spacing: .15em;
+  font-size: .84rem;
+  letter-spacing: .13em;
 }
 .section-light .showcase-text .eyebrow {
   color: rgba(10,10,11,.62);
-  font-size: .72rem;
-  letter-spacing: .15em;
+  font-size: .84rem;
+  letter-spacing: .13em;
 }
 
 /* ─── Scroll Reveal (base) ───────────────────────────────────── */
@@ -839,13 +839,14 @@ nav.scrolled {
 .pricing-top { margin-bottom: 24px; }
 
 .pricing-tier {
-  font-size: .63rem;
+  font-size: .8rem;
   font-weight: 700;
-  letter-spacing: .18em;
+  letter-spacing: .14em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-dim);
   margin-bottom: 16px;
 }
+.pricing-card.featured .pricing-tier { color: var(--coffee); }
 
 .pricing-desc { font-size: .82rem; color: var(--text-dim); line-height: 1.68; }
 
