@@ -52,94 +52,77 @@
       <a href="#features" class="btn-hero-ghost">See what's inside</a>
     </div>
 
-    <!-- App mockup — Origin Mode dashboard -->
-    <div class="hero-mockup">
-      <div class="ipad-screen">
-          <!-- App top bar -->
-          <div class="ipad-topbar">
-            <span class="ipad-topbar-logo">Caflat.CORE</span>
-            <span class="ipad-topbar-biz">Caflat.Co ▾</span>
+    <!-- App screenshot fan — POS / Dashboard / Reports -->
+    <div class="hero-card-fan" aria-hidden="true">
+
+      <!-- Card 1: POS -->
+      <div class="fan-card fan-card-left">
+        <div class="fan-topbar"><span class="fan-logo">Caflat.CORE</span><span class="fan-screen-label">POS</span></div>
+        <div class="fan-body fan-pos">
+          <div class="fan-product-grid">
+            <div class="fan-product"><div class="fan-product-name">Americano</div><div class="fan-product-price">₱120</div></div>
+            <div class="fan-product"><div class="fan-product-name">Flat White</div><div class="fan-product-price">₱155</div></div>
+            <div class="fan-product"><div class="fan-product-name">Matcha Latte</div><div class="fan-product-price">₱165</div></div>
+            <div class="fan-product"><div class="fan-product-name">Cold Brew</div><div class="fan-product-price">₱175</div></div>
+            <div class="fan-product"><div class="fan-product-name">Espresso</div><div class="fan-product-price">₱100</div></div>
+            <div class="fan-product"><div class="fan-product-name">Cappuccino</div><div class="fan-product-price">₱145</div></div>
           </div>
-          <!-- App body: sidebar + main -->
-          <div class="ipad-app-body">
-            <!-- Sidebar -->
-            <aside class="ipad-sidebar">
-              <div class="ipad-nav-group">
-                <div class="ipad-nav-label">Main</div>
-                <div class="ipad-nav-item">POS</div>
-                <div class="ipad-nav-item">Dashboard</div>
-                <div class="ipad-nav-item">Sales</div>
-                <div class="ipad-nav-item">Reports</div>
-              </div>
-              <div class="ipad-nav-group">
-                <div class="ipad-nav-label">Catalog</div>
-                <div class="ipad-nav-item">Products</div>
-                <div class="ipad-nav-item">Inventory</div>
-              </div>
-              <div class="ipad-nav-group">
-                <div class="ipad-nav-label">Ops</div>
-                <div class="ipad-nav-item ipad-nav-active">Origin</div>
-              </div>
-            </aside>
-            <!-- Main: Origin dashboard -->
-            <div class="ipad-main">
-              <!-- Sub-tabs -->
-              <div class="ipad-subtabs">
-                <span class="ipad-subtab ipad-subtab-active">Dashboard</span>
-                <span class="ipad-subtab">Lots</span>
-                <span class="ipad-subtab">Batches</span>
-                <span class="ipad-subtab">Orders</span>
-                <span class="ipad-subtab">Trace</span>
-              </div>
-              <!-- KPI row -->
-              <div class="ipad-kpi-row">
-                <div class="ipad-kpi">
-                  <div class="ipad-kpi-val">3</div>
-                  <div class="ipad-kpi-label">Active Lots</div>
-                  <div class="ipad-kpi-sub">Raw materials</div>
-                </div>
-                <div class="ipad-kpi">
-                  <div class="ipad-kpi-val">1</div>
-                  <div class="ipad-kpi-label">In Progress</div>
-                  <div class="ipad-kpi-sub">Processing</div>
-                </div>
-                <div class="ipad-kpi">
-                  <div class="ipad-kpi-val">94.2%</div>
-                  <div class="ipad-kpi-label">Avg Yield</div>
-                  <div class="ipad-kpi-sub">Completed batches</div>
-                </div>
-                <div class="ipad-kpi">
-                  <div class="ipad-kpi-val">2</div>
-                  <div class="ipad-kpi-label">Pending Orders</div>
-                  <div class="ipad-kpi-sub">Awaiting fulfilment</div>
-                </div>
-              </div>
-              <!-- Panels row -->
-              <div class="ipad-panels">
-                <div class="ipad-panel">
-                  <div class="ipad-panel-title">Recent Activity</div>
-                  <div class="ipad-panel-body">
-                    <div class="ipad-act-row"><span class="ipad-act-dot green"></span><span class="ipad-act-text">Lot LOT-001 received — Benguet Arabica</span><span class="ipad-act-date">Jun 20</span></div>
-                    <div class="ipad-act-row"><span class="ipad-act-dot blue"></span><span class="ipad-act-text">Batch B-004 — Roast</span><span class="ipad-act-date">Jun 22</span></div>
-                    <div class="ipad-act-row"><span class="ipad-act-dot purple"></span><span class="ipad-act-text">Order ORD-002 — Sip &amp; Gather</span><span class="ipad-act-date">Jun 24</span></div>
-                    <div class="ipad-act-row"><span class="ipad-act-dot green"></span><span class="ipad-act-text">Lot LOT-002 received — Sagada Natural</span><span class="ipad-act-date">Jun 25</span></div>
-                  </div>
-                </div>
-                <div class="ipad-panel">
-                  <div class="ipad-panel-title">Active Lots — Stock</div>
-                  <table class="ipad-table">
-                    <thead><tr><th>Lot</th><th>Product</th><th class="right">Remaining</th></tr></thead>
-                    <tbody>
-                      <tr><td class="mono">LOT-001</td><td>Benguet Arabica</td><td class="right bold">18.50 kg</td></tr>
-                      <tr><td class="mono">LOT-002</td><td>Sagada Natural</td><td class="right bold">12.00 kg</td></tr>
-                      <tr><td class="mono">LOT-003</td><td>Mt. Apo Cacao</td><td class="right bold">5.25 kg</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+          <div class="fan-cart">
+            <div class="fan-cart-title">Order #42</div>
+            <div class="fan-cart-item"><span>Flat White ×2</span><span>₱310</span></div>
+            <div class="fan-cart-item"><span>Matcha Latte</span><span>₱165</span></div>
+            <div class="fan-cart-item"><span>Cold Brew</span><span>₱175</span></div>
+            <div class="fan-cart-total"><span>Total</span><span>₱650</span></div>
+            <div class="fan-cart-btn">Checkout</div>
           </div>
+        </div>
       </div>
+
+      <!-- Card 2: Dashboard (center, front) -->
+      <div class="fan-card fan-card-center">
+        <div class="fan-topbar"><span class="fan-logo">Caflat.CORE</span><span class="fan-screen-label">Dashboard</span></div>
+        <div class="fan-body fan-dashboard">
+          <div class="fan-kpi-row">
+            <div class="fan-kpi"><div class="fan-kpi-val">₱14,250</div><div class="fan-kpi-label">Revenue Today</div></div>
+            <div class="fan-kpi"><div class="fan-kpi-val">38</div><div class="fan-kpi-label">Orders</div></div>
+            <div class="fan-kpi"><div class="fan-kpi-val">92%</div><div class="fan-kpi-label">Items Sold</div></div>
+            <div class="fan-kpi fan-kpi-warn"><div class="fan-kpi-val">3</div><div class="fan-kpi-label">Low Stock</div></div>
+          </div>
+          <div class="fan-activity">
+            <div class="fan-act-title">Recent Activity</div>
+            <div class="fan-act-row"><span class="fan-act-dot green"></span><span>Order #42 — ₱650</span><span class="fan-act-time">2m ago</span></div>
+            <div class="fan-act-row"><span class="fan-act-dot green"></span><span>Order #41 — ₱310</span><span class="fan-act-time">8m ago</span></div>
+            <div class="fan-act-row"><span class="fan-act-dot red"></span><span>Oat Milk — Low Stock</span><span class="fan-act-time">14m ago</span></div>
+            <div class="fan-act-row"><span class="fan-act-dot green"></span><span>Order #40 — ₱475</span><span class="fan-act-time">22m ago</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Reports -->
+      <div class="fan-card fan-card-right">
+        <div class="fan-topbar"><span class="fan-logo">Caflat.CORE</span><span class="fan-screen-label">Reports</span></div>
+        <div class="fan-body fan-reports">
+          <div class="fan-report-stats">
+            <div class="fan-report-stat"><div class="fan-report-val">₱87,400</div><div class="fan-report-label">This Week</div></div>
+            <div class="fan-report-stat"><div class="fan-report-val">+12%</div><div class="fan-report-label">vs Last Week</div></div>
+          </div>
+          <div class="fan-bar-chart">
+            <div class="fan-bar-group"><div class="fan-bar" style="height:45%"></div><div class="fan-bar-label">Mon</div></div>
+            <div class="fan-bar-group"><div class="fan-bar" style="height:72%"></div><div class="fan-bar-label">Tue</div></div>
+            <div class="fan-bar-group"><div class="fan-bar" style="height:58%"></div><div class="fan-bar-label">Wed</div></div>
+            <div class="fan-bar-group"><div class="fan-bar" style="height:88%"></div><div class="fan-bar-label">Thu</div></div>
+            <div class="fan-bar-group"><div class="fan-bar" style="height:100%"></div><div class="fan-bar-label">Fri</div></div>
+            <div class="fan-bar-group"><div class="fan-bar" style="height:78%"></div><div class="fan-bar-label">Sat</div></div>
+            <div class="fan-bar-group"><div class="fan-bar fan-bar-dim" style="height:32%"></div><div class="fan-bar-label">Sun</div></div>
+          </div>
+          <div class="fan-top-products">
+            <div class="fan-tp-row"><span>Flat White</span><span>142 sold</span></div>
+            <div class="fan-tp-row"><span>Americano</span><span>118 sold</span></div>
+            <div class="fan-tp-row"><span>Matcha Latte</span><span>97 sold</span></div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <div class="hero-rule" aria-hidden="true"></div>
