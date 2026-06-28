@@ -2416,3 +2416,40 @@ html[data-theme="dark"] .notification-content { color: var(--gray-900); }
 /* Misc */
 html[data-theme="dark"] .section-title::after { background: var(--gray-200); }
 html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--gray-400); }
+
+/* Form inputs — override var(--black) text color */
+html[data-theme="dark"] .form-group input,
+html[data-theme="dark"] .form-group select,
+html[data-theme="dark"] .form-group textarea {
+  color: var(--gray-900);
+  border-color: var(--border);
+}
+html[data-theme="dark"] .form-group input:focus,
+html[data-theme="dark"] .form-group select:focus,
+html[data-theme="dark"] .form-group textarea:focus {
+  border-color: rgba(255,255,255,.3);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.06);
+}
+html[data-theme="dark"] .form-group input[readonly] {
+  background: var(--gray-100);
+  color: var(--gray-500);
+}
+
+/* Filter bar */
+html[data-theme="dark"] .filter-bar input,
+html[data-theme="dark"] .filter-bar select {
+  background: var(--white);
+  color: var(--gray-900);
+  border-color: var(--border);
+}
+html[data-theme="dark"] .filter-bar input:focus,
+html[data-theme="dark"] .filter-bar select:focus { border-color: rgba(255,255,255,.3); }
+
+/* Cost preview */
+html[data-theme="dark"] .cost-preview-value { color: var(--gray-900); }
+
+/* Product Lab inputs */
+html[data-theme="dark"] .lab-input { color: var(--gray-900); }
+html[data-theme="dark"] .lab-input:focus { border-color: rgba(255,255,255,.3); }
+html[data-theme="dark"] .lab-stepper-input { background: var(--white); color: var(--gray-900); }
+html[data-theme="dark"] .lab-margin-input { background: var(--white); color: var(--gray-900); }

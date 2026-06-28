@@ -649,7 +649,28 @@ function _logInventoryMovements(order, type, qty, reason) {
   const movements = Array.isArray(APP_STATE.inventoryMovements)
     ? APP_STATE.inventoryMovements : [];
 
+  const products = APP_STATE.products || [];
+
   (order.items || []).forEach(item => {
+    const product  = products.find(p => String(p.id) === String(item.productId));
+    const itemQty  = Number(item.qty || 0);
+    const isFG     = typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product);
+    const curStock = (product && !isFG) ? Number(product.stock || 0) : null;
+
+    let previousStock = null, newStock = null;
+    if (curStock !== null) {
+      if (type === 'supply-delivery-deduction') {
+        // Stock already deducted; curStock is the "after"
+        newStock = curStock; previousStock = curStock + itemQty;
+      } else if (type === 'supply-stock-restored') {
+        // Stock already restored; curStock is the "after"
+        newStock = curStock; previousStock = curStock - itemQty;
+      } else {
+        // Reservations don't change physical stock
+        previousStock = curStock; newStock = curStock;
+      }
+    }
+
     movements.push({
       id:             generateId(),
       orderId:        order.id,
@@ -658,8 +679,10 @@ function _logInventoryMovements(order, type, qty, reason) {
       productName:    item.productName || item.description || '',
       type,
       quantityAdded:  0,
-      quantityUsed:   Number(item.qty || 0),
+      quantityUsed:   itemQty,
       reason,
+      previousStock,
+      newStock,
       createdAt:      new Date().toISOString(),
       createdBy:      APP_STATE.currentUserRole || 'STAFF'
     });

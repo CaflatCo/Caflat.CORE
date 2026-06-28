@@ -801,21 +801,44 @@ function renderDeadWeightProducts(fromDate, toDate) {
 
 /* ── 13. PDF Export ── */
 function exportReportAsPDF() {
-  // Flush any in-progress reveal animations so nothing prints at opacity 0
   const panel = document.getElementById('view-reports');
-  if (panel) {
-    panel.querySelectorAll(
-      '#reportStatsGrid, .chart-container, #voidRefundContainer, ' +
-      '#hourlyHeatmapContainer, #paymentBreakdownContainer, ' +
-      '#discountAnalysisContainer, #categoryPerformanceContainer, ' +
-      '.table-wrapper, #profitabilitySection, #reportBreakEvenContainer'
-    ).forEach(el => {
-      el.style.opacity    = '1';
-      el.style.transform  = 'none';
-      el.style.transition = 'none';
+  if (!panel) { window.print(); return; }
+
+  // Flush reveal animations so nothing prints at opacity 0
+  panel.querySelectorAll(
+    '#reportStatsGrid, .chart-container, #voidRefundContainer, ' +
+    '#hourlyHeatmapContainer, #paymentBreakdownContainer, ' +
+    '#discountAnalysisContainer, #categoryPerformanceContainer, ' +
+    '.table-wrapper, #profitabilitySection, #reportBreakEvenContainer'
+  ).forEach(el => {
+    el.style.opacity    = '1';
+    el.style.transform  = 'none';
+    el.style.transition = 'none';
+  });
+
+  // Snapshot each chart canvas as <img> — canvas elements don't render in the
+  // browser's print pipeline, so we replace them with rasterized copies first.
+  const snapshots = [];
+  panel.querySelectorAll('canvas').forEach(canvas => {
+    try {
+      const img  = document.createElement('img');
+      img.src    = canvas.toDataURL('image/png');
+      img.style.cssText = `width:${canvas.offsetWidth}px;height:${canvas.offsetHeight}px;` +
+                          `display:block;max-width:100%;`;
+      canvas.parentNode.insertBefore(img, canvas);
+      canvas.style.display = 'none';
+      snapshots.push({ canvas, img });
+    } catch (_) {}
+  });
+
+  setTimeout(() => {
+    window.print();
+    // Restore live canvases once the print dialog closes
+    snapshots.forEach(({ canvas, img }) => {
+      canvas.style.display = '';
+      img.remove();
     });
-  }
-  setTimeout(() => { window.print(); }, 150);
+  }, 300);
 }
 
 
