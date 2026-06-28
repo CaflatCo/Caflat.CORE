@@ -61,7 +61,7 @@ document.querySelectorAll('[data-target]').forEach(el => statsObserver.observe(e
 /* ─── Request Access form ───────────────────────────────────── */
 const SUPABASE_URL    = 'https://tkrsebalgonimmozbgqc.supabase.co';
 const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcnNlYmFsZ29uaW1tb3piZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxNDgzNjUsImV4cCI6MjA2NTcyNDM2NX0.s5Jb0VEp1FPR10lVqBBODf93OIFczHGJXnpODWWCbf8';
-const WEB3FORMS_KEY   = 'PASTE_YOUR_WEB3FORMS_KEY_HERE'; // web3forms.com → enter caflatcore@gmail.com → copy key
+const WEB3FORMS_KEY   = '7ff88d7f-645f-4693-a1e1-fe8b1de57cab';
 
 const form  = document.getElementById('accessForm');
 const toast = document.getElementById('toast');
