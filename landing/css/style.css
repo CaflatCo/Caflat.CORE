@@ -244,15 +244,26 @@ nav.scrolled {
   z-index: 0;
 }
 
-/* Pour-over café art */
-.hero-cafe-art {
+/* Hero photo — espresso machine, right side */
+.hero-photo-right {
   position: absolute;
-  right: 4%;
-  top: 50%;
-  transform: translateY(-52%);
-  width: clamp(180px, 18vw, 300px);
-  color: rgba(200,163,117,.07);
+  right: 0;
+  top: 0;
+  width: 58%;
+  height: 100%;
+  background-image: url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1000&q=75&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center 30%;
   pointer-events: none;
+  z-index: 0;
+}
+.hero-photo-right::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, var(--dark) 0%, rgba(10,10,11,.20) 60%, rgba(10,10,11,.50) 100%),
+    linear-gradient(to bottom, rgba(10,10,11,.60) 0%, transparent 20%, transparent 78%, rgba(10,10,11,.80) 100%);
   z-index: 1;
 }
 
@@ -1166,7 +1177,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   h2 { font-size: 1.85rem; }
   .nav-links { display: none; }
   .hero-actions { flex-direction: column; align-items: center; }
-  .hero-cafe-art { display: none; }
+  .hero-photo-right { width: 100%; opacity: 0.22; }
   .hero-stat-div { display: none; }
   .hero-stats { gap: 36px; flex-wrap: wrap; justify-content: center; }
   .hero-stat  { padding: 0; }
