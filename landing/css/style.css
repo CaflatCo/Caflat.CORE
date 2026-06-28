@@ -374,9 +374,8 @@ nav.scrolled {
 .marquee-strip:hover .marquee-item { color: var(--text-white); }
 
 .marquee-dot {
-  color: var(--coffee);
+  color: rgba(255,255,255,.28);
   font-size: .7rem;
-  opacity: .6;
   flex-shrink: 0;
 }
 
@@ -476,8 +475,8 @@ nav.scrolled {
 /* ─── Hero App Mockup — Origin Mode ─────────────────────────── */
 .hero-mockup {
   margin: 0 auto 48px;
-  max-width: 740px;
-  perspective: 1400px;
+  max-width: 960px;
+  perspective: 1800px;
 }
 
 .ipad-screen {
@@ -492,9 +491,9 @@ nav.scrolled {
   box-shadow:
     0 0 0 1px rgba(255,255,255,.10),
     0 2px 8px rgba(0,0,0,.25),
-    0 12px 40px rgba(0,0,0,.50),
-    0 40px 100px rgba(0,0,0,.55),
-    0 80px 160px rgba(0,0,0,.38);
+    0 16px 48px rgba(0,0,0,.52),
+    0 48px 120px rgba(0,0,0,.58),
+    0 100px 200px rgba(0,0,0,.40);
 }
 
 /* Top bar — black like the actual app header */
@@ -502,30 +501,30 @@ nav.scrolled {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
+  padding: 11px 20px;
   background: #000;
   border-bottom: 1px solid #000;
 }
-.ipad-topbar-logo { font-size: .62rem; font-weight: 900; color: #fff; letter-spacing: -.02em; }
-.ipad-topbar-biz  { font-size: .58rem; font-weight: 700; color: rgba(255,255,255,.5); }
+.ipad-topbar-logo { font-size: .88rem; font-weight: 900; color: #fff; letter-spacing: -.02em; }
+.ipad-topbar-biz  { font-size: .82rem; font-weight: 700; color: rgba(255,255,255,.5); }
 
 /* App body: sidebar + main */
-.ipad-app-body { display: flex; min-height: 260px; }
+.ipad-app-body { display: flex; min-height: 380px; }
 
 /* Sidebar */
 .ipad-sidebar {
-  width: 88px;
+  width: 116px;
   flex-shrink: 0;
   background: #fff;
   border-right: 1.5px solid #d0d0d0;
-  padding: 10px 0;
+  padding: 12px 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
-.ipad-nav-group { padding: 0 6px; display: flex; flex-direction: column; gap: 1px; }
-.ipad-nav-label { font-size: .46rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #a0a0a0; padding: 3px 6px 4px; }
-.ipad-nav-item { font-size: .58rem; font-weight: 700; color: #555; padding: 5px 8px; border-radius: 6px; }
+.ipad-nav-group { padding: 0 8px; display: flex; flex-direction: column; gap: 1px; }
+.ipad-nav-label { font-size: .64rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #a0a0a0; padding: 4px 8px 5px; }
+.ipad-nav-item { font-size: .82rem; font-weight: 700; color: #555; padding: 6px 10px; border-radius: 6px; }
 .ipad-nav-active { background: #000; color: #fff !important; }
 
 /* Main content */
@@ -535,13 +534,13 @@ nav.scrolled {
 .ipad-subtabs {
   display: flex;
   gap: 0;
-  padding: 8px 12px 0;
+  padding: 10px 16px 0;
   border-bottom: 1.5px solid #d0d0d0;
   background: #fff;
 }
 .ipad-subtab {
-  font-size: .58rem; font-weight: 700;
-  padding: 5px 10px;
+  font-size: .82rem; font-weight: 700;
+  padding: 7px 13px;
   color: #777;
   border-bottom: 2px solid transparent;
   margin-bottom: -1.5px;
@@ -552,50 +551,50 @@ nav.scrolled {
 .ipad-kpi-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  padding: 10px 10px 8px;
+  gap: 10px;
+  padding: 12px 12px 10px;
 }
 .ipad-kpi {
   background: #fff;
   border: 1.5px solid #d0d0d0;
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 10px 14px;
 }
-.ipad-kpi-val   { font-size: .88rem; font-weight: 900; color: #000; line-height: 1; margin-bottom: 3px; }
-.ipad-kpi-label { font-size: .52rem; font-weight: 800; color: #333; letter-spacing: .01em; }
-.ipad-kpi-sub   { font-size: .46rem; color: #a0a0a0; margin-top: 1px; }
+.ipad-kpi-val   { font-size: 1.22rem; font-weight: 900; color: #000; line-height: 1; margin-bottom: 4px; }
+.ipad-kpi-label { font-size: .72rem; font-weight: 800; color: #333; letter-spacing: .01em; }
+.ipad-kpi-sub   { font-size: .64rem; color: #a0a0a0; margin-top: 2px; }
 
 /* Panels row */
-.ipad-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 10px 10px; flex: 1; }
+.ipad-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 12px 12px; flex: 1; }
 .ipad-panel { background: #fff; border: 1.5px solid #d0d0d0; border-radius: 8px; overflow: hidden; }
 .ipad-panel-title {
-  font-size: .5rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-  color: #555; padding: 7px 10px; border-bottom: 1px solid #e8e8e8;
+  font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  color: #555; padding: 9px 14px; border-bottom: 1px solid #e8e8e8;
 }
 .ipad-panel-body { }
 
 /* Activity list */
 .ipad-act-row {
-  display: flex; align-items: center; gap: 6px;
-  padding: 6px 10px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
   border-bottom: 1px solid #f4f4f4;
-  font-size: .5rem;
+  font-size: .72rem;
 }
-.ipad-act-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.ipad-act-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .ipad-act-dot.green  { background: #16a34a; }
 .ipad-act-dot.blue   { background: #2563eb; }
 .ipad-act-dot.purple { background: #7c3aed; }
 .ipad-act-text { flex: 1; font-weight: 600; color: #111; }
-.ipad-act-date { color: #a0a0a0; font-size: .46rem; white-space: nowrap; }
+.ipad-act-date { color: #a0a0a0; font-size: .64rem; white-space: nowrap; }
 
 /* Lots table */
-.ipad-table { width: 100%; border-collapse: collapse; font-size: .5rem; }
+.ipad-table { width: 100%; border-collapse: collapse; font-size: .72rem; }
 .ipad-table thead tr { background: #111; }
-.ipad-table thead th { padding: 5px 8px; text-align: left; font-size: .44rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.85); }
+.ipad-table thead th { padding: 7px 12px; text-align: left; font-size: .62rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.85); }
 .ipad-table thead th.right { text-align: right; }
 .ipad-table tbody tr { border-bottom: 1px solid #e8e8e8; }
-.ipad-table tbody td { padding: 6px 8px; color: #333; font-weight: 600; }
-.ipad-table tbody td.mono { font-family: monospace; font-size: .46rem; color: #777; }
+.ipad-table tbody td { padding: 8px 12px; color: #333; font-weight: 600; }
+.ipad-table tbody td.mono { font-family: monospace; font-size: .64rem; color: #777; }
 .ipad-table tbody td.right { text-align: right; }
 .ipad-table tbody td.bold { font-weight: 800; color: #111; }
 
@@ -887,7 +886,7 @@ nav.scrolled {
 }
 .mock-pill-ok      { background: rgba(61,189,122,.1);   color: var(--green);  border: 1px solid rgba(61,189,122,.22); }
 .mock-pill-warn    { background: rgba(212,168,0,.1);    color: var(--amber);  border: 1px solid rgba(212,168,0,.22); }
-.mock-pill-inprog  { background: rgba(200,163,117,.14); color: var(--coffee); border: 1px solid rgba(200,163,117,.28); }
+.mock-pill-inprog  { background: rgba(255,255,255,.08); color: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.16); }
 .mock-pill-qc      { background: rgba(61,189,122,.1);   color: var(--green);  border: 1px solid rgba(61,189,122,.22); }
 .mock-pill-planned { background: rgba(255,255,255,.06); color: var(--text-dim); border: 1px solid rgba(255,255,255,.1); }
 
@@ -999,12 +998,12 @@ nav.scrolled {
 }
 .pricing-card:hover { background: var(--dark-card-2); }
 .pricing-card.featured {
-  background: linear-gradient(145deg, rgba(200,163,117,.07) 0%, var(--dark-card-2) 55%);
+  background: var(--dark-card-2);
 }
 .pricing-card.featured .pricing-badge {
-  background: rgba(200,163,117,.12);
-  color: var(--coffee);
-  border-color: rgba(200,163,117,.25);
+  background: rgba(255,255,255,.09);
+  color: var(--text-white);
+  border-color: rgba(255,255,255,.18);
 }
 
 .pricing-badge {
@@ -1032,7 +1031,7 @@ nav.scrolled {
   color: var(--text-dim);
   margin-bottom: 16px;
 }
-.pricing-card.featured .pricing-tier { color: var(--coffee); }
+.pricing-card.featured .pricing-tier { color: var(--text-white); }
 
 .pricing-desc { font-size: .82rem; color: var(--text-dim); line-height: 1.68; }
 
@@ -1080,13 +1079,13 @@ nav.scrolled {
   border-color: rgba(255,255,255,.22);
 }
 .pricing-cta-featured {
-  background: var(--coffee);
-  color: var(--dark);
+  background: #fff;
+  color: #000;
   border-color: transparent;
 }
 .pricing-cta-featured:hover {
-  background: #d4b08a;
-  color: var(--dark);
+  background: rgba(255,255,255,.88);
+  color: #000;
   border-color: transparent;
 }
 
@@ -1213,10 +1212,10 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 }
 .section-form select.form-input option { background: #131318; color: var(--text-white); }
 .section-form .form-submit {
-  background: var(--coffee);
-  color: var(--dark);
+  background: #fff;
+  color: #000;
 }
-.section-form .form-submit:hover { background: #d4b08a; }
+.section-form .form-submit:hover { background: rgba(255,255,255,.88); }
 
 /* Form container needs to sit above grain texture */
 .section-form .form-container { position: relative; z-index: 1; }
