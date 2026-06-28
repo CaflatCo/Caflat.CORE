@@ -497,7 +497,7 @@ nav.scrolled {
 .hero-card-fan {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: stretch; /* all cards share the tallest card's height */
   margin: 0 auto 56px;
   max-width: 960px;
   padding: 24px 0 60px;
@@ -513,6 +513,8 @@ nav.scrolled {
   position: relative;
   will-change: transform;
   filter: brightness(1);
+  display: flex;
+  flex-direction: column;
   /* transform-only — no layout reflow, GPU-composited */
   transition: transform .52s cubic-bezier(.34,1.56,.64,1),
               box-shadow .52s cubic-bezier(.22,.61,.36,1),
@@ -579,19 +581,21 @@ nav.scrolled {
   padding: 2px 8px;
 }
 
-/* Fan card body */
-.fan-body { text-align: left; }
+/* Fan card body — fills remaining height below topbar */
+.fan-body { flex: 1; min-height: 0; text-align: left; overflow: hidden; }
 
 /* ── POS card ── */
-.fan-pos { display: flex; }
+.fan-pos { display: flex; height: 100%; }
 
 .fan-product-grid {
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-content: start; /* rows stay natural height; #e8e8e8 bg fills remainder */
   gap: 1px;
   background: #e8e8e8;
   border-right: 1px solid #e8e8e8;
+  overflow: hidden;
 }
 .fan-product {
   background: #fff;
