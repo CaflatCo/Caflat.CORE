@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script>(function(){var t=localStorage.getItem('caflat-theme');if(t)document.documentElement.dataset.theme=t;document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('themeToggleBtn');if(b&&document.documentElement.dataset.theme==='dark'){b.querySelector('.toggle-icon').textContent='☀';b.querySelector('.toggle-label').textContent='Light';}});}());</script>
-  <link href="css/styles.css?v=20260628f" rel="stylesheet" />
+  <link href="css/styles.css?v=20260628k" rel="stylesheet" />
   <style>
     /* ── Semantic color overrides ── */
     :root {
@@ -1083,8 +1083,8 @@
             </div>
           </div>
 
-          <!-- Tax Rate + Receipt Footer side by side -->
-          <div class="form-row" style="grid-template-columns:1fr 2fr;">
+          <!-- Tax Rate · Receipt Footer · Digital Receipt URL · Void PIN — uniform 2-col grid -->
+          <div class="form-row">
             <div class="form-group">
               <label>Tax Rate (%)</label>
               <input id="settingsTaxRate" type="number" step="0.01" min="0" max="100" />
@@ -1095,19 +1095,23 @@
                 placeholder="e.g. Thank you for choosing Caflat.CORE!" />
             </div>
           </div>
-
-          <!-- Receipt URL + Void PIN — compact buttons that open popups -->
-          <div style="display:flex;gap:10px;margin-bottom:var(--space-4);flex-wrap:wrap;">
-            <button class="btn btn-secondary" type="button" id="openReceiptUrlBtn"
-              style="flex:1;min-width:200px;justify-content:space-between;">
-              <span>Digital Receipt URL</span>
-              <span id="receiptUrlStatusBadge" style="font-size:11px;color:var(--gray-400);font-weight:600;">Not set</span>
-            </button>
-            <button class="btn btn-secondary" type="button" id="openVoidPinBtn"
-              style="flex:1;min-width:200px;justify-content:space-between;">
-              <span>Void / Refund PIN</span>
-              <span style="font-size:11px;color:var(--gray-400);font-weight:600;">●●●●●●</span>
-            </button>
+          <div class="form-row" style="margin-bottom:var(--space-4);">
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Digital Receipt URL</label>
+              <button class="btn btn-secondary" type="button" id="openReceiptUrlBtn"
+                style="width:100%;justify-content:space-between;">
+                <span id="receiptUrlStatusBadge">Not set</span>
+                <span style="font-size:11px;color:var(--gray-400);font-weight:600;">Edit →</span>
+              </button>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Void / Refund PIN</label>
+              <button class="btn btn-secondary" type="button" id="openVoidPinBtn"
+                style="width:100%;justify-content:space-between;">
+                <span>Change PIN</span>
+                <span style="font-size:11px;color:var(--gray-400);font-weight:600;">●●●●●●</span>
+              </button>
+            </div>
           </div>
           <!-- Hidden inputs — saveSettings() reads these directly, unchanged -->
           <input id="settingsReceiptUrl" type="hidden" />
@@ -1284,17 +1288,17 @@
 
           <!-- Data Management -->
           <div class="section-title">Data Management</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;">
             <button class="btn btn-secondary" id="loadDemoBtn" type="button">Load Demo Data</button>
             <button class="btn btn-secondary" id="exportDataBtn" type="button">Export Backup</button>
             <button class="btn btn-secondary" id="importDataBtn" type="button">Import Backup</button>
             <input accept=".json" id="importDataInput" style="display:none" type="file" />
             <button class="btn btn-secondary" id="archiveResetBtn" type="button"
-              style="border:1.5px solid #fca5a5;color:#dc2626;background:#fff;">
+              style="border:1.5px solid #fca5a5;color:#dc2626;background:var(--white);">
               Archive &amp; Reset
             </button>
             <button class="btn btn-secondary" id="factoryResetBtn" type="button"
-              style="border:1.5px solid #fca5a5;color:#dc2626;background:#fff;">
+              style="border:1.5px solid #fca5a5;color:#dc2626;background:var(--white);">
               Factory Reset
             </button>
           </div>
