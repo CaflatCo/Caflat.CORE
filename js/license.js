@@ -197,9 +197,10 @@ async function activateLicenseKey(code) {
     return { success: false, error: 'This license has been revoked.' };
   }
 
-  // GOD tier can be used on any device without restriction
-  if (license.activated && license.tier !== TIER_GOD) {
-    return { success: false, error: 'This key has already been used on another device.' };
+  // Multi-device tiers: CLOUD, ENTERPRISE, GOD — no single-device restriction
+  const isMultiDeviceTier = [TIER_CLOUD, TIER_ENTERPRISE, TIER_GOD].includes(license.tier);
+  if (license.activated && !isMultiDeviceTier) {
+    return { success: false, error: 'This key has already been used on another device. Upgrade to CLOUD for multi-device.' };
   }
 
   // Check expiry at activation time
@@ -208,25 +209,26 @@ async function activateLicenseKey(code) {
     return { success: false, error: 'This license key has expired.' };
   }
 
-  // 2. Generate a device fingerprint (best effort, not perfect but good deterrent)
+  // 2. Generate a device fingerprint
   const deviceId = await _generateDeviceId();
 
-  // 3. Mark as activated in Supabase
-  const patch = await _sbFetch(
-    `licenses?code=eq.${encodeURIComponent(clean)}`,
-    {
-      method: 'PATCH',
-      headers: { 'Prefer': 'return=representation' },
-      body: JSON.stringify({
-        activated:        true,
-        activated_at:     new Date().toISOString(),
-        activated_device: deviceId
-      })
+  // 3. Mark as activated in Supabase (skip if already activated on another device — don't overwrite)
+  if (!license.activated) {
+    const patch = await _sbFetch(
+      `licenses?code=eq.${encodeURIComponent(clean)}`,
+      {
+        method: 'PATCH',
+        headers: { 'Prefer': 'return=representation' },
+        body: JSON.stringify({
+          activated:        true,
+          activated_at:     new Date().toISOString(),
+          activated_device: deviceId
+        })
+      }
+    );
+    if (!patch.ok) {
+      return { success: false, error: 'Activation failed. Please try again.' };
     }
-  );
-
-  if (!patch.ok) {
-    return { success: false, error: 'Activation failed. Please try again.' };
   }
 
   // 4. Store locally — include tenant_id from the license record
