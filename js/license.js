@@ -622,12 +622,11 @@ function updateSyncStatus(state, detail) {
 }
 
 async function triggerLicenseRevalidation() {
-  updateSyncStatus('syncing', 'Connecting to Supabase…');
-  const btn = document.getElementById('syncNowBtn');
-  if (btn) btn.textContent = 'Checking…';
+  updateSyncStatus('syncing', 'Connecting…');
+  const checkBtn = document.getElementById('checkLicenseBtn');
+  if (checkBtn) { checkBtn.textContent = 'Checking…'; checkBtn.disabled = true; }
 
   try {
-    // Ping Supabase with a simple request
     const res = await fetch(`${CAFLAT_SB_URL}/rest/v1/licenses?limit=1`, {
       headers: {
         'apikey': CAFLAT_SB_ANON,
@@ -640,22 +639,21 @@ async function triggerLicenseRevalidation() {
         month: 'short', day: 'numeric',
         hour: 'numeric', minute: '2-digit', hour12: true
       });
-
-      // Also revalidate current license
-      if (_licenseState) {
-        await revalidateLicense(true); // force — user triggered a manual check
-      }
-
+      if (_licenseState) await revalidateLicense(true);
       updateSyncStatus('connected', `Last checked ${now} · License data only`);
       showNotification('Connected to Supabase', 'success');
     } else {
-      updateSyncStatus('error', 'Could not reach Supabase');
+      const body = await res.text().catch(() => '');
+      const detail = `HTTP ${res.status}${body ? ' — ' + body.slice(0, 80) : ''}`;
+      updateSyncStatus('error', detail);
+      showNotification('Supabase error: ' + detail, 'error');
     }
   } catch (e) {
-    updateSyncStatus('offline', 'No internet connection');
+    updateSyncStatus('offline', 'No internet — ' + e.message.slice(0, 60));
+    showNotification('Cannot reach Supabase: ' + e.message.slice(0, 80), 'error');
   }
 
-  if (btn) btn.textContent = 'Check Now';
+  if (checkBtn) { checkBtn.textContent = 'Check License'; checkBtn.disabled = false; }
 }
 
 /* ── Initialize ────────────────────────────────────── */
