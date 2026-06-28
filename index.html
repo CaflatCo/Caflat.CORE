@@ -665,8 +665,23 @@
           <div class="filter-bar">
             <input id="salesSearch" type="text" placeholder="Search receipt #, customer, item…"
               style="flex:1;min-width:200px;" />
+            <div id="salesTimePills" style="display:flex;gap:4px;flex-wrap:nowrap;">
+              <button type="button" class="time-pill" data-preset="today">Today</button>
+              <button type="button" class="time-pill" data-preset="yesterday">Yesterday</button>
+              <button type="button" class="time-pill" data-preset="week">This Week</button>
+              <button type="button" class="time-pill" data-preset="month">This Month</button>
+              <button type="button" class="time-pill time-pill-active" data-preset="all">All</button>
+            </div>
             <input id="salesFromDate" type="date" />
             <input id="salesToDate" type="date" />
+            <select id="salesCategoryFilter">
+              <option value="">All Categories</option>
+            </select>
+            <select id="salesChannelFilter">
+              <option value="">All Channels</option>
+              <option value="POS">POS / Retail</option>
+              <option value="SUPPLY">Supply</option>
+            </select>
             <select id="salesPaymentFilter">
               <option value="">All Payments</option>
               <option value="cash">Cash</option>
@@ -684,6 +699,7 @@
               <option value="CANCELLED">Cancelled</option>
             </select>
           </div>
+          <div id="salesFilterSummary" style="font-size:11px;color:var(--gray-400);margin-bottom:10px;display:none;"></div>
           <div class="table-wrapper">
             <table id="salesTable">
               <thead>

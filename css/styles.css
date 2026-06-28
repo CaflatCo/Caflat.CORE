@@ -1194,6 +1194,25 @@ tbody tr:hover td { background: var(--gray-50); }
   border-color: var(--black);
 }
 
+/* ── Time preset pills ── */
+.time-pill {
+  padding: 6px 11px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--gray-500);
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--font-main);
+  transition: all var(--transition);
+}
+.time-pill:hover { border-color: var(--gray-400); color: var(--gray-800); }
+.time-pill-active { background: var(--black) !important; color: var(--white) !important; border-color: var(--black) !important; }
+
 /* ═══ LOGIN ═══ */
 .login-screen {
   position: fixed;
@@ -2305,6 +2324,9 @@ html[data-theme="dark"] .order-type-btn.active { background: #f4f2ee; color: #0c
 html[data-theme="dark"] .date-preset-btn { background: var(--gray-200); color: var(--gray-600); border-color: var(--border); }
 html[data-theme="dark"] .date-preset-btn:hover { color: var(--gray-900); border-color: rgba(255,255,255,.2); }
 html[data-theme="dark"] .date-preset-btn.active { background: #f4f2ee; color: #0c0b0a; border-color: #f4f2ee; }
+html[data-theme="dark"] .time-pill { background: var(--gray-200); color: var(--gray-600); border-color: var(--border); }
+html[data-theme="dark"] .time-pill:hover { border-color: rgba(255,255,255,.2); color: var(--gray-900); }
+html[data-theme="dark"] .time-pill-active { background: #f4f2ee !important; color: #0c0b0a !important; border-color: #f4f2ee !important; }
 
 /* POS product card */
 html[data-theme="dark"] .pos-product-price { color: var(--gray-900); }

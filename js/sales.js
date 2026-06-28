@@ -320,22 +320,75 @@ function initializeSales() {
 function bindSalesLifecycle() {
   const ids = ['discountValue', 'discountType', 'checkoutPayment',
                'checkoutTendered', 'salesFromDate', 'salesToDate', 'salesPaymentFilter',
-               'salesStatusFilter', 'salesSearch'];
+               'salesStatusFilter', 'salesSearch', 'salesCategoryFilter', 'salesChannelFilter'];
   const handlers = {
-    'discountValue':      ['input',  updateCartSummary],
-    'discountType':       ['change', updateCartSummary],
-    'checkoutPayment':    ['change', togglePaymentFields],
-    'checkoutTendered':   ['input',  calculateChange],
-    'salesFromDate':      ['change', renderSalesTable],
-    'salesToDate':        ['change', renderSalesTable],
-    'salesPaymentFilter': ['change', renderSalesTable],
-    'salesStatusFilter':  ['change', renderSalesTable],
-    'salesSearch':        ['input',  renderSalesTable],
+    'discountValue':       ['input',  updateCartSummary],
+    'discountType':        ['change', updateCartSummary],
+    'checkoutPayment':     ['change', togglePaymentFields],
+    'checkoutTendered':    ['input',  calculateChange],
+    'salesFromDate':       ['change', () => { _clearTimePillActive(); renderSalesTable(); }],
+    'salesToDate':         ['change', () => { _clearTimePillActive(); renderSalesTable(); }],
+    'salesPaymentFilter':  ['change', renderSalesTable],
+    'salesStatusFilter':   ['change', renderSalesTable],
+    'salesSearch':         ['input',  renderSalesTable],
+    'salesCategoryFilter': ['change', renderSalesTable],
+    'salesChannelFilter':  ['change', renderSalesTable],
   };
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el && handlers[id]) el.addEventListener(handlers[id][0], handlers[id][1]);
   });
+
+  // Time preset pills
+  document.getElementById('salesTimePills')?.addEventListener('click', e => {
+    const btn = e.target.closest('.time-pill');
+    if (btn) applyTimePill(btn.dataset.preset);
+  });
+}
+
+function _clearTimePillActive() {
+  document.querySelectorAll('#salesTimePills .time-pill').forEach(b => b.classList.remove('time-pill-active'));
+}
+
+function applyTimePill(preset) {
+  document.querySelectorAll('#salesTimePills .time-pill').forEach(b =>
+    b.classList.toggle('time-pill-active', b.dataset.preset === preset));
+  const fromEl = document.getElementById('salesFromDate');
+  const toEl   = document.getElementById('salesToDate');
+  if (!fromEl || !toEl) return;
+  const toISO = d => d.toISOString().slice(0, 10);
+  const now = new Date();
+  switch (preset) {
+    case 'today': {
+      const d = toISO(now); fromEl.value = d; toEl.value = d; break;
+    }
+    case 'yesterday': {
+      const y = new Date(now); y.setDate(y.getDate() - 1);
+      const d = toISO(y); fromEl.value = d; toEl.value = d; break;
+    }
+    case 'week': {
+      const day = now.getDay();
+      const mon = new Date(now); mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+      fromEl.value = toISO(mon); toEl.value = toISO(now); break;
+    }
+    case 'month': {
+      fromEl.value = toISO(new Date(now.getFullYear(), now.getMonth(), 1));
+      toEl.value = toISO(now); break;
+    }
+    case 'all': {
+      fromEl.value = ''; toEl.value = ''; break;
+    }
+  }
+  renderSalesTable();
+}
+
+function populateSalesCategoryFilter() {
+  const select = document.getElementById('salesCategoryFilter');
+  if (!select) return;
+  const cats = [...new Set((APP_STATE.products || []).map(p => p.category).filter(Boolean))].sort();
+  const current = select.value;
+  select.innerHTML = `<option value="">All Categories</option>`
+    + cats.map(c => `<option value="${escapeHtml(c)}"${c === current ? ' selected' : ''}>${escapeHtml(c)}</option>`).join('');
 }
 
 /* ── Cart helpers ── */
@@ -1006,23 +1059,51 @@ function _generateReceiptQR(transaction) {
   if (!qrDiv) return;
   qrDiv.innerHTML = '';
 
-  const brand   = APP_STATE.settings?.brandName || 'Caflat.CORE';
-  const receipt = transaction.receiptNumber || transaction.id || '';
-  const total   = formatCurrency(transaction.totals?.total ?? transaction.total ?? 0);
-  const date    = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now())
-                    .toLocaleDateString('en-PH');
-  const baseUrl = String(APP_STATE.settings?.receiptBaseUrl || '').trim();
+  const brand    = APP_STATE.settings?.brandName || 'Caflat.CORE';
+  const items    = Array.isArray(transaction.items) ? transaction.items : [];
+  const itemsStr = items.map(i =>
+    [i.name || i.productName || 'Item', i.quantity || 1, i.price || 0,
+     i.lineTotal ?? i.total ?? (Number(i.price || 0) * Number(i.quantity || 1))].join('~')
+  ).join('|');
 
-  const text = baseUrl
-    ? `${baseUrl}?r=${encodeURIComponent(receipt)}`
-    : [brand, receipt, total, date].filter(Boolean).join('\n');
+  const saleDate = new Date(transaction.audit?.completedAt || transaction.createdAt || Date.now());
+  const dt = saleDate.toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' });
+
+  // Build receipt.html URL — use configured base or auto-detect from current page
+  const configuredBase = String(APP_STATE.settings?.receiptBaseUrl || '').trim().replace(/\/+$/, '');
+  const autoBase = window.location.href.split('?')[0].replace(/\/[^/]*$/, '');
+  const receiptPage = (configuredBase || autoBase) + '/receipt.html';
+
+  const params = new URLSearchParams({
+    b:    brand,
+    r:    transaction.receiptNumber || transaction.id || '',
+    s:    transaction.status || 'COMPLETED',
+    dt,
+    c:    transaction.customer?.name || transaction.customerName || '',
+    ot:   transaction.orderType || '',
+    pm:   (transaction.payment?.method || transaction.paymentMethod || '').toUpperCase(),
+    ref:  transaction.payment?.referenceNumber || transaction.referenceNumber || '',
+    sub:  String(transaction.totals?.subtotal ?? transaction.subtotal ?? 0),
+    disc: String(transaction.totals?.discount ?? transaction.discount ?? 0),
+    tx:   String(transaction.totals?.tax       ?? transaction.tax      ?? 0),
+    tot:  String(transaction.totals?.total     ?? transaction.total    ?? 0),
+    tnd:  String(transaction.payment?.tendered ?? transaction.tendered ?? 0),
+    chg:  String(transaction.payment?.change   ?? transaction.change   ?? 0),
+    ft:   APP_STATE.settings?.receiptFooter || '',
+    i:    itemsStr,
+  });
+  // Strip empty params to keep URL shorter
+  for (const [k, v] of [...params.entries()]) {
+    if (!v || v === '0') params.delete(k);
+  }
+  const url = `${receiptPage}?${params.toString()}`;
 
   if (typeof QRCode !== 'undefined') {
     try {
       qrDiv.style.width  = '220px';
       qrDiv.style.height = '220px';
       new QRCode(qrDiv, {
-        text,
+        text:         url,
         width:        220,
         height:       220,
         colorDark:    '#000000',
@@ -1035,7 +1116,7 @@ function _generateReceiptQR(transaction) {
     }
   }
 
-  qrDiv.textContent = text;
+  qrDiv.textContent = url;
 }
 
 function _receiptQRFallback(container, text) {
@@ -1062,27 +1143,49 @@ function renderSalesTable() {
   const tableBody = document.querySelector('#salesTable tbody');
   if (!tableBody) return;
 
-  const fromDate = document.getElementById('salesFromDate')?.value ? new Date(`${document.getElementById('salesFromDate').value}T00:00:00`) : null;
-  const toDate = document.getElementById('salesToDate')?.value ? new Date(`${document.getElementById('salesToDate').value}T23:59:59`) : null;
-  const paymentFilter = String(document.getElementById('salesPaymentFilter')?.value || '').toLowerCase();
-  const statusFilter  = String(document.getElementById('salesStatusFilter')?.value  || '').toUpperCase();
-  const searchQuery   = String(document.getElementById('salesSearch')?.value || '').toLowerCase().trim();
+  populateSalesCategoryFilter();
+
+  const fromDate       = document.getElementById('salesFromDate')?.value ? new Date(`${document.getElementById('salesFromDate').value}T00:00:00`) : null;
+  const toDate         = document.getElementById('salesToDate')?.value ? new Date(`${document.getElementById('salesToDate').value}T23:59:59`) : null;
+  const paymentFilter  = String(document.getElementById('salesPaymentFilter')?.value  || '').toLowerCase();
+  const statusFilter   = String(document.getElementById('salesStatusFilter')?.value   || '').toUpperCase();
+  const categoryFilter = String(document.getElementById('salesCategoryFilter')?.value || '');
+  const channelFilter  = String(document.getElementById('salesChannelFilter')?.value  || '').toUpperCase();
+  const searchQuery    = String(document.getElementById('salesSearch')?.value || '').toLowerCase().trim();
 
   const sales = getSales().filter(sale => {
     const saleDate = new Date(sale.audit?.completedAt || sale.completedAt || sale.createdAt || Date.now());
-    const matchesFrom    = !fromDate || saleDate >= fromDate;
-    const matchesTo      = !toDate   || saleDate <= toDate;
-    const matchesPayment = !paymentFilter || paymentFilter === 'all' || String(sale.payment?.method || sale.paymentMethod || '').toLowerCase() === paymentFilter;
-    const matchesStatus  = !statusFilter  || String(sale.status || '').toUpperCase() === statusFilter;
-    const matchesSearch  = !searchQuery  || [
+    const matchesFrom     = !fromDate       || saleDate >= fromDate;
+    const matchesTo       = !toDate         || saleDate <= toDate;
+    const matchesPayment  = !paymentFilter  || paymentFilter === 'all' || String(sale.payment?.method || sale.paymentMethod || '').toLowerCase() === paymentFilter;
+    const matchesStatus   = !statusFilter   || String(sale.status || '').toUpperCase() === statusFilter;
+    const matchesChannel  = !channelFilter  || String(sale.channel || 'POS').toUpperCase() === channelFilter;
+    const matchesCategory = !categoryFilter || (sale.items || []).some(item => {
+      const prod = getProductById(item.productId);
+      return prod && prod.category === categoryFilter;
+    });
+    const matchesSearch   = !searchQuery || [
       sale.receiptNumber || '',
       sale.customer?.name || sale.customerName || '',
       sale.payment?.method || sale.paymentMethod || '',
       String(sale.totals?.total ?? sale.total ?? ''),
       ...(sale.items || []).map(i => i.name || i.productName || '')
     ].some(field => field.toLowerCase().includes(searchQuery));
-    return matchesFrom && matchesTo && matchesPayment && matchesStatus && matchesSearch;
+    return matchesFrom && matchesTo && matchesPayment && matchesStatus && matchesChannel && matchesCategory && matchesSearch;
   });
+
+  // Filter summary
+  const summaryEl = document.getElementById('salesFilterSummary');
+  if (summaryEl) {
+    const total = getSales().length;
+    const active = [fromDate, toDate, paymentFilter, statusFilter, categoryFilter, channelFilter, searchQuery].some(Boolean);
+    if (active && total > 0) {
+      summaryEl.style.display = '';
+      summaryEl.textContent = `Showing ${sales.length} of ${total} sale${total !== 1 ? 's' : ''}`;
+    } else {
+      summaryEl.style.display = 'none';
+    }
+  }
 
   tableBody.innerHTML = '';
 
@@ -1389,6 +1492,7 @@ window.closeHeldOrdersModal = closeHeldOrdersModal;
 window.resumeHeldOrder = resumeHeldOrder;
 window.setQuickAmount = setQuickAmount;
 window.escapeHtml = escapeHtml;
+window.applyTimePill = applyTimePill;
 
 /* ═══════════════════════════════════════════════════════
    SPLIT PAYMENT
