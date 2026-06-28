@@ -734,8 +734,12 @@
     if (alreadyHome || locked) return;
 
     locked = true;
-    var curCenter = assignment.indexOf('center');
-    cards[curCenter].style.zIndex = '10';
+
+    // Pin the card flying INTO center (same logic as click handler).
+    // Do NOT pin the outgoing center card — that would keep it on top
+    // of the incoming card the whole way, causing the glitchy overlap.
+    var incomingCenter = cards[original.indexOf('center')];
+    incomingCenter.style.zIndex = '10';
 
     assignment = original.slice();
     cards.forEach(function (c, i) {
@@ -743,11 +747,11 @@
       c.classList.add('fan-card-' + assignment[i]);
     });
 
-    cards[curCenter].addEventListener('transitionend', function done(evt) {
+    incomingCenter.addEventListener('transitionend', function done(evt) {
       if (evt.propertyName !== 'transform') return;
-      cards[curCenter].style.zIndex = '';
+      incomingCenter.style.zIndex = '';
       locked = false;
-      cards[curCenter].removeEventListener('transitionend', done);
+      incomingCenter.removeEventListener('transitionend', done);
     });
   }
 
