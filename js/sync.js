@@ -20,6 +20,7 @@ let _syncPullTimer    = null;
 let _lastSyncAt       = null;
 let _syncPending      = false;
 let _deviceId         = null;
+let _lastSyncError    = null;  // stores last error string for the UI
 
 /* ── Entry point called by applyLicenseTier ── */
 async function initSyncEngine() {
@@ -122,20 +123,22 @@ async function syncPush() {
     });
 
     if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Push failed: ${res.status} — ${err}`);
+      const body = await res.text();
+      throw new Error(`HTTP ${res.status} — ${body.slice(0, 120)}`);
     }
 
-    _lastSyncAt = now;
-    _syncPending = false;
+    _lastSyncAt   = now;
+    _lastSyncError = null;
+    _syncPending  = false;
     _updateSyncIndicator('synced');
-    console.log('[Sync] Push OK at', now.slice(11,19));
 
   } catch(e) {
-    console.warn('[Sync] Push error:', e.message);
-    _syncPending = false;
+    _lastSyncError = e.message;
+    _syncPending   = false;
     _updateSyncIndicator('error');
+    return { ok: false, error: e.message };
   }
+  return { ok: true };
 }
 
 /* ══════════════════════════════════════════════
@@ -331,10 +334,23 @@ function _updateSyncIndicator(state) {
       ${state==='syncing'?'animation:offlinePulse 1s ease-in-out infinite;':''}"></div>
     <span>${s.text}</span>`;
 
-  if (_lastSyncAt && state === 'synced') {
+  if (state === 'error' && _lastSyncError) {
+    indicator.title = _lastSyncError;
+  } else if (_lastSyncAt && state === 'synced') {
     const t = new Date(_lastSyncAt).toLocaleTimeString('en-PH',
       {hour:'numeric',minute:'2-digit',hour12:true});
     indicator.title = `Last synced ${t}`;
+  }
+
+  // Tap the error indicator to see the full message as a notification
+  if (state === 'error') {
+    indicator.style.cursor = 'pointer';
+    indicator.onclick = () => {
+      if (_lastSyncError) showNotification(_lastSyncError, 'error');
+    };
+  } else {
+    indicator.style.cursor = 'default';
+    indicator.onclick = null;
   }
 }
 
@@ -365,9 +381,14 @@ async function syncNow() {
     showNotification('Cloud sync requires a CLOUD or ENTERPRISE license', 'error');
     return;
   }
-  await syncPush();
+  const pushResult = await syncPush();
+  if (pushResult && !pushResult.ok) {
+    showNotification('Sync failed: ' + pushResult.error, 'error');
+    return;
+  }
   await syncPull();
   pruneSyncLog();
+  showNotification('Synced successfully', 'success');
 }
 
 /* ── Exports ── */
