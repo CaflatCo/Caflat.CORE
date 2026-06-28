@@ -20,7 +20,8 @@ let _syncPullTimer    = null;
 let _lastSyncAt       = null;
 let _syncPending      = false;
 let _deviceId         = null;
-let _lastSyncError    = null;  // stores last error string for the UI
+let _lastSyncError    = null;
+let _syncErrorNotified = false; // show toast only on first failure per session
 
 /* ── Entry point called by applyLicenseTier ── */
 async function initSyncEngine() {
@@ -136,8 +137,13 @@ async function syncPush() {
     _lastSyncError = e.message;
     _syncPending   = false;
     _updateSyncIndicator('error');
+    if (!_syncErrorNotified && typeof showNotification === 'function') {
+      _syncErrorNotified = true;
+      showNotification('Sync error — ' + e.message.slice(0, 100), 'error');
+    }
     return { ok: false, error: e.message };
   }
+  _syncErrorNotified = false; // reset so next failure notifies again
   return { ok: true };
 }
 

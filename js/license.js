@@ -627,27 +627,45 @@ async function triggerLicenseRevalidation() {
   if (checkBtn) { checkBtn.textContent = 'Checking…'; checkBtn.disabled = true; }
 
   try {
+    // 1. Test basic connectivity via licenses table
     const res = await fetch(`${CAFLAT_SB_URL}/rest/v1/licenses?limit=1`, {
-      headers: {
-        'apikey': CAFLAT_SB_ANON,
-        'Authorization': `Bearer ${CAFLAT_SB_ANON}`
-      }
+      headers: { 'apikey': CAFLAT_SB_ANON, 'Authorization': `Bearer ${CAFLAT_SB_ANON}` }
     });
 
-    if (res.ok) {
-      const now = new Date().toLocaleString('en-PH', {
-        month: 'short', day: 'numeric',
-        hour: 'numeric', minute: '2-digit', hour12: true
-      });
-      if (_licenseState) await revalidateLicense(true);
-      updateSyncStatus('connected', `Last checked ${now} · License data only`);
-      showNotification('Connected to Supabase', 'success');
-    } else {
+    if (!res.ok) {
       const body = await res.text().catch(() => '');
       const detail = `HTTP ${res.status}${body ? ' — ' + body.slice(0, 80) : ''}`;
       updateSyncStatus('error', detail);
       showNotification('Supabase error: ' + detail, 'error');
+      if (checkBtn) { checkBtn.textContent = 'Check License'; checkBtn.disabled = false; }
+      return;
     }
+
+    // 2. Revalidate license
+    if (_licenseState) await revalidateLicense(true);
+
+    // 3. If on cloud tier, also test sync_log table (the actual sync target)
+    if (typeof isCloudTier === 'function' && isCloudTier()) {
+      const syncRes = await fetch(`${CAFLAT_SB_URL}/rest/v1/sync_log?limit=1`, {
+        headers: { 'apikey': CAFLAT_SB_ANON, 'Authorization': `Bearer ${CAFLAT_SB_ANON}` }
+      });
+      if (!syncRes.ok) {
+        const body = await syncRes.text().catch(() => '');
+        const detail = `sync_log: HTTP ${syncRes.status}${body ? ' — ' + body.slice(0, 80) : ''}`;
+        updateSyncStatus('error', detail);
+        showNotification('Sync table error: ' + detail, 'error');
+        if (checkBtn) { checkBtn.textContent = 'Check License'; checkBtn.disabled = false; }
+        return;
+      }
+    }
+
+    const now = new Date().toLocaleString('en-PH', {
+      month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true
+    });
+    updateSyncStatus('connected', `Last checked ${now}`);
+    showNotification('Connected to Supabase — all good', 'success');
+
   } catch (e) {
     updateSyncStatus('offline', 'No internet — ' + e.message.slice(0, 60));
     showNotification('Cannot reach Supabase: ' + e.message.slice(0, 80), 'error');
