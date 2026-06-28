@@ -2238,8 +2238,8 @@ html[data-theme="dark"] {
   --gray-200: #222228;
   --gray-300: #2e2e36;
   --border:   rgba(255,255,255,.10);
-  --gray-400: #4a4a58;
-  --gray-500: #74748a;
+  --gray-400: #888899;
+  --gray-500: #9090aa;
   --gray-600: #9898a8;
   --gray-700: #c8c4be;
   --gray-800: #e8e4de;
@@ -2416,6 +2416,9 @@ html[data-theme="dark"] .notification-content { color: var(--gray-900); }
 /* Misc */
 html[data-theme="dark"] .section-title::after { background: var(--gray-200); }
 html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--gray-400); }
+
+/* Toggle pill: green when ON in dark mode (--black is invisible on dark bg) */
+html[data-theme="dark"] .toggle-switch input:checked + .toggle-track { background: #16a34a; }
 
 /* Form inputs — override var(--black) text color */
 html[data-theme="dark"] .form-group input,
