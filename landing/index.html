@@ -704,9 +704,11 @@
 (function () {
   var fan = document.querySelector('.hero-card-fan');
   if (!fan) return;
-  var cards = Array.from(fan.querySelectorAll('.fan-card'));
+  var cards      = Array.from(fan.querySelectorAll('.fan-card'));
   var assignment = ['left', 'center', 'right'];
-  var locked = false;
+  var original   = ['left', 'center', 'right'];
+  var locked     = false;
+  var resetTimer = null;
 
   /* ── Staggered entrance ───────────────────────────────────────
      Applied via inline style so the keyframe never re-fires when
@@ -720,11 +722,34 @@
     var pos = assignment[i];
     card.style.animation =
       enterAnim[pos] + ' ' + enterDur[pos] + 'ms ' + easing + ' ' + enterDelay[pos] + 'ms both';
-
     card.addEventListener('animationend', function () {
       card.style.animation = '';
     }, { once: true });
   });
+
+  /* ── Auto-reset to original positions ────────────────────────
+     Called 2 s after the last swap settles. Skips if already home. */
+  function restoreOriginal() {
+    var alreadyHome = assignment.every(function (pos, i) { return pos === original[i]; });
+    if (alreadyHome || locked) return;
+
+    locked = true;
+    var curCenter = assignment.indexOf('center');
+    cards[curCenter].style.zIndex = '10';
+
+    assignment = original.slice();
+    cards.forEach(function (c, i) {
+      c.classList.remove('fan-card-left', 'fan-card-center', 'fan-card-right');
+      c.classList.add('fan-card-' + assignment[i]);
+    });
+
+    cards[curCenter].addEventListener('transitionend', function done(evt) {
+      if (evt.propertyName !== 'transform') return;
+      cards[curCenter].style.zIndex = '';
+      locked = false;
+      cards[curCenter].removeEventListener('transitionend', done);
+    });
+  }
 
   /* ── Click-to-swap ────────────────────────────────────────── */
   fan.addEventListener('click', function (e) {
@@ -735,9 +760,8 @@
     var center  = assignment.indexOf('center');
     if (clicked === center) return;
 
+    clearTimeout(resetTimer);
     locked = true;
-
-    // Pin clicked card above all others for the duration of the flight
     card.style.zIndex = '10';
 
     var tmp = assignment[clicked];
@@ -749,12 +773,13 @@
       c.classList.add('fan-card-' + assignment[i]);
     });
 
-    // Release lock once the transform finishes, clear inline z-index
     card.addEventListener('transitionend', function done(evt) {
       if (evt.propertyName !== 'transform') return;
       card.style.zIndex = '';
       locked = false;
       card.removeEventListener('transitionend', done);
+      // Start 2-second countdown once card has settled in place
+      resetTimer = setTimeout(restoreOriginal, 2000);
     });
   });
 })();
