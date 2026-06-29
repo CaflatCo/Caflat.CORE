@@ -83,6 +83,7 @@ function renderEverything() {
     'applySupplierCartButton',
     'applyOriginModeToggle',
     'renderOriginDashboard',
+    'renderCostLab',
     'renderCart',
     'refreshDashboard',
     'updateNavBadges',
@@ -237,6 +238,7 @@ function switchPage(target) {
   }
   if (cleanTarget === 'production' && typeof renderProductionView === 'function') renderProductionView();
   if (cleanTarget === 'origin'     && typeof renderOriginView    === 'function') renderOriginView();
+  if (cleanTarget === 'costlab'    && typeof renderCostLab        === 'function') renderCostLab();
   if (cleanTarget === 'settings'   && typeof renderCloudBackupList === 'function') renderCloudBackupList();
   if (cleanTarget === 'inventory') {
     if (typeof renderInventoryTable      === 'function') renderInventoryTable();
