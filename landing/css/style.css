@@ -100,17 +100,26 @@ section { padding: 120px 0; }
 }
 .section-light .eyebrow { color: rgba(10,10,11,.3); }
 
-/* Showcase eyebrows — scoped to section type so light/dark backgrounds both work */
-.section-dark  .showcase-text .eyebrow,
-.section-dark2 .showcase-text .eyebrow {
-  color: rgba(244,242,238,.72);
-  font-size: .84rem;
-  letter-spacing: .13em;
+/* Mode badge — replaces eyebrow for showcase mode labels */
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--coffee);
+  background: rgba(200,163,117,.08);
+  border: 1px solid rgba(200,163,117,.22);
+  border-radius: 6px;
+  padding: 5px 13px;
+  margin-bottom: 18px;
 }
-.section-light .showcase-text .eyebrow {
-  color: rgba(10,10,11,.62);
-  font-size: .84rem;
-  letter-spacing: .13em;
+.section-light .mode-badge {
+  color: rgba(10,10,11,.68);
+  background: rgba(10,10,11,.05);
+  border-color: rgba(10,10,11,.14);
 }
 
 /* ─── Scroll Reveal (base) ───────────────────────────────────── */
@@ -1139,8 +1148,8 @@ nav.scrolled {
 /* ─── Extra Features (Built-in Tools) ────────────────────────── */
 .extras-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 56px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 40px;
 }
 
 .extra-card {
@@ -1225,9 +1234,9 @@ nav.scrolled {
 .pricing-top { margin-bottom: 24px; }
 
 .pricing-tier {
-  font-size: 1.4rem;
+  font-size: 1.85rem;
   font-weight: 900;
-  letter-spacing: -.02em;
+  letter-spacing: -.03em;
   text-transform: none;
   color: var(--text-white);
   margin-bottom: 16px;
@@ -1382,7 +1391,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 .form-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
 /* ─── Dark Form Section Overrides ────────────────────────────── */
-.section-form .form-intro .eyebrow { color: rgba(255,255,255,.45); }
+.section-form .form-intro .eyebrow { color: var(--coffee); }
 .section-form .form-intro h2       { color: var(--text-white); }
 .section-form .form-intro > p      { color: var(--text-dim); }
 
@@ -1487,7 +1496,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   }
   .showcase-visual { transition-delay: 80ms; }
   .features-grid { grid-template-columns: 1fr 1fr; }
-  .extras-grid   { grid-template-columns: 1fr 1fr; gap: 40px; }
+  .extras-grid   { grid-template-columns: 1fr 1fr; gap: 32px; }
 }
 
 @media (max-width: 720px) {
