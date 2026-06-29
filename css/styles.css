@@ -137,7 +137,13 @@ header h1 {
 }
 
 .nav-group {
-  margin-bottom: 4px;
+  margin-bottom: 0;
+}
+
+.nav-group + .nav-group {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
 
 .nav-group-label {
@@ -146,13 +152,12 @@ header h1 {
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--gray-400);
-  padding: 8px 10px 4px;
+  padding: 0 10px 5px;
 }
 
 .nav-group-bottom {
   margin-top: auto;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
+  padding-top: 0;
 }
 
 .sidebar nav button {
