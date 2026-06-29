@@ -39,7 +39,7 @@ function _autoSnapshot() {
   const todaysIds = new Set(history.filter(h => h.date === today).map(h => h.productId));
 
   const newEntries = (APP_STATE.products || [])
-    .filter(p => !todaysIds.has(p.id))
+    .filter(p => !todaysIds.has(p.id) && ((p.recipe?.length > 0) || (p.packagingItems?.length > 0)))
     .map(p => {
       const { totalCost, margin, price } = calcProductCost(p);
       return { date: today, productId: p.id, productName: p.name, totalCost, margin, price };
@@ -393,10 +393,18 @@ function clSimulate(type, productId) {
   }
 
   if (type === 'margin') {
-    const targetM       = Number(document.getElementById(`clSimMargin-${productId}`)?.value || 0);
-    const suggestedPrice = targetM < 100 ? c.totalCost / (1 - targetM / 100) : 0;
+    const targetM = Number(document.getElementById(`clSimMargin-${productId}`)?.value || 0);
     const el = document.getElementById(`clSimMarginResult-${productId}`);
-    if (el) el.innerHTML = `Suggested price: <strong>${formatCurrency(suggestedPrice)}</strong>`;
+    if (el) {
+      if (targetM >= 100) {
+        el.innerHTML = `<span style="color:var(--gray-400);">100% margin is not achievable</span>`;
+      } else if (targetM < 0) {
+        el.innerHTML = `<span style="color:var(--gray-400);">Enter a value between 0–99%</span>`;
+      } else {
+        const suggestedPrice = c.totalCost / (1 - targetM / 100);
+        el.innerHTML = `Suggested price: <strong>${formatCurrency(suggestedPrice)}</strong>`;
+      }
+    }
   }
 
   if (type === 'yield') {
@@ -424,6 +432,11 @@ function saveCostLabOverrides(productId) {
 
   if (laborEl?.value !== '')    entry.laborCostPerUnit    = Number(laborEl.value);
   if (overheadEl?.value !== '') entry.overheadCostPerUnit = Number(overheadEl.value);
+
+  if (Object.keys(entry).length === 0) {
+    showNotification('Enter at least one value to save', 'error');
+    return;
+  }
 
   overrides[productId] = entry;
   updateState('costLabOverrides', () => overrides);
@@ -481,6 +494,19 @@ function saveCostLabSettings() {
   renderCostLab();
 }
 
+/* ─── Refresh only table + count (keeps search input focused) ─── */
+function _clRefreshTable() {
+  const products = _clFilteredProducts();
+  const costs    = products.map(p => ({ ...calcProductCost(p), name: p.name, id: p.id }));
+
+  const countEl = document.getElementById('clCount');
+  if (countEl) countEl.textContent = `${products.length} product${products.length !== 1 ? 's' : ''}`;
+
+  _clOpenId = null;
+  const wrap = document.getElementById('clTableWrap');
+  if (wrap) wrap.innerHTML = _renderCLTable(products, costs);
+}
+
 /* ─── Get filtered products ─── */
 function _clFilteredProducts() {
   const search    = document.getElementById('clSearch')?.value?.toLowerCase() || '';
@@ -528,19 +554,19 @@ function renderCostLab() {
 
     <div class="cl-filter-bar">
       <input id="clSearch" type="text" placeholder="Search products…"
-        oninput="renderCostLab()"
+        oninput="_clRefreshTable()"
         style="flex:1;min-width:160px;padding:8px 12px;border:1.5px solid var(--border);
           border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);
           background:var(--white);color:var(--gray-900);" />
-      <select id="clCatFilter" onchange="renderCostLab()"
+      <select id="clCatFilter" onchange="_clRefreshTable()"
         style="padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);
           font-size:12px;font-family:var(--font-main);background:var(--white);
           color:var(--gray-900);">${catOptions}</select>
-      <span style="font-size:11px;color:var(--gray-400);white-space:nowrap;">
+      <span id="clCount" style="font-size:11px;color:var(--gray-400);white-space:nowrap;">
         ${filtered.length} product${filtered.length !== 1 ? 's' : ''}</span>
     </div>
 
-    <div id="clTableWrap" style="overflow-x:auto;flex:1;">
+    <div id="clTableWrap" style="overflow-x:auto;">
       ${_renderCLTable(filtered, filteredCosts)}
     </div>`;
 }
@@ -548,6 +574,7 @@ function renderCostLab() {
 /* ── Exports ── */
 window.calcProductCost       = calcProductCost;
 window.renderCostLab         = renderCostLab;
+window._clRefreshTable       = _clRefreshTable;
 window.openCostLabSettings   = openCostLabSettings;
 window.saveCostLabSettings   = saveCostLabSettings;
 window.saveCostLabOverrides  = saveCostLabOverrides;
