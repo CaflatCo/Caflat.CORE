@@ -1382,7 +1382,6 @@ function _buildPrintHTML(receiptBody) {
     </style>
   </head><body>
     <div class="receipt">${clone.innerHTML}</div>
-    <script>window.onload = function() { window.print(); window.onafterprint = function(){ window.close(); }; }<\/script>
   </body></html>`;
 }
 
@@ -1411,6 +1410,7 @@ function _printStandard(receiptBody) {
       if (pw) {
         pw.document.write(html);
         pw.document.close();
+        pw.print();
       } else {
         showNotification('Please allow popups for printing', 'error');
       }
@@ -1424,6 +1424,7 @@ async function _printBluetooth(receiptBody) {
     showNotification('Web Bluetooth not supported on this browser. Use Chrome or Edge.', 'error');
     return;
   }
+  let device = null;
   try {
     showNotification('Searching for Bluetooth printer…', 'info');
 
@@ -1435,7 +1436,7 @@ async function _printBluetooth(receiptBody) {
       'e7810a71-73ae-499d-8c15-faa9aef0c3f2', // Another common thermal UUID
     ];
 
-    const device = await navigator.bluetooth.requestDevice({
+    device = await navigator.bluetooth.requestDevice({
       filters: [{ services: [PRINT_SERVICES[0]] }],
       optionalServices: PRINT_SERVICES
     });
@@ -1479,7 +1480,6 @@ async function _printBluetooth(receiptBody) {
     }
 
     showNotification('Sent to Bluetooth printer ✓', 'success');
-    device.gatt.disconnect();
 
   } catch(err) {
     if (err.name === 'NotFoundError' || err.message?.includes('cancelled')) {
@@ -1488,6 +1488,8 @@ async function _printBluetooth(receiptBody) {
       console.error('Bluetooth print error:', err);
       showNotification(`Bluetooth error: ${err.message || err}`, 'error');
     }
+  } finally {
+    if (device?.gatt?.connected) device.gatt.disconnect();
   }
 }
 
@@ -1519,8 +1521,6 @@ function _buildESCPOS(receiptBody) {
   // Extract receipt data from DOM
   const receiptLines = receiptBody.querySelectorAll('.receipt-line, .receipt-item');
   const brandEl      = receiptBody.querySelector('.receipt-brand');
-  const totalEl      = Array.from(receiptLines).find(el =>
-    el.classList.contains('receipt-total'));
   const items        = receiptBody.querySelector('.receipt-items');
 
   // Header

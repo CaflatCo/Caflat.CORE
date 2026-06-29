@@ -131,8 +131,13 @@ function openProductModal(productId = null) {
     const product = getProducts().find(p => String(p.id) === String(productId));
     if (product) hydrateProductForm(product);
   }
-  // Final dropdown sync before modal opens — ensures all selects have correct values
-  if (typeof renderIngredientDropdowns === 'function') renderIngredientDropdowns();
+  if (typeof renderIngredientDropdowns === 'function') {
+    renderIngredientDropdowns();
+    document.querySelectorAll('#recipeBuilder .recipe-ingredient[data-wanted-ingredient]').forEach(el => {
+      el.value = el.dataset.wantedIngredient;
+      el.removeAttribute('data-wanted-ingredient');
+    });
+  }
 
   openModal('productModal');
 
@@ -157,7 +162,7 @@ function hydrateProductForm(product) {
   if (catSelect) catSelect.value = product.category;
 
   if (Array.isArray(product.variants)) product.variants.forEach(v => addVariantRow(v));
-  if (Array.isArray(product.recipe)) product.recipe.forEach(r => addRecipeRow(r));
+  if (Array.isArray(product.recipe)) product.recipe.forEach(r => addRecipeRow(r, true));
   if (Array.isArray(product.packagingItems)) product.packagingItems.forEach(p => addPackagingRow(p));
 }
 
@@ -623,13 +628,17 @@ function cloneProduct(productId) {
   if (Array.isArray(product.variants))
     product.variants.forEach(v => addVariantRow({ ...v, id: generateId() }));
 
-  // Add recipe rows with ingredient IDs pre-set BEFORE renderIngredientDropdowns
   if (Array.isArray(product.recipe)) {
-    product.recipe.forEach(r => addRecipeRow(r));
+    product.recipe.forEach(r => addRecipeRow(r, true));
   }
 
-  // Final dropdown sync + cost preview after all rows are in DOM
-  if (typeof renderIngredientDropdowns === 'function') renderIngredientDropdowns();
+  if (typeof renderIngredientDropdowns === 'function') {
+    renderIngredientDropdowns();
+    document.querySelectorAll('#recipeBuilder .recipe-ingredient[data-wanted-ingredient]').forEach(el => {
+      el.value = el.dataset.wantedIngredient;
+      el.removeAttribute('data-wanted-ingredient');
+    });
+  }
 
   openModal('productModal');
 
@@ -775,7 +784,7 @@ function addPackagingRow(pkg = null) {
   }
 }
 
-function addRecipeRow(recipe = null) {
+function addRecipeRow(recipe = null, skipDropdownRebuild = false) {
   const container = document.getElementById('recipeBuilder');
   if (!container) return;
   const row = document.createElement('div');
@@ -794,22 +803,20 @@ function addRecipeRow(recipe = null) {
   row.querySelector('.recipe-qty')?.addEventListener('input', () => {
     if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
   });
-  // Set ingredientId BEFORE appending so currentValue is captured correctly
-  if (recipe?.ingredientId) {
-    row.querySelector('.recipe-ingredient').value = recipe.ingredientId;
-  }
 
   container.appendChild(row);
 
-  // Populate all dropdowns (preserving currentValue for each)
-  renderIngredientDropdowns();
+  if (skipDropdownRebuild) {
+    if (recipe?.ingredientId) {
+      row.querySelector('.recipe-ingredient').dataset.wantedIngredient = recipe.ingredientId;
+    }
+    return;
+  }
 
-  // Reapply value after dropdown rebuild (renderIngredientDropdowns rebuilds innerHTML)
+  renderIngredientDropdowns();
   if (recipe?.ingredientId) {
     row.querySelector('.recipe-ingredient').value = recipe.ingredientId;
   }
-
-  // Trigger cost preview after value is confirmed set
   if (typeof renderProductCostPreview === 'function') {
     requestAnimationFrame(() => renderProductCostPreview());
   }

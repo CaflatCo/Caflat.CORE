@@ -17,7 +17,7 @@ function initializeUIActions() {
   if (typeof applyEventPickerButton  === 'function') applyEventPickerButton();
   _bindLabInputs();
   bindSupplyDiscountInputs();
-  renderCategoryTabs();
+  if (typeof renderCategoryTabs === 'function') renderCategoryTabs();
 }
 
 function bindPrimaryButtons() {
@@ -499,8 +499,8 @@ function bindDelegatedActions() {
         closeModal('variantModal');
         break;
       }
-      case 'filter-category':       setActiveCategory(actionEl.dataset.category || 'All'); break;
-      case 'set-order-type':        setOrderType(actionEl.dataset.type || 'Dine In'); break;
+      case 'filter-category':       if (typeof setActiveCategory === 'function') setActiveCategory(actionEl.dataset.category || 'All'); break;
+      case 'set-order-type':        if (typeof setOrderType === 'function') setOrderType(actionEl.dataset.type || 'Dine In'); break;
       case 'complete-sale':         completeSale(); break;
       case 'complete-sale-pending': completeSale('pending'); break;
       case 'clear-cart':            clearCart(); break;
@@ -514,7 +514,7 @@ function bindDelegatedActions() {
       case 'save-restock':          saveRestockMovement(); break;
       case 'cancel-restock':        closeModal('restockModal'); break;
       case 'refresh-reports':       if (typeof renderReports === 'function') renderReports(); break;
-      case 'report-preset':         _applyReportPreset(actionEl.dataset.preset || 'today'); break;
+      case 'report-preset':         if (typeof _applyReportPreset === 'function') _applyReportPreset(actionEl.dataset.preset || 'today'); break;
       case 'print-supply-invoice':  printSupplyInvoice(actionEl.dataset.id || ''); break;
       case 'print-receipt':         printReceipt(); break;
       case 'complete-pending-sale': completePendingSale(actionEl.dataset.id || ''); break;

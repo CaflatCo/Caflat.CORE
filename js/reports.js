@@ -803,7 +803,7 @@ function _applyReportPreset(preset) {
   const toEl   = document.getElementById('reportToDate');
   if (!fromEl || !toEl) return;
 
-  const fmt = d => d.toISOString().slice(0, 10);
+  const fmt = d => { const y = d.getFullYear(); const m = String(d.getMonth()+1).padStart(2,'0'); const dy = String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${dy}`; };
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
