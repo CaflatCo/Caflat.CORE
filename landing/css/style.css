@@ -100,26 +100,60 @@ section { padding: 120px 0; }
 }
 .section-light .eyebrow { color: rgba(10,10,11,.3); }
 
-/* Mode badge — replaces eyebrow for showcase mode labels */
-.mode-badge {
+/* Showcase mode eyebrow overrides — slightly larger than generic eyebrow */
+.section-dark  .showcase-text .mode-badge,
+.section-dark2 .showcase-text .mode-badge,
+.grain         .showcase-text .mode-badge {
+  color: rgba(244,242,238,.82);
+  font-size: .95rem;
+  letter-spacing: .13em;
+  font-weight: 700;
+  font-family: inherit;
+  text-transform: uppercase;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: .72rem;
-  font-weight: 800;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--coffee);
-  background: rgba(200,163,117,.08);
-  border: 1px solid rgba(200,163,117,.22);
-  border-radius: 6px;
-  padding: 5px 13px;
+  gap: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   margin-bottom: 18px;
 }
-.section-light .mode-badge {
-  color: rgba(10,10,11,.68);
-  background: rgba(10,10,11,.05);
-  border-color: rgba(10,10,11,.14);
+.section-dark  .showcase-text .mode-badge::before,
+.section-dark2 .showcase-text .mode-badge::before,
+.grain         .showcase-text .mode-badge::before {
+  content: '';
+  display: inline-block;
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+  opacity: .5;
+  margin-right: 10px;
+}
+.section-light .showcase-text .mode-badge {
+  color: rgba(10,10,11,.55);
+  font-size: .95rem;
+  letter-spacing: .13em;
+  font-weight: 700;
+  font-family: inherit;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 18px;
+}
+.section-light .showcase-text .mode-badge::before {
+  content: '';
+  display: inline-block;
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+  opacity: .5;
+  margin-right: 10px;
 }
 
 /* ─── Scroll Reveal (base) ───────────────────────────────────── */
@@ -1234,10 +1268,11 @@ nav.scrolled {
 .pricing-top { margin-bottom: 24px; }
 
 .pricing-tier {
-  font-size: 1.85rem;
+  font-size: 1.4rem;
   font-weight: 900;
-  letter-spacing: -.03em;
+  letter-spacing: -.02em;
   text-transform: none;
+  text-align: center;
   color: var(--text-white);
   margin-bottom: 16px;
 }
