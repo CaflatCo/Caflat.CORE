@@ -304,6 +304,13 @@ function _updateReceiptUrlPreview() {
   preview.textContent = url ? `${url}?r=0001` : 'https://your-url?r=0001';
 }
 
+function _updateNavToolsGroup() {
+  const group = document.getElementById('navToolsGroup');
+  if (!group) return;
+  const anyVisible = !!document.querySelector('#navToolsGroup .nav-card button:not([style*="display: none"]):not([style*="display:none"])');
+  group.style.display = anyVisible ? '' : 'none';
+}
+
 function applyProductLabModeToggle() {
   const enabled = APP_STATE.settings?.productLabModeEnabled === true;
   const navBtn  = document.getElementById('navLab');
@@ -313,6 +320,7 @@ function applyProductLabModeToggle() {
   if (!enabled && APP_STATE.ui?.currentView === 'lab') {
     if (typeof switchPage === 'function') switchPage('products');
   }
+  _updateNavToolsGroup();
 }
 
 function escapeHtml(value) {
@@ -576,6 +584,7 @@ window.archiveAndResetLocal = archiveAndResetLocal;
 window.archiveAndResetEmail = archiveAndResetEmail;
 window.factoryReset         = factoryReset;
 window.applyProductLabModeToggle = applyProductLabModeToggle;
+window._updateNavToolsGroup      = _updateNavToolsGroup;
 
 window.saveSettings        = saveSettings;
 window.renderBranding      = renderBranding;

@@ -293,9 +293,12 @@ function applyRecipeCatalogToggle() {
   const enabled = APP_STATE.settings?.recipeCatalogEnabled === true;
   const btn     = document.getElementById('openRecipesBtn');
   if (btn) btn.style.display = enabled ? '' : 'none';
+  const navBtn  = document.getElementById('navRecipes');
+  if (navBtn) navBtn.style.display = enabled ? '' : 'none';
   if (!enabled && APP_STATE.ui?.currentView === 'recipes') {
     if (typeof switchPage === 'function') switchPage('products');
   }
+  if (typeof _updateNavToolsGroup === 'function') _updateNavToolsGroup();
 }
 
 /* ── Exports ── */
