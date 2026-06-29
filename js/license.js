@@ -377,16 +377,9 @@ function applyLicenseTier() {
       if (el) el.style.display = 'none';
     });
     if (typeof updateOpsNavGroup === 'function') updateOpsNavGroup();
-    ['openLabBtn','openRecipesBtn'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = 'none';
-    });
-
     if (typeof applySupplierModeToggle    === 'function') applySupplierModeToggle();
     if (typeof applyProductionModeToggle  === 'function') applyProductionModeToggle();
     if (typeof applyCoffeeCartModeToggle  === 'function') applyCoffeeCartModeToggle();
-    if (typeof applyProductLabModeToggle  === 'function') applyProductLabModeToggle();
-    if (typeof applyRecipeCatalogToggle   === 'function') applyRecipeCatalogToggle();
     if (typeof applyShoppingListToggle    === 'function') applyShoppingListToggle();
   }
 

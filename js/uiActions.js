@@ -51,7 +51,6 @@ function bindPrimaryButtons() {
     ['addProdJobBtn',          () => openProductionJobModal()],
     ['endOfDayBtn',            () => openEndOfDaySummary()],
     ['shoppingListBtn',        () => openShoppingListModal()],
-    ['openRecipesBtn',         () => { if(typeof switchPage==='function') switchPage('recipes'); }],
     ['rcNewRecipeBtn',         () => openRecipeForm()],
     ['rcSaveFormBtn',          () => saveRecipeForm()],
     ['rcCancelFormBtn',        () => closeRecipeForm()],

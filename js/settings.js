@@ -305,22 +305,11 @@ function _updateReceiptUrlPreview() {
 }
 
 function _updateNavToolsGroup() {
-  const group = document.getElementById('navToolsGroup');
-  if (!group) return;
-  const anyVisible = !!document.querySelector('#navToolsGroup .nav-card button:not([style*="display: none"]):not([style*="display:none"])');
-  group.style.display = anyVisible ? '' : 'none';
+  // Tools group is always visible — no-op kept for compatibility
 }
 
 function applyProductLabModeToggle() {
-  const enabled = APP_STATE.settings?.productLabModeEnabled === true;
-  const navBtn  = document.getElementById('navLab');
-  if (navBtn) navBtn.style.display = enabled ? '' : 'none';
-  const labBtn  = document.getElementById('openLabBtn');
-  if (labBtn) labBtn.style.display = enabled ? '' : 'none';
-  if (!enabled && APP_STATE.ui?.currentView === 'lab') {
-    if (typeof switchPage === 'function') switchPage('products');
-  }
-  _updateNavToolsGroup();
+  // navLab is always visible in the sidebar; nothing to toggle
 }
 
 function escapeHtml(value) {

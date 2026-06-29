@@ -500,10 +500,10 @@
             </div>
           </div>
 
-          <div class="nav-group" id="navToolsGroup" style="display:none;">
+          <div class="nav-group" id="navToolsGroup">
             <div class="nav-group-label">Tools</div>
             <div class="nav-card">
-              <button data-view="lab" id="navLab" style="display:none;">
+              <button data-view="lab" id="navLab">
                 <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M6 1.5h4M6.5 1.5v5L3.5 12a1.5 1.5 0 0 0 1.3 2.5h6.4a1.5 1.5 0 0 0 1.3-2.5L9.5 6.5V1.5"/>
                   <circle cx="6" cy="10.5" r=".7" fill="currentColor" stroke="none"/>
@@ -511,7 +511,7 @@
                 </svg>
                 Product Lab
               </button>
-              <button data-view="recipes" id="navRecipes" style="display:none;">
+              <button data-view="recipes" id="navRecipes">
                 <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M2.5 2.5h11a.5.5 0 0 1 .5.5v10a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V3a.5.5 0 0 1 .5-.5z"/>
                   <line x1="5" y1="6" x2="11" y2="6"/>
@@ -684,8 +684,6 @@
           <div class="panel-header">
             <h2>Products</h2>
             <div class="flex-wrap-row">
-              <button class="btn btn-secondary" id="openLabBtn" type="button" style="display:none;" onclick="switchPage('lab');">Product Lab</button>
-              <button class="btn btn-secondary" id="openRecipesBtn" type="button" style="display:none;" onclick="switchPage('recipes');">Recipe Catalog</button>
               <button class="btn" id="addProductBtn" type="button">+ Add Product</button>
               <button class="btn btn-secondary" id="exportDataBtnProducts" type="button">Export Data</button>
               <button class="btn btn-secondary" id="loadDemoBtnProducts" type="button">Load Demo</button>
