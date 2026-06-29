@@ -394,78 +394,74 @@
         <nav>
           <div class="nav-group">
             <div class="nav-group-label">Main</div>
-
-            <button class="active" data-view="pos">
-              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="6" width="12" height="8" rx="1.5"/>
-                <path d="M5.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/>
-                <line x1="4.5" y1="10" x2="11.5" y2="10"/>
-              </svg>
-              POS
-            </button>
-
-            <button data-view="dashboard" id="navDashboard">
-              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/>
-                <rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/>
-                <rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/>
-                <rect x="9" y="9" width="5.5" height="5.5" rx="1"/>
-              </svg>
-              Dashboard
-            </button>
-
-            <button data-view="sales">
-              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 1.5h10v13l-2-1.4-1.5 1.4-2-1.4-1.5 1.4L4.5 13.5 3 14.5z"/>
-                <line x1="5.5" y1="5.5" x2="10.5" y2="5.5"/>
-                <line x1="5.5" y1="8.5" x2="10.5" y2="8.5"/>
-              </svg>
-              Sales
-            </button>
-
-            <button data-view="reports">
-              <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
-                <rect x="1.5" y="9" width="3" height="5.5" rx="0.75"/>
-                <rect x="6.5" y="5.5" width="3" height="9" rx="0.75"/>
-                <rect x="11.5" y="2" width="3" height="12.5" rx="0.75"/>
-              </svg>
-              Reports
-            </button>
+            <div class="nav-card">
+              <button class="active" data-view="pos">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="6" width="12" height="8" rx="1.5"/>
+                  <path d="M5.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/>
+                  <line x1="4.5" y1="10" x2="11.5" y2="10"/>
+                </svg>
+                POS
+              </button>
+              <button data-view="dashboard" id="navDashboard">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/>
+                  <rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/>
+                  <rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/>
+                  <rect x="9" y="9" width="5.5" height="5.5" rx="1"/>
+                </svg>
+                Dashboard
+              </button>
+              <button data-view="sales">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 1.5h10v13l-2-1.4-1.5 1.4-2-1.4-1.5 1.4L4.5 13.5 3 14.5z"/>
+                  <line x1="5.5" y1="5.5" x2="10.5" y2="5.5"/>
+                  <line x1="5.5" y1="8.5" x2="10.5" y2="8.5"/>
+                </svg>
+                Sales
+              </button>
+              <button data-view="reports">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
+                  <rect x="1.5" y="9" width="3" height="5.5" rx="0.75"/>
+                  <rect x="6.5" y="5.5" width="3" height="9" rx="0.75"/>
+                  <rect x="11.5" y="2" width="3" height="12.5" rx="0.75"/>
+                </svg>
+                Reports
+              </button>
+            </div>
           </div>
 
           <div class="nav-group">
             <div class="nav-group-label">Catalog</div>
-
-            <button data-view="products">
-              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 2h5.5l6.5 6.5a1.5 1.5 0 0 1 0 2.1L10 14.5a1.5 1.5 0 0 1-2.1 0L1.5 8z"/>
-                <circle cx="6" cy="5.5" r="1.2" fill="currentColor" stroke="none"/>
-              </svg>
-              Products
-            </button>
-
-            <button data-view="ingredients">
-              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5.5 1.5h5M6.5 1.5V6L3 12a1.5 1.5 0 0 0 1.4 2.5h7.2A1.5 1.5 0 0 0 13 12L9.5 6V1.5"/>
-                <line x1="3.5" y1="10.5" x2="12.5" y2="10.5"/>
-              </svg>
-              Ingredients
-            </button>
-
-            <button data-view="inventory">
-              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="1.5" y="7.5" width="13" height="7" rx="1"/>
-                <path d="M1.5 7.5L8 3l6.5 4.5"/>
-                <line x1="6" y1="14.5" x2="6" y2="10"/>
-                <line x1="10" y1="14.5" x2="10" y2="10"/>
-              </svg>
-              Inventory
-            </button>
+            <div class="nav-card">
+              <button data-view="products">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 2h5.5l6.5 6.5a1.5 1.5 0 0 1 0 2.1L10 14.5a1.5 1.5 0 0 1-2.1 0L1.5 8z"/>
+                  <circle cx="6" cy="5.5" r="1.2" fill="currentColor" stroke="none"/>
+                </svg>
+                Products
+              </button>
+              <button data-view="ingredients">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5.5 1.5h5M6.5 1.5V6L3 12a1.5 1.5 0 0 0 1.4 2.5h7.2A1.5 1.5 0 0 0 13 12L9.5 6V1.5"/>
+                  <line x1="3.5" y1="10.5" x2="12.5" y2="10.5"/>
+                </svg>
+                Ingredients
+              </button>
+              <button data-view="inventory">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1.5" y="7.5" width="13" height="7" rx="1"/>
+                  <path d="M1.5 7.5L8 3l6.5 4.5"/>
+                  <line x1="6" y1="14.5" x2="6" y2="10"/>
+                  <line x1="10" y1="14.5" x2="10" y2="10"/>
+                </svg>
+                Inventory
+              </button>
+            </div>
           </div>
 
           <div class="nav-group" id="navOpsGroup" style="display:none;">
             <div class="nav-group-label">Operations</div>
-
             <div class="nav-card">
               <button data-view="supply" id="navSupply" style="display:none;">
                 <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -504,6 +500,7 @@
               </button>
             </div>
           </div>
+
 
           <div class="nav-group" id="navToolsGroup">
             <div class="nav-group-label">Tools</div>

@@ -304,15 +304,12 @@ function _updateReceiptUrlPreview() {
   preview.textContent = url ? `${url}?r=0001` : 'https://your-url?r=0001';
 }
 
+function _updateNavToolsGroup() {
+  // Tools group is always visible — no-op kept for compatibility
+}
+
 function applyProductLabModeToggle() {
-  const enabled = APP_STATE.settings?.productLabModeEnabled === true;
-  const navBtn  = document.getElementById('navLab');
-  if (navBtn) navBtn.style.display = enabled ? '' : 'none';
-  const labBtn  = document.getElementById('openLabBtn');
-  if (labBtn) labBtn.style.display = enabled ? '' : 'none';
-  if (!enabled && APP_STATE.ui?.currentView === 'lab') {
-    if (typeof switchPage === 'function') switchPage('products');
-  }
+  // navLab is always visible in the sidebar; nothing to toggle
 }
 
 function escapeHtml(value) {
@@ -576,6 +573,7 @@ window.archiveAndResetLocal = archiveAndResetLocal;
 window.archiveAndResetEmail = archiveAndResetEmail;
 window.factoryReset         = factoryReset;
 window.applyProductLabModeToggle = applyProductLabModeToggle;
+window._updateNavToolsGroup      = _updateNavToolsGroup;
 
 window.saveSettings        = saveSettings;
 window.renderBranding      = renderBranding;

@@ -108,13 +108,13 @@ header h1 {
 .sidebar {
   width: 220px;
   flex-shrink: 0;
-  background: var(--white);
+  background: var(--gray-100);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px 10px;
+  padding: 12px 8px;
   transition: width .22s ease, padding .22s ease, opacity .22s ease;
 }
 
@@ -156,6 +156,13 @@ header h1 {
   margin: 0 -10px 2px;
 }
 
+.nav-card {
+  background: var(--white);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+}
+
 .nav-group-bottom {
   margin-top: auto;
   padding-top: 0;
@@ -173,17 +180,22 @@ header h1 {
   font-size: 12px;
   font-weight: 500;
   font-family: var(--font-main);
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   text-align: left;
   transition: all var(--transition);
-  margin-bottom: 1px;
+  margin-bottom: 0;
   white-space: nowrap;
   letter-spacing: 0;
   text-transform: none;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.nav-card > button:last-child {
+  border-bottom: none;
 }
 
 .sidebar nav button:hover {
-  background: var(--gray-100);
+  background: var(--gray-50);
   color: var(--black);
 }
 
@@ -193,6 +205,7 @@ header h1 {
   font-weight: 700;
   border-left: 3px solid var(--white);
   padding-left: 9px;
+  border-bottom-color: transparent;
 }
 
 .nav-icon {
@@ -1675,11 +1688,14 @@ canvas { width: 100% !important; max-width: 100%; }
   .nav-group { display: contents; }
   .nav-group-label { display: none; }
   .nav-group-bottom { margin-top: 0; padding-top: 0; border-top: none; margin-left: auto; }
+  .nav-card { background: none; border-radius: 0; box-shadow: none; display: contents; }
   .sidebar nav button {
     flex-shrink: 0;
     padding: 6px 10px;
     font-size: 11px;
     white-space: nowrap;
+    border-bottom: none;
+    border-radius: var(--radius-sm);
   }
   .nav-icon { display: none; }
   .panel { padding: 14px; }
@@ -2268,6 +2284,9 @@ html[data-theme="dark"] {
 /* Body background darker than card surface so panels lift off */
 html[data-theme="dark"] body { background: var(--gray-50); color: var(--gray-900); }
 
+/* Sidebar section labels — no background, just text color */
+html[data-theme="dark"] .nav-group-label { background: none; color: var(--gray-500); }
+
 /* Header text on black bg — --white remapped to dark, needs explicit override */
 html[data-theme="dark"] header,
 html[data-theme="dark"] header h1 { color: #f4f2ee; }
@@ -2284,10 +2303,11 @@ html[data-theme="dark"] .checkout-btn { background: #f4f2ee; color: #0c0b0a; bor
 html[data-theme="dark"] .checkout-btn:hover { background: #fff; }
 
 /* Sidebar nav */
-html[data-theme="dark"] .sidebar nav button { color: var(--gray-700); }
+html[data-theme="dark"] .sidebar { background: var(--gray-50); }
+html[data-theme="dark"] .nav-card { background: var(--gray-100); }
+html[data-theme="dark"] .sidebar nav button { color: var(--gray-700); border-bottom-color: rgba(255,255,255,.05); }
 html[data-theme="dark"] .sidebar nav button:hover { background: rgba(255,255,255,.05); color: var(--gray-900); }
-html[data-theme="dark"] .sidebar nav button.active { background: #f4f2ee; color: #0c0b0a; border-left: 3px solid #0c0b0a; padding-left: 9px; }
-html[data-theme="dark"] .nav-group-label { color: var(--gray-500); }
+html[data-theme="dark"] .sidebar nav button.active { background: #f4f2ee; color: #0c0b0a; border-left: 3px solid #0c0b0a; padding-left: 9px; border-bottom-color: transparent; }
 html[data-theme="dark"] .nav-group-bottom { border-top-color: var(--border); }
 
 /* Table */
