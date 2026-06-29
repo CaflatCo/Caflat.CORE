@@ -138,7 +138,11 @@ header h1 {
 }
 
 .nav-group {
-  margin-bottom: 4px;
+  margin-bottom: 0;
+}
+
+.nav-group + .nav-group {
+  margin-top: 6px;
 }
 
 .nav-group-label {
@@ -146,14 +150,15 @@ header h1 {
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--gray-400);
-  padding: 8px 10px 4px;
+  color: var(--gray-500);
+  padding: 5px 10px;
+  background: var(--gray-100);
+  margin: 0 -10px 2px;
 }
 
 .nav-group-bottom {
   margin-top: auto;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
+  padding-top: 0;
 }
 
 .sidebar nav button {
@@ -2423,6 +2428,15 @@ html[data-theme="dark"] .notification-content { color: var(--gray-900); }
 
 /* Misc */
 html[data-theme="dark"] .section-title::after { background: var(--gray-200); }
+
+/* ── Utility classes ──────────────────────────────────────────────────────── */
+.required-star { color: var(--danger); }
+.grid-2        { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.flex-wrap-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.th-label      { text-align: left; padding: 8px 10px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--gray-400); }
+.label-micro   { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray-400); margin-bottom: 4px; }
+.text-xl       { font-size: 22px; font-weight: 900; }
+.section-head  { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--gray-400); }
 
 /* Toggle pill: green when ON in dark mode (--black is invisible on dark bg) */

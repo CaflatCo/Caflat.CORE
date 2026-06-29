@@ -131,8 +131,13 @@ function openProductModal(productId = null) {
     const product = getProducts().find(p => String(p.id) === String(productId));
     if (product) hydrateProductForm(product);
   }
-  // Final dropdown sync before modal opens — ensures all selects have correct values
-  if (typeof renderIngredientDropdowns === 'function') renderIngredientDropdowns();
+  if (typeof renderIngredientDropdowns === 'function') {
+    renderIngredientDropdowns();
+    document.querySelectorAll('#recipeBuilder .recipe-ingredient[data-wanted-ingredient]').forEach(el => {
+      el.value = el.dataset.wantedIngredient;
+      el.removeAttribute('data-wanted-ingredient');
+    });
+  }
 
   openModal('productModal');
 
@@ -157,7 +162,7 @@ function hydrateProductForm(product) {
   if (catSelect) catSelect.value = product.category;
 
   if (Array.isArray(product.variants)) product.variants.forEach(v => addVariantRow(v));
-  if (Array.isArray(product.recipe)) product.recipe.forEach(r => addRecipeRow(r));
+  if (Array.isArray(product.recipe)) product.recipe.forEach(r => addRecipeRow(r, true));
   if (Array.isArray(product.packagingItems)) product.packagingItems.forEach(p => addPackagingRow(p));
 }
 
@@ -623,13 +628,17 @@ function cloneProduct(productId) {
   if (Array.isArray(product.variants))
     product.variants.forEach(v => addVariantRow({ ...v, id: generateId() }));
 
-  // Add recipe rows with ingredient IDs pre-set BEFORE renderIngredientDropdowns
   if (Array.isArray(product.recipe)) {
-    product.recipe.forEach(r => addRecipeRow(r));
+    product.recipe.forEach(r => addRecipeRow(r, true));
   }
 
-  // Final dropdown sync + cost preview after all rows are in DOM
-  if (typeof renderIngredientDropdowns === 'function') renderIngredientDropdowns();
+  if (typeof renderIngredientDropdowns === 'function') {
+    renderIngredientDropdowns();
+    document.querySelectorAll('#recipeBuilder .recipe-ingredient[data-wanted-ingredient]').forEach(el => {
+      el.value = el.dataset.wantedIngredient;
+      el.removeAttribute('data-wanted-ingredient');
+    });
+  }
 
   openModal('productModal');
 
@@ -646,3 +655,201 @@ window.renderProductCostPreview = renderProductCostPreview;
 window.renderProductTemplates   = renderProductTemplates;
 window.applyProductTemplate     = applyProductTemplate;
 window.cloneProduct             = cloneProduct;
+
+/* ── Category tabs + order type tabs ── */
+function setActiveCategory(category = 'All') {
+  updateState('ui', current => ({ ...current, activeCategory: category }));
+  renderCategoryTabs();
+  renderPOSProducts();
+}
+
+function setOrderType(type) {
+  updateState('ui', current => ({ ...current, orderType: type }));
+  renderOrderTypeTabs();
+}
+
+function renderOrderTypeTabs() {
+  const container = document.getElementById('orderTypeTabs');
+  if (!container) return;
+
+  const coffeeCartOn = APP_STATE.settings?.coffeeCartModeEnabled === true;
+
+  if (coffeeCartOn) {
+    // Coffee Cart Mode: show channels instead of order types
+    // Hide the old separate channel container
+    const chanSel = document.getElementById('channelSelectorContainer');
+    if (chanSel) chanSel.style.display = 'none';
+
+    const current = APP_STATE.ui?.activeChannel || APP_STATE.ui?.orderType || 'Dine In';
+    const channels = Object.keys(typeof CART_CHANNELS !== 'undefined' ? CART_CHANNELS : {});
+    const available = channels.length
+      ? channels
+      : ['Dine In', 'Take Out', 'Delivery'];
+
+    container.innerHTML = available.map(ch => `
+      <button type="button" class="order-type-btn${current === ch ? ' active' : ''}"
+        data-action="set-channel" data-channel="${escapeHtml(ch)}">${escapeHtml(ch)}</button>`
+    ).join('');
+  } else {
+    // Normal mode: show order types
+    const chanSel = document.getElementById('channelSelectorContainer');
+    if (chanSel) chanSel.style.display = 'none';
+
+    const types   = APP_STATE.settings?.orderTypes || ['Dine In', 'Take Out', 'Delivery'];
+    const current = APP_STATE.ui?.orderType || 'Dine In';
+    container.innerHTML = types.map(t => `
+      <button type="button" class="order-type-btn${current === t ? ' active' : ''}"
+        data-action="set-order-type" data-type="${escapeHtml(t)}">${escapeHtml(t)}</button>`
+    ).join('');
+  }
+}
+
+function renderCategoryTabs() {
+  const container = document.getElementById('categoryTabs');
+  if (!container) return;
+  const categories = Array.isArray(APP_STATE.categories) ? APP_STATE.categories : [];
+  const active = APP_STATE.ui?.activeCategory || 'All';
+  container.innerHTML = '';
+
+  const allBtn = document.createElement('button');
+  allBtn.type = 'button';
+  allBtn.textContent = 'All';
+  allBtn.dataset.action = 'filter-category';
+  allBtn.dataset.category = 'All';
+  if (active === 'All') allBtn.classList.add('active');
+  container.appendChild(allBtn);
+
+  categories.forEach(cat => {
+    const catName = typeof cat === 'object' ? cat.name : cat;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = catName;
+    btn.dataset.action = 'filter-category';
+    btn.dataset.category = catName;
+    if (String(active) === String(catName)) btn.classList.add('active');
+    container.appendChild(btn);
+  });
+}
+
+window.setActiveCategory    = setActiveCategory;
+window.setOrderType         = setOrderType;
+window.renderCategoryTabs   = renderCategoryTabs;
+window.renderOrderTypeTabs  = renderOrderTypeTabs;
+
+/* ── Variant / Recipe / Packaging form builders ── */
+function addVariantRow(variant = null) {
+  const container = document.getElementById('variantBuilder');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'variant-row';
+  row.dataset.variantId = variant?.id || generateId();
+  row.innerHTML = `
+    <input type="text"   class="variant-name"       placeholder="Name"       value="${escapeHtml(variant?.name || '')}">
+    <input type="number" class="variant-price"      placeholder="Price"      value="${variant?.price || ''}">
+    <input type="number" class="variant-multiplier" placeholder="Multiplier" value="${variant?.multiplier || 1}">
+    <button type="button" class="btn btn-sm btn-secondary remove-variant-btn">✕</button>`;
+  row.querySelector('.remove-variant-btn').addEventListener('click', () => row.remove());
+  container.appendChild(row);
+}
+
+function addPackagingRow(pkg = null) {
+  const container = document.getElementById('packagingBuilder');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'packaging-row';
+  row.dataset.pkgId = pkg?.id || generateId();
+  row.innerHTML = `
+    <input type="text"   class="packaging-name" placeholder="e.g. Cookie Box, Sticker, Paper Bag"
+      value="${escapeHtml(pkg?.name || '')}"
+      style="flex:2;padding:7px 10px;border:1px solid var(--border);
+        border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />
+    <input type="number" class="packaging-cost" placeholder="Cost (₱)"
+      value="${pkg?.cost || ''}" min="0" step="0.01"
+      style="width:110px;padding:7px 10px;border:1px solid var(--border);
+        border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />
+    <button type="button" class="btn btn-sm btn-secondary remove-packaging-btn">✕</button>`;
+  row.querySelector('.remove-packaging-btn').addEventListener('click', () => {
+    row.remove();
+    if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+  });
+  row.querySelector('.packaging-name')?.addEventListener('input', () => {
+    if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+  });
+  row.querySelector('.packaging-cost')?.addEventListener('input', () => {
+    if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+  });
+  container.appendChild(row);
+  if (typeof renderProductCostPreview === 'function') {
+    requestAnimationFrame(() => renderProductCostPreview());
+  }
+}
+
+function addRecipeRow(recipe = null, skipDropdownRebuild = false) {
+  const container = document.getElementById('recipeBuilder');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'recipe-row';
+  row.innerHTML = `
+    <select class="recipe-ingredient"></select>
+    <input type="number" class="recipe-qty" placeholder="Qty" value="${recipe?.quantity || ''}">
+    <button type="button" class="btn btn-sm btn-secondary remove-recipe-btn">✕</button>`;
+  row.querySelector('.remove-recipe-btn').addEventListener('click', () => {
+    row.remove();
+    if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+  });
+  row.querySelector('.recipe-ingredient')?.addEventListener('change', () => {
+    if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+  });
+  row.querySelector('.recipe-qty')?.addEventListener('input', () => {
+    if (typeof renderProductCostPreview === 'function') renderProductCostPreview();
+  });
+
+  container.appendChild(row);
+
+  if (skipDropdownRebuild) {
+    if (recipe?.ingredientId) {
+      row.querySelector('.recipe-ingredient').dataset.wantedIngredient = recipe.ingredientId;
+    }
+    return;
+  }
+
+  renderIngredientDropdowns();
+  if (recipe?.ingredientId) {
+    row.querySelector('.recipe-ingredient').value = recipe.ingredientId;
+  }
+  if (typeof renderProductCostPreview === 'function') {
+    requestAnimationFrame(() => renderProductCostPreview());
+  }
+}
+
+/* ── Variant selector modal ── */
+function openVariantSelector(productId) {
+  const product = getProducts().find(p => String(p.id) === String(productId));
+  if (!product || !Array.isArray(product.variants) || !product.variants.length) return;
+
+  const container = document.getElementById('variantOptions');
+  if (!container) return;
+
+  const title = document.getElementById('variantModalTitle');
+  if (title) title.textContent = product.name;
+
+  container.innerHTML = '';
+  product.variants.forEach(variant => {
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.className = 'variant-option';
+    option.dataset.action = 'add-to-cart-variant';
+    option.dataset.productId = product.id;
+    option.dataset.variantId = variant.id;
+    option.innerHTML = `
+      <div class="variant-option-name">${escapeHtml(variant.name)}</div>
+      <div class="variant-option-price">${formatCurrency(variant.price)}</div>`;
+    container.appendChild(option);
+  });
+  openModal('variantModal');
+}
+
+window.addVariantRow       = addVariantRow;
+window.addRecipeRow        = addRecipeRow;
+window.addPackagingRow     = addPackagingRow;
+window.openVariantSelector = openVariantSelector;
