@@ -152,7 +152,7 @@ header h1 {
   text-transform: uppercase;
   color: var(--gray-500);
   padding: 5px 10px;
-  background: var(--gray-100);
+  background: var(--gray-200);
   margin: 0 -10px 2px;
 }
 
