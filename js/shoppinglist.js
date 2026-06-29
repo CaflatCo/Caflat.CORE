@@ -71,10 +71,9 @@ function _swRenderTabBar() {
     const btn = document.getElementById(id);
     if (!btn) return;
     const active = mode === _swMode;
-    btn.style.background = active ? 'var(--black)' : 'white';
-    btn.style.color       = active ? 'white' : 'var(--gray-400)';
+    btn.style.background = active ? 'var(--black)' : 'transparent';
+    btn.style.color       = active ? 'white' : 'var(--gray-500)';
   });
-  // Hide production tab if not enabled
   const prodTab = document.getElementById('swTabProduction');
   if (prodTab) prodTab.style.display = APP_STATE.settings?.productionModeEnabled ? 'block' : 'none';
 }
@@ -230,10 +229,17 @@ function _swRenderList() {
       padding:16px 0;text-align:center;">${emptyMsg}</div>`;
     _swUpdateTotal(0);
     _swUpdateBadge();
+    _swUpdateProgress();
     return;
   }
 
-  container.innerHTML = items.map((item, idx) => {
+  // Sort: unchecked first, checked at bottom
+  const sorted = items
+    .map((item, idx) => ({ ...item, _origIdx: idx }))
+    .sort((a, b) => (a.checked ? 1 : 0) - (b.checked ? 1 : 0));
+
+  container.innerHTML = sorted.map(item => {
+    const idx            = item._origIdx;
     const hasPackageData = item.hasPkgData && item.pkgCost > 0;
     const qty = item.shortfall > 0
       ? `${item.shortfall % 1 === 0 ? item.shortfall : item.shortfall.toFixed(2)} ${item.unit}`.trim()
@@ -246,23 +252,25 @@ function _swRenderList() {
       : item.isCustom && item.pkgCost > 0
         ? formatCurrency(item.pkgCost)
         : '—';
-    return `<div style="display:flex;align-items:flex-start;gap:8px;
-      padding:10px 0;border-bottom:1px solid var(--border);
-      opacity:${item.checked ? '0.4' : '1'};">
-      <input type="checkbox" ${item.checked ? 'checked' : ''}
-        onchange="_swToggleCheck(${idx}, this.checked)"
-        style="margin-top:3px;width:15px;height:15px;cursor:pointer;flex-shrink:0;" />
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:800;
-          ${item.checked ? 'text-decoration:line-through;' : ''}">
-          ${escapeHtml(item.name)}
+    return `<div style="display:flex;align-items:center;gap:12px;
+      padding:13px 0;border-bottom:1px solid var(--border);
+      opacity:${item.checked ? '0.38' : '1'};transition:opacity .15s;">
+      <label style="display:flex;align-items:center;flex:1;min-width:0;gap:12px;cursor:pointer;">
+        <input type="checkbox" ${item.checked ? 'checked' : ''}
+          onchange="_swToggleCheck(${idx}, this.checked)"
+          style="width:20px;height:20px;cursor:pointer;flex-shrink:0;accent-color:var(--black);" />
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:700;
+            ${item.checked ? 'text-decoration:line-through;color:var(--gray-400);' : ''}">
+            ${escapeHtml(item.name)}
+          </div>
+          ${qty || pkgLine ? `<div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+            ${qty}${pkgLine ? ` · ${pkgLine}` : ''}
+          </div>` : ''}
         </div>
-        <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
-          ${qty}${pkgLine ? ` · ${pkgLine}` : ''}
-        </div>
-      </div>
-      <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:13px;font-weight:900;
+      </label>
+      <div style="text-align:right;flex-shrink:0;min-width:48px;">
+        <div style="font-size:14px;font-weight:900;
           color:${costDisplay === '—' ? 'var(--gray-300)' : 'var(--black)'};">
           ${costDisplay}
         </div>
@@ -270,13 +278,14 @@ function _swRenderList() {
       ${item.isFreeItem ? `
       <button type="button" onclick="_swRemoveFree(${idx})"
         style="background:none;border:none;cursor:pointer;color:var(--gray-300);
-          font-size:16px;padding:0 2px;flex-shrink:0;line-height:1;">✕</button>` : ''}
+          font-size:18px;padding:0 2px;flex-shrink:0;line-height:1;">✕</button>` : ''}
     </div>`;
   }).join('');
 
   const total = items.reduce((s, i) => s + Number(i.totalCost || 0), 0);
   _swUpdateTotal(total);
   _swUpdateBadge();
+  _swUpdateProgress();
 }
 
 function _swToggleCheck(idx, checked) {
@@ -366,13 +375,35 @@ function shareShoppingList() {
   }
 }
 
+function _swToggleCustomAdd() {
+  const row   = document.getElementById('swCustomAddRow');
+  const arrow = document.getElementById('swCustomToggleArrow');
+  if (!row) return;
+  const open = row.style.display === 'none';
+  row.style.display   = open ? 'block' : 'none';
+  if (arrow) arrow.textContent = open ? '▾' : '▸';
+  if (open) document.getElementById('swCustomName')?.focus();
+}
+
+function _swUpdateProgress() {
+  const items     = _swMode === 'free' ? _swFreeItems : _swItems;
+  const total     = items.length;
+  const checked   = items.filter(i => i.checked).length;
+  const el        = document.getElementById('swProgress');
+  if (!el) return;
+  if (total === 0)          el.textContent = '0 items';
+  else if (checked === total) el.textContent = 'All done ✓';
+  else                      el.textContent = `${checked} of ${total} checked`;
+}
+
 /* ── Expose globally ── */
-window.toggleShoppingWidget = toggleShoppingWidget;
-window.switchWidgetMode     = switchWidgetMode;
-window.addFreeListItem      = addFreeListItem;
-window.addCustomListItem    = addCustomListItem;
-window._swToggleCheck       = _swToggleCheck;
-window._swRemoveFree        = _swRemoveFree;
-window.saveShoppingList     = saveShoppingList;
-window.shareShoppingList    = shareShoppingList;
-window.openShoppingListModal= toggleShoppingWidget;
+window.toggleShoppingWidget  = toggleShoppingWidget;
+window.switchWidgetMode      = switchWidgetMode;
+window.addFreeListItem       = addFreeListItem;
+window.addCustomListItem     = addCustomListItem;
+window._swToggleCheck        = _swToggleCheck;
+window._swToggleCustomAdd    = _swToggleCustomAdd;
+window._swRemoveFree         = _swRemoveFree;
+window.saveShoppingList      = saveShoppingList;
+window.shareShoppingList     = shareShoppingList;
+window.openShoppingListModal = toggleShoppingWidget;

@@ -6,6 +6,22 @@
 ═══════════════════════════════════════════════════════ */
 
 let reportChartInstance    = null;
+
+function getChartTheme() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  return {
+    line:     dark ? '#f0eeeb'               : '#000',
+    fill:     dark ? 'rgba(240,238,235,.06)' : 'rgba(0,0,0,.04)',
+    point:    dark ? '#f0eeeb'               : '#000',
+    ptBorder: dark ? '#1a1a20'               : '#fff',
+    grid:     dark ? 'rgba(255,255,255,.07)' : '#f0f0f0',
+    tick:     dark ? 'rgba(240,238,235,.50)' : '#999',
+    bar:      dark ? '#f0eeeb'               : '#000',
+    barMid:   dark ? 'rgba(240,238,235,.40)' : '#9ca3af',
+    barLight: dark ? 'rgba(240,238,235,.20)' : '#e5e7eb',
+    isDark:   dark,
+  };
+}
 let hourlyChartInstance    = null;
 let _categoryChartInstances = {};
 let _pureProfitCumChart    = null;
@@ -122,19 +138,20 @@ function renderRevenueChart(fromDate, toDate) {
     return;
   }
   canvas.style.display = '';
+  const ct = getChartTheme();
   const shortLabels = trend.labels.map(l =>
     new Date(l).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }));
   reportChartInstance = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: { labels: shortLabels, datasets: [{ label: 'Revenue', data: trend.values,
-      borderColor: '#000', backgroundColor: 'rgba(0,0,0,.04)', fill: true, tension: 0.35,
+      borderColor: ct.line, backgroundColor: ct.fill, fill: true, tension: 0.35,
       pointRadius: trend.labels.length > 20 ? 0 : 4,
-      pointBackgroundColor: '#000', pointBorderColor: '#fff', pointBorderWidth: 2 }] },
+      pointBackgroundColor: ct.point, pointBorderColor: ct.ptBorder, pointBorderWidth: 2 }] },
     options: { responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => formatCurrency(ctx.parsed.y) } } },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#999', maxTicksLimit: 10 } },
-        y: { grid: { color: '#f4f4f4' }, ticks: { font: { size: 11 }, color: '#999',
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: ct.tick, maxTicksLimit: 10 } },
+        y: { grid: { color: ct.grid }, ticks: { font: { size: 11 }, color: ct.tick,
           callback: v => '₱' + (v >= 1000 ? (v/1000).toFixed(1)+'k' : v) } } } }
   });
 }
@@ -165,19 +182,20 @@ function renderVoidRefundSummary(fromDate, toDate) {
         No voids or refunds in this period</span></div>`;
     return;
   }
+  const _vDark = document.documentElement.dataset.theme === 'dark';
   container.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;">
-      <div class="stat-card" style="border-color:#fecaca;background:#fef2f2;">
+      <div class="stat-card" style="border-color:${_vDark?'rgba(220,38,38,.35)':'#fecaca'};background:${_vDark?'rgba(220,38,38,.10)':'#fef2f2'};">
         <div class="label" style="color:#dc2626;">Voided</div>
         <div class="value" style="color:#dc2626;font-size:20px;">${voided.length}</div>
         <div class="sub" style="color:#dc2626;">${formatCurrency(voidedAmt)} lost</div>
       </div>
-      <div class="stat-card" style="border-color:#fed7aa;background:#fff7ed;">
+      <div class="stat-card" style="border-color:${_vDark?'rgba(234,88,12,.35)':'#fed7aa'};background:${_vDark?'rgba(234,88,12,.10)':'#fff7ed'};">
         <div class="label" style="color:#ea580c;">Refunded</div>
         <div class="value" style="color:#ea580c;font-size:20px;">${refunded.length}</div>
         <div class="sub" style="color:#ea580c;">${formatCurrency(refundAmt)} returned</div>
       </div>
-      <div class="stat-card" style="border-color:#fecaca;background:#fef2f2;">
+      <div class="stat-card" style="border-color:${_vDark?'rgba(220,38,38,.35)':'#fecaca'};background:${_vDark?'rgba(220,38,38,.10)':'#fef2f2'};">
         <div class="label" style="color:#991b1b;">Total Loss</div>
         <div class="value" style="color:#991b1b;font-size:20px;">${formatCurrency(totalLost)}</div>
         <div class="sub" style="color:#991b1b;">${voided.length+refunded.length} transactions</div>
@@ -216,8 +234,13 @@ function renderHourlyHeatmap(fromDate, toDate) {
   const activeHours = [];
   for (let h = 0; h < 24; h++) { if (grid.some(row => row[h] > 0)) activeHours.push(h); }
   const hourLabel = h => `${h%12||12}${h<12?'am':'pm'}`;
+  const darkMode = document.documentElement.dataset.theme === 'dark';
   const intensity = v => {
-    if (!v) return 'background:#f9f9f9;';
+    if (!v) return darkMode ? 'background:rgba(255,255,255,.04);' : 'background:#f9f9f9;';
+    if (darkMode) {
+      const a = Math.max(0.10, Math.min(0.88, 0.10 + (v/maxVal)*0.78));
+      return `background:rgba(240,238,235,${a.toFixed(2)});color:${a > 0.50 ? '#0e0e13' : '#f0eeeb'};`;
+    }
     const l = Math.round(100 - (v/maxVal)*85);
     return `background:hsl(0,0%,${l}%);color:${l<50?'#fff':'#000'};`;
   };
@@ -385,17 +408,20 @@ function renderCategoryPerformance(fromDate, toDate) {
   requestAnimationFrame(() => {
     if (typeof Chart === 'undefined') return;
     const sc = document.getElementById(summaryId);
+    const ct = getChartTheme();
     if (sc) {
       _categoryChartInstances[summaryId] = new Chart(sc.getContext('2d'), {
         type: 'bar',
         data: { labels: categories.map(c=>c.category),
           datasets: [{ data: categories.map(c=>c.revenue),
-            backgroundColor: categories.map((_,i)=>i===0?'#000':`hsl(0,0%,${Math.min(75,35+i*12)}%)`),
+            backgroundColor: categories.map((_,i) => i===0 ? ct.bar :
+              (ct.isDark ? `rgba(240,238,235,${Math.max(0.18,0.72-i*0.12).toFixed(2)})`
+                         : `hsl(0,0%,${Math.min(75,35+i*12)}%)`)),
             borderRadius: 4, borderSkipped: false }] },
         options: { responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>formatCurrency(ctx.parsed.y)}} },
-          scales:{ x:{grid:{display:false},ticks:{font:{size:10},color:'#999'}},
-            y:{grid:{color:'#f0f0f0'},ticks:{font:{size:10},color:'#999',
+          scales:{ x:{grid:{display:false},ticks:{font:{size:10},color:ct.tick}},
+            y:{grid:{color:ct.grid},ticks:{font:{size:10},color:ct.tick,
               callback:v=>'₱'+(v>=1000?(v/1000).toFixed(0)+'k':v)}} } }
       });
     }
@@ -403,12 +429,14 @@ function renderCategoryPerformance(fromDate, toDate) {
       const chartId = `catChart_${cat.category.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')}`;
       const canvas = document.getElementById(chartId);
       if (!canvas||!cat.topItems.length) return;
-      const colors = ['#000','#555','#999','#ccc'];
+      const colors = ct.isDark
+        ? ['#f0eeeb','rgba(240,238,235,.65)','rgba(240,238,235,.40)','rgba(240,238,235,.22)']
+        : ['#000','#555','#999','#ccc'];
       _categoryChartInstances[chartId] = new Chart(canvas.getContext('2d'), {
         type:'doughnut',
         data:{ labels:cat.topItems.map(i=>i.name),
           datasets:[{data:cat.topItems.map(i=>i.revenue),
-            backgroundColor:cat.topItems.map((_,i)=>colors[i]||'#eee'),borderWidth:0}] },
+            backgroundColor:cat.topItems.map((_,i)=>colors[i]||(ct.isDark?'rgba(240,238,235,.12)':'#eee')),borderWidth:0}] },
         options:{ responsive:true,maintainAspectRatio:false,cutout:'65%',
           plugins:{legend:{display:false},
             tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${formatCurrency(ctx.parsed)}`}}} }
@@ -641,14 +669,15 @@ function renderCumulativePureProfitChart(fromDate, toDate) {
   const labels=sortedDays.map(d=>new Date(d+'T00:00:00').toLocaleDateString('en-PH',{month:'short',day:'numeric'}));
   const values=sortedDays.map(d=>{running+=dailyMap[d];return parseFloat(running.toFixed(2));});
   if(_pureProfitCumChart){_pureProfitCumChart.destroy();_pureProfitCumChart=null;}
+  const _ppcCt = getChartTheme();
   _pureProfitCumChart=new Chart(canvas.getContext('2d'),{
     type:'line',
-    data:{labels,datasets:[{data:values,borderColor:'#000',backgroundColor:'rgba(0,0,0,0.06)',
+    data:{labels,datasets:[{data:values,borderColor:_ppcCt.line,backgroundColor:_ppcCt.fill,
       borderWidth:2,pointRadius:labels.length>14?0:4,fill:true,tension:0.3}]},
     options:{responsive:true,plugins:{legend:{display:false},
       tooltip:{callbacks:{label:ctx=>' '+formatCurrency(ctx.parsed.y)}}},
-      scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:8}},
-        y:{grid:{color:'#f0f0f0'},ticks:{font:{size:10},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:8,color:_ppcCt.tick}},
+        y:{grid:{color:_ppcCt.grid},ticks:{font:{size:10},color:_ppcCt.tick,
           callback:v=>'₱'+(v>=1000?(v/1000).toFixed(1)+'k':v)}}}}
   });
 }
@@ -663,15 +692,17 @@ function renderBestMarginProducts(fromDate, toDate) {
     return;
   }
   const medals=['1','2','3','4','5'],maxM=ranked[0].margin;
+  const _bmDark = document.documentElement.dataset.theme === 'dark';
   container.innerHTML=ranked.map((p,i)=>`
     <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;
       border:1.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:8px;
-      background:${i===0?'var(--black)':'var(--white)'};color:${i===0?'var(--white)':'var(--black)'};">
+      background:${i===0?(_bmDark?'#f0eeeb':'#000'):'var(--white)'};
+      color:${i===0?(_bmDark?'#0e0e13':'#fff'):'var(--gray-900)'};">
       <div style="font-size:${i<3?'18px':'12px'};min-width:24px;text-align:center;">${medals[i]}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.name)}</div>
-        <div style="margin-top:5px;height:5px;border-radius:999px;overflow:hidden;background:${i===0?'rgba(255,255,255,.2)':'var(--gray-100)'};">
-          <div style="height:100%;width:${Math.round(p.margin/maxM*100)}%;border-radius:999px;background:${i===0?'var(--white)':'var(--black)'};"></div>
+        <div style="margin-top:5px;height:5px;border-radius:999px;overflow:hidden;background:${i===0?'rgba(0,0,0,.15)':'var(--gray-100)'};">
+          <div style="height:100%;width:${Math.round(p.margin/maxM*100)}%;border-radius:999px;background:${i===0?(_bmDark?'rgba(0,0,0,.5)':'rgba(255,255,255,.9)'):'var(--gray-900)'};"></div>
         </div>
       </div>
       <div style="font-size:15px;font-weight:900;flex-shrink:0;">${p.margin.toFixed(1)}%</div>
@@ -690,15 +721,18 @@ function renderPureProfitByCategory(fromDate, toDate) {
     return;
   }
   if(_pureProfitCatChart){_pureProfitCatChart.destroy();_pureProfitCatChart=null;}
+  const _ppcaCt = getChartTheme();
   _pureProfitCatChart=new Chart(canvas.getContext('2d'),{
     type:'bar',
     data:{labels:entries.map(([k])=>k),datasets:[{data:entries.map(([,v])=>parseFloat(v.toFixed(2))),
-      backgroundColor:entries.map((_,i)=>i===0?'#000':`rgba(0,0,0,${0.12+i*0.08})`),
+      backgroundColor:entries.map((_,i)=>i===0?_ppcaCt.bar:
+        (_ppcaCt.isDark?`rgba(240,238,235,${Math.max(0.14,0.42-i*0.08).toFixed(2)})`
+                       :`rgba(0,0,0,${0.12+i*0.08})`)),
       borderRadius:6,borderSkipped:false}]},
     options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},
       tooltip:{callbacks:{label:ctx=>' '+formatCurrency(ctx.parsed.x)}}},
-      scales:{x:{grid:{color:'#f0f0f0'},ticks:{font:{size:10},callback:v=>'₱'+(v>=1000?(v/1000).toFixed(1)+'k':v)}},
-        y:{grid:{display:false},ticks:{font:{size:11,weight:'700'}}}}}
+      scales:{x:{grid:{color:_ppcaCt.grid},ticks:{font:{size:10},color:_ppcaCt.tick,callback:v=>'₱'+(v>=1000?(v/1000).toFixed(1)+'k':v)}},
+        y:{grid:{display:false},ticks:{font:{size:11,weight:'700'},color:_ppcaCt.tick}}}}
   });
 }
 
@@ -712,19 +746,20 @@ function renderRevenueVsCostChart(fromDate, toDate) {
     return;
   }
   if(_revVsCostChart){_revVsCostChart.destroy();_revVsCostChart=null;}
+  const _rvcCt = getChartTheme();
   _revVsCostChart=new Chart(canvas.getContext('2d'),{
     type:'bar',
     data:{labels:top.map(p=>p.name.length>12?p.name.slice(0,12)+'…':p.name),
       datasets:[
-        {label:'Cost',data:top.map(p=>parseFloat((p.soldQty*p.costPerUnit).toFixed(2))),backgroundColor:'#e5e7eb',borderRadius:0},
-        {label:'Break-Even',data:top.map(p=>Math.max(0,Math.min(p.breakEvenUnits,p.soldQty)*p.pureProfit)),backgroundColor:'#9ca3af',borderRadius:0},
-        {label:'Pure Profit',data:top.map(p=>parseFloat(p.actualPureProfit.toFixed(2))),backgroundColor:'#000',borderRadius:{topLeft:4,topRight:4}},
+        {label:'Cost',data:top.map(p=>parseFloat((p.soldQty*p.costPerUnit).toFixed(2))),backgroundColor:_rvcCt.barLight,borderRadius:0},
+        {label:'Break-Even',data:top.map(p=>Math.max(0,Math.min(p.breakEvenUnits,p.soldQty)*p.pureProfit)),backgroundColor:_rvcCt.barMid,borderRadius:0},
+        {label:'Pure Profit',data:top.map(p=>parseFloat(p.actualPureProfit.toFixed(2))),backgroundColor:_rvcCt.bar,borderRadius:{topLeft:4,topRight:4}},
       ]},
     options:{responsive:true,
-      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:12}},
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:12,color:_rvcCt.tick}},
         tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y)}`}}},
-      scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:9}}},
-        y:{stacked:true,grid:{color:'#f0f0f0'},ticks:{font:{size:10},
+      scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:9},color:_rvcCt.tick}},
+        y:{stacked:true,grid:{color:_rvcCt.grid},ticks:{font:{size:10},color:_rvcCt.tick,
           callback:v=>'₱'+(v>=1000?(v/1000).toFixed(1)+'k':v)}}}}
   });
 }
@@ -766,7 +801,44 @@ function renderDeadWeightProducts(fromDate, toDate) {
 
 /* ── 13. PDF Export ── */
 function exportReportAsPDF() {
-  setTimeout(() => { window.print(); }, 400);
+  const panel = document.getElementById('view-reports');
+  if (!panel) { window.print(); return; }
+
+  // Flush reveal animations so nothing prints at opacity 0
+  panel.querySelectorAll(
+    '#reportStatsGrid, .chart-container, #voidRefundContainer, ' +
+    '#hourlyHeatmapContainer, #paymentBreakdownContainer, ' +
+    '#discountAnalysisContainer, #categoryPerformanceContainer, ' +
+    '.table-wrapper, #profitabilitySection, #reportBreakEvenContainer'
+  ).forEach(el => {
+    el.style.opacity    = '1';
+    el.style.transform  = 'none';
+    el.style.transition = 'none';
+  });
+
+  // Snapshot each chart canvas as <img> — canvas elements don't render in the
+  // browser's print pipeline, so we replace them with rasterized copies first.
+  const snapshots = [];
+  panel.querySelectorAll('canvas').forEach(canvas => {
+    try {
+      const img  = document.createElement('img');
+      img.src    = canvas.toDataURL('image/png');
+      img.style.cssText = `width:${canvas.offsetWidth}px;height:${canvas.offsetHeight}px;` +
+                          `display:block;max-width:100%;`;
+      canvas.parentNode.insertBefore(img, canvas);
+      canvas.style.display = 'none';
+      snapshots.push({ canvas, img });
+    } catch (_) {}
+  });
+
+  setTimeout(() => {
+    window.print();
+    // Restore live canvases once the print dialog closes
+    snapshots.forEach(({ canvas, img }) => {
+      canvas.style.display = '';
+      img.remove();
+    });
+  }, 300);
 }
 
 
@@ -855,6 +927,30 @@ function _applyReportPreset(preset) {
 
   if (typeof renderReports === 'function') renderReports();
 }
+
+/* ── Re-render all charts when theme changes ── */
+new MutationObserver(() => {
+  const { fromDate, toDate } = getReportDateRange();
+  if (!fromDate || !toDate) {
+    if (reportChartInstance) { reportChartInstance.destroy(); reportChartInstance = null; }
+    if (hourlyChartInstance) { hourlyChartInstance.destroy(); hourlyChartInstance = null; }
+    Object.values(_categoryChartInstances).forEach(c => { try { c.destroy(); } catch(e) {} });
+    _categoryChartInstances = {};
+    if (_pureProfitCumChart) { _pureProfitCumChart.destroy(); _pureProfitCumChart = null; }
+    if (_pureProfitCatChart) { _pureProfitCatChart.destroy(); _pureProfitCatChart = null; }
+    if (_revVsCostChart)     { _revVsCostChart.destroy();     _revVsCostChart     = null; }
+    return;
+  }
+  if (reportChartInstance) renderRevenueChart(fromDate, toDate);
+  renderHourlyHeatmap(fromDate, toDate);
+  renderCategoryPerformance(fromDate, toDate);
+  const profSection = document.getElementById('profitabilitySection');
+  if (profSection && profSection.style.display !== 'none') {
+    renderPureProfitCumulative(fromDate, toDate);
+    renderPureProfitByCategory(fromDate, toDate);
+    renderRevenueVsCostChart(fromDate, toDate);
+  }
+}).observe(document.documentElement, { attributeFilter: ['data-theme'] });
 
 /* ── Exports ── */
 window.renderReports                = renderReports;

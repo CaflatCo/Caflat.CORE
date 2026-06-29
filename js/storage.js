@@ -403,9 +403,12 @@ const CLOUD_BACKUP_LIMIT = 3; // keep last 3 cloud backups per tenant
 
 async function cloudBackup() {
   const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
-  if (!tenantId) {
-    showNotification('Cloud backup requires a PRO license', 'error');
-    return { success: false, error: 'No tenant ID — activate a PRO license first.' };
+  const tier     = typeof getLicenseTier === 'function' ? getLicenseTier() : null;
+  const eligible = ['pro', 'cloud', 'enterprise', 'god'].includes(tier);
+
+  if (!tenantId || !eligible) {
+    showNotification('Cloud backup requires a PRO license or higher', 'error');
+    return { success: false, error: 'Upgrade to PRO to use cloud backup.' };
   }
 
   const btn = document.getElementById('cloudBackupBtn');
@@ -452,7 +455,8 @@ async function cloudBackup() {
         'Content-Type':  'application/json',
         'apikey':        CAFLAT_SB_ANON,
         'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
-        'Prefer':        'return=representation'
+        'Prefer':        'return=representation',
+        'x-tenant-id':  tenantId
       },
       body: JSON.stringify({
         tenant_id:   tenantId,
@@ -473,7 +477,8 @@ async function cloudBackup() {
       {
         headers: {
           'apikey':        CAFLAT_SB_ANON,
-          'Authorization': `Bearer ${CAFLAT_SB_ANON}`
+          'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+          'x-tenant-id':  tenantId
         }
       }
     );
@@ -482,11 +487,12 @@ async function cloudBackup() {
       const all = await listRes.json();
       const toDelete = all.slice(CLOUD_BACKUP_LIMIT);
       for (const old of toDelete) {
-        await fetch(`${CAFLAT_SB_URL}/rest/v1/backups?id=eq.${old.id}`, {
+        await fetch(`${CAFLAT_SB_URL}/rest/v1/backups?id=eq.${old.id}&tenant_id=eq.${tenantId}`, {
           method: 'DELETE',
           headers: {
             'apikey':        CAFLAT_SB_ANON,
-            'Authorization': `Bearer ${CAFLAT_SB_ANON}`
+            'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+            'x-tenant-id':  tenantId
           }
         });
       }
@@ -521,7 +527,8 @@ async function cloudRestore(backupId) {
       {
         headers: {
           'apikey':        CAFLAT_SB_ANON,
-          'Authorization': `Bearer ${CAFLAT_SB_ANON}`
+          'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+          'x-tenant-id':  tenantId
         }
       }
     );
@@ -563,7 +570,8 @@ async function renderCloudBackupList() {
       {
         headers: {
           'apikey':        CAFLAT_SB_ANON,
-          'Authorization': `Bearer ${CAFLAT_SB_ANON}`
+          'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+          'x-tenant-id':  tenantId
         }
       }
     );

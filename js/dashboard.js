@@ -6,6 +6,18 @@
 
 let dashboardChartInstance = null;
 
+function getChartTheme() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  return {
+    bar:     dark ? '#f0eeeb'               : '#000',
+    barPrev: dark ? 'rgba(240,238,235,.28)' : '#c0c0c0',
+    grid:    dark ? 'rgba(255,255,255,.07)' : '#f0f0f0',
+    tick:    dark ? 'rgba(240,238,235,.45)' : '#999',
+    fill:    dark ? 'rgba(240,238,235,.06)' : 'rgba(0,0,0,.04)',
+    empty:   dark ? 'rgba(240,238,235,.35)' : '#aaa',
+  };
+}
+
 /* ── Entry point ── */
 function refreshDashboard() {
   updateNavBadges();
@@ -63,11 +75,13 @@ function renderDashboardChart() {
     dashboardChartInstance = null;
   }
 
+  const ct = getChartTheme();
+
   if (!trend.labels.length) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font = '12px Nunito, sans-serif';
-    ctx.fillStyle = '#aaa';
+    ctx.fillStyle = ct.empty;
     ctx.textAlign = 'center';
     ctx.fillText('No sales data yet', canvas.width / 2, canvas.height / 2);
     return;
@@ -86,7 +100,7 @@ function renderDashboardChart() {
       datasets: [{
         label: 'Revenue',
         data: values,
-        backgroundColor: '#000',
+        backgroundColor: ct.bar,
         borderRadius: 4,
         borderSkipped: false,
         maxBarThickness: 48,
@@ -104,12 +118,12 @@ function renderDashboardChart() {
       scales: {
         x: {
           grid: { display: false },
-          ticks: { font: { size: 11 }, color: '#999' }
+          ticks: { font: { size: 11 }, color: ct.tick }
         },
         y: {
-          grid: { color: '#f0f0f0' },
+          grid: { color: ct.grid },
           ticks: {
-            font: { size: 11 }, color: '#999',
+            font: { size: 11 }, color: ct.tick,
             callback: v => '₱' + (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v)
           }
         }
@@ -297,8 +311,8 @@ function renderAnalyticsPanel() {
           <button onclick="setAnalyticsPeriod('${p}')"
             style="padding:6px 14px;border:none;border-radius:7px;font-size:11px;
               font-weight:${_analyticsPeriod === p ? '800' : '500'};cursor:pointer;
-              background:${_analyticsPeriod === p ? '#000' : 'transparent'};
-              color:${_analyticsPeriod === p ? '#fff' : '#999'};
+              background:${_analyticsPeriod === p ? 'var(--gray-900)' : 'transparent'};
+              color:${_analyticsPeriod === p ? 'var(--gray-50)' : 'var(--gray-500)'};
               font-family:inherit;transition:all 0.15s;letter-spacing:0.02em;">
             ${p.charAt(0).toUpperCase() + p.slice(1)}
           </button>`).join('')}
@@ -384,7 +398,7 @@ function renderAnalyticsPanel() {
                         <span style="font-size:11px;color:var(--gray-400);">${pct}%</span>
                       </div>
                       <div style="height:4px;background:var(--gray-100);border-radius:2px;">
-                        <div style="width:${pct}%;height:100%;background:#000;border-radius:2px;"></div>
+                        <div style="width:${pct}%;height:100%;background:var(--gray-900);border-radius:2px;"></div>
                       </div>
                       <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${formatCurrency(val)}</div>
                     </div>`;
@@ -414,7 +428,7 @@ function renderAnalyticsPanel() {
                         <span style="font-size:11px;color:var(--gray-400);">${pct}%</span>
                       </div>
                       <div style="height:4px;background:var(--gray-100);border-radius:2px;">
-                        <div style="width:${pct}%;height:100%;background:#000;border-radius:2px;"></div>
+                        <div style="width:${pct}%;height:100%;background:var(--gray-900);border-radius:2px;"></div>
                       </div>
                       <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${formatCurrency(c.revenue||0)}</div>
                     </div>`;
@@ -438,11 +452,13 @@ function _renderAnalyticsChart(trend) {
     _analyticsChartInstance = null;
   }
 
+  const ct = getChartTheme();
+
   if (!trend.values.some(v => v > 0)) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = '11px Inter, sans-serif';
-    ctx.fillStyle = '#ccc';
+    ctx.font = '11px Nunito, sans-serif';
+    ctx.fillStyle = ct.empty;
     ctx.textAlign = 'center';
     ctx.fillText('No sales data this period', canvas.width/2, canvas.height/2);
     return;
@@ -455,7 +471,7 @@ function _renderAnalyticsChart(trend) {
       datasets: [{
         data: trend.values,
         backgroundColor: trend.values.map((v, i) =>
-          i === trend.values.length - 1 ? '#000' : '#b0b0b0'),
+          i === trend.values.length - 1 ? ct.bar : ct.barPrev),
         borderRadius: 4,
         borderSkipped: false,
       }]
@@ -476,15 +492,15 @@ function _renderAnalyticsChart(trend) {
         x: {
           grid: { display: false },
           ticks: {
-            font: { size: 10 }, color: '#bbb',
+            font: { size: 10 }, color: ct.tick,
             maxRotation: 0,
             maxTicksLimit: _analyticsPeriod === 'monthly' ? 15 : 24,
           }
         },
         y: {
-          grid: { color: '#f5f5f5' },
+          grid: { color: ct.grid },
           ticks: {
-            font: { size: 10 }, color: '#bbb',
+            font: { size: 10 }, color: ct.tick,
             callback: v => v >= 1000 ? '₱' + (v/1000).toFixed(1) + 'k' : '₱' + v
           }
         }
@@ -528,6 +544,12 @@ function updateNavBadges() {
     badge.style.display = 'none';
   }
 }
+
+/* ── Re-render charts when theme changes ── */
+new MutationObserver(() => {
+  renderDashboardChart();
+  if (_analyticsChartInstance) renderAnalyticsPanel();
+}).observe(document.documentElement, { attributeFilter: ['data-theme'] });
 
 /* ── Exports ── */
 window.refreshDashboard       = refreshDashboard;

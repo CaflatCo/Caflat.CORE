@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script>(function(){var t=localStorage.getItem('caflat-theme');if(t)document.documentElement.dataset.theme=t;document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('themeToggleBtn');if(b&&document.documentElement.dataset.theme==='dark'){b.querySelector('.toggle-icon').textContent='☀';b.querySelector('.toggle-label').textContent='Light';}});}());</script>
-  <link href="css/styles.css?v=20260628a" rel="stylesheet" />
+  <link href="css/styles.css?v=20260629b" rel="stylesheet" />
   <style>
     /* ── Semantic color overrides ── */
     :root {
@@ -76,14 +76,6 @@
       background: var(--warning-bg) !important;
     }
     .dashboard-alert .value { color: var(--warning) !important; }
-    /* Red stays for out-of-stock / sold out / void / danger */
-    .badge-voided {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 3px 9px; border-radius: 999px;
-      background: #f3f4f6; color: #6b7280;
-      font-size: 9px; font-weight: 800; letter-spacing: 1px;
-      text-transform: uppercase; border: 1px solid #e5e7eb;
-    }
     /* Supply line row */
     .supply-line-row {
       display: flex; align-items: center; gap: 8px;
@@ -113,7 +105,7 @@
       position: absolute; inset: 0; background: var(--gray-200);
       border-radius: 12px; transition: background .2s ease;
     }
-    .toggle-switch input:checked + .toggle-track { background: var(--black); }
+    .toggle-switch input:checked + .toggle-track { background: #16a34a; }
     .toggle-knob {
       position: absolute; top: 3px; left: 3px;
       width: 18px; height: 18px; background: white;
@@ -292,19 +284,62 @@
   <!-- ═══ GATE ═══ -->
   <div class="login-screen" id="gateScreen" style="display:none;">
     <div class="login-card" id="gateCard">
-      <h2>Caflat.CORE</h2>
-      <div class="login-subtitle">Enter your access code to continue</div>
-      <input id="gateCodeInput" placeholder="Access Code" type="text"
-        autocomplete="off" spellcheck="false"
-        style="text-transform:uppercase;letter-spacing:0.08em;text-align:center;font-weight:700;" />
-      <button id="gateBtn" type="button">Continue</button>
-      <div id="gateError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;
-        border-radius:8px;padding:10px 14px;margin-bottom:4px;
-        font-size:12px;font-weight:600;color:#dc2626;text-align:center;"></div>
-      <div style="margin-top:14px;font-size:11px;color:var(--gray-400);text-align:center;">
-        Don't have an access code?
-        <a href="https://caflatcore.com" target="_blank"
-          style="color:var(--black);font-weight:700;">caflatcore.com</a>
+      <h2 style="text-align:center;">Caflat.CORE</h2>
+      <div class="login-subtitle" style="margin-bottom:20px;">Operations Platform</div>
+
+      <!-- Tab switcher -->
+      <div style="display:flex;gap:6px;margin-bottom:22px;padding:4px;
+                  background:var(--gray-50);border-radius:10px;border:1.5px solid var(--border);">
+        <button id="gateTabSignIn" type="button" onclick="showGatePanel('signin')"
+          style="flex:1;padding:9px 12px;background:var(--black);color:white;
+                 border:none;border-radius:7px;font-size:12px;font-weight:700;
+                 cursor:pointer;font-family:inherit;transition:all .18s;">
+          Sign In
+        </button>
+        <button id="gateTabCreate" type="button" onclick="showGatePanel('create')"
+          style="flex:1;padding:9px 12px;background:transparent;color:var(--gray-500);
+                 border:none;border-radius:7px;font-size:12px;font-weight:700;
+                 cursor:pointer;font-family:inherit;transition:all .18s;">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Sign In panel -->
+      <div id="gateSignInPanel">
+        <div style="font-size:11px;color:var(--gray-500);text-align:center;margin-bottom:14px;line-height:1.5;">
+          Enter your license key to continue
+        </div>
+        <input id="gateCodeInput" placeholder="CAFL-XXXX-XXXX" type="text"
+          autocomplete="off" spellcheck="false"
+          style="text-transform:uppercase;letter-spacing:0.08em;text-align:center;font-weight:700;" />
+        <button id="gateBtn" type="button">Continue</button>
+        <div id="gateError" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;
+          border-radius:8px;padding:10px 14px;margin-top:8px;
+          font-size:12px;font-weight:600;color:#dc2626;text-align:center;"></div>
+      </div>
+
+      <!-- Create Account panel -->
+      <div id="gateCreatePanel" style="display:none;text-align:center;">
+        <div style="font-size:13px;color:var(--gray-500);line-height:1.75;margin-bottom:22px;">
+          Caflat.CORE is invite-only.<br>
+          Apply on our website and we'll send your license key within 24 hours.
+        </div>
+        <a href="https://caflatcore.com/#access" target="_blank"
+          style="display:block;padding:13px;background:var(--black);color:white;
+                 border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;
+                 margin-bottom:14px;transition:opacity .18s;"
+          onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'">
+          Request Access →
+        </a>
+        <div style="font-size:11px;color:var(--gray-400);">
+          Already have a license key?
+          <button type="button" onclick="showGatePanel('signin')"
+            style="background:none;border:none;color:var(--black);font-weight:700;
+                   cursor:pointer;font-size:11px;font-family:inherit;padding:0;
+                   text-decoration:underline;">
+            Sign in here
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -358,29 +393,130 @@
         <nav>
           <div class="nav-group">
             <div class="nav-group-label">Main</div>
-            <button class="active" data-view="pos">POS</button>
-            <button data-view="dashboard" id="navDashboard">Dashboard</button>
-            <button data-view="sales">Sales</button>
-            <button data-view="reports">Reports</button>
+
+            <button class="active" data-view="pos">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="6" width="12" height="8" rx="1.5"/>
+                <path d="M5.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/>
+                <line x1="4.5" y1="10" x2="11.5" y2="10"/>
+              </svg>
+              POS
+            </button>
+
+            <button data-view="dashboard" id="navDashboard">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/>
+                <rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/>
+                <rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/>
+                <rect x="9" y="9" width="5.5" height="5.5" rx="1"/>
+              </svg>
+              Dashboard
+            </button>
+
+            <button data-view="sales">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 1.5h10v13l-2-1.4-1.5 1.4-2-1.4-1.5 1.4L4.5 13.5 3 14.5z"/>
+                <line x1="5.5" y1="5.5" x2="10.5" y2="5.5"/>
+                <line x1="5.5" y1="8.5" x2="10.5" y2="8.5"/>
+              </svg>
+              Sales
+            </button>
+
+            <button data-view="reports">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="1.5" y="9" width="3" height="5.5" rx="0.75"/>
+                <rect x="6.5" y="5.5" width="3" height="9" rx="0.75"/>
+                <rect x="11.5" y="2" width="3" height="12.5" rx="0.75"/>
+              </svg>
+              Reports
+            </button>
           </div>
 
           <div class="nav-group">
             <div class="nav-group-label">Catalog</div>
-            <button data-view="products">Products</button>
-            <button data-view="ingredients">Ingredients</button>
-            <button data-view="inventory">Inventory</button>
+
+            <button data-view="products">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 2h5.5l6.5 6.5a1.5 1.5 0 0 1 0 2.1L10 14.5a1.5 1.5 0 0 1-2.1 0L1.5 8z"/>
+                <circle cx="6" cy="5.5" r="1.2" fill="currentColor" stroke="none"/>
+              </svg>
+              Products
+            </button>
+
+            <button data-view="ingredients">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5.5 1.5h5M6.5 1.5V6L3 12a1.5 1.5 0 0 0 1.4 2.5h7.2A1.5 1.5 0 0 0 13 12L9.5 6V1.5"/>
+                <line x1="3.5" y1="10.5" x2="12.5" y2="10.5"/>
+              </svg>
+              Ingredients
+            </button>
+
+            <button data-view="inventory">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1.5" y="7.5" width="13" height="7" rx="1"/>
+                <path d="M1.5 7.5L8 3l6.5 4.5"/>
+                <line x1="6" y1="14.5" x2="6" y2="10"/>
+                <line x1="10" y1="14.5" x2="10" y2="10"/>
+              </svg>
+              Inventory
+            </button>
           </div>
 
           <div class="nav-group" id="navOpsGroup" style="display:none;">
             <div class="nav-group-label">Operations</div>
-            <button data-view="supply" id="navSupply" style="display:none;">Supply</button>
-            <button data-view="production" id="navProduction" style="display:none;">Production</button>
-            <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">Events</button>
-            <button data-view="origin" id="navOrigin" style="display:none;">Origin</button>
+
+            <button data-view="supply" id="navSupply" style="display:none;">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="5" width="9.5" height="6" rx="1"/>
+                <path d="M10.5 7h2.8l1.7 4H10.5z"/>
+                <circle cx="3.5" cy="11.5" r="1.3" fill="currentColor" stroke="none"/>
+                <circle cx="12" cy="11.5" r="1.3" fill="currentColor" stroke="none"/>
+              </svg>
+              Supply
+            </button>
+
+            <button data-view="production" id="navProduction" style="display:none;">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="10" height="12" rx="1.5"/>
+                <path d="M6 1.5h4a1 1 0 0 1 0 2H6a1 1 0 0 1 0-2z" fill="currentColor" stroke="none"/>
+                <line x1="5.5" y1="7.5" x2="10.5" y2="7.5"/>
+                <line x1="5.5" y1="10" x2="9" y2="10"/>
+                <line x1="5.5" y1="12.5" x2="8" y2="12.5"/>
+              </svg>
+              Production
+            </button>
+
+            <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2.5 6h8.5v5a4 4 0 0 1-4 3.5A4 4 0 0 1 2.5 11z"/>
+                <path d="M11 7.5h1.5a2 2 0 1 1 0 4H11"/>
+                <line x1="1.5" y1="6" x2="12" y2="6"/>
+                <path d="M5.5 2.5c0 0 .5 2 2 2"/>
+              </svg>
+              Events
+            </button>
+
+            <button data-view="origin" id="navOrigin" style="display:none;">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.5-4.5 9-4.5 9S3.5 9.5 3.5 6A4.5 4.5 0 0 1 8 1.5z"/>
+                <circle cx="8" cy="6" r="1.5"/>
+              </svg>
+              Origin
+            </button>
           </div>
 
           <div class="nav-group nav-group-bottom">
-            <button data-view="settings">Settings</button>
+            <button data-view="settings">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <line x1="2.5" y1="4" x2="13.5" y2="4"/>
+                <line x1="2.5" y1="8" x2="13.5" y2="8"/>
+                <line x1="2.5" y1="12" x2="13.5" y2="12"/>
+                <circle cx="6" cy="4" r="1.5" fill="currentColor"/>
+                <circle cx="10" cy="8" r="1.5" fill="currentColor"/>
+                <circle cx="6" cy="12" r="1.5" fill="currentColor"/>
+              </svg>
+              Settings
+            </button>
           </div>
         </nav>
       </aside>
@@ -545,7 +681,6 @@
                 <tr>
                   <th>Name</th><th>Category</th><th>Price</th>
                   <th>Stock</th><th>Reorder</th><th>Break-even</th><th>Status</th><th>Actions</th>
-                  <th style="width:100%;"></th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -674,8 +809,23 @@
           <div class="filter-bar">
             <input id="salesSearch" type="text" placeholder="Search receipt #, customer, item…"
               style="flex:1;min-width:200px;" />
+            <div id="salesTimePills" style="display:flex;gap:4px;flex-wrap:nowrap;">
+              <button type="button" class="time-pill" data-preset="today">Today</button>
+              <button type="button" class="time-pill" data-preset="yesterday">Yesterday</button>
+              <button type="button" class="time-pill" data-preset="week">This Week</button>
+              <button type="button" class="time-pill" data-preset="month">This Month</button>
+              <button type="button" class="time-pill time-pill-active" data-preset="all">All</button>
+            </div>
             <input id="salesFromDate" type="date" />
             <input id="salesToDate" type="date" />
+            <select id="salesCategoryFilter">
+              <option value="">All Categories</option>
+            </select>
+            <select id="salesChannelFilter">
+              <option value="">All Channels</option>
+              <option value="POS">POS / Retail</option>
+              <option value="SUPPLY">Supply</option>
+            </select>
             <select id="salesPaymentFilter">
               <option value="">All Payments</option>
               <option value="cash">Cash</option>
@@ -693,6 +843,7 @@
               <option value="CANCELLED">Cancelled</option>
             </select>
           </div>
+          <div id="salesFilterSummary" style="font-size:11px;color:var(--gray-400);margin-bottom:10px;display:none;"></div>
           <div class="table-wrapper">
             <table id="salesTable">
               <thead>
@@ -997,6 +1148,7 @@
             <h2>Settings</h2>
             <div class="flex-wrap-row">
               <button class="btn" id="saveSettingsBtn" type="button">Save Settings</button>
+              <button class="btn btn-secondary" type="button" onclick="openChangePasswordModal()">Change Credentials</button>
               <button class="btn btn-secondary" id="logoutBtn" type="button">Logout</button>
             </div>
           </div>
@@ -1032,8 +1184,8 @@
             </div>
           </div>
 
-          <!-- Tax Rate + Receipt Footer side by side -->
-          <div class="form-row" style="grid-template-columns:1fr 2fr;">
+          <!-- Tax Rate · Receipt Footer · Digital Receipt URL · Void PIN — uniform 2-col grid -->
+          <div class="form-row">
             <div class="form-group">
               <label>Tax Rate (%)</label>
               <input id="settingsTaxRate" type="number" step="0.01" min="0" max="100" />
@@ -1044,19 +1196,23 @@
                 placeholder="e.g. Thank you for choosing Caflat.CORE!" />
             </div>
           </div>
-
-          <!-- Receipt URL + Void PIN — compact buttons that open popups -->
-          <div style="display:flex;gap:10px;margin-bottom:var(--space-4);flex-wrap:wrap;">
-            <button class="btn btn-secondary" type="button" id="openReceiptUrlBtn"
-              style="flex:1;min-width:200px;justify-content:space-between;">
-              <span>Digital Receipt URL</span>
-              <span id="receiptUrlStatusBadge" style="font-size:11px;color:var(--gray-400);font-weight:600;">Not set</span>
-            </button>
-            <button class="btn btn-secondary" type="button" id="openVoidPinBtn"
-              style="flex:1;min-width:200px;justify-content:space-between;">
-              <span>Void / Refund PIN</span>
-              <span style="font-size:11px;color:var(--gray-400);font-weight:600;">●●●●●●</span>
-            </button>
+          <div class="form-row" style="margin-bottom:var(--space-4);">
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Digital Receipt URL</label>
+              <button class="btn btn-secondary" type="button" id="openReceiptUrlBtn"
+                style="width:100%;justify-content:space-between;">
+                <span id="receiptUrlStatusBadge">Not set</span>
+                <span style="font-size:11px;color:var(--gray-400);font-weight:600;">Edit →</span>
+              </button>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Void / Refund PIN</label>
+              <button class="btn btn-secondary" type="button" id="openVoidPinBtn"
+                style="width:100%;justify-content:space-between;">
+                <span>Change PIN</span>
+                <span style="font-size:11px;color:var(--gray-400);font-weight:600;">●●●●●●</span>
+              </button>
+            </div>
           </div>
           <!-- Hidden inputs — saveSettings() reads these directly, unchanged -->
           <input id="settingsReceiptUrl" type="hidden" />
@@ -1239,11 +1395,11 @@
             <button class="btn btn-secondary" id="importDataBtn" type="button">Import Backup</button>
             <input accept=".json" id="importDataInput" style="display:none" type="file" />
             <button class="btn btn-secondary" id="archiveResetBtn" type="button"
-              style="border:1.5px solid #fca5a5;color:#dc2626;background:#fff;">
+              style="border:1.5px solid #fca5a5;color:#dc2626;background:var(--white);">
               Archive &amp; Reset
             </button>
             <button class="btn btn-secondary" id="factoryResetBtn" type="button"
-              style="border:1.5px solid #fca5a5;color:#dc2626;background:#fff;">
+              style="border:1.5px solid #fca5a5;color:#dc2626;background:var(--white);">
               Factory Reset
             </button>
           </div>
@@ -2027,7 +2183,7 @@
 
         <!-- Reference number -->
         <div class="form-group" id="referenceWrap" style="display:none;">
-          <label>Reference Number</label>
+          <label>Reference Number <span style="font-weight:500;opacity:.55;font-size:.8em;">(optional)</span></label>
           <input id="paymentReference" type="text" placeholder="e.g. GCash reference ID" />
         </div>
 
@@ -3053,8 +3209,8 @@
 
   <script src="./js/utils.js"></script>
   <script src="./js/state.js"></script>
-  <script src="./js/storage.js"></script>
-  <script src="./js/auth.js"></script>
+  <script src="./js/storage.js?v=20260628j"></script>
+  <script src="./js/auth.js?v=20260628i"></script>
   <script src="./js/analytics.js"></script>
   <script src="./js/dashboard.js"></script>
   <script src="./js/products.js"></script>
@@ -3062,9 +3218,9 @@
   <script src="./js/inventory.js"></script>
   <script src="./js/finishedgoods.js"></script>
   <script src="./js/lib/qrcode.min.js"></script>
-  <script src="./js/sales.js"></script>
+  <script src="./js/sales.js?v=20260628g"></script>
   <script src="./js/reports.js"></script>
-  <script src="./js/settings.js"></script>
+  <script src="./js/settings.js?v=20260629c"></script>
   <script src="./js/uiActions.js"></script>
   <script src="./js/integrity.js"></script>
   <script src="./js/refund.js"></script>
@@ -3076,11 +3232,11 @@
   <script src="./js/origin.js"></script>
   <script src="./js/productlab.js"></script>
   <script src="./js/recipecatalog.js"></script>
-  <script src="./js/shoppinglist.js"></script>
-  <script src="./js/license.js"></script>
-  <script src="./js/sync.js"></script>
-  <script src="./js/navigation.js"></script>
-  <script src="./js/app.js"></script>
+  <script src="./js/shoppinglist.js?v=20260629a"></script>
+  <script src="./js/license.js?v=20260628e"></script>
+  <script src="./js/sync.js?v=20260628d"></script>
+  <script src="./js/navigation.js?v=20260628d"></script>
+  <script src="./js/app.js?v=20260628d"></script>
 
   <!-- ══ SHOPPING LIST FAB ══ -->
   <button id="shoppingWidgetFab" onclick="toggleShoppingWidget();"
@@ -3105,102 +3261,121 @@
 
   <!-- ══ SHOPPING LIST MODAL ══ -->
   <div id="shoppingWidgetPanel" class="modal-overlay">
-    <div class="modal" style="max-width:480px;display:flex;flex-direction:column;
+    <div class="modal" style="max-width:460px;display:flex;flex-direction:column;
       max-height:88vh;padding:0;overflow:hidden;">
 
-      <!-- Header -->
-      <div style="padding:18px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="font-size:15px;font-weight:900;letter-spacing:-.3px;">Shopping List</div>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <button type="button" onclick="saveShoppingList();"
-              class="btn btn-secondary btn-sm">Save</button>
-            <button type="button" onclick="shareShoppingList();"
-              class="btn btn-secondary btn-sm">Share</button>
-            <button type="button" onclick="toggleShoppingWidget();"
-              style="background:none;border:none;cursor:pointer;font-size:20px;
-                color:var(--gray-400);padding:0 4px;line-height:1;font-family:var(--font-main);">✕</button>
-          </div>
+      <!-- Header: title + close only -->
+      <div style="padding:18px 20px 14px;border-bottom:1.5px solid var(--border);flex-shrink:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-size:16px;font-weight:900;letter-spacing:-.4px;">🛒 Shopping List</div>
+          <button type="button" onclick="toggleShoppingWidget();"
+            style="background:none;border:none;cursor:pointer;font-size:22px;
+              color:var(--gray-400);padding:0 4px;line-height:1;font-family:var(--font-main);">✕</button>
         </div>
         <!-- Tab bar -->
-        <div style="display:flex;gap:6px;">
+        <div style="display:flex;gap:3px;background:var(--gray-100);
+          border-radius:var(--radius-full);padding:3px;">
           <button id="swTabProduction" type="button" onclick="switchWidgetMode('production');"
-            style="display:none;flex:1;padding:6px 8px;border:1.5px solid var(--border);
+            style="display:none;flex:1;padding:8px 10px;border:none;
               border-radius:var(--radius-full);font-size:11px;font-weight:800;
               cursor:pointer;font-family:var(--font-main);transition:all .15s;">
             Production
           </button>
           <button id="swTabLowstock" type="button" onclick="switchWidgetMode('lowstock');"
-            style="flex:1;padding:6px 8px;border:1.5px solid var(--border);
+            style="flex:1;padding:8px 10px;border:none;
               border-radius:var(--radius-full);font-size:11px;font-weight:800;
               cursor:pointer;font-family:var(--font-main);transition:all .15s;">
             Low Stock
           </button>
           <button id="swTabFree" type="button" onclick="switchWidgetMode('free');"
-            style="flex:1;padding:6px 8px;border:1.5px solid var(--border);
+            style="flex:1;padding:8px 10px;border:none;
               border-radius:var(--radius-full);font-size:11px;font-weight:800;
               cursor:pointer;font-family:var(--font-main);transition:all .15s;">
-            Manual
+            Custom
           </button>
         </div>
       </div>
 
-      <!-- Manual add rows (shown in free mode) -->
-      <div id="swFreeAddRow" style="display:none;padding:12px 20px;
-        border-bottom:1px solid var(--border);flex-shrink:0;">
+      <!-- Add panel (Custom mode only) -->
+      <div id="swFreeAddRow" style="display:none;padding:14px 20px;
+        border-bottom:1.5px solid var(--border);flex-shrink:0;">
 
-        <!-- Row 1: from ingredients list -->
-        <div style="font-size:10px;font-weight:800;letter-spacing:.5px;
-          text-transform:uppercase;color:var(--gray-400);margin-bottom:6px;">
-          From Ingredients
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">
+        <!-- Ingredient picker row -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
           <select id="swIngSelect"
-            style="flex:1;min-width:0;padding:7px 8px;border:1.5px solid var(--border);
-              border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);">
+            style="flex:1;min-width:0;padding:10px 10px;border:1.5px solid var(--border);
+              border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);
+              background:var(--white);color:var(--black);">
             <option value="">Select ingredient…</option>
           </select>
           <input id="swIngQty" type="number" min="0" placeholder="Qty"
-            style="width:62px;padding:7px 8px;border:1.5px solid var(--border);
-              border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
-          <button type="button" onclick="addFreeListItem();"
-            class="btn btn-sm">Add</button>
+            style="width:68px;padding:10px 8px;border:1.5px solid var(--border);
+              border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);
+              text-align:center;" />
+          <button type="button" onclick="addFreeListItem();" class="btn"
+            style="padding:10px 16px;font-size:13px;">＋</button>
         </div>
 
-        <!-- Row 2: custom freeform item -->
-        <div style="font-size:10px;font-weight:800;letter-spacing:.5px;
-          text-transform:uppercase;color:var(--gray-400);margin-bottom:6px;">
-          Custom Item
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <input id="swCustomName" type="text" placeholder="Item name"
-            style="flex:1;min-width:0;padding:7px 8px;border:1.5px solid var(--border);
-              border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
-          <input id="swCustomQty" type="number" min="0" placeholder="Qty"
-            style="width:52px;padding:7px 8px;border:1.5px solid var(--border);
-              border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
-          <input id="swCustomUnit" type="text" placeholder="unit"
-            style="width:48px;padding:7px 8px;border:1.5px solid var(--border);
-              border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
-          <input id="swCustomCost" type="number" min="0" placeholder="₱"
-            style="width:52px;padding:7px 8px;border:1.5px solid var(--border);
-              border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
-          <button type="button" onclick="addCustomListItem();"
-            class="btn btn-sm">Add</button>
+        <!-- Custom item toggle -->
+        <button type="button" id="swCustomToggle" onclick="_swToggleCustomAdd();"
+          style="background:none;border:none;cursor:pointer;font-size:12px;
+            font-weight:700;color:var(--gray-400);padding:0;font-family:var(--font-main);
+            display:flex;align-items:center;gap:4px;">
+          <span id="swCustomToggleArrow">▸</span> Add unlisted item
+        </button>
+
+        <!-- Custom item form (collapsed by default) -->
+        <div id="swCustomAddRow" style="display:none;margin-top:12px;padding-top:12px;
+          border-top:1px solid var(--border);">
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input id="swCustomName" type="text" placeholder="Item name"
+              style="flex:1;padding:10px 10px;border:1.5px solid var(--border);
+                border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
+            <input id="swCustomQty" type="number" min="0" placeholder="Qty"
+              style="width:68px;padding:10px 8px;border:1.5px solid var(--border);
+                border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);
+                text-align:center;" />
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="swCustomUnit" type="text" placeholder="Unit (e.g. kg)"
+              style="width:100px;padding:10px 8px;border:1.5px solid var(--border);
+                border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
+            <input id="swCustomCost" type="number" min="0" placeholder="₱ Cost"
+              style="flex:1;padding:10px 10px;border:1.5px solid var(--border);
+                border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
+            <button type="button" onclick="addCustomListItem();" class="btn"
+              style="padding:10px 16px;font-size:13px;">＋</button>
+          </div>
         </div>
       </div>
 
-      <!-- List (scrollable) -->
+      <!-- List (scrollable) — unchecked first, checked at bottom -->
       <div id="shoppingWidgetList"
         style="flex:1;overflow-y:auto;padding:4px 20px 8px;min-height:0;"></div>
 
-      <!-- Footer -->
-      <div style="padding:12px 20px;border-top:1px solid var(--border);
-        flex-shrink:0;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:11px;font-weight:800;letter-spacing:.5px;
-          text-transform:uppercase;color:var(--gray-400);">Est. Total</span>
-        <span id="swTotal" style="font-size:18px;font-weight:900;
-          font-variant-numeric:tabular-nums;">₱0.00</span>
+      <!-- Footer: total + progress + actions -->
+      <div style="padding:14px 20px;border-top:1.5px solid var(--border);flex-shrink:0;
+        display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div>
+          <div style="font-size:20px;font-weight:900;font-variant-numeric:tabular-nums;
+            line-height:1.1;" id="swTotal">₱0.00</div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:2px;"
+            id="swProgress">0 items</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" onclick="saveShoppingList();"
+            class="btn btn-secondary btn-sm">Save</button>
+          <button type="button" onclick="shareShoppingList();"
+            class="btn btn-sm">
+            Share
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              style="margin-left:4px;flex-shrink:0;">
+              <path d="M8 1v10M4 5l4-4 4 4"/>
+              <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>

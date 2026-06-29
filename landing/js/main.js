@@ -12,7 +12,7 @@ const revealObserver = new IntersectionObserver((entries) => {
       revealObserver.unobserve(e.target);
     }
   });
-}, { threshold: 0.1, rootMargin: '0px 0px -48px 0px' });
+}, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
 
 document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => {
   revealObserver.observe(el);
@@ -24,7 +24,7 @@ document.querySelectorAll('.stagger').forEach(parent => {
   const cols = window.innerWidth > 1000 ? 3 : window.innerWidth > 720 ? 2 : 1;
   Array.from(parent.children).forEach((child, i) => {
     const colIndex = i % cols;
-    child.style.transitionDelay = `${colIndex * 80}ms`;
+    child.style.transitionDelay = `${colIndex * 60}ms`;
     child.classList.add('reveal');
     revealObserver.observe(child);
   });
@@ -59,8 +59,9 @@ const statsObserver = new IntersectionObserver((entries) => {
 document.querySelectorAll('[data-target]').forEach(el => statsObserver.observe(el));
 
 /* ─── Request Access form ───────────────────────────────────── */
-const SUPABASE_URL  = 'https://tkrsebalgonimmozbgqc.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcnNlYmFsZ29uaW1tb3piZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxNDgzNjUsImV4cCI6MjA2NTcyNDM2NX0.s5Jb0VEp1FPR10lVqBBODf93OIFczHGJXnpODWWCbf8';
+const SUPABASE_URL    = 'https://tkrsebalgonimmozbgqc.supabase.co';
+const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcnNlYmFsZ29uaW1tb3piZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxNDgzNjUsImV4cCI6MjA2NTcyNDM2NX0.s5Jb0VEp1FPR10lVqBBODf93OIFczHGJXnpODWWCbf8';
+const WEB3FORMS_KEY   = '7ff88d7f-645f-4693-a1e1-fe8b1de57cab';
 
 const form  = document.getElementById('accessForm');
 const toast = document.getElementById('toast');
@@ -88,24 +89,42 @@ form.addEventListener('submit', async (e) => {
   };
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/access_requests`, {
-      method: 'POST',
-      headers: {
-        'apikey':        SUPABASE_ANON,
-        'Authorization': `Bearer ${SUPABASE_ANON}`,
-        'Content-Type':  'application/json',
-        'Prefer':        'return=minimal',
-      },
-      body: JSON.stringify(data),
-    });
+    // Save to Supabase + email notification fire in parallel
+    const [dbRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/access_requests`, {
+        method: 'POST',
+        headers: {
+          'apikey':        SUPABASE_ANON,
+          'Authorization': `Bearer ${SUPABASE_ANON}`,
+          'Content-Type':  'application/json',
+          'Prefer':        'return=minimal',
+        },
+        body: JSON.stringify(data),
+      }),
+      fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject:    `New Access Request — ${data.cafe_name || 'Unknown Café'}`,
+          from_name:  'Caflat.CORE Landing',
+          cafe_name:    data.cafe_name,
+          contact_name: data.contact_name,
+          email:        data.email,
+          phone:        data.phone,
+          tier:         data.tier,
+          message:      data.message || '—',
+        }),
+      }).catch(err => console.warn('Email notification failed:', err)), // non-fatal
+    ]);
 
-    if (!res.ok) throw new Error(await res.text());
+    if (!dbRes.ok) throw new Error(await dbRes.text());
 
     showToast('Request sent! We\'ll reach out within 24–48 hours.', 'success');
     form.reset();
   } catch (err) {
     console.error('Access request error:', err);
-    showToast('Something went wrong. Email us at hello@caflatcore.com', 'error');
+    showToast('Something went wrong. Email us at caflatcore@gmail.com', 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Send Application';

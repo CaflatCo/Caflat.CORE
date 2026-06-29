@@ -218,6 +218,7 @@ function saveSettings() {
     originModeEnabled,
     ...(voidPin ? { voidPin } : {})
   }));
+  persistState();
 
   renderBranding();
   renderCheckoutPaymentOptions();
@@ -552,12 +553,21 @@ function archiveAndResetEmail() {
 function archiveAndReset() { archiveAndResetLocal(); }
 
 function factoryReset() {
-  if (!confirm('Factory Reset will wipe EVERYTHING including settings and passwords.\n\nThis cannot be undone. Are you sure?')) return;
-  if (!confirm('Final confirmation — delete everything and restart?')) return;
-  // Preserve license key so PRO customers don't lose their activation
-  const licenseBackup = localStorage.getItem('caflat_license_v1');
+  const input = prompt(
+    'This will permanently wipe ALL data — sales, products, inventory, settings.\n\n' +
+    'Your license key will be preserved.\n\n' +
+    'Type  RESET  to confirm:'
+  );
+  if (input === null) return; // cancelled
+  if (input.trim() !== 'RESET') {
+    showNotification('Factory reset cancelled — you must type RESET exactly.', 'error');
+    return;
+  }
+  const licenseBackup  = localStorage.getItem('caflat_license_v1');
+  const integrityBackup = localStorage.getItem('_cflx3');
   localStorage.clear();
-  if (licenseBackup) localStorage.setItem('caflat_license_v1', licenseBackup);
+  if (licenseBackup)   localStorage.setItem('caflat_license_v1', licenseBackup);
+  if (integrityBackup) localStorage.setItem('_cflx3', integrityBackup);
   window.location.reload();
 }
 

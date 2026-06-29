@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Caflat.CORE — Operations System for Specialty Coffee</title>
-  <meta name="description" content="The all-in-one operations system built for specialty coffee cafés. POS, inventory, origin traceability, production, events, and more — offline-first.">
-  <meta property="og:title" content="Caflat.CORE — Operations System for Specialty Coffee">
-  <meta property="og:description" content="The complete operations platform built for specialty coffee cafés.">
+  <meta name="description" content="The all-in-one operations platform for cafés, bakeries, dessert shops, and food businesses. Inventory, production, origin traceability, events, and more — offline-first.">
+  <meta property="og:title" content="Caflat.CORE — All-in-One Operations Platform">
+  <meta property="og:description" content="The complete operations platform built for cafés, bakeries, and food businesses.">
   <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,86 +33,96 @@
   <div class="hero-grid" aria-hidden="true"></div>
   <div class="hero-warm-glow" aria-hidden="true"></div>
 
-  <!-- Café art — pour-over silhouette -->
-  <div class="hero-cafe-art" aria-hidden="true">
-    <svg viewBox="0 0 220 280" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Steam -->
-      <path d="M78 52 Q70 36 78 20 Q86 4 78 -12" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
-      <path d="M110 44 Q102 28 110 12 Q118 -4 110 -20" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
-      <path d="M142 52 Q134 36 142 20 Q150 4 142 -12" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
-      <!-- V60 drip cone -->
-      <path d="M60 68 L110 148 L160 68 Z" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" fill="none"/>
-      <!-- Cone rim -->
-      <path d="M54 68 Q110 58 166 68" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      <!-- Cone ribs -->
-      <path d="M82 80 L105 138" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
-      <path d="M138 80 L115 138" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
-      <path d="M68 90 L102 140" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.25"/>
-      <!-- Drip -->
-      <path d="M110 148 L110 162" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
-      <!-- Carafe body -->
-      <path d="M72 168 Q68 180 70 204 Q72 224 110 228 Q148 224 150 204 Q152 180 148 168 Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" fill="none"/>
-      <!-- Carafe neck -->
-      <path d="M88 162 Q88 156 92 154 L128 154 Q132 156 132 162 L148 168 L72 168 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" fill="none"/>
-      <!-- Carafe handle -->
-      <path d="M150 178 Q174 178 174 200 Q174 220 150 218" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-      <!-- Coffee level inside carafe -->
-      <path d="M76 208 Q110 214 144 208" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
-    </svg>
-  </div>
+  <!-- Café photo — espresso machine, right side, fades into dark bg -->
+  <div class="hero-photo-right" aria-hidden="true"></div>
 
-  <!-- Floating café decorations -->
-  <div class="hero-deco" aria-hidden="true">
-    <svg class="deco-item deco-bean-1" viewBox="0 0 40 56" fill="currentColor">
-      <ellipse cx="20" cy="28" rx="16" ry="24"/>
-      <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
-    </svg>
-    <svg class="deco-item deco-bean-2" viewBox="0 0 40 56" fill="currentColor">
-      <ellipse cx="20" cy="28" rx="16" ry="24"/>
-      <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
-    </svg>
-    <svg class="deco-item deco-bean-3" viewBox="0 0 40 56" fill="currentColor">
-      <ellipse cx="20" cy="28" rx="16" ry="24"/>
-      <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
-    </svg>
-    <svg class="deco-item deco-leaf" viewBox="0 0 30 54" fill="currentColor">
-      <path d="M15 2 Q28 14 26 28 Q22 46 15 52 Q8 46 4 28 Q2 14 15 2Z"/>
-      <path d="M15 2 Q15 28 15 52" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1.5"/>
-      <path d="M15 19 Q21 16 26 19" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1.2"/>
-      <path d="M15 31 Q9 28 4 31" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1.2"/>
-    </svg>
-    <svg class="deco-item deco-cup" viewBox="0 0 50 46" fill="none">
-      <path d="M8 12 L6 36 Q6 40 10 40 L40 40 Q44 40 44 36 L42 12 Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
-      <ellipse cx="25" cy="12" rx="17" ry="5" stroke="currentColor" stroke-width="2"/>
-      <path d="M44 18 Q52 18 52 25 Q52 32 44 32" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-      <ellipse cx="25" cy="40" rx="20" ry="5" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
-      <path d="M19 24 Q22 20 25 24 Q28 28 31 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-    </svg>
-    <svg class="deco-item deco-bean-4" viewBox="0 0 40 56" fill="currentColor">
-      <ellipse cx="20" cy="28" rx="16" ry="24"/>
-      <path d="M20 6 Q27 18 20 28 Q13 38 20 50" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2.5" stroke-linecap="round"/>
-    </svg>
-  </div>
 
   <div class="container hero-content reveal">
-    <div class="hero-badge">
-      <span class="hero-badge-dot"></span>
-      Made for specialty cafés · Early Access
-    </div>
-
     <h1 class="hero-title">
-      Stop running your café<br>
-      <span class="hero-warm">from memory.</span>
+      The operating system<br>
+      behind <span class="hero-warm">every great café.</span>
     </h1>
 
     <p class="hero-body">
-      Caflat.CORE puts your POS, inventory, production, events, and origin traceability
-      on one screen — offline-first, built for the specialty café that takes its craft seriously.
+      One platform for your entire operation, keeping every part of the business connected.
     </p>
 
     <div class="hero-actions">
       <a href="#access" class="btn-hero-primary">Request Early Access</a>
       <a href="#features" class="btn-hero-ghost">See what's inside</a>
+    </div>
+
+    <!-- App screenshot fan — POS / Dashboard / Reports -->
+    <div class="hero-card-fan" aria-hidden="true">
+
+      <!-- Card 1: POS -->
+      <div class="fan-card fan-card-left">
+        <div class="fan-topbar"><span class="fan-logo">Caflat.CORE</span><span class="fan-screen-label">POS</span></div>
+        <div class="fan-body fan-pos">
+          <div class="fan-product-grid">
+            <div class="fan-product"><div class="fan-product-name">Americano</div><div class="fan-product-price">₱120</div></div>
+            <div class="fan-product"><div class="fan-product-name">Flat White</div><div class="fan-product-price">₱155</div></div>
+            <div class="fan-product"><div class="fan-product-name">Matcha Latte</div><div class="fan-product-price">₱165</div></div>
+            <div class="fan-product"><div class="fan-product-name">Cold Brew</div><div class="fan-product-price">₱175</div></div>
+            <div class="fan-product"><div class="fan-product-name">Espresso</div><div class="fan-product-price">₱100</div></div>
+            <div class="fan-product"><div class="fan-product-name">Cappuccino</div><div class="fan-product-price">₱145</div></div>
+          </div>
+          <div class="fan-cart">
+            <div class="fan-cart-title">Order #42</div>
+            <div class="fan-cart-item"><span>Flat White ×2</span><span>₱310</span></div>
+            <div class="fan-cart-item"><span>Matcha Latte</span><span>₱165</span></div>
+            <div class="fan-cart-item"><span>Cold Brew</span><span>₱175</span></div>
+            <div class="fan-cart-total"><span>Total</span><span>₱650</span></div>
+            <div class="fan-cart-btn">Checkout</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Dashboard (center, front) -->
+      <div class="fan-card fan-card-center">
+        <div class="fan-topbar"><span class="fan-logo">Caflat.CORE</span><span class="fan-screen-label">Dashboard</span></div>
+        <div class="fan-body fan-dashboard">
+          <div class="fan-kpi-row">
+            <div class="fan-kpi"><div class="fan-kpi-val">₱14,250</div><div class="fan-kpi-label">Revenue Today</div></div>
+            <div class="fan-kpi"><div class="fan-kpi-val">38</div><div class="fan-kpi-label">Orders</div></div>
+            <div class="fan-kpi"><div class="fan-kpi-val">92%</div><div class="fan-kpi-label">Items Sold</div></div>
+            <div class="fan-kpi fan-kpi-warn"><div class="fan-kpi-val">3</div><div class="fan-kpi-label">Low Stock</div></div>
+          </div>
+          <div class="fan-activity">
+            <div class="fan-act-title">Recent Activity</div>
+            <div class="fan-act-row"><span class="fan-act-dot green"></span><span>Order #42 — ₱650</span><span class="fan-act-time">2m ago</span></div>
+            <div class="fan-act-row"><span class="fan-act-dot green"></span><span>Order #41 — ₱310</span><span class="fan-act-time">8m ago</span></div>
+            <div class="fan-act-row"><span class="fan-act-dot red"></span><span>Oat Milk — Low Stock</span><span class="fan-act-time">14m ago</span></div>
+            <div class="fan-act-row"><span class="fan-act-dot green"></span><span>Order #40 — ₱475</span><span class="fan-act-time">22m ago</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Reports -->
+      <div class="fan-card fan-card-right">
+        <div class="fan-topbar"><span class="fan-logo">Caflat.CORE</span><span class="fan-screen-label">Reports</span></div>
+        <div class="fan-body fan-reports">
+          <div class="fan-report-stats">
+            <div class="fan-report-stat"><div class="fan-report-val">₱87,400</div><div class="fan-report-label">This Week</div></div>
+            <div class="fan-report-stat"><div class="fan-report-val">+12%</div><div class="fan-report-label">vs Last Week</div></div>
+          </div>
+          <div class="fan-bar-chart">
+            <div class="fan-bar-group"><div class="fan-bar" style="height:45%"></div><div class="fan-bar-label">Mon</div></div>
+            <div class="fan-bar-group"><div class="fan-bar" style="height:72%"></div><div class="fan-bar-label">Tue</div></div>
+            <div class="fan-bar-group"><div class="fan-bar" style="height:58%"></div><div class="fan-bar-label">Wed</div></div>
+            <div class="fan-bar-group"><div class="fan-bar" style="height:88%"></div><div class="fan-bar-label">Thu</div></div>
+            <div class="fan-bar-group"><div class="fan-bar" style="height:100%"></div><div class="fan-bar-label">Fri</div></div>
+            <div class="fan-bar-group"><div class="fan-bar" style="height:78%"></div><div class="fan-bar-label">Sat</div></div>
+            <div class="fan-bar-group"><div class="fan-bar fan-bar-dim" style="height:32%"></div><div class="fan-bar-label">Sun</div></div>
+          </div>
+          <div class="fan-top-products">
+            <div class="fan-tp-row"><span>Flat White</span><span>142 sold</span></div>
+            <div class="fan-tp-row"><span>Americano</span><span>118 sold</span></div>
+            <div class="fan-tp-row"><span>Matcha Latte</span><span>97 sold</span></div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <div class="hero-rule" aria-hidden="true"></div>
@@ -136,19 +146,35 @@
   </div>
 </section>
 
-<!-- ─── Trust Strip ───────────────────────────────────────────── -->
-<div class="trust-strip">
-  <div class="container trust-inner">
-    <span class="trust-rule" aria-hidden="true"></span>
-    <p class="trust-statement">"Built for the counter, not the conference room."</p>
-    <span class="trust-rule" aria-hidden="true"></span>
+<!-- ─── Marquee ticker ─────────────────────────────────────────── -->
+<div class="marquee-strip">
+  <div class="marquee-track">
+    <span class="marquee-item">Cafés</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Bakeries</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Coffee Roasters</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Patisseries</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Dessert Shops</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Cookie Brands</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Pop-up Markets</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Wholesale Supply</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Food Businesses</span><span class="marquee-dot">·</span>
+    <!-- duplicate for seamless loop -->
+    <span class="marquee-item">Cafés</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Bakeries</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Coffee Roasters</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Patisseries</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Dessert Shops</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Cookie Brands</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Pop-up Markets</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Wholesale Supply</span><span class="marquee-dot">·</span>
+    <span class="marquee-item">Food Businesses</span><span class="marquee-dot">·</span>
   </div>
 </div>
 
 <!-- ─── Core Features ─────────────────────────────────────────── -->
 <section class="section-dark2 grain" id="features">
   <div class="container">
-    <div class="section-label reveal">
+    <div class="section-label">
       <span class="eyebrow">Core Features</span>
       <h2 class="section-heading">Everything your café needs.</h2>
       <p class="section-subhead">The daily essentials, built to be fast and dependable — from the first sale to the end-of-day report.</p>
@@ -156,32 +182,17 @@
 
     <div class="features-grid stagger">
 
-      <div class="feature-card feature-anchor">
-        <div class="feature-anchor-text">
-          <div class="feature-icon">
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="3" width="18" height="14" rx="2"/>
-              <path d="M7 17v2M15 17v2M4 17h14"/>
-              <path d="M8 8h6M8 11h4"/>
-            </svg>
-          </div>
-          <div class="feature-body">
-            <h3>Point of Sale</h3>
-            <p>Fast order entry designed for the counter — handle queues, discounts, and payments without missing a beat. Fully offline.</p>
-          </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="18" height="14" rx="2"/>
+            <path d="M7 17v2M15 17v2M4 17h14"/>
+            <path d="M8 8h6M8 11h4"/>
+          </svg>
         </div>
-        <div class="feature-anchor-mock" aria-hidden="true">
-          <div class="mock-mini">
-            <div class="mock-mini-row"><span>Flat White</span><span>₱120</span></div>
-            <div class="mock-mini-row"><span>Canelé × 2</span><span>₱160</span></div>
-            <div class="mock-mini-divider"></div>
-            <div class="mock-mini-total"><span>Total</span><span class="mock-mini-val">₱280</span></div>
-            <div class="mock-mini-btns">
-              <span class="mock-mini-btn">Cash</span>
-              <span class="mock-mini-btn mock-mini-btn-active">GCash</span>
-              <span class="mock-mini-btn">Card</span>
-            </div>
-          </div>
+        <div class="feature-body">
+          <h3>Point of Sale</h3>
+          <p>Fast order entry designed for the counter — handle queues, discounts, and payments without missing a beat. Fully offline.</p>
         </div>
       </div>
 
@@ -501,7 +512,7 @@
 <!-- ─── Built-in Tools ────────────────────────────────────────── -->
 <section class="section-dark2 grain" id="extras">
   <div class="container">
-    <div class="section-label reveal">
+    <div class="section-label">
       <span class="eyebrow">Built-in Tools</span>
       <h2 class="section-heading">Beyond the&nbsp;daily grind.</h2>
       <p class="section-subhead">Extra tools that live inside Caflat.CORE — no integrations, no add-ons required.</p>
@@ -555,7 +566,7 @@
 <!-- ─── Pricing ───────────────────────────────────────────────── -->
 <section class="section-dark" id="pricing">
   <div class="container">
-    <div class="section-label reveal">
+    <div class="section-label">
       <span class="eyebrow">Pricing</span>
       <h2 class="section-heading">Simple plans.<br><span class="text-dim">Serious tools.</span></h2>
     </div>
@@ -664,9 +675,9 @@
         <select class="form-input" id="tier" name="tier" required>
           <option value="">Select a plan</option>
           <option value="free">Free</option>
-          <option value="pro">Pro — ₱499/mo</option>
-          <option value="cloud">Cloud — ₱899/mo</option>
-          <option value="enterprise">Enterprise — Custom</option>
+          <option value="pro">Pro</option>
+          <option value="cloud">Cloud</option>
+          <option value="enterprise">Enterprise</option>
         </select>
       </div>
       <div class="form-group">
@@ -684,10 +695,102 @@
   <div class="container footer-inner">
     <span class="footer-logo">Caflat.CORE</span>
     <span class="footer-copy">© 2026 Caflat. All rights reserved.</span>
-    <span class="footer-contact">hello@caflatcore.com</span>
+    <span class="footer-contact">caflatcore@gmail.com</span>
   </div>
 </footer>
 
 <script src="./js/main.js"></script>
+<script>
+(function () {
+  var fan = document.querySelector('.hero-card-fan');
+  if (!fan) return;
+  var cards      = Array.from(fan.querySelectorAll('.fan-card'));
+  var assignment = ['left', 'center', 'right'];
+  var original   = ['left', 'center', 'right'];
+  var locked     = false;
+  var resetTimer = null;
+
+  /* ── Staggered entrance ───────────────────────────────────────
+     Applied via inline style so the keyframe never re-fires when
+     the click handler swaps classes. Cleaned up after first play. */
+  var enterAnim  = { left: 'fan-enter-left', center: 'fan-enter-center', right: 'fan-enter-right' };
+  var enterDelay = { left: 500,  center: 200, right: 720 };
+  var enterDur   = { left: 680,  center: 720, right: 680 };
+  var easing     = 'cubic-bezier(.22,.61,.36,1)';
+
+  cards.forEach(function (card, i) {
+    var pos = assignment[i];
+    card.style.animation =
+      enterAnim[pos] + ' ' + enterDur[pos] + 'ms ' + easing + ' ' + enterDelay[pos] + 'ms both';
+    card.addEventListener('animationend', function () {
+      card.style.animation = '';
+    }, { once: true });
+  });
+
+  /* ── Auto-reset to original positions ────────────────────────
+     Called 2 s after the last swap settles. Skips if already home. */
+  function restoreOriginal() {
+    var alreadyHome = assignment.every(function (pos, i) { return pos === original[i]; });
+    if (alreadyHome || locked) return;
+
+    locked = true;
+
+    // Use smooth ease-out easing for auto-restore (overrides spring bounce)
+    fan.classList.add('fan-restoring');
+
+    // Pin the card flying INTO center (same logic as click handler).
+    // Do NOT pin the outgoing center card — that would keep it on top
+    // of the incoming card the whole way, causing the glitchy overlap.
+    var incomingCenter = cards[original.indexOf('center')];
+    incomingCenter.style.zIndex = '10';
+
+    assignment = original.slice();
+    cards.forEach(function (c, i) {
+      c.classList.remove('fan-card-left', 'fan-card-center', 'fan-card-right');
+      c.classList.add('fan-card-' + assignment[i]);
+    });
+
+    incomingCenter.addEventListener('transitionend', function done(evt) {
+      if (evt.propertyName !== 'transform') return;
+      incomingCenter.style.zIndex = '';
+      fan.classList.remove('fan-restoring');
+      locked = false;
+      incomingCenter.removeEventListener('transitionend', done);
+    });
+  }
+
+  /* ── Click-to-swap ────────────────────────────────────────── */
+  fan.addEventListener('click', function (e) {
+    if (locked) return;
+    var card = e.target.closest('.fan-card');
+    if (!card) return;
+    var clicked = cards.indexOf(card);
+    var center  = assignment.indexOf('center');
+    if (clicked === center) return;
+
+    clearTimeout(resetTimer);
+    locked = true;
+    card.style.zIndex = '10';
+
+    var tmp = assignment[clicked];
+    assignment[clicked] = 'center';
+    assignment[center]  = tmp;
+
+    cards.forEach(function (c, i) {
+      c.classList.remove('fan-card-left', 'fan-card-center', 'fan-card-right');
+      c.classList.add('fan-card-' + assignment[i]);
+    });
+
+    card.addEventListener('transitionend', function done(evt) {
+      if (evt.propertyName !== 'transform') return;
+      card.style.zIndex = '';
+      locked = false;
+      card.removeEventListener('transitionend', done);
+      // Start 2-second countdown once card has settled in place
+      resetTimer = setTimeout(restoreOriginal, 2000);
+    });
+  });
+})();
+</script>
 </body>
 </html>

@@ -188,7 +188,7 @@ function renderProductsTable() {
   tableBody.innerHTML = '';
 
   if (!products.length) {
-    tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">No products found</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="8" class="empty-state">No products found</td></tr>`;
     return;
   }
 

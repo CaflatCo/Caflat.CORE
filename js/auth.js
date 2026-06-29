@@ -211,19 +211,23 @@ function showSetupScreen() {
       <div class="login-subtitle" style="margin-bottom:0;">First-time Setup</div>
     </div>
     <div style="font-size:12px;color:var(--gray-500);margin-bottom:20px;text-align:center;line-height:1.6;">
-      Set your passwords before you start.<br>Keep these safe — you'll need them to log in.
+      Set your credentials before you start.<br>Keep these safe — you'll need them to log in.
     </div>
 
     <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
-      color:var(--gray-400);margin-bottom:8px;">Admin Password</div>
-    <input id="setupAdminPass" type="password" placeholder="Set admin password"
+      color:var(--gray-400);margin-bottom:8px;">Admin Account</div>
+    <input id="setupAdminUser" type="text" placeholder="Admin username"
+      autocomplete="username" style="margin-bottom:8px;" />
+    <input id="setupAdminPass" type="password" placeholder="Admin password (min 6 chars)"
       autocomplete="new-password" style="margin-bottom:8px;" />
     <input id="setupAdminConfirm" type="password" placeholder="Confirm admin password"
       autocomplete="new-password" style="margin-bottom:16px;" />
 
     <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
-      color:var(--gray-400);margin-bottom:8px;">Staff Password</div>
-    <input id="setupStaffPass" type="password" placeholder="Set staff password"
+      color:var(--gray-400);margin-bottom:8px;">Staff Account</div>
+    <input id="setupStaffUser" type="text" placeholder="Staff username"
+      autocomplete="username" style="margin-bottom:8px;" />
+    <input id="setupStaffPass" type="password" placeholder="Staff password (min 4 chars)"
       autocomplete="new-password" style="margin-bottom:8px;" />
     <input id="setupStaffConfirm" type="password" placeholder="Confirm staff password"
       autocomplete="new-password" style="margin-bottom:20px;" />
@@ -238,14 +242,15 @@ function showSetupScreen() {
   document.getElementById('setupSaveBtn')
     .addEventListener('click', completeSetup);
 
-  // Allow Enter key on last field
   document.getElementById('setupStaffConfirm')
     .addEventListener('keydown', e => { if (e.key === 'Enter') completeSetup(); });
 }
 
 async function completeSetup() {
+  const adminUser    = (document.getElementById('setupAdminUser')?.value || '').trim().toLowerCase();
   const adminPass    = document.getElementById('setupAdminPass')?.value || '';
   const adminConfirm = document.getElementById('setupAdminConfirm')?.value || '';
+  const staffUser    = (document.getElementById('setupStaffUser')?.value || '').trim().toLowerCase();
   const staffPass    = document.getElementById('setupStaffPass')?.value || '';
   const staffConfirm = document.getElementById('setupStaffConfirm')?.value || '';
   const errEl        = document.getElementById('setupError');
@@ -254,6 +259,11 @@ async function completeSetup() {
     if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
   };
 
+  if (!adminUser) return showErr('Admin username is required.');
+  if (adminUser.length < 3) return showErr('Admin username must be at least 3 characters.');
+  if (!staffUser) return showErr('Staff username is required.');
+  if (staffUser.length < 3) return showErr('Staff username must be at least 3 characters.');
+  if (adminUser === staffUser) return showErr('Admin and staff usernames must be different.');
   if (adminPass.length < 6) return showErr('Admin password must be at least 6 characters.');
   if (adminPass !== adminConfirm) return showErr('Admin passwords do not match.');
   if (staffPass.length < 4) return showErr('Staff password must be at least 4 characters.');
@@ -265,10 +275,9 @@ async function completeSetup() {
   const recoveryCode = _generateRecoveryCode();
   const recoveryHash = await _sha256(recoveryCode);
 
-  saveCredentials({ adminHash, staffHash });
+  saveCredentials({ adminUsername: adminUser, adminHash, staffUsername: staffUser, staffHash });
   localStorage.setItem(AUTH_RECOVERY_KEY, recoveryHash);
 
-  // Show recovery code before proceeding
   showRecoveryCode(recoveryCode);
 }
 
@@ -357,10 +366,18 @@ async function login() {
 
   const inputHash = await _sha256(password);
 
+  // Match against stored usernames; fall back to legacy hardcoded names for existing installs
+  const adminUser = creds.adminUsername || 'admin';
+  const staffUser = creds.staffUsername || 'staff';
+
   let role = null;
-  if ((username === 'admin' || username === 'administrator') && inputHash === creds.adminHash) {
+  if (username === adminUser && inputHash === creds.adminHash) {
     role = 'ADMIN';
-  } else if ((username === 'staff' || username === 'cashier') && inputHash === creds.staffHash) {
+  } else if (username === staffUser && inputHash === creds.staffHash) {
+    role = 'STAFF';
+  } else if (!creds.adminUsername && username === 'administrator' && inputHash === creds.adminHash) {
+    role = 'ADMIN';
+  } else if (!creds.staffUsername && username === 'cashier' && inputHash === creds.staffHash) {
     role = 'STAFF';
   }
 
@@ -511,25 +528,33 @@ function openChangePasswordModal() {
   overlay.id = 'changePasswordModal';
   overlay.className = 'modal-overlay';
 
+  const existingCreds = getStoredCredentials() || {};
+  const currentAdminUser = existingCreds.adminUsername || 'admin';
+  const currentStaffUser = existingCreds.staffUsername || 'staff';
+
   overlay.innerHTML = `
     <div class="modal" style="max-width:420px;">
-      <h3>Change Password</h3>
+      <h3>Change Credentials</h3>
 
       <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
-        color:var(--gray-400);margin-bottom:8px;margin-top:16px;">Current Admin Password</div>
+        color:var(--gray-400);margin-bottom:8px;margin-top:16px;">Verify Current Admin Password</div>
       <input id="cpCurrentPass" type="password" placeholder="Enter current admin password"
         class="form-input" autocomplete="current-password" />
 
       <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
-        color:var(--gray-400);margin-bottom:8px;margin-top:16px;">Change Admin Password</div>
-      <input id="cpNewAdmin" type="password" placeholder="New admin password (min 6 chars)"
+        color:var(--gray-400);margin-bottom:8px;margin-top:16px;">Admin Account</div>
+      <input id="cpNewAdminUser" type="text" placeholder="Admin username (leave blank to keep)"
+        class="form-input" autocomplete="off" value="" style="margin-bottom:8px;" />
+      <input id="cpNewAdmin" type="password" placeholder="New admin password (leave blank to keep)"
         class="form-input" autocomplete="new-password" />
       <input id="cpNewAdminConfirm" type="password" placeholder="Confirm new admin password"
         class="form-input" style="margin-top:8px;" autocomplete="new-password" />
 
       <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
-        color:var(--gray-400);margin-bottom:8px;margin-top:16px;">Change Staff Password</div>
-      <input id="cpNewStaff" type="password" placeholder="New staff password (min 4 chars)"
+        color:var(--gray-400);margin-bottom:8px;margin-top:16px;">Staff Account</div>
+      <input id="cpNewStaffUser" type="text" placeholder="Staff username (leave blank to keep)"
+        class="form-input" autocomplete="off" value="" style="margin-bottom:8px;" />
+      <input id="cpNewStaff" type="password" placeholder="New staff password (leave blank to keep)"
         class="form-input" autocomplete="new-password" />
       <input id="cpNewStaffConfirm" type="password" placeholder="Confirm new staff password"
         class="form-input" style="margin-top:8px;" autocomplete="new-password" />
@@ -553,8 +578,10 @@ function openChangePasswordModal() {
 
 async function saveChangedPassword() {
   const currentPass      = document.getElementById('cpCurrentPass')?.value || '';
+  const newAdminUser     = (document.getElementById('cpNewAdminUser')?.value || '').trim().toLowerCase();
   const newAdmin         = document.getElementById('cpNewAdmin')?.value || '';
   const newAdminConfirm  = document.getElementById('cpNewAdminConfirm')?.value || '';
+  const newStaffUser     = (document.getElementById('cpNewStaffUser')?.value || '').trim().toLowerCase();
   const newStaff         = document.getElementById('cpNewStaff')?.value || '';
   const newStaffConfirm  = document.getElementById('cpNewStaffConfirm')?.value || '';
   const errEl            = document.getElementById('cpError');
@@ -566,13 +593,20 @@ async function saveChangedPassword() {
   const creds = getStoredCredentials();
   if (!creds) return showErr('No credentials found. Please set up again.');
 
-  // Verify current admin password first
   const currentHash = await _sha256(currentPass);
   if (currentHash !== creds.adminHash) {
     return showErr('Current admin password is incorrect.');
   }
 
-  // Validate new passwords (allow keeping same if fields left blank)
+  // Determine final usernames
+  const finalAdminUser = newAdminUser || creds.adminUsername || 'admin';
+  const finalStaffUser = newStaffUser || creds.staffUsername || 'staff';
+
+  if (newAdminUser && newAdminUser.length < 3) return showErr('Admin username must be at least 3 characters.');
+  if (newStaffUser && newStaffUser.length < 3) return showErr('Staff username must be at least 3 characters.');
+  if (finalAdminUser === finalStaffUser) return showErr('Admin and staff usernames must be different.');
+
+  // Determine final password hashes
   let newAdminHash = creds.adminHash;
   let newStaffHash = creds.staffHash;
 
@@ -588,17 +622,17 @@ async function saveChangedPassword() {
     newStaffHash = await _sha256(newStaff);
   }
 
-  if (!newAdmin && !newStaff) {
-    return showErr('Enter at least one new password to change.');
+  if (!newAdminUser && !newAdmin && !newStaffUser && !newStaff) {
+    return showErr('Enter at least one field to change.');
   }
 
   if (newAdminHash === newStaffHash) {
     return showErr('Admin and staff passwords must be different.');
   }
 
-  saveCredentials({ adminHash: newAdminHash, staffHash: newStaffHash });
+  saveCredentials({ adminUsername: finalAdminUser, adminHash: newAdminHash, staffUsername: finalStaffUser, staffHash: newStaffHash });
   document.getElementById('changePasswordModal')?.remove();
-  showNotification('Password updated successfully', 'success');
+  showNotification('Credentials updated successfully', 'success');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -650,6 +684,30 @@ function _isGateUnlocked() {
     const d = JSON.parse(raw);
     return !!(d && d.code);
   } catch { return false; }
+}
+
+function showGatePanel(panel) {
+  const signInPanel = document.getElementById('gateSignInPanel');
+  const createPanel = document.getElementById('gateCreatePanel');
+  const signInTab   = document.getElementById('gateTabSignIn');
+  const createTab   = document.getElementById('gateTabCreate');
+
+  const activeStyle   = { background: 'var(--black)', color: 'white' };
+  const inactiveStyle = { background: 'transparent',  color: 'var(--gray-500)' };
+
+  if (panel === 'create') {
+    if (signInPanel) signInPanel.style.display = 'none';
+    if (createPanel) createPanel.style.display = '';
+    if (signInTab)   Object.assign(signInTab.style, inactiveStyle);
+    if (createTab)   Object.assign(createTab.style,  activeStyle);
+  } else {
+    if (signInPanel) signInPanel.style.display = '';
+    if (createPanel) createPanel.style.display = 'none';
+    if (signInTab)   Object.assign(signInTab.style,  activeStyle);
+    if (createTab)   Object.assign(createTab.style, inactiveStyle);
+    const input = document.getElementById('gateCodeInput');
+    if (input) setTimeout(() => input.focus(), 50);
+  }
 }
 
 function _showGate() {
@@ -793,3 +851,4 @@ window.initializeAuth          = initializeAuth;
 window.submitGateCode          = submitGateCode;
 window.openChangePasswordModal = openChangePasswordModal;
 window.showForgotPassword      = showForgotPassword;
+window.showGatePanel           = showGatePanel;

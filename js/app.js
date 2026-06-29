@@ -2,7 +2,23 @@
    APP.JS — Bootstrap, render lifecycle, navigation
 ═══════════════════════════════════════════════════════ */
 
+function _checkHttps() {
+  const isSecure = location.protocol === 'https:' ||
+                   location.hostname === 'localhost' ||
+                   location.hostname === '127.0.0.1';
+  if (isSecure) return;
+  const banner = document.createElement('div');
+  banner.style.cssText = [
+    'position:fixed;top:0;left:0;right:0;z-index:99999',
+    'background:#dc2626;color:#fff;text-align:center',
+    'padding:10px 16px;font-size:12px;font-weight:700;letter-spacing:.02em',
+  ].join(';');
+  banner.textContent = '⚠ Not secure (HTTP) — license security features are disabled. Use HTTPS.';
+  document.body.prepend(banner);
+}
+
 function initializeApp() {
+  _checkHttps();
   try {
     if (typeof restorePersistedState === 'function') restorePersistedState();
     if (typeof initializeLicense === 'function') initializeLicense();
