@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script>(function(){var t=localStorage.getItem('caflat-theme');if(t)document.documentElement.dataset.theme=t;document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('themeToggleBtn');if(b&&document.documentElement.dataset.theme==='dark'){b.querySelector('.toggle-icon').textContent='☀';b.querySelector('.toggle-label').textContent='Light';}});}());</script>
-  <link href="css/styles.css?v=20260629b" rel="stylesheet" />
+  <link href="css/styles.css?v=20260629e" rel="stylesheet" />
   <style>
     /* ── Semantic color overrides ── */
     :root {
@@ -465,44 +465,75 @@
           <div class="nav-group" id="navOpsGroup" style="display:none;">
             <div class="nav-group-label">Operations</div>
 
-            <button data-view="supply" id="navSupply" style="display:none;">
-              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="1" y="5" width="9.5" height="6" rx="1"/>
-                <path d="M10.5 7h2.8l1.7 4H10.5z"/>
-                <circle cx="3.5" cy="11.5" r="1.3" fill="currentColor" stroke="none"/>
-                <circle cx="12" cy="11.5" r="1.3" fill="currentColor" stroke="none"/>
-              </svg>
-              Supply
-            </button>
+            <div class="nav-card">
+              <button data-view="supply" id="navSupply" style="display:none;">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1" y="5" width="9.5" height="6" rx="1"/>
+                  <path d="M10.5 7h2.8l1.7 4H10.5z"/>
+                  <circle cx="3.5" cy="11.5" r="1.3" fill="currentColor" stroke="none"/>
+                  <circle cx="12" cy="11.5" r="1.3" fill="currentColor" stroke="none"/>
+                </svg>
+                Supply
+              </button>
+              <button data-view="production" id="navProduction" style="display:none;">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="10" height="12" rx="1.5"/>
+                  <path d="M6 1.5h4a1 1 0 0 1 0 2H6a1 1 0 0 1 0-2z" fill="currentColor" stroke="none"/>
+                  <line x1="5.5" y1="7.5" x2="10.5" y2="7.5"/>
+                  <line x1="5.5" y1="10" x2="9" y2="10"/>
+                  <line x1="5.5" y1="12.5" x2="8" y2="12.5"/>
+                </svg>
+                Production
+              </button>
+              <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2.5 6h8.5v5a4 4 0 0 1-4 3.5A4 4 0 0 1 2.5 11z"/>
+                  <path d="M11 7.5h1.5a2 2 0 1 1 0 4H11"/>
+                  <line x1="1.5" y1="6" x2="12" y2="6"/>
+                  <path d="M5.5 2.5c0 0 .5 2 2 2"/>
+                </svg>
+                Events
+              </button>
+              <button data-view="origin" id="navOrigin" style="display:none;">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.5-4.5 9-4.5 9S3.5 9.5 3.5 6A4.5 4.5 0 0 1 8 1.5z"/>
+                  <circle cx="8" cy="6" r="1.5"/>
+                </svg>
+                Origin
+              </button>
+            </div>
+          </div>
 
-            <button data-view="production" id="navProduction" style="display:none;">
-              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="10" height="12" rx="1.5"/>
-                <path d="M6 1.5h4a1 1 0 0 1 0 2H6a1 1 0 0 1 0-2z" fill="currentColor" stroke="none"/>
-                <line x1="5.5" y1="7.5" x2="10.5" y2="7.5"/>
-                <line x1="5.5" y1="10" x2="9" y2="10"/>
-                <line x1="5.5" y1="12.5" x2="8" y2="12.5"/>
-              </svg>
-              Production
-            </button>
-
-            <button data-view="coffeecart" id="navCoffeeCart" style="display:none;">
-              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2.5 6h8.5v5a4 4 0 0 1-4 3.5A4 4 0 0 1 2.5 11z"/>
-                <path d="M11 7.5h1.5a2 2 0 1 1 0 4H11"/>
-                <line x1="1.5" y1="6" x2="12" y2="6"/>
-                <path d="M5.5 2.5c0 0 .5 2 2 2"/>
-              </svg>
-              Events
-            </button>
-
-            <button data-view="origin" id="navOrigin" style="display:none;">
-              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M8 1.5A4.5 4.5 0 0 1 12.5 6c0 3.5-4.5 9-4.5 9S3.5 9.5 3.5 6A4.5 4.5 0 0 1 8 1.5z"/>
-                <circle cx="8" cy="6" r="1.5"/>
-              </svg>
-              Origin
-            </button>
+          <div class="nav-group" id="navToolsGroup">
+            <div class="nav-group-label">Tools</div>
+            <div class="nav-card">
+              <button data-view="lab" id="navLab">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 1.5h4M6.5 1.5v5L3.5 12a1.5 1.5 0 0 0 1.3 2.5h6.4a1.5 1.5 0 0 0 1.3-2.5L9.5 6.5V1.5"/>
+                  <circle cx="6" cy="10.5" r=".7" fill="currentColor" stroke="none"/>
+                  <circle cx="8.5" cy="12" r=".7" fill="currentColor" stroke="none"/>
+                </svg>
+                Product Lab
+              </button>
+              <button data-view="recipes" id="navRecipes">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2.5 2.5h11a.5.5 0 0 1 .5.5v10a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V3a.5.5 0 0 1 .5-.5z"/>
+                  <line x1="5" y1="6" x2="11" y2="6"/>
+                  <line x1="5" y1="8.5" x2="11" y2="8.5"/>
+                  <line x1="5" y1="11" x2="8.5" y2="11"/>
+                </svg>
+                Recipe Catalog
+              </button>
+              <button data-view="costlab" id="navCostLab">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="10" width="2.5" height="4" rx=".5"/>
+                  <rect x="6.75" y="7" width="2.5" height="7" rx=".5"/>
+                  <rect x="11.5" y="4" width="2.5" height="10" rx=".5"/>
+                  <polyline points="2.5,9 6.75,6 11.5,3" stroke-width="1.5"/>
+                </svg>
+                Cost Lab
+              </button>
+            </div>
           </div>
 
           <div class="nav-group nav-group-bottom">
@@ -1932,6 +1963,38 @@
         </div>
       </section>
 
+      <!-- ═══ COST LAB VIEW ═══ -->
+      <section class="view" id="view-costlab">
+        <div class="panel" style="padding:0;display:flex;flex-direction:column;height:100%;overflow:hidden;">
+
+          <!-- Header -->
+          <div class="panel-header" style="padding:18px 20px;border-bottom:1px solid var(--border);
+            flex-shrink:0;border-top:3px solid #065f46;">
+            <div>
+              <h2 style="margin:0;">Cost Lab</h2>
+              <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
+                Live cost analysis &amp; profitability for your products</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" type="button"
+              onclick="openCostLabSettings();"
+              style="display:flex;align-items:center;gap:6px;">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                stroke-width="1.5" stroke-linecap="round">
+                <circle cx="8" cy="8" r="2.5"/>
+                <path d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2
+                  M3.4 3.4l.85.85M11.75 11.75l.85.85
+                  M3.4 12.6l.85-.85M11.75 4.25l.85-.85"/>
+              </svg>
+              Settings
+            </button>
+          </div>
+
+          <!-- Content (rendered by costlab.js) -->
+          <div id="clContainer" style="display:flex;flex-direction:column;flex:1;overflow-y:auto;"></div>
+
+        </div>
+      </section>
+
     </main>
 
     </div><!-- /.app-body -->
@@ -1939,6 +2002,36 @@
     <!-- ═══════════════════════════════════════════════════
          MODALS
     ═══════════════════════════════════════════════════ -->
+
+    <!-- Cost Lab Settings modal -->
+    <div class="modal-overlay" id="clSettingsModal">
+      <div class="modal">
+        <h3>Cost Lab Settings</h3>
+        <div style="font-size:12px;color:var(--gray-500);margin-bottom:16px;margin-top:-4px;">
+          Global defaults applied to all products unless overridden per-product.</div>
+        <div class="form-group">
+          <label>Target Margin %</label>
+          <input id="clSettingsTargetMargin" type="number" min="0" max="100" step="1"
+            placeholder="e.g. 60" />
+          <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">
+            Products below this threshold are flagged for repricing.</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Global Labor ₱/unit</label>
+            <input id="clSettingsLabor" type="number" min="0" step="0.01" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>Global Overhead ₱/unit</label>
+            <input id="clSettingsOverhead" type="number" min="0" step="0.01" placeholder="0" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" data-close-modal="clSettingsModal">Cancel</button>
+          <button class="btn" type="button" onclick="saveCostLabSettings();">Save Settings</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Product modal -->
     <div class="modal-overlay" id="productModal">
@@ -3232,6 +3325,7 @@
   <script src="./js/origin.js"></script>
   <script src="./js/productlab.js"></script>
   <script src="./js/recipecatalog.js"></script>
+  <script src="./js/costlab.js"></script>
   <script src="./js/shoppinglist.js?v=20260629a"></script>
   <script src="./js/license.js?v=20260628e"></script>
   <script src="./js/sync.js?v=20260628d"></script>

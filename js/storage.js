@@ -59,7 +59,10 @@ function persistState() {
       originProcessingProfiles: APP_STATE.originProcessingProfiles,
       originOrders:             APP_STATE.originOrders,
       originClients:            APP_STATE.originClients,
-      originOrderCounter:       APP_STATE.originOrderCounter
+      originOrderCounter:       APP_STATE.originOrderCounter,
+      costLabSettings:          APP_STATE.costLabSettings,
+      costLabOverrides:         APP_STATE.costLabOverrides,
+      costHistory:              APP_STATE.costHistory
     }));
     if (typeof _checkStorageWarning === 'function') _checkStorageWarning();
     // Notify sync engine
@@ -135,6 +138,13 @@ function restorePersistedState() {
   APP_STATE.originOrders             = Array.isArray(persisted.originOrders)             ? persisted.originOrders             : [];
   APP_STATE.originClients            = Array.isArray(persisted.originClients)            ? persisted.originClients            : [];
   APP_STATE.originOrderCounter       = Number(persisted.originOrderCounter || 0);
+  APP_STATE.costLabSettings  = Object.assign(
+    { targetMargin: 60, laborCostPerUnit: 0, overheadCostPerUnit: 0 },
+    persisted.costLabSettings || {}
+  );
+  APP_STATE.costLabOverrides = (persisted.costLabOverrides && typeof persisted.costLabOverrides === 'object')
+    ? persisted.costLabOverrides : {};
+  APP_STATE.costHistory      = Array.isArray(persisted.costHistory) ? persisted.costHistory : [];
 }
 
 /* ── Export full backup ── */

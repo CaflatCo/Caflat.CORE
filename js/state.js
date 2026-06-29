@@ -44,6 +44,14 @@ const APP_STATE = {
   originClients: [],            // Origin Mode client directory
   originOrderCounter: 0,        // Sequential origin order counter
 
+  costLabSettings: {
+    targetMargin: 60,
+    laborCostPerUnit: 0,
+    overheadCostPerUnit: 0
+  },
+  costLabOverrides: {},
+  costHistory: [],
+
   ui: {
     currentView: 'pos',
     activeCategory: 'All',

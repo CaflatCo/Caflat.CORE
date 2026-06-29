@@ -2478,3 +2478,147 @@ html[data-theme="dark"] .lab-input { color: var(--gray-900); }
 html[data-theme="dark"] .lab-input:focus { border-color: rgba(255,255,255,.3); }
 html[data-theme="dark"] .lab-stepper-input { background: var(--white); color: var(--gray-900); }
 html[data-theme="dark"] .lab-margin-input { background: var(--white); color: var(--gray-900); }
+
+/* ═══ COST LAB ═══ */
+.cl-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+@media (max-width: 1100px) { .cl-stats-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px)  { .cl-stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.cl-empty-stats {
+  padding: 32px;
+  text-align: center;
+  color: var(--gray-400);
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.cl-filter-bar {
+  padding: 12px 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.cl-table { width: 100%; }
+.cl-table th { white-space: nowrap; }
+.cl-table td.num { font-variant-numeric: tabular-nums; text-align: right; }
+.cl-table th:not(:first-child) { text-align: right; }
+.cl-table th:last-child, .cl-table td:last-child { text-align: center; width: 28px; }
+
+.cl-product-row { cursor: pointer; }
+.cl-product-row:hover td { background: var(--gray-50) !important; }
+
+.cl-chevron {
+  font-size: 18px;
+  color: var(--gray-300);
+  user-select: none;
+  transition: transform 0.15s ease;
+}
+
+/* Margin badge pills */
+.cl-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.cl-badge-green { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.cl-badge-amber { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.cl-badge-red   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.cl-badge-loss  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 9px; letter-spacing: 1px; }
+
+/* Detail panel layout */
+.cl-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 768px) { .cl-detail-grid { grid-template-columns: 1fr; } }
+
+.cl-section-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #065f46;
+  margin-bottom: 10px;
+}
+
+.cl-breakdown-list { margin-bottom: 12px; }
+
+.cl-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--gray-600);
+}
+
+.cl-summary-box {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+.cl-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding: 3px 0;
+  color: var(--gray-500);
+}
+.cl-summary-divider {
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+  padding-top: 8px;
+}
+
+.cl-panel-box {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.cl-sim-input {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-family: var(--font-main);
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--white);
+  color: var(--gray-900);
+}
+.cl-sim-result {
+  font-size: 11px;
+  color: var(--gray-500);
+  margin-top: 5px;
+  min-height: 18px;
+}
+
+/* Dark mode overrides */
+html[data-theme="dark"] .cl-panel-box,
+html[data-theme="dark"] .cl-summary-box { background: var(--gray-100); }
+html[data-theme="dark"] .cl-badge-green { background: rgba(21,128,61,.15); color: #4ade80; border-color: rgba(74,222,128,.3); }
+html[data-theme="dark"] .cl-badge-amber { background: rgba(194,65,12,.15); color: #fb923c; border-color: rgba(251,146,60,.3); }
+html[data-theme="dark"] .cl-badge-red,
+html[data-theme="dark"] .cl-badge-loss  { background: rgba(220,38,38,.15); color: #f87171; border-color: rgba(248,113,113,.3); }
+html[data-theme="dark"] .cl-product-row:hover td { background: var(--gray-100) !important; }
+html[data-theme="dark"] .cl-sim-input { background: var(--gray-100); color: var(--gray-900); border-color: var(--border); }
+html[data-theme="dark"] .cl-filter-bar input,
+html[data-theme="dark"] .cl-filter-bar select { background: var(--gray-100); color: var(--gray-900); }
