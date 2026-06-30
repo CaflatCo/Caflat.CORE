@@ -370,6 +370,16 @@ function applyLicenseTier() {
     });
     if (typeof updateOpsNavGroup === 'function') updateOpsNavGroup();
   } else {
+    // One-time migration: old code used to write false into APP_STATE.settings for all
+    // pro features whenever the free tier ran before the license loaded. Reset them once.
+    const MIG_KEY = 'caflat_pro_features_restored_v1';
+    if (!localStorage.getItem(MIG_KEY) && APP_STATE.settings) {
+      ['supplierModeEnabled','productionModeEnabled','coffeeCartModeEnabled',
+       'productLabModeEnabled','recipeCatalogEnabled','shoppingListEnabled','originModeEnabled']
+        .forEach(k => { APP_STATE.settings[k] = true; });
+      if (typeof persistState === 'function') persistState();
+      localStorage.setItem(MIG_KEY, '1');
+    }
     // Paid tier — apply each toggle so the nav/UI reflects what settings say
     if (typeof applySupplierModeToggle    === 'function') applySupplierModeToggle();
     if (typeof applyProductionModeToggle  === 'function') applyProductionModeToggle();
@@ -731,9 +741,19 @@ function _showFirstRunOnboarding() {
   setTimeout(() => document.getElementById('firstRunKeyInput')?.focus(), 100);
 }
 
+// Fast path: load from local storage only (no network). Called by initializeApp
+// so renderEverything() runs with the correct tier, not null.
+async function initializeLicenseFast() {
+  if (!_licenseState) {
+    _licenseState = await _loadLicenseFromStorage();
+  }
+}
+
 async function initializeLicense() {
-  // Verify integrity before trusting local state
-  _licenseState = await _loadLicenseFromStorage();
+  // Skip storage re-load if initializeLicenseFast already ran
+  if (!_licenseState) {
+    _licenseState = await _loadLicenseFromStorage();
+  }
 
   // Apply tier immediately with what local storage gives us
   applyLicenseTier();
@@ -766,6 +786,7 @@ async function initializeLicense() {
 }
 
 /* ── Exports ───────────────────────────────────────── */
+window.initializeLicenseFast      = initializeLicenseFast;
 window.initializeLicense          = initializeLicense;
 window.applyLicenseTier           = applyLicenseTier;
 window.openLicenseModal           = openLicenseModal;

@@ -17,11 +17,13 @@ function _checkHttps() {
   document.body.prepend(banner);
 }
 
-function initializeApp() {
+async function initializeApp() {
   _checkHttps();
   try {
     if (typeof restorePersistedState === 'function') restorePersistedState();
-    if (typeof initializeLicense === 'function') initializeLicense();
+    // Load license from local storage before first render so applyLicenseTier()
+    // sees the correct tier (not null) and doesn't hide pro features.
+    if (typeof initializeLicenseFast === 'function') await initializeLicenseFast();
     if (typeof initializeAuth === 'function') initializeAuth();
     if (typeof initializeUIActions === 'function') initializeUIActions();
     if (typeof initializeSales === 'function') initializeSales();
@@ -34,6 +36,9 @@ function initializeApp() {
     bindModalClose();
     bindSearchFilters();
     setDefaultView();
+
+    // Network validation (Supabase revalidation) runs in background after app is ready
+    if (typeof initializeLicense === 'function') initializeLicense();
 
     console.log('Caflat.CORE v1 initialized');
   } catch (error) {
