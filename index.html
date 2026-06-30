@@ -2351,9 +2351,11 @@
             font-weight:800;color:var(--gray-400);white-space:nowrap;">Discount</span>
           <input id="supplyDiscountValue" type="number" min="0" step="0.01"
             placeholder="0"
+            oninput="if(typeof updateSupplyOrderTotal==='function') updateSupplyOrderTotal();"
             style="width:90px;padding:7px 10px;border:1px solid var(--border);
               border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />
           <select id="supplyDiscountType"
+            onchange="if(typeof updateSupplyOrderTotal==='function') updateSupplyOrderTotal();"
             style="width:80px;padding:7px 10px;border:1px solid var(--border);
               border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;">
             <option value="percent">%</option>
