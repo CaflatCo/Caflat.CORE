@@ -4,6 +4,57 @@ window.addEventListener('scroll', () => {
   nav.classList.toggle('scrolled', window.scrollY > 20);
 }, { passive: true });
 
+/* ─── Mobile hamburger ───────────────────────────────────────── */
+const hamburger    = document.getElementById('navHamburger');
+const mobileDrawer = document.getElementById('navMobileDrawer');
+
+if (hamburger && mobileDrawer) {
+  hamburger.addEventListener('click', () => {
+    const isOpen = nav.classList.toggle('nav-open');
+    hamburger.setAttribute('aria-expanded', isOpen);
+    mobileDrawer.setAttribute('aria-hidden', !isOpen);
+  });
+
+  mobileDrawer.querySelectorAll('.nav-drawer-link').forEach(link => {
+    link.addEventListener('click', () => {
+      nav.classList.remove('nav-open');
+      hamburger.setAttribute('aria-expanded', 'false');
+      mobileDrawer.setAttribute('aria-hidden', 'true');
+    });
+  });
+
+  document.addEventListener('click', e => {
+    if (!nav.contains(e.target) && !mobileDrawer.contains(e.target)) {
+      nav.classList.remove('nav-open');
+      hamburger.setAttribute('aria-expanded', 'false');
+      mobileDrawer.setAttribute('aria-hidden', 'true');
+    }
+  });
+}
+
+/* ─── Sticky CTA bar ─────────────────────────────────────────── */
+const stickyCta    = document.getElementById('stickyCta');
+const accessSection = document.getElementById('access');
+
+if (stickyCta && accessSection) {
+  let accessVisible = false;
+
+  new IntersectionObserver(entries => {
+    accessVisible = entries[0].isIntersecting;
+    const show = !accessVisible && window.scrollY > 600;
+    stickyCta.classList.toggle('visible', show);
+    stickyCta.setAttribute('aria-hidden', !show);
+  }, { threshold: 0.1 }).observe(accessSection);
+
+  window.addEventListener('scroll', () => {
+    if (!accessVisible) {
+      const show = window.scrollY > 600;
+      stickyCta.classList.toggle('visible', show);
+      stickyCta.setAttribute('aria-hidden', !show);
+    }
+  }, { passive: true });
+}
+
 /* ─── Scroll reveal ─────────────────────────────────────────── */
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(e => {

@@ -11,6 +11,10 @@
   <meta property="og:title" content="Caflat.CORE">
   <meta property="og:description" content="The complete operations platform built for cafés, bakeries, and food businesses.">
   <meta property="og:type" content="website">
+  <meta property="og:url"          content="https://caflat.co">
+  <meta property="og:image"        content="https://caflat.co/landing/og-image.png">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,900&display=swap" rel="stylesheet">
@@ -28,8 +32,21 @@
       <a href="#pricing">Pricing</a>
       <a href="#access" class="nav-cta">Request Access</a>
     </div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Open menu" aria-expanded="false">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6"  x2="19" y2="6"/>
+        <line x1="3" y1="11" x2="19" y2="11"/>
+        <line x1="3" y1="16" x2="19" y2="16"/>
+      </svg>
+    </button>
   </div>
 </nav>
+<div class="nav-mobile-drawer" id="navMobileDrawer" aria-hidden="true">
+  <a href="#features" class="nav-drawer-link">Features</a>
+  <a href="#modes"    class="nav-drawer-link">Modes</a>
+  <a href="#pricing"  class="nav-drawer-link">Pricing</a>
+  <a href="#access"   class="nav-drawer-link nav-drawer-cta">Request Early Access</a>
+</div>
 
 <!-- ─── Hero ─────────────────────────────────────────────────── -->
 <section class="hero grain">
@@ -581,6 +598,43 @@
   </div>
 </section>
 
+<!-- ─── FAQ ───────────────────────────────────────────────────── -->
+<section class="section-dark2 grain" id="faq">
+  <div class="container">
+    <div class="section-label reveal">
+      <span class="eyebrow">FAQ</span>
+      <h2 class="section-heading">Common questions.</h2>
+      <p class="section-subhead">Everything you need to know before getting started.</p>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary class="faq-question">Does it work offline?</summary>
+        <p class="faq-answer">Yes — 100% offline-first. No internet connection is required to run daily operations. Data stays on your device and syncs when you're back online (Cloud plan).</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-question">What devices does it run on?</summary>
+        <p class="faq-answer">Any modern browser on a tablet, laptop, or desktop. Caflat.CORE is optimized for counter use on a dedicated device, but works wherever you have a browser.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-question">Is there a free trial?</summary>
+        <p class="faq-answer">Yes — the Free plan is permanently free, no credit card required. It includes core POS and inventory so you can run real operations before committing to a paid plan.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-question">Do I need to install anything?</summary>
+        <p class="faq-answer">No installation needed. Open Caflat.CORE in a browser and you're running. Works as a PWA — you can optionally add it to your home screen for an app-like experience.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-question">What happens to my data if I cancel?</summary>
+        <p class="faq-answer">Your data is yours. You can export everything — products, transactions, inventory — anytime before you leave. We don't hold your data hostage.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-question">Can I migrate from my existing system?</summary>
+        <p class="faq-answer">Yes. We support CSV import for products and inventory, and our team can help you migrate from most POS systems during onboarding.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
 <!-- ─── Pricing ───────────────────────────────────────────────── -->
 <section class="section-dark" id="pricing">
   <div class="container">
@@ -710,12 +764,37 @@
 
 <!-- ─── Footer ────────────────────────────────────────────────── -->
 <footer class="footer">
-  <div class="container footer-inner">
-    <span class="footer-logo">Caflat.CORE</span>
-    <span class="footer-copy">© 2026 Caflat. All rights reserved.</span>
-    <span class="footer-contact">caflatcore@gmail.com</span>
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <span class="footer-logo">Caflat.CORE</span>
+      <p class="footer-tagline">The operating system behind every great café.</p>
+    </div>
+    <div class="footer-nav">
+      <span class="footer-col-label">Navigate</span>
+      <a href="#features">Features</a>
+      <a href="#modes">Modes</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#access">Request Access</a>
+    </div>
+    <div class="footer-contact-col">
+      <span class="footer-col-label">Contact</span>
+      <a href="mailto:caflatcore@gmail.com" class="footer-email">caflatcore@gmail.com</a>
+    </div>
+  </div>
+  <div class="footer-sub">
+    <div class="container">
+      <span class="footer-copy">© 2026 Caflat. All rights reserved.</span>
+    </div>
   </div>
 </footer>
+
+<!-- ─── Sticky CTA Bar ────────────────────────────────────────── -->
+<div class="sticky-cta" id="stickyCta" aria-hidden="true">
+  <div class="container sticky-cta-inner">
+    <span class="sticky-cta-text">Ready to run a tighter café?</span>
+    <a href="#access" class="sticky-cta-btn">Request Early Access →</a>
+  </div>
+</div>
 
 <script src="./js/main.js"></script>
 <script>
