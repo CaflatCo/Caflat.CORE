@@ -362,25 +362,21 @@ function applyLicenseTier() {
     }
   });
 
-  // Force-disable pro features on free tier
-  if (!isPaid && APP_STATE.settings) {
-    APP_STATE.settings.supplierModeEnabled   = false;
-    APP_STATE.settings.productionModeEnabled = false;
-    APP_STATE.settings.coffeeCartModeEnabled = false;
-    APP_STATE.settings.productLabModeEnabled = false;
-    APP_STATE.settings.recipeCatalogEnabled  = false;
-    APP_STATE.settings.shoppingListEnabled   = false;
-    APP_STATE.settings.originModeEnabled     = false;
-
+  if (!isPaid) {
+    // Hide nav buttons directly — do NOT mutate APP_STATE.settings so user's toggle choices survive reload
     ['navSupply','navProduction','navCoffeeCart'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
     if (typeof updateOpsNavGroup === 'function') updateOpsNavGroup();
+  } else {
+    // Paid tier — apply each toggle so the nav/UI reflects what settings say
     if (typeof applySupplierModeToggle    === 'function') applySupplierModeToggle();
     if (typeof applyProductionModeToggle  === 'function') applyProductionModeToggle();
     if (typeof applyCoffeeCartModeToggle  === 'function') applyCoffeeCartModeToggle();
     if (typeof applyShoppingListToggle    === 'function') applyShoppingListToggle();
+    if (typeof applyOriginModeToggle      === 'function') applyOriginModeToggle();
+    if (typeof updateOpsNavGroup          === 'function') updateOpsNavGroup();
   }
 
   // Hide cloud upsell if already on CLOUD+

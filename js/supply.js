@@ -452,8 +452,7 @@ function saveSupplyOrder() {
     existing.items         = items;
     existing.subtotal      = subtotal;
     existing.discount      = discount;
-    existing.subtotal      = subtotal;
-    existing.discount      = discount;
+    existing.discountType  = discountType;
     existing.grandTotal    = grandTotal;
     existing.updatedAt     = new Date().toISOString();
     updateState('supplyOrders', () => orders);
@@ -462,7 +461,7 @@ function saveSupplyOrder() {
     orders.push({
       id, invoiceNumber, clientId,
       clientName: client?.name || '',
-      orderDate, notes, items, subtotal, discount, grandTotal,
+      orderDate, notes, items, subtotal, discount, discountType, grandTotal,
       status: 'DRAFTED',
       reservedStock: false,
       stockDeducted: false,
@@ -475,6 +474,7 @@ function saveSupplyOrder() {
 
   closeModal('supplyOrderModal');
   renderSupplyTable();
+  renderSupplyKPIs();
   showNotification('Supply order saved', 'success');
 }
 
