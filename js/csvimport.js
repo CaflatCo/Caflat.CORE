@@ -152,12 +152,33 @@ function _csvNorm(s) {
   return String(s).toLowerCase().replace(/[\s_\-\.\/]+/g, '');
 }
 
-function _csvAutoMatch(key, headers) {
-  const aliases = _CSV_ALIASES[key] || [];
-  return headers.findIndex(h => {
-    const nh = _csvNorm(h);
-    return aliases.some(a => nh === a || nh.includes(a) || a.includes(nh));
+// Returns a mapping of { fieldKey → columnIndex } for all fields at once.
+// Two-pass: exact alias match wins over substring, and each column can only
+// be assigned to one field (first-claimed takes it).
+function _csvAutoMatchAll(fields, headers) {
+  const normed = headers.map(h => _csvNorm(h));
+  const result = {};  // fieldKey → colIdx
+  const claimed = new Set(); // colIdx already assigned
+
+  // Pass 1: exact alias match
+  fields.forEach(f => {
+    const aliases = _CSV_ALIASES[f.key] || [];
+    const idx = normed.findIndex((nh, i) => !claimed.has(i) && aliases.includes(nh));
+    if (idx !== -1) { result[f.key] = idx; claimed.add(idx); }
   });
+
+  // Pass 2: header contains alias as substring (one direction only)
+  fields.forEach(f => {
+    if (result[f.key] !== undefined) return;
+    const aliases = _CSV_ALIASES[f.key] || [];
+    const idx = normed.findIndex((nh, i) => {
+      if (claimed.has(i)) return false;
+      return aliases.some(a => nh.includes(a));
+    });
+    if (idx !== -1) { result[f.key] = idx; claimed.add(idx); }
+  });
+
+  return result;
 }
 
 function _csvShowMappingStep() {
@@ -172,6 +193,7 @@ function _csvShowMappingStep() {
 
   const fields  = _csvType === 'products' ? _CSV_PRODUCT_FIELDS : _CSV_INGREDIENT_FIELDS;
   const headers = _csvData.headers;
+  const autoMap = _csvAutoMatchAll(fields, headers);
 
   const hint = _csvType === 'products'
     ? 'Missing price → imported at ₱0, flagged for review. Missing category → "General".'
@@ -181,7 +203,7 @@ function _csvShowMappingStep() {
 
   const container = document.getElementById('csvMappingTable');
   container.innerHTML = fields.map(f => {
-    const autoIdx = _csvAutoMatch(f.key, headers);
+    const autoIdx = autoMap[f.key] ?? -1;
     const opts = headers.map((h, i) =>
       `<option value="${i}"${i === autoIdx ? ' selected' : ''}>${h}</option>`
     ).join('');
@@ -207,6 +229,14 @@ function _csvCell(row, colIdx) {
   return (row[colIdx] || '').trim();
 }
 
+// Strip currency symbols and thousands commas before parsing
+// Handles: $12.50  ₱1,200.00  €9.99  1.200,50 (EU format → not handled, edge case)
+function _csvParseNumber(s) {
+  const cleaned = String(s || '').replace(/[₱$€£¥\s]/g, '').replace(/,/g, '');
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : NaN;
+}
+
 function _csvExecuteImport() {
   const mapping = {};
   const fields = _csvType === 'products' ? _CSV_PRODUCT_FIELDS : _CSV_INGREDIENT_FIELDS;
@@ -226,7 +256,7 @@ function _csvExecuteImport() {
       if (!name) { skipped++; return; }
 
       const priceRaw   = _csvCell(row, mapping.price);
-      const priceNum   = priceRaw !== '' ? safeNumber(priceRaw) : NaN;
+      const priceNum   = priceRaw !== '' ? _csvParseNumber(priceRaw) : NaN;
       const needsPrice = priceRaw === '' || isNaN(priceNum);
 
       const product = {
@@ -268,9 +298,9 @@ function _csvExecuteImport() {
       if (!name) { skipped++; return; }
 
       const costRaw  = _csvCell(row, mapping.costPerUnit);
-      const costNum  = costRaw !== '' ? safeNumber(costRaw) : 0;
+      const costNum  = costRaw !== '' ? _csvParseNumber(costRaw) : 0;
       const stockRaw = _csvCell(row, mapping.stock);
-      const stockNum = stockRaw !== '' ? safeNumber(stockRaw) : 0;
+      const stockNum = stockRaw !== '' ? _csvParseNumber(stockRaw) : 0;
       const needsCost = costRaw === '';
 
       APP_STATE.ingredients.push({
