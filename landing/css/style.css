@@ -1194,8 +1194,7 @@ nav.scrolled {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  min-height: 280px;
+  gap: 24px;
   overflow: hidden;
   transition: border-color .25s, transform .25s, box-shadow .25s;
 }
@@ -1605,7 +1604,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 @media (max-width: 720px) {
   .features-grid { grid-template-columns: 1fr; }
   .extras-grid   { grid-template-columns: 1fr; gap: 12px; }
-  .extra-card    { min-height: 220px; }
+  .extra-card    { padding: 24px; }
   .hero-stat     { padding: 0 28px; }
 }
 
