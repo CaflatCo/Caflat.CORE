@@ -1281,7 +1281,7 @@ nav.scrolled {
 
 .pricing-card {
   background: var(--dark-card);
-  padding: 36px 28px;
+  padding: 52px 28px 36px;
   display: flex;
   flex-direction: column;
   transition: background .22s;
@@ -1290,7 +1290,6 @@ nav.scrolled {
 .pricing-card:hover { background: var(--dark-card-2); }
 .pricing-card.featured {
   background: var(--dark-card-2);
-  padding-top: 52px;
   overflow: visible;
 }
 .pricing-card.featured .pricing-badge {
