@@ -1190,7 +1190,7 @@ nav.scrolled {
   background: var(--dark-card);
   border: 1px solid var(--dark-border-hi);
   border-radius: var(--radius-lg);
-  padding: 28px 28px 32px;
+  padding: 26px 26px 30px;
   position: relative;
   display: flex;
   flex-direction: row;
@@ -1213,28 +1213,6 @@ nav.scrolled {
   color: var(--text-muted);
 }
 
-.extra-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: .56rem;
-  font-weight: 700;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 100px;
-  padding: 4px 10px;
-  margin-bottom: 10px;
-  width: fit-content;
-}
-.extra-tag::before {
-  content: '';
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.4);
-}
 
 .extra-icon {
   width: 52px; height: 52px;
