@@ -1281,7 +1281,7 @@ nav.scrolled {
 
 .pricing-card {
   background: var(--dark-card);
-  padding: 52px 28px 36px;
+  padding: 32px 28px 36px;
   display: flex;
   flex-direction: column;
   transition: background .22s;
