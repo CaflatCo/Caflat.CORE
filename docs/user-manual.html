@@ -1193,6 +1193,7 @@ code {
       <tr><th>Action</th><th>How</th></tr>
       <tr><td>Export Backup</td><td>Settings → Data → Export Backup (JSON file, downloadable)</td></tr>
       <tr><td>Import Backup</td><td>Settings → Data → Import Backup (restore from JSON file)</td></tr>
+      <tr><td>Import CSV</td><td>Settings → Data → Import CSV (migrate products or ingredients from another POS)</td></tr>
       <tr><td>Reset Data</td><td>Settings → Data → Reset (irreversible — creates a blank system)</td></tr>
     </table>
 
@@ -1200,6 +1201,27 @@ code {
       <div class="callout-label">Weekly Reminder</div>
       <p>Export a backup at least once per week. Store the file in cloud storage (Google Drive, iCloud, etc.) so you can restore your data if the device is lost or the browser cache is cleared.</p>
     </div>
+
+    <h2>Migrating from Another POS</h2>
+    <p>If you are switching from Square, Lightspeed, Toast, or another system, you can import your product menu and ingredient list using the built-in CSV importer.</p>
+    <ol class="step-list">
+      <li><strong>Export from your old POS</strong> — most POS systems let you export a product/menu list as a CSV file (look for "Export" or "Reports" in their settings).</li>
+      <li><strong>Open Import CSV</strong> — go to <em>Settings → Data → Import CSV</em>.</li>
+      <li><strong>Select the type</strong> — choose <em>Products</em> or <em>Ingredients</em> depending on what you exported.</li>
+      <li><strong>Upload your file</strong> — drag and drop the CSV file onto the upload zone, or tap to browse.</li>
+      <li><strong>Map columns</strong> — Caflat shows a preview of your CSV column names and tries to auto-match them to the right fields. Adjust any that don't look right using the dropdowns.</li>
+      <li><strong>Import</strong> — tap Import. Caflat applies these defaults for any missing data:
+        <ul>
+          <li>Name missing → row is skipped entirely</li>
+          <li>Price missing → product imported at ₱0, flagged for review</li>
+          <li>Category missing → assigned to "General"</li>
+          <li>Unit missing (ingredients) → set to "pcs"</li>
+          <li>Stock / cost missing → set to 0</li>
+        </ul>
+      </li>
+      <li><strong>Review the summary</strong> — the importer shows how many items were imported, how many were skipped, and which ones need a price or cost set before selling.</li>
+    </ol>
+    <p>After importing products, visit <em>Products</em> to confirm prices are correct and recipes are set up. After importing ingredients, visit <em>Inventory</em> to verify stock levels.</p>
   </div>
 </div>
 
@@ -1316,7 +1338,7 @@ code {
     <p>On the Free and Pro plans, data is device-local. The Cloud plan syncs data across all your devices and branches automatically.</p>
 
     <h3>Can I migrate from another POS?</h3>
-    <p>Yes. We support CSV import for products and inventory. Our team can assist with migration from most existing POS systems during onboarding.</p>
+    <p>Yes. Go to <em>Settings → Data → Import CSV</em>. Export your product list or ingredient list from your old system as a CSV file, upload it, map the columns to Caflat fields, and import. Missing prices are imported at ₱0 and flagged so you can update them before selling. See the <em>Migrating from Another POS</em> section in the Management chapter for a full step-by-step guide.</p>
 
     <h3>Is there a free trial for paid plans?</h3>
     <p>The Free plan is permanently free — use it as long as you need. Request early access at <code>caflatcore.com</code> to trial Pro or Cloud features.</p>
