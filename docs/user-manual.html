@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Caflat.CORE — User Manual 2026</title>
+<style>
+/* ─── Page Setup ─── */
+@page { size: A4; margin: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 9.5pt;
+  line-height: 1.65;
+  color: #2a2a2a;
+  background: #fff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ─── Page containers ─── */
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  position: relative;
+  overflow: hidden;
+  page-break-after: always;
+}
+.page:last-child { page-break-after: auto; }
+
+/* ════════════════════════════════════
+   COVER PAGE
+════════════════════════════════════ */
+.page-cover {
+  background: #080808;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.cover-left-bar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 7px;
+  background: linear-gradient(to bottom, #c8a375, #a07840);
+}
+
+.cover-ghost {
+  position: absolute;
+  right: -12mm;
+  top: 16mm;
+  font-size: 290pt;
+  font-weight: 900;
+  color: rgba(255,255,255,0.025);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  user-select: none;
+}
+
+.cover-top {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 28mm 0 32mm;
+}
+
+.cover-label {
+  font-size: 6.5pt;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(200,163,117,0.8);
+  margin-bottom: 22mm;
+}
+
+.cover-brand {
+  font-size: 62pt;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: #ffffff;
+  margin-bottom: 2mm;
+}
+.cover-brand .gold { color: #c8a375; }
+
+.cover-divider {
+  width: 44mm;
+  height: 1px;
+  background: rgba(255,255,255,0.13);
+  margin: 9mm 0;
+}
+
+.cover-subtitle {
+  font-size: 11pt;
+  color: rgba(255,255,255,0.42);
+  line-height: 1.6;
+  max-width: 110mm;
+}
+
+.cover-bottom {
+  padding: 7mm 28mm 9mm 32mm;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.cover-bottom-left {
+  font-size: 7pt;
+  color: rgba(255,255,255,0.28);
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+}
+.cover-bottom-right {
+  font-size: 7pt;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(200,163,117,0.65);
+}
+
+/* ════════════════════════════════════
+   TOC PAGE
+════════════════════════════════════ */
+.page-toc {
+  padding: 18mm 20mm 14mm 26mm;
+}
+.toc-eyebrow {
+  font-size: 6.5pt;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #c8a375;
+  margin-bottom: 5mm;
+}
+.toc-heading {
+  font-size: 22pt;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  color: #0d0d0d;
+  margin-bottom: 9mm;
+}
+.toc-list { list-style: none; }
+.toc-group {
+  margin-bottom: 1mm;
+}
+.toc-group-label {
+  font-size: 6pt;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #aaa;
+  padding: 2.5mm 0 1mm 0;
+  margin-top: 2.5mm;
+  border-top: 1px solid #f0f0f0;
+}
+.toc-item {
+  display: flex;
+  align-items: baseline;
+  padding: 2mm 0;
+  border-bottom: 1px solid #f6f6f6;
+}
+.toc-num {
+  font-size: 6.5pt;
+  font-weight: 700;
+  color: #c8a375;
+  letter-spacing: 0.1em;
+  width: 8mm;
+  flex-shrink: 0;
+}
+.toc-title {
+  font-size: 9.5pt;
+  color: #2a2a2a;
+  flex: 1;
+}
+.toc-title strong { font-weight: 700; }
+
+/* ════════════════════════════════════
+   CONTENT PAGES
+════════════════════════════════════ */
+.page-content {
+  padding: 0 0 16mm 0;
+  position: relative;
+}
+
+/* Running footer */
+.page-content::after {
+  content: 'Caflat.CORE User Manual  ·  caflatcore.com';
+  position: absolute;
+  bottom: 6mm;
+  left: 26mm;
+  right: 20mm;
+  font-size: 6pt;
+  color: #ccc;
+  border-top: 1px solid #efefef;
+  padding-top: 2.5mm;
+  letter-spacing: 0.04em;
+}
+
+/* Section header bar */
+.section-header {
+  background: #0d0d0d;
+  padding: 7mm 20mm 7mm 26mm;
+  display: flex;
+  align-items: center;
+  gap: 5mm;
+  margin-bottom: 8mm;
+  position: relative;
+}
+.section-header::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 5px;
+  background: #c8a375;
+}
+.section-num {
+  font-size: 6.5pt;
+  font-weight: 800;
+  color: #c8a375;
+  letter-spacing: 0.16em;
+  flex-shrink: 0;
+}
+.section-header h1 {
+  font-size: 17pt;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+
+/* Content inner padding */
+.section-body {
+  padding: 0 20mm 0 26mm;
+}
+
+h2 {
+  font-size: 11pt;
+  font-weight: 800;
+  color: #0d0d0d;
+  letter-spacing: -0.015em;
+  margin: 7mm 0 2.5mm 0;
+  padding-bottom: 1.5mm;
+  border-bottom: 1.5px solid #efefef;
+}
+h3 {
+  font-size: 9.5pt;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 4mm 0 1.5mm 0;
+}
+p { margin-bottom: 3mm; color: #3d3d3d; font-size: 9.5pt; }
+
+ul.doc-list {
+  list-style: none;
+  margin: 2mm 0 4mm 0;
+}
+ul.doc-list li {
+  padding: 1mm 0 1mm 5.5mm;
+  color: #3d3d3d;
+  font-size: 9.5pt;
+  position: relative;
+}
+ul.doc-list li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 4.2mm;
+  width: 2.5mm; height: 1.5px;
+  background: #c8a375;
+}
+
+ol.steps {
+  list-style: none;
+  counter-reset: step;
+  margin: 2.5mm 0 4mm 0;
+}
+ol.steps li {
+  counter-increment: step;
+  padding: 2mm 0 2mm 9mm;
+  position: relative;
+  color: #3d3d3d;
+  font-size: 9.5pt;
+  border-bottom: 1px solid #f6f6f6;
+}
+ol.steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0; top: 1.8mm;
+  width: 5.5mm; height: 5.5mm;
+  background: #c8a375;
+  color: #fff;
+  font-size: 6pt;
+  font-weight: 900;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.callout {
+  background: #fdf8f1;
+  border-left: 3.5px solid #c8a375;
+  padding: 3.5mm 5mm;
+  margin: 3.5mm 0;
+  border-radius: 0 2mm 2mm 0;
+}
+.callout-label {
+  font-size: 6pt;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #c8a375;
+  margin-bottom: 1mm;
+}
+.callout p { margin: 0; font-size: 9pt; color: #555; }
+
+.note {
+  background: #f5f8ff;
+  border-left: 3.5px solid #6b8ec8;
+  padding: 3.5mm 5mm;
+  margin: 3.5mm 0;
+  border-radius: 0 2mm 2mm 0;
+}
+.note-label {
+  font-size: 6pt;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #6b8ec8;
+  margin-bottom: 1mm;
+}
+.note p { margin: 0; font-size: 9pt; color: #555; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 3mm 0 5mm 0;
+  font-size: 9pt;
+}
+th {
+  background: #f5f5f5;
+  font-weight: 700;
+  text-align: left;
+  padding: 2.5mm 3mm;
+  color: #1a1a1a;
+  font-size: 8pt;
+  letter-spacing: 0.02em;
+  border-bottom: 2px solid #e5e5e5;
+}
+td {
+  padding: 2.5mm 3mm;
+  color: #3d3d3d;
+  border-bottom: 1px solid #f0f0f0;
+}
+tr:nth-child(even) td { background: #fafafa; }
+
+code {
+  font-family: 'Menlo', 'Consolas', monospace;
+  font-size: 8pt;
+  background: #f4f4f4;
+  padding: 0.4mm 1.5mm;
+  border-radius: 1mm;
+  color: #1a1a1a;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 6.5pt;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: #f0f0f0;
+  color: #666;
+  padding: 0.8mm 2.5mm;
+  border-radius: 10mm;
+  margin-right: 1.5mm;
+  margin-bottom: 1mm;
+}
+.tag.gold {
+  background: rgba(200,163,117,0.12);
+  color: #9a6e3a;
+  border: 1px solid rgba(200,163,117,0.3);
+}
+
+/* Plans */
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3mm;
+  margin: 4mm 0;
+}
+.plan-card {
+  border: 1px solid #e8e8e8;
+  border-radius: 2.5mm;
+  padding: 4mm 3.5mm;
+  background: #fff;
+}
+.plan-card.featured {
+  border-color: #c8a375;
+  background: #fdf8f2;
+}
+.plan-card .plan-badge {
+  display: inline-block;
+  font-size: 5pt;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #c8a375;
+  border-radius: 10mm;
+  padding: 0.6mm 2mm;
+  margin-bottom: 1.5mm;
+}
+.plan-name {
+  font-size: 11pt;
+  font-weight: 900;
+  color: #0d0d0d;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5mm;
+}
+.plan-desc {
+  font-size: 6.5pt;
+  color: #999;
+  line-height: 1.45;
+  margin-bottom: 3mm;
+  min-height: 12mm;
+}
+.plan-features {
+  list-style: none;
+}
+.plan-features li {
+  font-size: 7.5pt;
+  color: #3d3d3d;
+  padding: 1.2mm 0 1.2mm 4mm;
+  border-bottom: 1px solid #f4f4f4;
+  position: relative;
+  line-height: 1.35;
+}
+.plan-features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #c8a375;
+  font-size: 7pt;
+  font-weight: 900;
+}
+
+/* Inline two-column layout */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6mm;
+  margin: 3mm 0;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     COVER PAGE
+═══════════════════════════════════ -->
+<div class="page page-cover">
+  <div class="cover-left-bar"></div>
+  <div class="cover-ghost">C</div>
+
+  <div class="cover-top">
+    <div class="cover-label">User Manual</div>
+    <div class="cover-brand">CAFLAT<span class="gold">.CORE</span></div>
+    <div class="cover-divider"></div>
+    <div class="cover-subtitle">
+      The operating system for specialty coffee.<br>
+      Complete reference for owners, managers, and staff.
+    </div>
+  </div>
+
+  <div class="cover-bottom">
+    <div class="cover-bottom-left">
+      Version 3.0<br>
+      2026 Edition
+    </div>
+    <div class="cover-bottom-right">caflatcore.com</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     TABLE OF CONTENTS
+═══════════════════════════════════ -->
+<div class="page page-toc">
+  <div class="toc-eyebrow">Contents</div>
+  <div class="toc-heading">What's inside.</div>
+
+  <ul class="toc-list">
+    <div class="toc-group-label">Setup</div>
+    <li class="toc-item"><span class="toc-num">01</span><span class="toc-title"><strong>Getting Started</strong> — Setup Wizard, first login, roles</span></li>
+
+    <div class="toc-group-label">Core Features</div>
+    <li class="toc-item"><span class="toc-num">02</span><span class="toc-title"><strong>POS</strong> — Taking orders, tickets, payments</span></li>
+    <li class="toc-item"><span class="toc-num">03</span><span class="toc-title"><strong>Products &amp; Ingredients</strong> — Menu, recipes, cost linking</span></li>
+    <li class="toc-item"><span class="toc-num">04</span><span class="toc-title"><strong>Inventory</strong> — Stock tracking, adjustments, alerts</span></li>
+    <li class="toc-item"><span class="toc-num">05</span><span class="toc-title"><strong>Sales &amp; Dashboard</strong> — Revenue, daily summary, KPIs</span></li>
+    <li class="toc-item"><span class="toc-num">06</span><span class="toc-title"><strong>Reports</strong> — Sales, inventory exports, filters</span></li>
+
+    <div class="toc-group-label">Optional Modes</div>
+    <li class="toc-item"><span class="toc-num">07</span><span class="toc-title"><strong>Supplier Mode</strong> — Vendor management, invoices, purchase orders</span></li>
+    <li class="toc-item"><span class="toc-num">08</span><span class="toc-title"><strong>Events Mode</strong> — Catering bookings, event billing</span></li>
+    <li class="toc-item"><span class="toc-num">09</span><span class="toc-title"><strong>Production Mode</strong> — Batch production, output tracking</span></li>
+
+    <div class="toc-group-label">Built-in Tools</div>
+    <li class="toc-item"><span class="toc-num">10</span><span class="toc-title"><strong>Product Lab</strong> — Sandbox for new menu items</span></li>
+    <li class="toc-item"><span class="toc-num">11</span><span class="toc-title"><strong>Cost Lab</strong> — Ingredient, labor &amp; overhead margin analysis</span></li>
+    <li class="toc-item"><span class="toc-num">12</span><span class="toc-title"><strong>Recipe Catalog</strong> — Brew recipes, parameters, tasting notes</span></li>
+    <li class="toc-item"><span class="toc-num">13</span><span class="toc-title"><strong>Shopping List</strong> — Auto-generated purchase lists</span></li>
+
+    <div class="toc-group-label">Operations</div>
+    <li class="toc-item"><span class="toc-num">14</span><span class="toc-title"><strong>Finished Goods</strong> — Batch-produced goods, yield tracking</span></li>
+    <li class="toc-item"><span class="toc-num">15</span><span class="toc-title"><strong>Management</strong> — Void, refund, settings, security, data</span></li>
+
+    <div class="toc-group-label">Reference</div>
+    <li class="toc-item"><span class="toc-num">16</span><span class="toc-title"><strong>Plans</strong> — Free, Pro, Cloud, Enterprise</span></li>
+    <li class="toc-item"><span class="toc-num">17</span><span class="toc-title"><strong>FAQ &amp; Reference</strong> — Receipts, common questions</span></li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════
+     01 — GETTING STARTED
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h1>Getting Started</h1>
+  </div>
+  <div class="section-body">
+    <p>Caflat.CORE runs entirely in your browser — no installation required. Open <code>caflatcore.com</code> on any modern browser and the Setup Wizard launches automatically on first use.</p>
+
+    <h2>Setup Wizard</h2>
+    <p>The first time you open Caflat.CORE, a guided Setup Wizard walks you through initial configuration.</p>
+    <ol class="steps">
+      <li><strong>Create an admin account</strong> — Enter a username and a secure password. The username must be unique within the system; it cannot be changed later without a data reset.</li>
+      <li><strong>Set your café name</strong> — This appears on receipts and reports.</li>
+      <li><strong>Choose your currency</strong> — Select the currency used for all transactions.</li>
+      <li><strong>Select active modules</strong> — Enable the optional modes your café needs (Supplier, Events, Production). You can change this later in Settings.</li>
+      <li><strong>Complete setup</strong> — You are taken directly to the Dashboard.</li>
+    </ol>
+
+    <div class="callout">
+      <div class="callout-label">Important</div>
+      <p>All data is stored locally in your browser. Use the <strong>Data Backup</strong> feature (Settings → Data) regularly to export and preserve your records.</p>
+    </div>
+
+    <h2>User Roles</h2>
+    <p>Caflat.CORE supports two roles:</p>
+    <table>
+      <tr><th>Role</th><th>Access</th></tr>
+      <tr><td><strong>Admin</strong></td><td>Full access — all modules, settings, reports, data management</td></tr>
+      <tr><td><strong>Staff</strong></td><td>POS and Inventory only — cannot access reports, settings, or sensitive data</td></tr>
+    </table>
+    <p>Additional staff accounts can be created in <strong>Settings → Users</strong> after initial setup.</p>
+
+    <h2>Logging In</h2>
+    <ol class="steps">
+      <li>Open <code>caflatcore.com</code> in your browser.</li>
+      <li>Enter your username and password on the login screen.</li>
+      <li>Click <strong>Log In</strong>. The Dashboard loads immediately.</li>
+    </ol>
+
+    <h2>Navigating the App</h2>
+    <p>The left sidebar contains all main navigation items. The top bar shows the current screen name and quick-action buttons. On smaller screens, the sidebar collapses into a hamburger menu.</p>
+
+    <div class="note">
+      <div class="note-label">Offline Use</div>
+      <p>Caflat.CORE is 100% offline-first. All features work without an internet connection. Cloud sync (Cloud plan) runs in the background when connectivity is available.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     02 — POS
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h1>Point of Sale (POS)</h1>
+  </div>
+  <div class="section-body">
+    <p>The POS screen is the core of daily operations. Use it to take orders, add items, process payments, and issue receipts.</p>
+
+    <h2>Taking an Order</h2>
+    <ol class="steps">
+      <li>Open the <strong>POS</strong> screen from the sidebar.</li>
+      <li>Tap any product from the menu grid to add it to the current order.</li>
+      <li>Adjust quantity using the <strong>+</strong> / <strong>−</strong> buttons on each line item.</li>
+      <li>Add a <strong>note</strong> to any item (e.g., "no sugar") by tapping the item row.</li>
+      <li>Tap <strong>Charge</strong> when the order is ready to process.</li>
+    </ol>
+
+    <h2>Payment Methods</h2>
+    <p>Caflat.CORE records payment method for every transaction:</p>
+    <ul class="doc-list">
+      <li><strong>Cash</strong> — Enter the amount tendered; change is calculated automatically.</li>
+      <li><strong>Card</strong> — Mark as card payment; no terminal integration required.</li>
+      <li><strong>GCash / Digital</strong> — Record digital payment for reporting purposes.</li>
+      <li><strong>Split</strong> — Divide a bill between payment methods.</li>
+    </ul>
+
+    <h2>Order Tickets</h2>
+    <p>Each completed order generates a <strong>ticket</strong> with a sequential receipt number. Tickets are stored in Sales history and can be printed or shared as digital receipts.</p>
+
+    <h2>Discounts</h2>
+    <p>Apply discounts at the order level before charging. Discounts are logged with each transaction and appear in reports.</p>
+
+    <h2>Open Orders / Hold</h2>
+    <p>Orders can be held and resumed — useful for table service where customers order in stages. Held orders appear in the <strong>Open Orders</strong> panel on the right side of the POS screen.</p>
+
+    <div class="callout">
+      <div class="callout-label">Tip</div>
+      <p>Use <strong>category filters</strong> at the top of the menu grid to quickly find items by type (Coffee, Food, Retail, etc.).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     03 — PRODUCTS & INGREDIENTS
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h1>Products &amp; Ingredients</h1>
+  </div>
+  <div class="section-body">
+    <h2>Products</h2>
+    <p>Products are the items customers purchase. Go to <strong>Products</strong> in the sidebar to manage your menu.</p>
+
+    <h3>Adding a Product</h3>
+    <ol class="steps">
+      <li>Click <strong>New Product</strong>.</li>
+      <li>Enter the product name, price, and category.</li>
+      <li>Optionally upload a photo and add a short description.</li>
+      <li>Link ingredients to build a recipe (see below).</li>
+      <li>Save. The product immediately appears in the POS grid.</li>
+    </ol>
+
+    <h3>Product Fields</h3>
+    <table>
+      <tr><th>Field</th><th>Description</th></tr>
+      <tr><td>Name</td><td>Displayed on POS and receipts</td></tr>
+      <tr><td>Price</td><td>Selling price (before discounts)</td></tr>
+      <tr><td>Category</td><td>Used to group items in the POS grid</td></tr>
+      <tr><td>SKU</td><td>Optional internal code for tracking</td></tr>
+      <tr><td>Recipe</td><td>Linked ingredients with quantities</td></tr>
+      <tr><td>Recipe Mode</td><td>Per-unit or Batch (for items made in batches)</td></tr>
+    </table>
+
+    <h2>Ingredients</h2>
+    <p>Ingredients represent raw materials your café uses. They drive inventory tracking and cost calculations.</p>
+
+    <h3>Adding an Ingredient</h3>
+    <ol class="steps">
+      <li>Go to <strong>Ingredients</strong> in the sidebar.</li>
+      <li>Click <strong>New Ingredient</strong>.</li>
+      <li>Set the name, unit of measure (g, ml, pcs, etc.), and cost per unit.</li>
+      <li>Enter the current stock quantity.</li>
+      <li>Optionally set a low-stock alert threshold.</li>
+    </ol>
+
+    <h2>Building Recipes</h2>
+    <p>Linking ingredients to products enables automatic inventory deduction and cost calculation:</p>
+    <ol class="steps">
+      <li>Open a product in edit mode.</li>
+      <li>In the <strong>Recipe</strong> section, add ingredients one by one.</li>
+      <li>Set the quantity used per unit (or per batch if in batch mode).</li>
+      <li>Save — every time this product is sold, ingredient stock decreases automatically.</li>
+    </ol>
+
+    <div class="callout">
+      <div class="callout-label">Batch Mode</div>
+      <p>Set <strong>Recipe Mode → Batch</strong> for items made in batches (e.g., pastries). Enter total batch yield and Caflat.CORE calculates per-unit ingredient use and cost automatically.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     04 — INVENTORY
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h1>Inventory</h1>
+  </div>
+  <div class="section-body">
+    <p>Inventory tracks current stock levels for all ingredients. Stock decreases automatically as products are sold (when ingredients are linked to product recipes).</p>
+
+    <h2>Inventory Screen</h2>
+    <p>The Inventory screen shows every ingredient with its current quantity, unit, and status (OK / Low / Out). Items below the low-stock threshold are highlighted for easy identification.</p>
+
+    <h2>Manual Adjustments</h2>
+    <p>Correct stock levels at any time:</p>
+    <ol class="steps">
+      <li>Find the ingredient in the Inventory list.</li>
+      <li>Click <strong>Adjust</strong>.</li>
+      <li>Enter the actual current quantity or the adjustment amount.</li>
+      <li>Select a reason (Restock, Waste, Correction, etc.).</li>
+      <li>Confirm — the adjustment is logged with a timestamp.</li>
+    </ol>
+
+    <h2>Restocking</h2>
+    <p>When you receive a delivery, use <strong>Restock</strong> to add quantities. If Supplier Mode is active, link the restock to a purchase order for automatic invoice tracking.</p>
+
+    <h2>Low Stock Alerts</h2>
+    <p>Each ingredient has a configurable <strong>minimum threshold</strong>. When stock falls below this level, the ingredient is flagged in Inventory and appears in the Shopping List widget.</p>
+
+    <h2>Adjustment History</h2>
+    <p>Every manual adjustment is recorded with: date, time, user, reason, before/after quantities. Access the full log via <strong>Inventory → History</strong>.</p>
+
+    <div class="note">
+      <div class="note-label">Auto-deduction</div>
+      <p>Ingredients are deducted from inventory automatically only when the product has a linked recipe. Products without recipes do not affect inventory.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     05 — SALES & DASHBOARD
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h1>Sales &amp; Dashboard</h1>
+  </div>
+  <div class="section-body">
+    <h2>Dashboard</h2>
+    <p>The Dashboard is the first screen after login. It shows a real-time overview of your café's performance for the current day.</p>
+
+    <h3>Key Metrics</h3>
+    <table>
+      <tr><th>Metric</th><th>Description</th></tr>
+      <tr><td>Today's Revenue</td><td>Total sales for the current calendar day</td></tr>
+      <tr><td>Transactions</td><td>Number of orders completed today</td></tr>
+      <tr><td>Average Order Value</td><td>Revenue ÷ transaction count</td></tr>
+      <tr><td>Top Products</td><td>Best-selling items by quantity today</td></tr>
+      <tr><td>Low Stock Items</td><td>Ingredients below their alert threshold</td></tr>
+    </table>
+
+    <h2>Sales History</h2>
+    <p>Go to <strong>Sales</strong> in the sidebar to see every transaction. Filter by date, payment method, or amount. Click any transaction to view its full details and receipt.</p>
+
+    <h2>End of Day</h2>
+    <p>The <strong>End of Day</strong> feature produces a daily summary report:</p>
+    <ol class="steps">
+      <li>Navigate to <strong>End of Day</strong> from the sidebar or dashboard.</li>
+      <li>Review the day's totals: revenue, transactions, voids, discounts.</li>
+      <li>Reconcile cash if needed (enter actual drawer count).</li>
+      <li>Close the day — the summary is saved to reports history.</li>
+    </ol>
+
+    <div class="callout">
+      <div class="callout-label">Tip</div>
+      <p>Close the day every evening before leaving. It locks the day's records and makes month-end reporting accurate.</p>
+    </div>
+
+    <h2>Revenue Breakdown</h2>
+    <p>The Dashboard and Reports screens can break revenue down by category, payment method, and time of day — helping you understand peak hours and your most profitable product lines.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     06 — REPORTS
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h1>Reports</h1>
+  </div>
+  <div class="section-body">
+    <p>Reports give you a historical view of sales, inventory, and financial performance. Access via <strong>Reports</strong> in the sidebar.</p>
+
+    <h2>Sales Report</h2>
+    <p>Filter transactions by date range, payment method, or product. The report shows:</p>
+    <ul class="doc-list">
+      <li>Total revenue for the period</li>
+      <li>Transaction count and average order value</li>
+      <li>Revenue by payment method (Cash, Card, Digital)</li>
+      <li>Top-selling products with quantity and revenue</li>
+      <li>Discounts and voids totals</li>
+    </ul>
+
+    <h2>Inventory Report</h2>
+    <p>Shows stock levels over time, restock events, and consumption rates. Useful for identifying waste and optimizing order quantities.</p>
+
+    <h2>Supplier Report</h2>
+    <p>Available when Supplier Mode is active. Shows purchase order history, total spend per vendor, and pending invoices.</p>
+
+    <h2>Exporting Reports</h2>
+    <div class="tag gold">Pro, Cloud, Enterprise</div>
+    <p>Export any report as <strong>PDF</strong> or <strong>CSV</strong> for accounting, tax filing, or external analysis:</p>
+    <ol class="steps">
+      <li>Set your date range and filters.</li>
+      <li>Click <strong>Export</strong> in the top-right of the report.</li>
+      <li>Choose PDF (formatted) or CSV (raw data).</li>
+      <li>The file downloads to your device immediately.</li>
+    </ol>
+
+    <div class="note">
+      <div class="note-label">Free Plan</div>
+      <p>The Free plan includes the Daily Summary report. Full report access and exports require Pro or above.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     07 — SUPPLIER MODE
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h1>Supplier Mode</h1>
+  </div>
+  <div class="section-body">
+    <div class="tag">Optional Mode</div>
+    <p>Supplier Mode tracks every vendor relationship — purchase orders, deliveries, invoices, and spend — in one place. Enable it in <strong>Settings → Modules</strong>.</p>
+
+    <h2>Adding Suppliers</h2>
+    <ol class="steps">
+      <li>Go to <strong>Supplier</strong> in the sidebar.</li>
+      <li>Click <strong>New Supplier</strong>.</li>
+      <li>Enter the vendor name, contact details, and payment terms.</li>
+      <li>Optionally link default ingredients supplied by this vendor.</li>
+    </ol>
+
+    <h2>Purchase Orders</h2>
+    <p>Create a purchase order (PO) when you place an order with a supplier:</p>
+    <ol class="steps">
+      <li>Open a supplier and click <strong>New Order</strong>.</li>
+      <li>Add line items (ingredients) with quantities and agreed prices.</li>
+      <li>Set the expected delivery date.</li>
+      <li>Save as <strong>Pending</strong>.</li>
+    </ol>
+
+    <h2>Receiving Deliveries</h2>
+    <p>When goods arrive, mark the PO as <strong>Received</strong>:</p>
+    <ol class="steps">
+      <li>Open the pending order.</li>
+      <li>Confirm quantities received (adjust if delivery was short).</li>
+      <li>Mark as Received — ingredient stock is automatically updated.</li>
+      <li>The order moves to invoice history.</li>
+    </ol>
+
+    <h2>Invoice Tracking</h2>
+    <p>Every received order generates an invoice record. Supplier Mode tracks total spend per vendor per month, outstanding payments, and purchase history — giving you visibility over your cost of goods.</p>
+
+    <div class="callout">
+      <div class="callout-label">Tip</div>
+      <p>Linking purchase orders to ingredients means restocking is automatic on receipt — no manual inventory adjustment needed.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     08 — EVENTS MODE
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h1>Events Mode</h1>
+  </div>
+  <div class="section-body">
+    <div class="tag">Optional Mode</div>
+    <p>Events Mode manages catering bookings, pop-ups, and off-site service. Each event has its own order, billing, and client record. Enable via <strong>Settings → Modules</strong>.</p>
+
+    <h2>Creating an Event</h2>
+    <ol class="steps">
+      <li>Go to <strong>Events</strong> in the sidebar.</li>
+      <li>Click <strong>New Event</strong>.</li>
+      <li>Enter the event name, client name, date, location, and estimated guest count.</li>
+      <li>Add menu items and quantities from your product list.</li>
+      <li>Set pricing (per-item or package rate) and deposit amount if applicable.</li>
+      <li>Save — the event appears in the Events calendar.</li>
+    </ol>
+
+    <h2>Event Billing</h2>
+    <p>When the event is complete:</p>
+    <ol class="steps">
+      <li>Open the event and mark it as <strong>Completed</strong>.</li>
+      <li>Review the final billing summary.</li>
+      <li>Record payment received.</li>
+      <li>The event revenue is logged in Sales history.</li>
+    </ol>
+
+    <h2>Inventory Impact</h2>
+    <p>If products in the event have linked recipes, ingredients are deducted from inventory when the event is marked as completed — keeping stock accurate even for off-site service.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     09 — PRODUCTION MODE
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <h1>Production Mode</h1>
+  </div>
+  <div class="section-body">
+    <div class="tag">Optional Mode</div>
+    <p>Production Mode tracks batch production runs — baking, brewing concentrates, or any process that converts raw ingredients into finished goods. Enable via <strong>Settings → Modules</strong>.</p>
+
+    <h2>Creating a Production Run</h2>
+    <ol class="steps">
+      <li>Go to <strong>Production</strong> in the sidebar.</li>
+      <li>Click <strong>New Run</strong>.</li>
+      <li>Select the finished product being produced.</li>
+      <li>Enter the batch size (units to produce).</li>
+      <li>Caflat.CORE calculates the ingredients required based on the linked recipe.</li>
+      <li>Confirm ingredient availability and start the run.</li>
+    </ol>
+
+    <h2>Completing a Run</h2>
+    <ol class="steps">
+      <li>Open the active production run.</li>
+      <li>Enter the actual yield (may differ from target).</li>
+      <li>Mark as <strong>Complete</strong> — ingredient stock is deducted and finished goods inventory is updated.</li>
+    </ol>
+
+    <h2>Production History</h2>
+    <p>Every production run is logged with: date, product, planned vs. actual yield, and ingredients consumed. Use this data to track waste, optimize batch sizes, and monitor kitchen efficiency.</p>
+
+    <div class="callout">
+      <div class="callout-label">Integration</div>
+      <p>Production runs feed directly into Finished Goods inventory, making produced items available for sale in the POS without manual stock entry.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     10 — PRODUCT LAB
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <h1>Product Lab</h1>
+  </div>
+  <div class="section-body">
+    <div class="tag gold">Built-in Tool</div>
+    <p>Product Lab is a sandbox for testing new menu items. It reads your live ingredient prices and categories but <strong>never writes to your live menu</strong> unless you explicitly convert a draft to a real product.</p>
+
+    <h2>The Three-Panel Workspace</h2>
+    <div class="two-col">
+      <div>
+        <h3>Setup Panel</h3>
+        <p>Name your draft product, pick a category, set the target selling price, and choose whether it's a per-unit or batch recipe.</p>
+      </div>
+      <div>
+        <h3>Recipe Panel</h3>
+        <p>Build the ingredient list using your existing ingredients and their current costs. Add packaging items with individual costs.</p>
+      </div>
+    </div>
+    <h3>Results Panel</h3>
+    <p>Instantly see the full cost breakdown and projected margin as you build the recipe — no saving required.</p>
+
+    <h2>Cost &amp; Pricing Analysis</h2>
+    <p>The Results panel shows:</p>
+    <table>
+      <tr><th>Line</th><th>What it shows</th></tr>
+      <tr><td>Ingredient Cost</td><td>Total raw material cost from your recipe</td></tr>
+      <tr><td>Packaging Cost</td><td>Cups, bags, labels, etc.</td></tr>
+      <tr><td>Labor Cost</td><td>Estimated labor per unit (configurable)</td></tr>
+      <tr><td>Overhead</td><td>Rent, utilities allocation per unit</td></tr>
+      <tr><td>Total Cost</td><td>Sum of all above</td></tr>
+      <tr><td>Gross Margin</td><td>(Price − Cost) ÷ Price × 100</td></tr>
+    </table>
+
+    <h2>Supply Assessment</h2>
+    <p>Check whether you have enough current stock to produce a given quantity of the new product before adding it to the menu.</p>
+
+    <h2>Converting to a Product</h2>
+    <p>When your draft is ready, click <strong>Add to Menu</strong> — Product Lab creates a real product with the recipe pre-filled, ready for pricing and publishing to the POS.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     11 — COST LAB
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">11</span>
+    <h1>Cost Lab</h1>
+  </div>
+  <div class="section-body">
+    <div class="tag gold">Built-in Tool</div>
+    <p>Cost Lab gives you true cost visibility for every product on your menu. It calculates ingredient, packaging, labor, and overhead costs in real time — so you can price with confidence, not guesswork.</p>
+
+    <h2>How It Works</h2>
+    <p>Cost Lab reads your existing product recipes and ingredient prices, then calculates the fully-loaded cost per unit for each item. As ingredient prices change, costs update automatically.</p>
+
+    <h2>Cost Components</h2>
+    <table>
+      <tr><th>Component</th><th>Source</th></tr>
+      <tr><td>Ingredient Cost</td><td>Quantity × cost per unit from Ingredients</td></tr>
+      <tr><td>Packaging Cost</td><td>Per-product packaging items with individual costs</td></tr>
+      <tr><td>Labor Cost</td><td>Global default or per-product override</td></tr>
+      <tr><td>Overhead Cost</td><td>Global default or per-product override</td></tr>
+    </table>
+
+    <h2>Global Settings vs. Per-Product Overrides</h2>
+    <p>Set a <strong>global labor rate</strong> and <strong>global overhead rate</strong> in Cost Lab settings — these apply to all products by default. Override individual products when their true cost differs (e.g., a barista-intensive specialty drink vs. a simple retail item).</p>
+
+    <h2>Margin Dashboard</h2>
+    <p>The Cost Lab overview screen shows every product with its margin percentage, sorted by profitability. Items below your target margin are highlighted so you can act:</p>
+    <ul class="doc-list">
+      <li>Renegotiate ingredient prices with your supplier</li>
+      <li>Adjust selling price to hit margin targets</li>
+      <li>Reformulate the recipe to reduce cost</li>
+    </ul>
+
+    <h2>Daily Snapshots</h2>
+    <p>Cost Lab automatically snapshots product costs daily. This lets you track how ingredient price changes affect your margins over time — a built-in cost history without any manual work.</p>
+
+    <div class="callout">
+      <div class="callout-label">Best Practice</div>
+      <p>Review Cost Lab monthly. Even small ingredient price changes can silently erode your margins on high-volume items. Cost Lab makes these invisible shifts visible.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     12 — RECIPE CATALOG
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">12</span>
+    <h1>Recipe Catalog</h1>
+  </div>
+  <div class="section-body">
+    <div class="tag gold">Built-in Tool</div>
+    <p>The Recipe Catalog is a standalone reference library for brewing recipes and kitchen formulas. It is separate from the product recipe system — it's a knowledge base for your team, not a cost calculation tool.</p>
+
+    <h2>What the Catalog Is For</h2>
+    <ul class="doc-list">
+      <li>Store standardized brew recipes (espresso, pour-over, cold brew, etc.)</li>
+      <li>Document kitchen recipes for in-house production</li>
+      <li>Keep tasting notes and quality benchmarks</li>
+      <li>Train new staff with a reference they can look up during service</li>
+    </ul>
+
+    <h2>Recipe Categories</h2>
+    <p>Recipes are organized by category:</p>
+    <div style="margin: 2mm 0 4mm 0;">
+      <span class="tag">Drink</span>
+      <span class="tag">Dough</span>
+      <span class="tag">Filling</span>
+      <span class="tag">Sauce</span>
+      <span class="tag">Coating</span>
+      <span class="tag">Cookies</span>
+      <span class="tag">Other</span>
+    </div>
+
+    <h2>Recipe Fields</h2>
+    <table>
+      <tr><th>Field</th><th>Description</th></tr>
+      <tr><td>Name</td><td>Recipe identifier</td></tr>
+      <tr><td>Category</td><td>Type of recipe</td></tr>
+      <tr><td>Yield</td><td>How many units / portions this recipe produces</td></tr>
+      <tr><td>Ingredients</td><td>List of ingredients with quantities and units</td></tr>
+      <tr><td>Steps</td><td>Optional step-by-step instructions</td></tr>
+      <tr><td>Notes</td><td>Tasting notes, quality benchmarks, tips</td></tr>
+    </table>
+
+    <h2>Adding a Recipe</h2>
+    <ol class="steps">
+      <li>Go to <strong>Recipe Catalog</strong> in the sidebar.</li>
+      <li>Click <strong>New Recipe</strong>.</li>
+      <li>Fill in the details and add ingredient rows.</li>
+      <li>Add notes or preparation steps.</li>
+      <li>Save — the recipe is immediately available to all users.</li>
+    </ol>
+
+    <div class="note">
+      <div class="note-label">Data Safety</div>
+      <p>Recipe Catalog entries are included in your system backup and survive a data reset — your recipe library is never lost.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     13 — SHOPPING LIST
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">13</span>
+    <h1>Shopping List</h1>
+  </div>
+  <div class="section-body">
+    <div class="tag gold">Built-in Tool</div>
+    <p>The Shopping List is a floating widget that generates purchase lists from your current stock and production needs — so you know exactly what to buy before every supplier run.</p>
+
+    <h2>Three List Modes</h2>
+    <table>
+      <tr><th>Mode</th><th>What it does</th></tr>
+      <tr><td><strong>Low Stock</strong></td><td>Auto-generates a list of all ingredients below their minimum threshold. Quantities are calculated to bring stock back to target levels.</td></tr>
+      <tr><td><strong>Production Jobs</strong></td><td>Calculates ingredients needed for upcoming production runs, accounting for current stock. Shows only what still needs to be purchased.</td></tr>
+      <tr><td><strong>Free List</strong></td><td>A manual list — add any items you need by typing them in. Useful for one-off purchases.</td></tr>
+    </table>
+
+    <h2>Using the Widget</h2>
+    <ol class="steps">
+      <li>Click the <strong>Shopping List</strong> icon in the top bar (visible from any screen).</li>
+      <li>Choose a mode: Low Stock, Production, or Free.</li>
+      <li>Review the generated list. Edit quantities if needed.</li>
+      <li>Save the list — Caflat.CORE keeps your last 5 saved lists.</li>
+      <li>Share or print the list for your purchasing run.</li>
+    </ol>
+
+    <div class="callout">
+      <div class="callout-label">Tip</div>
+      <p>Run a <strong>Low Stock</strong> list every morning before service starts, and a <strong>Production Jobs</strong> list before each baking or brewing session.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     14 — FINISHED GOODS
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">14</span>
+    <h1>Finished Goods</h1>
+  </div>
+  <div class="section-body">
+    <p>Finished Goods tracks inventory for items produced in-house — pastries, bottled drinks, pre-made goods — that are made in batches and stored before selling.</p>
+
+    <h2>How Finished Goods Flows</h2>
+    <p>The typical flow:</p>
+    <ol class="steps">
+      <li>A <strong>Production Run</strong> (Production Mode) produces a batch of goods.</li>
+      <li>On completion, the produced quantity is added to <strong>Finished Goods</strong> inventory automatically.</li>
+      <li>When sold through the POS, finished goods stock decreases.</li>
+      <li>When stock falls below the threshold, the item appears in the Shopping List (via Production Jobs mode).</li>
+    </ol>
+
+    <h2>Manual Adjustment</h2>
+    <p>Add or correct finished goods stock manually if needed — for instance, when recording goods produced before Caflat.CORE was set up, or when reconciling after a stock count.</p>
+
+    <h2>Expiry &amp; Waste</h2>
+    <p>Log waste or expired goods as a negative adjustment with reason "Waste". This is tracked separately in reports so you can monitor spoilage rates over time.</p>
+
+    <table>
+      <tr><th>Finished Goods vs. Ingredients</th><th></th></tr>
+      <tr><td><strong>Ingredients</strong></td><td>Raw materials — decrease when recipes are used</td></tr>
+      <tr><td><strong>Finished Goods</strong></td><td>Produced items — decrease when sold at POS</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     15 — MANAGEMENT
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">15</span>
+    <h1>Management</h1>
+  </div>
+  <div class="section-body">
+    <h2>Void a Transaction</h2>
+    <p>Voiding cancels a completed sale and reverses its effect on revenue and inventory.</p>
+    <ol class="steps">
+      <li>Go to <strong>Sales</strong> and find the transaction.</li>
+      <li>Open the transaction detail.</li>
+      <li>Click <strong>Void</strong> and enter the reason.</li>
+      <li>Confirm — the transaction is marked void and removed from revenue totals.</li>
+    </ol>
+
+    <h2>Refunds</h2>
+    <p>Issue a refund for a completed transaction:</p>
+    <ol class="steps">
+      <li>Open the transaction in Sales history.</li>
+      <li>Click <strong>Refund</strong>.</li>
+      <li>Enter the refund amount (full or partial) and payment method for the return.</li>
+      <li>Confirm — the refund is logged and deducted from revenue.</li>
+    </ol>
+
+    <h2>Settings</h2>
+    <p>Access <strong>Settings</strong> from the sidebar to configure:</p>
+    <ul class="doc-list">
+      <li><strong>General</strong> — Café name, currency, receipt details</li>
+      <li><strong>Users</strong> — Add staff accounts, reset passwords, change roles</li>
+      <li><strong>Modules</strong> — Enable/disable optional modes (Supplier, Events, Production)</li>
+      <li><strong>Receipt</strong> — Customize what appears on printed and digital receipts</li>
+      <li><strong>Cost Lab</strong> — Set global labor and overhead rates</li>
+    </ul>
+
+    <h2>Security</h2>
+    <p>Caflat.CORE uses SHA-256 hashed passwords. Staff accounts have restricted access — they cannot view reports, settings, or management screens. The admin account should use a strong, unique password.</p>
+
+    <h2>Data Management</h2>
+    <p>All data is stored in your browser's local storage. Protect it:</p>
+    <table>
+      <tr><th>Action</th><th>How</th></tr>
+      <tr><td>Export Backup</td><td>Settings → Data → Export Backup (JSON file, downloadable)</td></tr>
+      <tr><td>Import Backup</td><td>Settings → Data → Import Backup (restore from JSON file)</td></tr>
+      <tr><td>Reset Data</td><td>Settings → Data → Reset (irreversible — creates a blank system)</td></tr>
+    </table>
+
+    <div class="callout">
+      <div class="callout-label">Weekly Reminder</div>
+      <p>Export a backup at least once per week. Store the file in cloud storage (Google Drive, iCloud, etc.) so you can restore your data if the device is lost or the browser cache is cleared.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     16 — PLANS
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">16</span>
+    <h1>Plans</h1>
+  </div>
+  <div class="section-body">
+    <p>Caflat.CORE offers four plans. For current pricing, visit <code>caflatcore.com</code>.</p>
+
+    <div class="plans-grid">
+
+      <div class="plan-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-desc">Core tools to get started. No credit card, no commitment.</div>
+        <ul class="plan-features">
+          <li>Basic POS &amp; Inventory</li>
+          <li>Up to 50 products</li>
+          <li>Single device</li>
+          <li>Daily summary report</li>
+          <li>Community support</li>
+        </ul>
+      </div>
+
+      <div class="plan-card">
+        <div class="plan-name">Pro</div>
+        <div class="plan-desc">Complete operational backbone for independent cafés.</div>
+        <ul class="plan-features">
+          <li>All 12+ modules</li>
+          <li>Unlimited products</li>
+          <li>Unlimited transactions</li>
+          <li>All 4 optional modes</li>
+          <li>Export reports (PDF/CSV)</li>
+          <li>Single location</li>
+        </ul>
+      </div>
+
+      <div class="plan-card featured">
+        <div class="plan-badge">Most Popular</div>
+        <div class="plan-name">Cloud</div>
+        <div class="plan-desc">Multi-branch operations with cloud sync and remote visibility.</div>
+        <ul class="plan-features">
+          <li>Everything in Pro</li>
+          <li>Cloud sync across branches</li>
+          <li>Remote dashboard access</li>
+          <li>Multi-branch reporting</li>
+          <li>Automatic backups</li>
+          <li>Priority support</li>
+        </ul>
+      </div>
+
+      <div class="plan-card">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-desc">Tailored for roastery groups and multi-location brands.</div>
+        <ul class="plan-features">
+          <li>Everything in Cloud</li>
+          <li>Custom module setup</li>
+          <li>Dedicated onboarding</li>
+          <li>SLA-backed uptime</li>
+          <li>White-label options</li>
+          <li>Direct engineering access</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="note" style="margin-top: 5mm;">
+      <div class="note-label">Upgrading</div>
+      <p>To upgrade your plan, visit <code>caflatcore.com</code> or email <code>caflatcore@gmail.com</code>. Your existing data is fully preserved on plan upgrade.</p>
+    </div>
+
+    <h2>Feature Availability by Plan</h2>
+    <table>
+      <tr><th>Feature</th><th>Free</th><th>Pro</th><th>Cloud</th><th>Enterprise</th></tr>
+      <tr><td>POS &amp; Inventory</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Products (limit)</td><td>50</td><td>∞</td><td>∞</td><td>∞</td></tr>
+      <tr><td>All modules &amp; tools</td><td>—</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Report exports</td><td>—</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Cloud sync</td><td>—</td><td>—</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Multi-branch</td><td>—</td><td>—</td><td>✓</td><td>✓</td></tr>
+      <tr><td>White-label</td><td>—</td><td>—</td><td>—</td><td>✓</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     17 — FAQ & REFERENCE
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">17</span>
+    <h1>FAQ &amp; Reference</h1>
+  </div>
+  <div class="section-body">
+    <h2>Frequently Asked Questions</h2>
+
+    <h3>Does it work offline?</h3>
+    <p>Yes — 100% offline-first. All daily operations (POS, Inventory, Production, etc.) run without an internet connection. Cloud sync (Cloud plan) runs in the background when connectivity is restored.</p>
+
+    <h3>What devices does it run on?</h3>
+    <p>Any modern browser on a tablet, laptop, or desktop. Caflat.CORE is optimized for counter use on a dedicated iPad or tablet, but works on any device with a browser. It can be added to your home screen as a PWA for an app-like experience.</p>
+
+    <h3>Do I need to install anything?</h3>
+    <p>No. Open <code>caflatcore.com</code> in a browser and you're running. No app store, no download, no updates to manage.</p>
+
+    <h3>What happens to my data if I cancel?</h3>
+    <p>Your data is yours. Export everything (Settings → Data → Export Backup) before leaving. We do not hold your data hostage.</p>
+
+    <h3>Can I use multiple devices?</h3>
+    <p>On the Free and Pro plans, data is device-local. The Cloud plan syncs data across all your devices and branches automatically.</p>
+
+    <h3>Can I migrate from another POS?</h3>
+    <p>Yes. We support CSV import for products and inventory. Our team can assist with migration from most existing POS systems during onboarding.</p>
+
+    <h3>Is there a free trial for paid plans?</h3>
+    <p>The Free plan is permanently free — use it as long as you need. Request early access at <code>caflatcore.com</code> to trial Pro or Cloud features.</p>
+
+    <h2>Receipt Information</h2>
+    <p>Receipts include:</p>
+    <ul class="doc-list">
+      <li>Café name and contact details (from Settings → General)</li>
+      <li>Receipt/transaction number (sequential, not resettable)</li>
+      <li>Date and time of transaction</li>
+      <li>Itemized list with quantities and prices</li>
+      <li>Discount amount (if applied)</li>
+      <li>Total and payment method</li>
+      <li>Change given (cash transactions)</li>
+    </ul>
+
+    <h2>Contact &amp; Support</h2>
+    <table>
+      <tr><th>Channel</th><th>Details</th></tr>
+      <tr><td>Website</td><td>caflatcore.com</td></tr>
+      <tr><td>Email</td><td>caflatcore@gmail.com</td></tr>
+      <tr><td>Support Level</td><td>Community (Free) · Email (Pro) · Priority (Cloud) · Direct (Enterprise)</td></tr>
+    </table>
+
+    <div style="margin-top: 10mm; padding-top: 5mm; border-top: 1px solid #efefef; text-align: center;">
+      <div style="font-size: 8pt; color: #bbb; letter-spacing: 0.06em;">Caflat.CORE User Manual — Version 3.0 — 2026</div>
+      <div style="font-size: 8pt; color: #c8a375; margin-top: 1.5mm; letter-spacing: 0.04em;">caflatcore.com</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
