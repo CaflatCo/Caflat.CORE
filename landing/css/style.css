@@ -1308,13 +1308,21 @@ nav.scrolled {
 .pricing-top { margin-bottom: 24px; }
 
 .pricing-tier {
-  font-size: 1.4rem;
-  font-weight: 900;
-  letter-spacing: -.02em;
-  text-transform: none;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
   color: var(--text-white);
   margin-bottom: 16px;
+}
+.pricing-card.featured .pricing-tier {
+  border-color: rgba(200,163,117,.45);
+  color: var(--coffee);
 }
 
 .pricing-desc { font-size: .82rem; color: var(--text-dim); line-height: 1.68; }
