@@ -1243,6 +1243,7 @@ nav.scrolled {
 .pricing-card:hover { background: var(--dark-card-2); }
 .pricing-card.featured {
   background: var(--dark-card-2);
+  padding-top: 60px;
 }
 .pricing-card.featured .pricing-badge {
   background: rgba(255,255,255,.09);
@@ -1743,6 +1744,7 @@ nav.nav-open ~ .nav-mobile-drawer {
 #pricing .section-heading {
   font-size: clamp(2.4rem, 4.5vw, 3.6rem);
 }
+#features .eyebrow,
 #extras .eyebrow,
 #pricing .eyebrow,
 #faq .eyebrow {
