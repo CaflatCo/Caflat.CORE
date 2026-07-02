@@ -7,7 +7,9 @@ function generateId() {
 }
 
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })
+  const code = (typeof getActiveCurrencyCode === 'function') ? getActiveCurrencyCode() : 'PHP';
+  const locale = (typeof CURRENCY_REGISTRY !== 'undefined' && CURRENCY_REGISTRY[code]?.locale) || 'en-PH';
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: code })
     .format(Number(amount || 0));
 }
 

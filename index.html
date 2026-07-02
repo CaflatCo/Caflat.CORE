@@ -612,7 +612,7 @@
               <input id="discountValue" type="number" min="0" step="0.01" placeholder="Discount" />
               <select id="discountType">
                 <option value="percent">%</option>
-                <option value="amount">₱ Amt</option>
+                <option value="amount" data-curr-opt="Amt">₱ Amt</option>
               </select>
             </div>
 
@@ -1201,6 +1201,22 @@
           <div class="form-group">
             <label>Brand Name</label>
             <input id="settingsBrandName" type="text" />
+          </div>
+
+          <!-- Currency -->
+          <div class="form-group">
+            <label>Currency</label>
+            <select id="settingsCurrency" class="form-input">
+              <option value="PHP">₱ PHP — Philippine Peso</option>
+              <option value="USD">$ USD — US Dollar</option>
+              <option value="EUR">€ EUR — Euro</option>
+              <option value="GBP">£ GBP — British Pound</option>
+              <option value="AUD">$ AUD — Australian Dollar</option>
+              <option value="CAD">$ CAD — Canadian Dollar</option>
+              <option value="SGD">$ SGD — Singapore Dollar</option>
+              <option value="JPY">¥ JPY — Japanese Yen</option>
+              <option value="INR">₹ INR — Indian Rupee</option>
+            </select>
           </div>
 
           <!-- Logo upload -->
@@ -2054,11 +2070,11 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Global Labor ₱/unit</label>
+            <label>Global Labor <span data-curr-sym>₱</span>/unit</label>
             <input id="clSettingsLabor" type="number" min="0" step="0.01" placeholder="0" />
           </div>
           <div class="form-group">
-            <label>Global Overhead ₱/unit</label>
+            <label>Global Overhead <span data-curr-sym>₱</span>/unit</label>
             <input id="clSettingsOverhead" type="number" min="0" step="0.01" placeholder="0" />
           </div>
         </div>
@@ -2086,7 +2102,7 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Price (₱)</label>
+            <label>Price (<span data-curr-sym>₱</span>)</label>
             <input id="productPrice" type="number" min="0" step="0.01" />
           </div>
           <div class="form-group">
@@ -2189,7 +2205,7 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Package Cost (₱)</label>
+            <label>Package Cost (<span data-curr-sym>₱</span>)</label>
             <input id="ingredientPackageCost" type="number" min="0" step="0.01" />
           </div>
           <div class="form-group">
@@ -2277,7 +2293,7 @@
               </select>
             </div>
             <div class="form-group" style="margin-bottom:0;">
-              <label>Amount (₱)</label>
+              <label>Amount (<span data-curr-sym>₱</span>)</label>
               <input id="splitPaymentAmount" type="number" min="0" step="0.01"
                 placeholder="0.00" oninput="updateSplitAmounts()" />
             </div>
@@ -2319,7 +2335,7 @@
         <!-- Cash tendered -->
         <div id="tenderedWrap">
           <div class="form-group">
-            <label>Amount Tendered (₱)</label>
+            <label>Amount Tendered (<span data-curr-sym>₱</span>)</label>
             <input id="checkoutTendered" type="number" min="0" step="0.01" />
           </div>
           <!-- Quick cash buttons -->
@@ -2393,7 +2409,7 @@
             style="width:80px;padding:7px 10px;border:1px solid var(--border);
               border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;">
             <option value="percent">%</option>
-            <option value="amount">₱ Amt</option>
+            <option value="amount" data-curr-opt="Amt">₱ Amt</option>
           </select>
         </div>
 
@@ -2773,7 +2789,7 @@
         </div>
         <div class="grid-2">
           <div class="form-group">
-            <label>Daily Rate (₱)</label>
+            <label>Daily Rate (<span data-curr-sym>₱</span>)</label>
             <input id="laborPersonRate" type="number" min="0" />
           </div>
           <div class="form-group">
@@ -2880,7 +2896,7 @@
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
           <div class="form-group">
-            <label>Price (₱)</label>
+            <label>Price (<span data-curr-sym>₱</span>)</label>
             <input id="packagePrice" type="number" min="0" />
           </div>
           <div class="form-group">
@@ -2948,7 +2964,7 @@
             <input id="leadPax" type="number" min="0" />
           </div>
           <div class="form-group">
-            <label>Budget (₱)</label>
+            <label>Budget (<span data-curr-sym>₱</span>)</label>
             <input id="leadBudget" type="number" min="0" />
           </div>
         </div>
@@ -3064,7 +3080,7 @@
           <input id="labTempIngUnit" type="text" placeholder="g, ml, pcs…" value="g" />
         </div>
         <div class="form-group">
-          <label>Cost per unit (₱)</label>
+          <label>Cost per unit (<span data-curr-sym>₱</span>)</label>
           <input id="labTempIngCost" type="number" min="0" step="0.001" placeholder="0.000" />
         </div>
         <div class="modal-actions">
@@ -3133,7 +3149,7 @@
         <div id="labConvertScenarios" style="margin-bottom:16px;"></div>
         <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:8px;">Or Custom Price</div>
         <div class="form-group">
-          <input id="labConvertCustomPrice" type="number" min="0" placeholder="Custom price (₱)" />
+          <input id="labConvertCustomPrice" type="number" min="0" placeholder="Custom price" />
         </div>
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="labConvertModal">Cancel</button>
@@ -3396,39 +3412,40 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-  <script src="./js/utils.js"></script>
+  <script src="./js/utils.js?v=20260702a"></script>
+  <script src="./js/currency.js?v=20260702a"></script>
   <script src="./js/state.js"></script>
   <script src="./js/storage.js?v=20260628j"></script>
   <script src="./js/auth.js?v=20260628i"></script>
   <script src="./js/analytics.js"></script>
-  <script src="./js/dashboard.js"></script>
-  <script src="./js/products.js"></script>
+  <script src="./js/dashboard.js?v=20260702a"></script>
+  <script src="./js/products.js?v=20260702a"></script>
   <script src="./js/ingredients.js"></script>
   <script src="./js/inventory.js"></script>
   <script src="./js/finishedgoods.js"></script>
   <script src="./js/lib/qrcode.min.js"></script>
-  <script src="./js/sales.js?v=20260628g"></script>
-  <script src="./js/reports.js"></script>
-  <script src="./js/settings.js?v=20260629c"></script>
-  <script src="./js/csvimport.js"></script>
+  <script src="./js/sales.js?v=20260702a"></script>
+  <script src="./js/reports.js?v=20260702a"></script>
+  <script src="./js/settings.js?v=20260702a"></script>
+  <script src="./js/csvimport.js?v=20260702a"></script>
   <script src="./js/uiActions.js"></script>
   <script src="./js/integrity.js"></script>
   <script src="./js/refund.js"></script>
   <script src="./js/void.js"></script>
-  <script src="./js/supply.js"></script>
+  <script src="./js/supply.js?v=20260702a"></script>
   <script src="./js/endofday.js"></script>
-  <script src="./js/production.js"></script>
+  <script src="./js/production.js?v=20260702a"></script>
   <script src="./js/coffeecart.js"></script>
-  <script src="./js/origin.js"></script>
-  <script src="./js/treasury.js?v=20260702c"></script>
-  <script src="./js/productlab.js"></script>
+  <script src="./js/origin.js?v=20260702a"></script>
+  <script src="./js/treasury.js?v=20260702d"></script>
+  <script src="./js/productlab.js?v=20260702a"></script>
   <script src="./js/recipecatalog.js"></script>
-  <script src="./js/costlab.js"></script>
-  <script src="./js/shoppinglist.js?v=20260629a"></script>
+  <script src="./js/costlab.js?v=20260702a"></script>
+  <script src="./js/shoppinglist.js?v=20260702a"></script>
   <script src="./js/license.js?v=20260628e"></script>
   <script src="./js/sync.js?v=20260628d"></script>
   <script src="./js/navigation.js?v=20260628d"></script>
-  <script src="./js/app.js?v=20260628d"></script>
+  <script src="./js/app.js?v=20260702a"></script>
 
   <!-- ══ SHOPPING LIST FAB ══ -->
   <button id="shoppingWidgetFab" onclick="toggleShoppingWidget();"
@@ -3532,7 +3549,7 @@
             <input id="swCustomUnit" type="text" placeholder="Unit (e.g. kg)"
               style="width:100px;padding:10px 8px;border:1.5px solid var(--border);
                 border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
-            <input id="swCustomCost" type="number" min="0" placeholder="₱ Cost"
+            <input id="swCustomCost" type="number" min="0" placeholder="Cost"
               style="flex:1;padding:10px 10px;border:1.5px solid var(--border);
                 border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);" />
             <button type="button" onclick="addCustomListItem();" class="btn"

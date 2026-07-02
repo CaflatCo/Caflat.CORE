@@ -124,7 +124,7 @@ function renderDashboardChart() {
           grid: { color: ct.grid },
           ticks: {
             font: { size: 11 }, color: ct.tick,
-            callback: v => '₱' + (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v)
+            callback: v => getCurrencySymbol() + (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v)
           }
         }
       }
@@ -501,7 +501,7 @@ function _renderAnalyticsChart(trend) {
           grid: { color: ct.grid },
           ticks: {
             font: { size: 10 }, color: ct.tick,
-            callback: v => v >= 1000 ? '₱' + (v/1000).toFixed(1) + 'k' : '₱' + v
+            callback: v => v >= 1000 ? getCurrencySymbol() + (v/1000).toFixed(1) + 'k' : getCurrencySymbol() + v
           }
         }
       }

@@ -763,7 +763,7 @@ function addPackagingRow(pkg = null) {
       value="${escapeHtml(pkg?.name || '')}"
       style="flex:2;padding:7px 10px;border:1px solid var(--border);
         border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />
-    <input type="number" class="packaging-cost" placeholder="Cost (₱)"
+    <input type="number" class="packaging-cost" placeholder="Cost"
       value="${pkg?.cost || ''}" min="0" step="0.01"
       style="width:110px;padding:7px 10px;border:1px solid var(--border);
         border-radius:var(--radius-md);font-family:var(--font-main);font-size:12px;" />

@@ -25,7 +25,7 @@ const ORIGIN_ROAST_LEVELS    = ['Light', 'Light-Medium', 'Medium', 'Medium-Dark'
 /* ══════════════════════════════════════════════════════
    HELPERS
 ══════════════════════════════════════════════════════ */
-function _originFmt(n) { return typeof formatCurrency === 'function' ? formatCurrency(n) : '₱' + Number(n||0).toFixed(2); }
+function _originFmt(n) { return typeof formatCurrency === 'function' ? formatCurrency(n) : getCurrencySymbol() + Number(n||0).toFixed(2); }
 function _originDate(d) { return d ? new Date(d).toLocaleDateString('en-PH', {year:'numeric',month:'short',day:'numeric'}) : '—'; }
 function _originPct(val) { return isFinite(val) ? Number(val).toFixed(1) + '%' : '—'; }
 
@@ -369,7 +369,7 @@ function openOriginLotModal(id, scanMode) {
           </select>
         </div>
         <div class="form-group">
-          <label>Purchase Cost (₱ total)</label>
+          <label>Purchase Cost (${getCurrencySymbol()} total)</label>
           <input id="olmPurchaseCost" type="number" min="0" step="0.01" placeholder="0.00" value="${lot?.purchaseCost||''}" />
         </div>
         <div class="form-group">
@@ -929,7 +929,7 @@ function openOriginBatchModal(id) {
 
         <!-- Cost breakdown -->
         <div class="form-group" style="grid-column:1/-1;">
-          <label>Additional Costs (₱)</label>
+          <label>Additional Costs (${getCurrencySymbol()})</label>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
             ${[['processing','Processing'],['packaging','Packaging'],['labor','Labor'],['delivery','Delivery']].map(([k,lbl])=>`
               <div>
@@ -1465,7 +1465,7 @@ function openOriginOrderModal(id) {
             onclick="_addOrderItemRow(null)">+ Add Item</button>
           <div style="display:flex;justify-content:flex-end;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
             <span style="font-size:12px;font-weight:700;color:var(--gray-500);margin-right:8px;">Total:</span>
-            <span id="oorTotalDisplay" style="font-size:14px;font-weight:900;">₱0.00</span>
+            <span id="oorTotalDisplay" style="font-size:14px;font-weight:900;">${getCurrencySymbol()}0.00</span>
           </div>
         </div>
 
@@ -1505,7 +1505,7 @@ function _addOrderItemRow(existing) {
     <input type="number" min="0" step="0.01" placeholder="Qty" value="${existing?.qty||''}"
       style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font-main);"
       oninput="_recalcOrderTotal()" />
-    <input type="number" min="0" step="0.01" placeholder="₱/unit" value="${existing?.pricePerUnit||''}"
+    <input type="number" min="0" step="0.01" placeholder="Price/unit" value="${existing?.pricePerUnit||''}"
       style="padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font-main);"
       oninput="_recalcOrderTotal()" />
     <button type="button" onclick="document.getElementById('${rowId}').remove();_recalcOrderTotal();"

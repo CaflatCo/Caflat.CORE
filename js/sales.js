@@ -76,7 +76,9 @@
   /* ── UTF-8 encoding ── */
   function toBytes(text) {
     /* Sanitize non-printable / problematic chars, keep ASCII clean */
-    var clean = text.replace(/₱/g, 'PHP').replace(/[^\x09\x0A\x0D\x20-\x7E]/g, '?');
+    var sym = (typeof getCurrencySymbol === 'function') ? getCurrencySymbol() : '₱';
+    var code = (typeof getActiveCurrencyCode === 'function') ? getActiveCurrencyCode() : 'PHP';
+    var clean = (sym ? text.split(sym).join(code) : text).replace(/[^\x09\x0A\x0D\x20-\x7E]/g, '?');
     var b = [];
     for (var i = 0; i < clean.length; i++) b.push(clean.charCodeAt(i) & 0xFF);
     return b;

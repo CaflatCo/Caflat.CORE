@@ -196,7 +196,7 @@ function _csvShowMappingStep() {
   const autoMap = _csvAutoMatchAll(fields, headers);
 
   const hint = _csvType === 'products'
-    ? 'Missing price → imported at ₱0, flagged for review. Missing category → "General".'
+    ? `Missing price → imported at ${getCurrencySymbol()}0, flagged for review. Missing category → "General".`
     : 'Missing cost → imported at 0. Missing unit → "pcs".';
 
   document.getElementById('csvMappingHint').textContent = hint;

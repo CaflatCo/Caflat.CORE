@@ -185,6 +185,7 @@ function renderCategoryOptions() {
 /* ── Settings ── */
 function saveSettings() {
   const brandName     = sanitizeText(getElementValue('settingsBrandName'));
+  const currency      = CURRENCY_REGISTRY[getElementValue('settingsCurrency')] ? getElementValue('settingsCurrency') : 'PHP';
   const taxRate       = safeNumber(getElementValue('settingsTaxRate'));
   const receiptFooter = sanitizeText(getElementValue('settingsReceiptFooter'));
   const receiptBaseUrl = String(getElementValue('settingsReceiptUrl') || '').trim();
@@ -207,6 +208,7 @@ function saveSettings() {
   updateState('settings', current => ({
     ...current,
     brandName: brandName || current.brandName,
+    currency,
     taxRate,
     receiptFooter,
     receiptBaseUrl,
@@ -233,6 +235,8 @@ function saveSettings() {
   if (typeof applyShoppingListToggle    === 'function') applyShoppingListToggle();
   if (typeof applyOriginModeToggle      === 'function') applyOriginModeToggle();
   if (typeof applyTreasuryModeToggle    === 'function') applyTreasuryModeToggle();
+  if (typeof applyCurrencyToUI          === 'function') applyCurrencyToUI();
+  if (typeof updateCartSummary          === 'function') updateCartSummary();
   showNotification('Settings saved', 'success');
 }
 
@@ -241,6 +245,8 @@ function renderBranding() {
   document.querySelectorAll('[data-brand-name]').forEach(el => { el.textContent = brandName; });
   const brandInput = document.getElementById('settingsBrandName');
   if (brandInput) brandInput.value = brandName;
+  const currencySelect = document.getElementById('settingsCurrency');
+  if (currencySelect) currencySelect.value = (typeof getActiveCurrencyCode === 'function') ? getActiveCurrencyCode() : 'PHP';
   const taxInput = document.getElementById('settingsTaxRate');
   if (taxInput) taxInput.value = APP_STATE.settings?.taxRate ?? 0;
   const footerInput = document.getElementById('settingsReceiptFooter');
