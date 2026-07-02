@@ -1045,6 +1045,8 @@ nav.scrolled {
 .mode-how[open] .mode-how-toggle::after { transform: rotate(45deg); }
 .mode-how[open] .mode-how-dot { animation: none; opacity: 1; }
 
+.mode-how-body { overflow: hidden; }
+
 .mode-how-steps {
   list-style: none;
   position: relative;

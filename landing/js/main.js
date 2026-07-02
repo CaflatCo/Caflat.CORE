@@ -192,21 +192,50 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
   });
 });
 
-/* ─── "How it works" animated close ────────────────────────── */
+/* ─── "How it works" smooth open/close ─────────────────────── */
+const HOW_EASE = 'cubic-bezier(.22,.61,.36,1)';
 document.querySelectorAll('.mode-how').forEach(details => {
   const toggle = details.querySelector('.mode-how-toggle');
-  if (!toggle) return;
+  const body   = details.querySelector('.mode-how-body');
+  if (!toggle || !body) return;
+
+  let animating = false;
+
   toggle.addEventListener('click', e => {
-    if (!details.open || details.classList.contains('closing')) return;
     e.preventDefault();
+    if (animating) return;
+
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      details.open = false;
+      details.open = !details.open;
       return;
     }
-    details.classList.add('closing');
-    setTimeout(() => {
-      details.open = false;
-      details.classList.remove('closing');
-    }, 440);
+
+    if (!details.open) {
+      // OPEN — reveal content, then grow the body from 0 to its natural height
+      // (offsetHeight = layout height; ignores the steps' translateY overflow)
+      details.open = true;
+      const h = body.offsetHeight;
+      animating = true;
+      const anim = body.animate(
+        [{ height: '0px' }, { height: h + 'px' }],
+        { duration: 460, easing: HOW_EASE }
+      );
+      anim.onfinish = () => { animating = false; };
+    } else {
+      // CLOSE — steps cascade out (CSS .closing), body shrinks to 0, then collapse
+      details.classList.add('closing');
+      const h = body.offsetHeight;
+      animating = true;
+      const anim = body.animate(
+        [{ height: h + 'px' }, { height: '0px' }],
+        { duration: 420, easing: HOW_EASE, delay: 90, fill: 'forwards' }
+      );
+      anim.onfinish = () => {
+        details.open = false;
+        details.classList.remove('closing');
+        anim.cancel(); // release the forwards fill once collapsed
+        animating = false;
+      };
+    }
   });
 });
