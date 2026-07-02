@@ -502,6 +502,15 @@
                 </svg>
                 Origin
               </button>
+              <button data-view="treasury" id="navTreasury" style="display:none;">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1.5" y="4" width="13" height="9" rx="1.5"/>
+                  <circle cx="8" cy="8.5" r="2.25"/>
+                  <line x1="4" y1="4" x2="4" y2="1.75"/>
+                  <line x1="12" y1="4" x2="12" y2="1.75"/>
+                </svg>
+                Treasury
+              </button>
             </div>
           </div>
 
@@ -1326,6 +1335,16 @@
           </div>
           <div class="settings-toggle-row">
             <div>
+              <div class="settings-toggle-label">Treasury</div>
+              <div class="settings-toggle-sub">Track how much money your business has in cash and in the bank. Fully manual, disconnected from inventory and sales.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingsTreasuryMode" />
+              <div class="toggle-track"></div><div class="toggle-knob"></div>
+            </label>
+          </div>
+          <div class="settings-toggle-row">
+            <div>
               <div class="settings-toggle-label">Recipe Catalog</div>
               <div class="settings-toggle-sub">Standalone reference library for recipes — ingredients, steps, and notes. Not connected to costing or inventory.</div>
             </div>
@@ -1866,6 +1885,18 @@
           <!-- Sub-content container -->
           <div id="originSubContent" style="flex:1;overflow-y:auto;padding:24px;">
             <!-- Rendered by renderOriginView() -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ TREASURY VIEW ═══ -->
+      <section class="view" id="view-treasury">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Treasury</h2>
+          </div>
+          <div id="treasuryContent">
+            <!-- Rendered by renderTreasuryView() -->
           </div>
         </div>
       </section>
@@ -3389,6 +3420,7 @@
   <script src="./js/production.js"></script>
   <script src="./js/coffeecart.js"></script>
   <script src="./js/origin.js"></script>
+  <script src="./js/treasury.js"></script>
   <script src="./js/productlab.js"></script>
   <script src="./js/recipecatalog.js"></script>
   <script src="./js/costlab.js"></script>

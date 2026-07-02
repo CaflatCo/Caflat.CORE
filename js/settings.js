@@ -202,6 +202,7 @@ function saveSettings() {
   const productLabModeEnabled  = document.getElementById('settingsProductLabMode')?.checked  === true;
   const recipeCatalogEnabled   = document.getElementById('settingsRecipeCatalogMode')?.checked === true;
   const shoppingListEnabled    = document.getElementById('settingsShoppingList')?.checked === true;
+  const treasuryModeEnabled    = document.getElementById('settingsTreasuryMode')?.checked  === true;
 
   updateState('settings', current => ({
     ...current,
@@ -216,6 +217,7 @@ function saveSettings() {
     recipeCatalogEnabled,
     shoppingListEnabled,
     originModeEnabled,
+    treasuryModeEnabled,
     ...(voidPin ? { voidPin } : {})
   }));
   persistState();
@@ -230,6 +232,7 @@ function saveSettings() {
   if (typeof applyRecipeCatalogToggle   === 'function') applyRecipeCatalogToggle();
   if (typeof applyShoppingListToggle    === 'function') applyShoppingListToggle();
   if (typeof applyOriginModeToggle      === 'function') applyOriginModeToggle();
+  if (typeof applyTreasuryModeToggle    === 'function') applyTreasuryModeToggle();
   showNotification('Settings saved', 'success');
 }
 
@@ -271,6 +274,9 @@ function renderBranding() {
 
   const originToggle = document.getElementById('settingsOriginMode');
   if (originToggle) originToggle.checked = APP_STATE.settings?.originModeEnabled === true;
+
+  const treasuryToggle = document.getElementById('settingsTreasuryMode');
+  if (treasuryToggle) treasuryToggle.checked = APP_STATE.settings?.treasuryModeEnabled === true;
 
   const shoppingListToggle = document.getElementById('settingsShoppingList');
   if (shoppingListToggle) shoppingListToggle.checked = APP_STATE.settings?.shoppingListEnabled === true;

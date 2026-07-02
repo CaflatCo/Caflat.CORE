@@ -62,7 +62,9 @@ function persistState() {
       originOrderCounter:       APP_STATE.originOrderCounter,
       costLabSettings:          APP_STATE.costLabSettings,
       costLabOverrides:         APP_STATE.costLabOverrides,
-      costHistory:              APP_STATE.costHistory
+      costHistory:              APP_STATE.costHistory,
+      treasuryAccounts:         APP_STATE.treasuryAccounts,
+      treasuryTransactions:     APP_STATE.treasuryTransactions
     }));
     if (typeof _checkStorageWarning === 'function') _checkStorageWarning();
     // Notify sync engine
@@ -94,7 +96,8 @@ function restorePersistedState() {
     paymentMethods: [],
     paymentQRImages: {},
     receiptBaseUrl: "",
-    originModeEnabled: false
+    originModeEnabled: false,
+    treasuryModeEnabled: false
   }, persisted.settings || {});
 
   APP_STATE.receiptCounter     = Number(persisted.receiptCounter || 0);
@@ -138,6 +141,8 @@ function restorePersistedState() {
   APP_STATE.originOrders             = Array.isArray(persisted.originOrders)             ? persisted.originOrders             : [];
   APP_STATE.originClients            = Array.isArray(persisted.originClients)            ? persisted.originClients            : [];
   APP_STATE.originOrderCounter       = Number(persisted.originOrderCounter || 0);
+  APP_STATE.treasuryAccounts         = Array.isArray(persisted.treasuryAccounts)         ? persisted.treasuryAccounts         : [];
+  APP_STATE.treasuryTransactions     = Array.isArray(persisted.treasuryTransactions)     ? persisted.treasuryTransactions     : [];
   APP_STATE.costLabSettings  = Object.assign(
     { targetMargin: 60, laborCostPerUnit: 0, overheadCostPerUnit: 0 },
     persisted.costLabSettings || {}
@@ -183,7 +188,9 @@ function exportAllData() {
     originProcessingProfiles: APP_STATE.originProcessingProfiles,
     originOrders:             APP_STATE.originOrders,
     originClients:            APP_STATE.originClients,
-    originOrderCounter:       APP_STATE.originOrderCounter
+    originOrderCounter:       APP_STATE.originOrderCounter,
+    treasuryAccounts:         APP_STATE.treasuryAccounts,
+    treasuryTransactions:     APP_STATE.treasuryTransactions
   };
   downloadTextFile(`caflat-backup-${Date.now()}.json`, JSON.stringify(data, null, 2));
   showNotification('Backup exported', 'success');
@@ -225,7 +232,8 @@ function importAllData(file) {
         paymentMethods: [],
         paymentQRImages: {},
     receiptBaseUrl: "",
-    originModeEnabled: false
+    originModeEnabled: false,
+    treasuryModeEnabled: false
       }, data.settings || {});
       APP_STATE.receiptCounter     = Number(data.receiptCounter || 0);
       APP_STATE.products           = Array.isArray(data.products)           ? data.products           : [];
@@ -266,6 +274,8 @@ function importAllData(file) {
       APP_STATE.originOrders             = Array.isArray(data.originOrders)             ? data.originOrders             : [];
       APP_STATE.originClients            = Array.isArray(data.originClients)            ? data.originClients            : [];
       APP_STATE.originOrderCounter       = Number(data.originOrderCounter || 0);
+      APP_STATE.treasuryAccounts         = Array.isArray(data.treasuryAccounts)         ? data.treasuryAccounts         : [];
+      APP_STATE.treasuryTransactions     = Array.isArray(data.treasuryTransactions)     ? data.treasuryTransactions     : [];
 
       persistState();
       if (typeof renderEverything === 'function') renderEverything();
@@ -321,7 +331,8 @@ function fullFactoryReset() {
     paymentMethods: [],
     paymentQRImages: {},
     receiptBaseUrl: "",
-    originModeEnabled: false
+    originModeEnabled: false,
+    treasuryModeEnabled: false
   };
   localStorage.removeItem(STORAGE_KEY);
   if (typeof renderEverything === 'function') renderEverything();
