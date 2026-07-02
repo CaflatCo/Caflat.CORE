@@ -116,19 +116,36 @@ export const ShowcaseEndCard: React.FC = () => {
               gap: 14,
             }}
           >
-            <div
-              style={{
-                fontFamily,
-                fontWeight: 700,
-                fontSize: 26,
-                color: theme.dark,
-                background: "#ffffff",
-                padding: "18px 42px",
-                borderRadius: 999,
-                letterSpacing: 0.3,
-              }}
-            >
-              Request Early Access
+            <div style={{ position: "relative" }}>
+              {/* pulsing gold ring behind the CTA */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: -6,
+                  borderRadius: 999,
+                  border: `2px solid ${theme.coffee}`,
+                  scale: 1 + ((frame % 46) / 46) * 0.12,
+                  opacity:
+                    frame > 70
+                      ? Math.max(0, 0.5 - ((frame % 46) / 46) * 0.5)
+                      : 0,
+                }}
+              />
+              <div
+                style={{
+                  position: "relative",
+                  fontFamily,
+                  fontWeight: 700,
+                  fontSize: 26,
+                  color: theme.dark,
+                  background: "#ffffff",
+                  padding: "18px 42px",
+                  borderRadius: 999,
+                  letterSpacing: 0.3,
+                }}
+              >
+                Request Early Access
+              </div>
             </div>
             <div
               style={{

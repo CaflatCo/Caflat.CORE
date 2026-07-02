@@ -1,168 +1,175 @@
 import React from "react";
-import { AbsoluteFill } from "remotion";
-import { TransitionSeries, linearTiming } from "@remotion/transitions";
+import { AbsoluteFill, interpolate, staticFile } from "remotion";
+import {
+  TransitionSeries,
+  linearTiming,
+  springTiming,
+} from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 import { slide } from "@remotion/transitions/slide";
 import { LightLeak } from "@remotion/light-leaks";
-import { ShowcaseHookScene } from "./scenes/ShowcaseHookScene";
-import { ModeBeat, ModeBeatProps } from "./scenes/ModeBeat";
-import { RapidFlashScene, RAPID_FLASH_DURATION } from "./scenes/RapidFlashScene";
+import { Audio } from "@remotion/media";
+import { ColdOpen } from "./scenes/ColdOpen";
+import { ModeVignette, ModeVignetteProps } from "./scenes/ModeVignette";
+import {
+  RapidFlashScene,
+  RAPID_FLASH_DURATION,
+} from "./scenes/RapidFlashScene";
 import { ShowcasePayoffScene } from "./scenes/ShowcasePayoffScene";
 import { ShowcaseEndCard } from "./scenes/ShowcaseEndCard";
 import { MODE_ICONS } from "./components/icons";
+import { EspressoCup } from "./components/illustrations/EspressoCup";
+import { SupplierHandoff } from "./components/illustrations/SupplierHandoff";
+import { KneadingHands } from "./components/illustrations/KneadingHands";
+import { CoffeeCartRide } from "./components/illustrations/CoffeeCartRide";
+import { BeanBagScan } from "./components/illustrations/BeanBagScan";
+import { CashierCounter } from "./components/illustrations/CashierCounter";
+import { PosScreen } from "./screens/PosScreen";
+import { SupplierScreen } from "./screens/SupplierScreen";
+import { ProductionScreen } from "./screens/ProductionScreen";
+import { EventsScreen } from "./screens/EventsScreen";
+import { OriginScreen } from "./screens/OriginScreen";
+import { TreasuryScreen } from "./screens/TreasuryScreen";
 import { theme } from "./theme";
 
-const HOOK_DUR = 110;
-const BEAT_DUR = 105;
-const FOUNDATION_DUR = 130;
-const PAYOFF_DUR = 110;
+const COLD_OPEN_DUR = 120;
+const PAYOFF_DUR = 100;
 const ENDCARD_DUR = 130;
 
-const T_FADE_LONG = 18;
-const T_SLIDE = 14;
-const LIGHT_LEAK_DUR = 34;
+const T_FADE = 18;
+const T_SLIDE = 22;
+const LIGHT_LEAK_DUR = 40;
 
-export const BEATS: (ModeBeatProps & { key: string })[] = [
+type VignetteDef = ModeVignetteProps & { key: string; duration: number };
+
+const VIGNETTES: VignetteDef[] = [
   {
-    key: "foundation",
-    index: "00",
-    badge: "The Foundation",
-    headline: ["One counter.", "Everything connected."],
-    eyebrow: "LIVE ON EVERY SALE",
+    key: "pos",
+    label: "Point of Sale",
     icon: MODE_ICONS.foundation,
-    rows: [
-      { label: "Order #142", value: "$18.50" },
-      { label: "Butter", value: "420g left" },
-      { label: "Today's Revenue", value: "$2,340", accent: true },
-    ],
-    chart: [
-      { label: "MON", value: 1200 },
-      { label: "TUE", value: 1600 },
-      { label: "WED", value: 1400 },
-      { label: "THU", value: 1900 },
-      { label: "FRI", value: 2340 },
-    ],
+    Illustration: EspressoCup,
+    Screen: PosScreen,
+    screenTitle: "Checkout",
+    illustrationFrames: 70,
+    duration: 200,
   },
   {
     key: "supplier",
-    index: "01",
-    badge: "Supplier Mode",
-    headline: ["Know what's owed.", "Nothing slips through."],
-    eyebrow: "OPEN ORDERS",
+    label: "Supplier Mode",
     icon: MODE_ICONS.supplier,
-    rows: [
-      { label: "Kalsada Roasters", value: "$245 due" },
-      { label: "Dayrit Farms", value: "$0 due" },
-      { label: "Next Delivery", value: "Jul 6", accent: true },
-    ],
+    Illustration: SupplierHandoff,
+    Screen: SupplierScreen,
+    screenTitle: "Suppliers",
+    illustrationFrames: 88,
+    duration: 190,
   },
   {
     key: "production",
-    index: "02",
-    badge: "Production Mode",
-    headline: ["Built to run.", "Tracked to the batch."],
-    eyebrow: "TODAY'S JOBS",
+    label: "Production Mode",
     icon: MODE_ICONS.production,
-    rows: [
-      { label: "Croissant Batch #12", value: "In Progress" },
-      { label: "Cost per Unit", value: "$0.86" },
-      { label: "Waste Logged", value: "2.1%", accent: true },
-    ],
+    Illustration: KneadingHands,
+    Screen: ProductionScreen,
+    screenTitle: "Production",
+    illustrationFrames: 84,
+    duration: 190,
   },
   {
     key: "events",
-    index: "03",
-    badge: "Events Mode",
-    headline: ["Take your coffee", "beyond the counter."],
-    eyebrow: "PIPELINE",
+    label: "Events Mode",
     icon: MODE_ICONS.events,
-    rows: [
-      { label: "Corporate — 200 pax", value: "Booked" },
-      { label: "Market Weekend", value: "Quoted" },
-      { label: "Profit per Event", value: "$540", accent: true },
-    ],
+    Illustration: CoffeeCartRide,
+    Screen: EventsScreen,
+    screenTitle: "Events",
+    illustrationFrames: 90,
+    duration: 200,
   },
   {
     key: "origin",
-    index: "04",
-    badge: "Origin Mode",
-    headline: ["Traceability that", "tells a story."],
-    eyebrow: "LOT TRACKING",
+    label: "Origin Mode",
     icon: MODE_ICONS.origin,
-    rows: [
-      { label: "Lot #A-114", value: "Benguet, PH" },
-      { label: "Process", value: "Washed" },
-      { label: "Status", value: "Roasted", accent: true },
-    ],
+    Illustration: BeanBagScan,
+    Screen: OriginScreen,
+    screenTitle: "Origin",
+    illustrationFrames: 92,
+    duration: 210,
   },
   {
     key: "treasury",
-    index: "05",
-    badge: "Treasury",
-    headline: ["Every transaction,", "accounted for."],
-    eyebrow: "TOTAL BALANCE",
+    label: "Treasury",
     icon: MODE_ICONS.treasury,
-    rows: [
-      { label: "Cash on Hand", value: "$1,240" },
-      { label: "Bank", value: "$5,920" },
-      { label: "Today's Net", value: "+$180", accent: true },
-    ],
+    Illustration: CashierCounter,
+    Screen: TreasuryScreen,
+    screenTitle: "Treasury",
+    illustrationFrames: 90,
+    duration: 200,
   },
 ];
 
 export const calculateShowcaseDuration = () => {
-  const beatDurations = [FOUNDATION_DUR, ...BEATS.slice(1).map(() => BEAT_DUR)];
-  const slideTransitions = beatDurations.length - 1; // between consecutive beats
   const sumScenes =
-    HOOK_DUR +
-    beatDurations.reduce((a, b) => a + b, 0) +
+    COLD_OPEN_DUR +
+    VIGNETTES.reduce((a, v) => a + v.duration, 0) +
     RAPID_FLASH_DURATION +
     PAYOFF_DUR +
     ENDCARD_DUR;
   const sumTransitions =
-    T_FADE_LONG + // hook -> beat 00
-    slideTransitions * T_SLIDE + // between beats
-    // last beat -> rapid flash is a hard cut with a LightLeak overlay,
-    // which does not shorten the timeline
-    T_FADE_LONG + // rapid flash -> payoff
-    T_FADE_LONG; // payoff -> end card
+    T_FADE + // cold open -> first vignette
+    (VIGNETTES.length - 1) * T_SLIDE + // between vignettes
+    // last vignette -> rapid flash: hard cut under a LightLeak overlay
+    T_FADE + // rapid flash -> payoff
+    T_FADE; // payoff -> end card
   return sumScenes - sumTransitions;
 };
 
 export const ShowcaseAd: React.FC = () => {
+  const totalDuration = calculateShowcaseDuration();
+
   return (
     <AbsoluteFill style={{ backgroundColor: theme.dark }}>
+      <Audio
+        src={staticFile("music.wav")}
+        volume={(f: number) =>
+          interpolate(
+            f,
+            [0, 30, totalDuration - 40, totalDuration],
+            [0, 0.5, 0.5, 0],
+            { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+          )
+        }
+      />
+
       <TransitionSeries>
-        <TransitionSeries.Sequence durationInFrames={HOOK_DUR}>
-          <ShowcaseHookScene />
+        <TransitionSeries.Sequence durationInFrames={COLD_OPEN_DUR}>
+          <ColdOpen />
         </TransitionSeries.Sequence>
 
         <TransitionSeries.Transition
           presentation={fade()}
-          timing={linearTiming({ durationInFrames: T_FADE_LONG })}
+          timing={linearTiming({ durationInFrames: T_FADE })}
         />
 
-        <TransitionSeries.Sequence durationInFrames={FOUNDATION_DUR}>
-          <ModeBeat {...BEATS[0]} />
-        </TransitionSeries.Sequence>
-
-        {BEATS.slice(1).map((beat, i) => (
-          <React.Fragment key={beat.key}>
-            <TransitionSeries.Transition
-              presentation={slide({
-                direction: i % 2 === 0 ? "from-right" : "from-left",
-              })}
-              timing={linearTiming({ durationInFrames: T_SLIDE })}
-            />
-            <TransitionSeries.Sequence durationInFrames={BEAT_DUR}>
-              <ModeBeat {...beat} />
+        {VIGNETTES.map((vignette, i) => (
+          <React.Fragment key={vignette.key}>
+            {i > 0 ? (
+              <TransitionSeries.Transition
+                presentation={slide({
+                  direction: i % 2 === 1 ? "from-right" : "from-left",
+                })}
+                timing={springTiming({
+                  config: { damping: 200 },
+                  durationInFrames: T_SLIDE,
+                })}
+              />
+            ) : null}
+            <TransitionSeries.Sequence durationInFrames={vignette.duration}>
+              <ModeVignette {...vignette} />
             </TransitionSeries.Sequence>
           </React.Fragment>
         ))}
 
-        {/* Cinematic flash punctuates the pivot into the rapid recap */}
+        {/* light leak punctuates the pivot into the recap */}
         <TransitionSeries.Overlay durationInFrames={LIGHT_LEAK_DUR}>
-          <LightLeak seed={3} hueShift={40} />
+          <LightLeak seed={3} hueShift={0} />
         </TransitionSeries.Overlay>
 
         <TransitionSeries.Sequence durationInFrames={RAPID_FLASH_DURATION}>
@@ -171,7 +178,7 @@ export const ShowcaseAd: React.FC = () => {
 
         <TransitionSeries.Transition
           presentation={fade()}
-          timing={linearTiming({ durationInFrames: T_FADE_LONG })}
+          timing={linearTiming({ durationInFrames: T_FADE })}
         />
 
         <TransitionSeries.Sequence durationInFrames={PAYOFF_DUR}>
@@ -180,7 +187,7 @@ export const ShowcaseAd: React.FC = () => {
 
         <TransitionSeries.Transition
           presentation={fade()}
-          timing={linearTiming({ durationInFrames: T_FADE_LONG })}
+          timing={linearTiming({ durationInFrames: T_FADE })}
         />
 
         <TransitionSeries.Sequence durationInFrames={ENDCARD_DUR}>
