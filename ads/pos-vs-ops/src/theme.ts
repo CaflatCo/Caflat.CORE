@@ -15,6 +15,15 @@ export const theme = {
   green: "#3dbd7a",
   red: "#e05c5c",
   amber: "#d4a800",
+
+  // Warm vignette palette — used only in the illustrated scenes,
+  // never inside the app mockup screens (those stay monochrome).
+  espresso: "#1a120c",
+  espresso2: "#241811",
+  mocha: "#3a2a1d",
+  caramel: "#8a6844",
+  latte: "#d9b98c",
+  cream: "#f2e3cc",
 } as const;
 
 export const FPS = 30;

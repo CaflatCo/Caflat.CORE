@@ -7,24 +7,23 @@ import {
 } from "remotion";
 import { theme, fontFamily } from "../theme";
 
-const PHRASES = [
-  "Inventory that deducts itself.",
-  "Every batch, tracked.",
-  "Every lot, traceable.",
-  "Every peso—every payment, logged.",
-  "Every low-stock alert, before it's a problem.",
+type Flash = { text: string; bg: string; fg: string };
+
+const FLASHES: Flash[] = [
+  { text: "Inventory. Automatic.", bg: theme.dark, fg: "#ffffff" },
+  { text: "Batches. Tracked.", bg: "#ffffff", fg: theme.dark },
+  { text: "Beans. Traceable.", bg: "#2e2113", fg: theme.latte },
+  { text: "Money. Accounted.", bg: "#ffffff", fg: theme.dark },
+  { text: "Alerts. Early.", bg: theme.dark, fg: "#ffffff" },
 ];
 
 const FLASH_LEN = 16;
 
-const Flash: React.FC<{ text: string; invert: boolean }> = ({
-  text,
-  invert,
-}) => {
+const FlashCard: React.FC<Flash> = ({ text, bg, fg }) => {
   const frame = useCurrentFrame();
   const opacity = interpolate(
     frame,
-    [0, 3, FLASH_LEN - 5, FLASH_LEN],
+    [0, 4, FLASH_LEN - 4, FLASH_LEN],
     [0, 1, 1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
@@ -35,10 +34,10 @@ const Flash: React.FC<{ text: string; invert: boolean }> = ({
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: invert ? "#ffffff" : theme.dark,
+        backgroundColor: bg,
         justifyContent: "center",
         alignItems: "center",
-        padding: "0 100px",
+        padding: "0 90px",
       }}
     >
       <div
@@ -47,10 +46,10 @@ const Flash: React.FC<{ text: string; invert: boolean }> = ({
           scale,
           fontFamily,
           fontWeight: 800,
-          fontSize: 58,
+          fontSize: 62,
           textAlign: "center",
           lineHeight: 1.2,
-          color: invert ? theme.dark : "#ffffff",
+          color: fg,
         }}
       >
         {text}
@@ -62,18 +61,18 @@ const Flash: React.FC<{ text: string; invert: boolean }> = ({
 export const RapidFlashScene: React.FC = () => {
   return (
     <AbsoluteFill>
-      {PHRASES.map((text, i) => (
+      {FLASHES.map((flash, i) => (
         <Sequence
-          key={text}
+          key={flash.text}
           from={i * FLASH_LEN}
           durationInFrames={FLASH_LEN}
           layout="none"
         >
-          <Flash text={text} invert={i % 2 === 1} />
+          <FlashCard {...flash} />
         </Sequence>
       ))}
     </AbsoluteFill>
   );
 };
 
-export const RAPID_FLASH_DURATION = PHRASES.length * FLASH_LEN;
+export const RAPID_FLASH_DURATION = FLASHES.length * FLASH_LEN;
