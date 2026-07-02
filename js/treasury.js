@@ -47,6 +47,8 @@ function _treasuryAccountIcon(type, size = 16) {
   </svg>`;
 }
 
+const TREASURY_REASON_PRESETS = ['Rent', 'Payroll', 'Supplies', 'Utilities', 'Owner Deposit', 'Sales Deposit', 'Bank Fee'];
+
 /* ── Balance helpers ── */
 
 function getTreasuryAccountBalance(accountId) {
@@ -111,9 +113,15 @@ function renderTreasuryView() {
     </div>
 
     <div class="table-wrapper">
-      <table>
+      <table style="table-layout:fixed;">
         <thead>
-          <tr><th>Date</th><th>Account</th><th>Reason</th><th style="text-align:right;">Amount</th><th>Actions</th><th style="width:100%;"></th></tr>
+          <tr>
+            <th style="width:14%;">Date</th>
+            <th style="width:22%;">Account</th>
+            <th style="width:36%;">Reason</th>
+            <th style="width:16%;text-align:right;">Amount</th>
+            <th style="width:12%;">Actions</th>
+          </tr>
         </thead>
         <tbody>
           ${txns.length ? txns.map(t => {
@@ -121,9 +129,9 @@ function renderTreasuryView() {
             const isAdd = t.kind === 'add';
             return `<tr>
               <td style="font-size:12px;color:var(--gray-500);">${_treasuryFormatDate(t.date)}</td>
-              <td style="font-weight:700;">${escapeHtml(account ? account.name : '—')}</td>
-              <td>${escapeHtml(t.reason || '—')}</td>
-              <td style="text-align:right;font-weight:800;color:${isAdd ? 'var(--success, #16a34a)' : 'var(--danger, #dc2626)'};">
+              <td style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(account ? account.name : '—')}</td>
+              <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(t.reason || '—')}</td>
+              <td style="text-align:right;font-weight:800;color:${isAdd ? 'var(--success)' : 'var(--danger)'};">
                 ${isAdd ? '+' : '−'}${formatCurrency(t.amount)}
               </td>
               <td><button class="btn btn-sm" type="button" onclick="openTreasuryTxnModal('${t.id}')">Edit</button></td>
@@ -158,49 +166,64 @@ function openTreasuryTxnModal(id) {
 
   const kind = t?.kind || 'add';
   const today = new Date().toISOString().slice(0, 10);
+  const selectedAccountId = t?.accountId || accounts[0].id;
 
   m.innerHTML = `
-    <div class="modal" style="max-width:420px;">
+    <div class="modal ttx-modal is-${kind}" style="max-width:440px;">
       <h3>${isNew ? 'New Transaction' : 'Edit Transaction'}</h3>
 
-      <div class="form-group">
-        <label>Type</label>
-        <div style="display:inline-flex;gap:2px;background:var(--gray-100);padding:3px;border-radius:var(--radius-md);width:100%;">
-          <button type="button" id="ttxKindAdd" class="origin-tab-btn${kind==='add'?' active':''}"
-            style="flex:1;" onclick="_treasurySetTxnKind('add')">+ Add Money</button>
-          <button type="button" id="ttxKindDeduct" class="origin-tab-btn${kind==='deduct'?' active':''}"
-            style="flex:1;" onclick="_treasurySetTxnKind('deduct')">− Deduct Money</button>
-        </div>
-        <input type="hidden" id="ttxKind" value="${kind}" />
+      <div class="ttx-kind-toggle">
+        <button type="button" id="ttxKindAdd" class="ttx-kind-btn is-add${kind==='add'?' active':''}"
+          onclick="_treasurySetTxnKind('add')">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="13" x2="8" y2="3"/><polyline points="3.5,7.5 8,3 12.5,7.5"/></svg>
+          Add Money
+        </button>
+        <button type="button" id="ttxKindDeduct" class="ttx-kind-btn is-deduct${kind==='deduct'?' active':''}"
+          onclick="_treasurySetTxnKind('deduct')">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="3" x2="8" y2="13"/><polyline points="3.5,8.5 8,13 12.5,8.5"/></svg>
+          Deduct Money
+        </button>
+      </div>
+      <input type="hidden" id="ttxKind" value="${kind}" />
+
+      <div class="ttx-amount-hero">
+        <span class="ttx-amount-currency">₱</span>
+        <input id="ttxAmount" type="number" min="0" step="0.01" value="${t?.amount ?? ''}" placeholder="0.00" inputmode="decimal" />
       </div>
 
       <div class="form-group">
         <label>Account</label>
-        <select id="ttxAccount">
-          ${accounts.map(a => `<option value="${a.id}" ${t?.accountId===a.id?'selected':''}>${escapeHtml(a.name)}</option>`).join('')}
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Amount</label>
-        <input id="ttxAmount" type="number" min="0" step="0.01" value="${t?.amount ?? ''}" placeholder="0.00" />
+        <div class="ttx-chip-row" id="ttxAccountChips">
+          ${accounts.map(a => `
+            <button type="button" class="ttx-chip${a.id===selectedAccountId?' active':''}"
+              onclick="_treasurySetTxnAccount('${a.id}')">
+              ${_treasuryAccountIcon(a.type, 14)} <span>${escapeHtml(a.name)}</span>
+            </button>`).join('')}
+        </div>
+        <input type="hidden" id="ttxAccount" value="${selectedAccountId}" />
       </div>
 
       <div class="form-group">
         <label>What was it for?</label>
-        <input id="ttxReason" type="text" value="${escapeHtml(t?.reason||'')}" placeholder="e.g. Rent payment, Owner deposit" />
+        <div class="ttx-chip-row ttx-chip-row-sm">
+          ${TREASURY_REASON_PRESETS.map(r => `<button type="button" class="ttx-suggest-chip" onclick="_treasurySetReason('${r}')">${r}</button>`).join('')}
+        </div>
+        <input id="ttxReason" type="text" value="${escapeHtml(t?.reason||'')}" placeholder="e.g. Rent payment, Owner deposit" style="margin-top:8px;" />
       </div>
 
       <div class="form-group">
         <label>Date</label>
-        <input id="ttxDate" type="date" value="${t?.date || today}" />
+        <div style="display:flex;gap:8px;">
+          <input id="ttxDate" type="date" value="${t?.date || today}" style="flex:1;" />
+          <button type="button" class="btn btn-secondary btn-sm" onclick="_treasurySetToday()">Today</button>
+        </div>
       </div>
 
       <div class="modal-actions">
         ${!isNew ? `<button class="btn btn-secondary" type="button" style="color:var(--danger);"
           onclick="deleteTreasuryTransaction('${id}')">Delete</button>` : ''}
         <button class="btn btn-secondary" type="button" onclick="closeModal('treasuryTxnModal')">Cancel</button>
-        <button class="btn" type="button" onclick="saveTreasuryTransaction('${id||''}')">
+        <button class="btn ttx-save-btn is-${kind}" id="ttxSaveBtn" type="button" onclick="saveTreasuryTransaction('${id||''}')">
           ${isNew ? 'Save Transaction' : 'Save'}</button>
       </div>
     </div>`;
@@ -215,6 +238,29 @@ function _treasurySetTxnKind(kind) {
   const deductBtn = document.getElementById('ttxKindDeduct');
   if (addBtn)    addBtn.classList.toggle('active', kind === 'add');
   if (deductBtn) deductBtn.classList.toggle('active', kind === 'deduct');
+
+  const modalRoot = document.querySelector('#treasuryTxnModal .ttx-modal');
+  if (modalRoot) { modalRoot.classList.remove('is-add', 'is-deduct'); modalRoot.classList.add('is-' + kind); }
+  const saveBtn = document.getElementById('ttxSaveBtn');
+  if (saveBtn) { saveBtn.classList.remove('is-add', 'is-deduct'); saveBtn.classList.add('is-' + kind); }
+}
+
+function _treasurySetTxnAccount(accountId) {
+  const hidden = document.getElementById('ttxAccount');
+  if (hidden) hidden.value = accountId;
+  document.querySelectorAll('#ttxAccountChips .ttx-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.getAttribute('onclick') === `_treasurySetTxnAccount('${accountId}')`);
+  });
+}
+
+function _treasurySetReason(reason) {
+  const input = document.getElementById('ttxReason');
+  if (input) input.value = reason;
+}
+
+function _treasurySetToday() {
+  const input = document.getElementById('ttxDate');
+  if (input) input.value = new Date().toISOString().slice(0, 10);
 }
 
 function saveTreasuryTransaction(id) {
@@ -372,4 +418,7 @@ window.openTreasuryAccountsModal   = openTreasuryAccountsModal;
 window.saveTreasuryAccount         = saveTreasuryAccount;
 window.deleteTreasuryAccount       = deleteTreasuryAccount;
 window._treasurySetTxnKind         = _treasurySetTxnKind;
+window._treasurySetTxnAccount      = _treasurySetTxnAccount;
+window._treasurySetReason          = _treasurySetReason;
+window._treasurySetToday           = _treasurySetToday;
 window.applyTreasuryModeToggle     = applyTreasuryModeToggle;
