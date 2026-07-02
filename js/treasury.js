@@ -223,7 +223,7 @@ function openTreasuryTxnModal(id) {
         ${!isNew ? `<button class="btn btn-secondary" type="button" style="color:var(--danger);"
           onclick="deleteTreasuryTransaction('${id}')">Delete</button>` : ''}
         <button class="btn btn-secondary" type="button" onclick="closeModal('treasuryTxnModal')">Cancel</button>
-        <button class="btn ttx-save-btn is-${kind}" id="ttxSaveBtn" type="button" onclick="saveTreasuryTransaction('${id||''}')">
+        <button class="btn" id="ttxSaveBtn" type="button" onclick="saveTreasuryTransaction('${id||''}')">
           ${isNew ? 'Save Transaction' : 'Save'}</button>
       </div>
     </div>`;
@@ -241,8 +241,6 @@ function _treasurySetTxnKind(kind) {
 
   const modalRoot = document.querySelector('#treasuryTxnModal .ttx-modal');
   if (modalRoot) { modalRoot.classList.remove('is-add', 'is-deduct'); modalRoot.classList.add('is-' + kind); }
-  const saveBtn = document.getElementById('ttxSaveBtn');
-  if (saveBtn) { saveBtn.classList.remove('is-add', 'is-deduct'); saveBtn.classList.add('is-' + kind); }
 }
 
 function _treasurySetTxnAccount(accountId) {
