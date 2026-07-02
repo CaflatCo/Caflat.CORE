@@ -301,7 +301,7 @@ function _swRemoveFree(idx) {
 
 function _swUpdateTotal(total) {
   const el = document.getElementById('swTotal');
-  if (el) el.textContent = total > 0 ? formatCurrency(total) : '₱0.00';
+  if (el) el.textContent = total > 0 ? formatCurrency(total) : getCurrencySymbol() + '0.00';
 }
 
 function _swUpdateBadge() {

@@ -349,7 +349,7 @@ function _renderCLDetail(productId) {
           </div>
 
           <div class="form-group" style="margin-bottom:8px;">
-            <label style="font-size:10px;font-weight:800;">Labor ₱/unit</label>
+            <label style="font-size:10px;font-weight:800;">Labor ${getCurrencySymbol()}/unit</label>
             <input type="number" min="0" step="0.01"
               id="clOvrLabor-${productId}"
               placeholder="${laborDefault > 0 ? laborDefault : 'Global default'}"
@@ -358,7 +358,7 @@ function _renderCLDetail(productId) {
           </div>
 
           <div class="form-group" style="margin-bottom:12px;">
-            <label style="font-size:10px;font-weight:800;">Overhead ₱/unit</label>
+            <label style="font-size:10px;font-weight:800;">Overhead ${getCurrencySymbol()}/unit</label>
             <input type="number" min="0" step="0.01"
               id="clOvrOverhead-${productId}"
               placeholder="${overheadDefault > 0 ? overheadDefault : 'Global default'}"

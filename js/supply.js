@@ -280,7 +280,7 @@ function addSupplyLineItemRow(item = null) {
     <div class="supply-item-total"
       style="width:90px;text-align:right;font-weight:800;font-size:13px;
         font-variant-numeric:tabular-nums;flex-shrink:0;">
-      ${item ? formatCurrency((item.qty||0) * (item.unitPrice||0)) : '₱0.00'}
+      ${item ? formatCurrency((item.qty||0) * (item.unitPrice||0)) : getCurrencySymbol() + '0.00'}
     </div>
     <button type="button" class="btn btn-sm btn-secondary supply-remove-line"
       style="flex-shrink:0;">✕</button>`;

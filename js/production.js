@@ -207,7 +207,7 @@ function _populateJobDropdowns() {
   if (laborSel) {
     laborSel.innerHTML = `<option value="">+ Assign person…</option>` +
       getLaborPeople().map(p=>`<option value="${p.id}">
-        ${escapeHtml(p.name)} ${p.type==='owner'?'(Owner)':'· ₱'+Number(p.rate||0).toFixed(0)+'/hr'}
+        ${escapeHtml(p.name)} ${p.type==='owner'?'(Owner)':'· '+getCurrencySymbol()+Number(p.rate||0).toFixed(0)+'/hr'}
       </option>`).join('');
     laborSel.onchange = e => {
       if (e.target.value) { _addLaborToEditingJob(e.target.value); e.target.value=''; }

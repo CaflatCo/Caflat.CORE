@@ -420,7 +420,7 @@ function _renderLabIngPickerList(query) {
         _renderLabIngPickerList('');">
       <div style="font-weight:800;font-size:12px;">${escapeHtml(i.name)}</div>
       <div style="font-size:10px;color:var(--gray-400);margin-top:2px;">
-        ${escapeHtml(i.unit||'')} · ₱${Number(i.costPerUnit||0).toFixed(3)}/unit
+        ${escapeHtml(i.unit||'')} · ${getCurrencySymbol()}${Number(i.costPerUnit||0).toFixed(3)}/unit
   
       </div>
     </button>`).join('');
@@ -492,7 +492,7 @@ function _renderLabPackagingRows() {
         style="flex:2;padding:7px 10px;border:1px solid var(--border);
           border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
         oninput="LAB_SESSION.packaging[${idx}].name=this.value;" />
-      <input type="number" placeholder="Cost ₱"
+      <input type="number" placeholder="Cost"
         value="${pkg.cost}" min="0" step="0.01"
         style="width:110px;padding:7px 10px;border:1px solid var(--border);
           border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
@@ -571,7 +571,7 @@ function _draftCard(d) {
           ${isActive?'<span style="font-size:9px;color:var(--gray-400);margin-left:6px;">CURRENT</span>':''}
         </div>
         <div style="font-size:11px;color:var(--gray-400);">
-          ${d.category||'—'} · ₱${perUnit.toFixed(2)}/unit ·
+          ${d.category||'—'} · ${getCurrencySymbol()}${perUnit.toFixed(2)}/unit ·
           <span style="color:${d.status==='converted'?'#16a34a':'var(--gray-400)'};font-weight:700;">
             ${d.status==='converted' ? `Converted → ${d.convertedProductName||'Product'}` : 'Draft'}
           </span>
@@ -619,7 +619,7 @@ function openLabConvertModal() {
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-weight:700;font-size:12px;">Custom price</span>
             <input type="number" id="labConvertCustomPrice" min="0" step="0.01"
-              placeholder="₱0.00"
+              placeholder="0.00"
               style="width:100px;padding:5px 8px;border:1px solid var(--border);
                 border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);" />
           </div>
@@ -902,7 +902,7 @@ function _renderLabIngredientRows() {
         ${ing.isTemp ? `
         <div style="flex:0 0 90px;">
           <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-            color:var(--gray-400);margin-bottom:3px;">₱/unit</div>
+            color:var(--gray-400);margin-bottom:3px;">${getCurrencySymbol()}/unit</div>
           <input type="number" value="${cpUnit || ''}" min="0" step="0.001" placeholder="0.000"
             style="width:100%;padding:5px 7px;border:1.5px solid var(--border);
               border-radius:var(--radius-sm);font-size:13px;font-family:var(--font-main);"
@@ -910,9 +910,9 @@ function _renderLabIngredientRows() {
         </div>` : `
         <div style="flex:0 0 90px;">
           <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-            color:var(--gray-400);margin-bottom:3px;">₱/unit</div>
+            color:var(--gray-400);margin-bottom:3px;">${getCurrencySymbol()}/unit</div>
           <div style="font-size:12px;font-weight:700;color:var(--gray-600);padding:6px 0;">
-            ₱${cpUnit.toFixed(4)}</div>
+            ${getCurrencySymbol()}${cpUnit.toFixed(4)}</div>
         </div>`}
         <div style="flex:0 0 80px;text-align:right;">
           <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;

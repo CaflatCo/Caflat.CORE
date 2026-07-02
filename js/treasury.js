@@ -187,7 +187,7 @@ function openTreasuryTxnModal(id) {
       <input type="hidden" id="ttxKind" value="${kind}" />
 
       <div class="ttx-amount-hero">
-        <span class="ttx-amount-currency">₱</span>
+        <span class="ttx-amount-currency">${getCurrencySymbol()}</span>
         <input id="ttxAmount" type="number" min="0" step="0.01" value="${t?.amount ?? ''}" placeholder="0.00" inputmode="decimal" />
       </div>
 

@@ -89,6 +89,7 @@ function renderEverything() {
     'applyOriginModeToggle',
     'renderOriginDashboard',
     'applyTreasuryModeToggle',
+    'applyCurrencyToUI',
     'renderCostLab',
     'renderCart',
     'refreshDashboard',

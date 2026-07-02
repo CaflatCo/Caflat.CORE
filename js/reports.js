@@ -152,7 +152,7 @@ function renderRevenueChart(fromDate, toDate) {
       scales: {
         x: { grid: { display: false }, ticks: { font: { size: 11 }, color: ct.tick, maxTicksLimit: 10 } },
         y: { grid: { color: ct.grid }, ticks: { font: { size: 11 }, color: ct.tick,
-          callback: v => '₱' + (v >= 1000 ? (v/1000).toFixed(1)+'k' : v) } } } }
+          callback: v => getCurrencySymbol() + (v >= 1000 ? (v/1000).toFixed(1)+'k' : v) } } } }
   });
 }
 
@@ -422,7 +422,7 @@ function renderCategoryPerformance(fromDate, toDate) {
           plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>formatCurrency(ctx.parsed.y)}} },
           scales:{ x:{grid:{display:false},ticks:{font:{size:10},color:ct.tick}},
             y:{grid:{color:ct.grid},ticks:{font:{size:10},color:ct.tick,
-              callback:v=>'₱'+(v>=1000?(v/1000).toFixed(0)+'k':v)}} } }
+              callback:v=>getCurrencySymbol()+(v>=1000?(v/1000).toFixed(0)+'k':v)}} } }
       });
     }
     activeCats.forEach(cat => {
@@ -678,7 +678,7 @@ function renderCumulativePureProfitChart(fromDate, toDate) {
       tooltip:{callbacks:{label:ctx=>' '+formatCurrency(ctx.parsed.y)}}},
       scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:8,color:_ppcCt.tick}},
         y:{grid:{color:_ppcCt.grid},ticks:{font:{size:10},color:_ppcCt.tick,
-          callback:v=>'₱'+(v>=1000?(v/1000).toFixed(1)+'k':v)}}}}
+          callback:v=>getCurrencySymbol()+(v>=1000?(v/1000).toFixed(1)+'k':v)}}}}
   });
 }
 
@@ -731,7 +731,7 @@ function renderPureProfitByCategory(fromDate, toDate) {
       borderRadius:6,borderSkipped:false}]},
     options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},
       tooltip:{callbacks:{label:ctx=>' '+formatCurrency(ctx.parsed.x)}}},
-      scales:{x:{grid:{color:_ppcaCt.grid},ticks:{font:{size:10},color:_ppcaCt.tick,callback:v=>'₱'+(v>=1000?(v/1000).toFixed(1)+'k':v)}},
+      scales:{x:{grid:{color:_ppcaCt.grid},ticks:{font:{size:10},color:_ppcaCt.tick,callback:v=>getCurrencySymbol()+(v>=1000?(v/1000).toFixed(1)+'k':v)}},
         y:{grid:{display:false},ticks:{font:{size:11,weight:'700'},color:_ppcaCt.tick}}}}
   });
 }
@@ -760,7 +760,7 @@ function renderRevenueVsCostChart(fromDate, toDate) {
         tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y)}`}}},
       scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:9},color:_rvcCt.tick}},
         y:{stacked:true,grid:{color:_rvcCt.grid},ticks:{font:{size:10},color:_rvcCt.tick,
-          callback:v=>'₱'+(v>=1000?(v/1000).toFixed(1)+'k':v)}}}}
+          callback:v=>getCurrencySymbol()+(v>=1000?(v/1000).toFixed(1)+'k':v)}}}}
   });
 }
 
