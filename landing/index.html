@@ -56,6 +56,7 @@
 
   <!-- Midnight Roast — layered ambient motion -->
   <div class="hero-bg-motion" aria-hidden="true">
+    <div class="hero-crema"></div>
     <div class="hero-aurora hero-aurora-1"></div>
     <div class="hero-aurora hero-aurora-2"></div>
     <div class="hero-ring-orbit"></div>
@@ -65,92 +66,6 @@
     <div class="hero-dust hero-dust-1"></div>
     <div class="hero-dust hero-dust-2"></div>
   </div>
-
-  <!-- The Pour — hands in the side margins, milk arcing across behind the title -->
-  <svg class="hero-hands" viewBox="0 0 1200 520" fill="none" aria-hidden="true">
-    <defs>
-      <linearGradient id="milkFade" gradientUnits="userSpaceOnUse" x1="244" y1="160" x2="958" y2="322">
-        <stop offset="0"    stop-color="#f4f2ee" stop-opacity="0"/>
-        <stop offset=".08"  stop-color="#f4f2ee" stop-opacity=".85"/>
-        <stop offset=".88"  stop-color="#f4f2ee" stop-opacity=".85"/>
-        <stop offset="1"    stop-color="#f4f2ee" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-
-    <!-- Left margin: hand + milk pitcher -->
-    <g class="pour-left">
-      <g class="pour-float pour-float-l">
-        <g class="pour-tilt">
-          <!-- forearm contours -->
-          <path class="hh-arm" d="M -10 190 C 30 186 64 186 92 190"/>
-          <path class="hh-arm" d="M -10 246 C 34 244 66 240 94 234"/>
-          <!-- sleeve cuff -->
-          <path class="hh-detail" d="M 38 188 L 35 244 M 47 187 L 44 242"/>
-          <!-- back of hand + thumb resting along the handle top -->
-          <path class="hh-hand" d="M 92 190 C 104 189 114 192 122 198"/>
-          <path class="hh-hand" d="M 98 194 C 110 190 122 190 132 196"/>
-          <!-- three fingers curling around the handle -->
-          <path class="hh-hand" d="M 122 198 C 134 202 138 210 131 216"/>
-          <path class="hh-hand" d="M 124 212 C 135 215 138 223 130 227"/>
-          <path class="hh-hand" d="M 122 224 C 132 227 134 234 127 238"/>
-          <!-- palm edge back to wrist -->
-          <path class="hh-hand" d="M 94 234 C 104 240 116 242 127 238"/>
-          <!-- jug handle, double-lined -->
-          <path class="hh-vessel" d="M 142 180 C 112 188 108 230 138 240"/>
-          <path class="hh-detail" d="M 142 188 C 122 194 120 224 140 232"/>
-          <!-- jug body — tall, tapered, pronounced spout beak -->
-          <path class="hh-vessel hh-fill" d="M 140 170 C 160 162 184 155 206 150 L 246 158 C 236 170 222 173 212 174 L 228 236 C 226 252 158 260 150 246 Z"/>
-          <!-- rolled rim -->
-          <path class="hh-detail" d="M 146 174 C 166 166 188 160 204 156"/>
-          <!-- milk surface inside -->
-          <path class="hh-milkline" d="M 156 186 C 176 179 196 173 212 170"/>
-          <!-- body highlight -->
-          <path class="hh-detail" d="M 154 200 C 150 216 152 232 158 244"/>
-        </g>
-      </g>
-    </g>
-
-    <!-- Milk stream — soft halo + bright core, fading at both ends -->
-    <path class="hh-stream-halo" d="M 244 160 C 420 320 750 340 958 322" pathLength="100"/>
-    <path class="hh-stream"      d="M 244 160 C 420 320 750 340 958 322" pathLength="100"/>
-
-    <!-- Right margin: hand + saucer + coffee cup -->
-    <g class="pour-right">
-      <g class="pour-float pour-float-r">
-        <g class="cup-dip">
-          <!-- forearm contours from right edge -->
-          <path class="hh-arm" d="M 1210 428 C 1180 424 1152 418 1128 412"/>
-          <path class="hh-arm" d="M 1210 484 C 1186 476 1164 456 1148 440"/>
-          <!-- sleeve cuff -->
-          <path class="hh-detail" d="M 1178 423 L 1172 470 M 1186 425 L 1180 474"/>
-          <!-- thumb over the saucer edge, fingers beneath -->
-          <path class="hh-hand" d="M 1128 412 C 1112 408 1098 404 1088 402"/>
-          <path class="hh-hand" d="M 1148 440 C 1128 434 1108 426 1094 418"/>
-          <path class="hh-hand" opacity=".55" d="M 1140 452 C 1122 446 1104 438 1092 430"/>
-          <!-- saucer -->
-          <path class="hh-vessel" d="M 906 400 C 940 418 1060 418 1094 400"/>
-          <path class="hh-detail" d="M 906 400 C 940 408 1060 408 1094 400"/>
-          <path class="hh-detail" opacity=".6" d="M 952 404 C 972 410 1028 410 1048 404"/>
-          <!-- cup body + foot -->
-          <path class="hh-vessel hh-fill" d="M 928 322 C 930 362 954 388 1000 388 C 1046 388 1070 362 1072 322"/>
-          <path class="hh-detail" d="M 972 388 C 974 396 1026 396 1028 388"/>
-          <!-- double rim + coffee surface -->
-          <ellipse class="hh-vessel" cx="1000" cy="322" rx="72" ry="12"/>
-          <ellipse class="hh-detail" cx="1000" cy="322" rx="64" ry="9.5"/>
-          <ellipse class="hh-coffee" cx="1000" cy="324" rx="56" ry="7.5"/>
-          <!-- handle, double-lined -->
-          <path class="hh-vessel" d="M 1072 334 C 1098 330 1104 362 1076 368"/>
-          <path class="hh-detail" d="M 1073 341 C 1090 339 1094 357 1075 361"/>
-          <!-- double ripple where the milk lands -->
-          <ellipse class="hh-ripple hh-ripple-1" cx="985" cy="322" rx="26" ry="5"/>
-          <ellipse class="hh-ripple hh-ripple-2" cx="985" cy="322" rx="40" ry="7"/>
-          <!-- steam — draws itself upward -->
-          <path class="hh-steam hh-steam-1" pathLength="100" d="M 968 296 C 960 282 976 272 968 258 C 962 248 972 240 970 230"/>
-          <path class="hh-steam hh-steam-2" pathLength="100" d="M 1028 300 C 1020 288 1034 278 1026 264 C 1020 254 1030 246 1028 236"/>
-        </g>
-      </g>
-    </g>
-  </svg>
 
   <div class="container hero-content reveal">
     <h1 class="hero-title">
