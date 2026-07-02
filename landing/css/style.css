@@ -272,60 +272,121 @@ nav.scrolled {
   z-index: 0;
 }
 
-/* Warm coffee glow — slightly stronger to fill atmosphere */
-.hero-warm-glow {
-  position: absolute;
-  top: -8%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 1200px;
-  height: 800px;
-  background:
-    radial-gradient(ellipse 60% 42% at 50% 10%, rgba(200,163,117,.15) 0%, transparent 70%),
-    radial-gradient(ellipse 85% 65% at 50% 24%, rgba(255,255,255,.032) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Hero photo — espresso machine, full-width to eliminate hard left edge */
-.hero-photo-right {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 100%;   /* full-width: gradient masks left side — no visible seam */
-  height: 100%;
-  background-image: url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1000&q=75&auto=format&fit=crop');
-  background-size: cover;
-  background-position: center 30%;
-  pointer-events: none;
-  z-index: 0;
-  /* No element-level opacity — it would reduce ::before's dark overlay too,
-     revealing the photo at the left edge against the pure dark background */
-}
-.hero-photo-right::before {
-  content: '';
+/* ─── Midnight Roast — layered ambient motion ────────────────── */
+.hero-bg-motion {
   position: absolute;
   inset: 0;
-  background:
-    /* Left: fully opaque dark for first 30% of viewport, then gradual photo reveal */
-    linear-gradient(to right,
-      var(--dark)              0%,
-      var(--dark)             30%,
-      rgba(10,10,11,.88)      42%,
-      rgba(10,10,11,.52)      58%,
-      rgba(10,10,11,.38)      72%,
-      rgba(10,10,11,.55)      86%,
-      rgba(10,10,11,.72)     100%
-    ),
-    /* Top + bottom fades */
-    linear-gradient(to bottom,
-      rgba(10,10,11,.90)       0%,
-      rgba(10,10,11,.20)      16%,
-      transparent             30%,
-      transparent             72%,
-      rgba(10,10,11,.94)     100%
-    );
-  z-index: 1;
+  pointer-events: none;
+  z-index: 0;
+  transform: translate(var(--par-x, 0px), var(--par-y, 0px));
+  transition: transform .6s ease-out;
+}
+
+/* Aurora — two huge soft blobs drifting on long alternate loops */
+.hero-aurora {
+  position: absolute;
+  border-radius: 50%;
+}
+.hero-aurora-1 {
+  width: 1100px; height: 780px;
+  top: -22%; left: 50%; margin-left: -550px;
+  background: radial-gradient(ellipse 55% 42% at 50% 40%, rgba(200,163,117,.13) 0%, transparent 68%);
+  animation: aurora-drift-1 38s ease-in-out infinite alternate;
+}
+.hero-aurora-2 {
+  width: 900px; height: 700px;
+  top: 4%; left: 50%; margin-left: -280px;
+  background: radial-gradient(ellipse 50% 40% at 50% 45%, rgba(255,255,255,.045) 0%, transparent 66%);
+  animation: aurora-drift-2 52s ease-in-out infinite alternate;
+}
+@keyframes aurora-drift-1 {
+  from { transform: translate(-60px, 0)   scale(1); }
+  to   { transform: translate(70px, 40px) scale(1.12); }
+}
+@keyframes aurora-drift-2 {
+  from { transform: translate(50px, 20px)  scale(1.08); }
+  to   { transform: translate(-70px, -25px) scale(.96); }
+}
+
+/* The Ring — slow-rotating circle with an orbiting gold bean-dot */
+.hero-ring-orbit {
+  position: absolute;
+  width: 780px; height: 780px;
+  top: 50%; left: 50%;
+  margin: -390px 0 0 -140px;
+  border: 1px solid rgba(200,163,117,.13);
+  border-radius: 50%;
+  animation: ring-spin 140s linear infinite;
+}
+.hero-ring-orbit::before {
+  content: '';
+  position: absolute;
+  top: -3px; left: 50%;
+  width: 6px; height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--coffee);
+  box-shadow: 0 0 12px 2px rgba(200,163,117,.5);
+}
+/* faint inner ring for depth */
+.hero-ring-orbit::after {
+  content: '';
+  position: absolute;
+  inset: 90px;
+  border: 1px solid rgba(255,255,255,.045);
+  border-radius: 50%;
+}
+@keyframes ring-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Steam wisps — thin streaks rising behind the headline */
+.hero-wisp {
+  position: absolute;
+  width: 2px; height: 190px;
+  background: linear-gradient(to top, transparent, rgba(244,242,238,.11) 45%, transparent);
+  opacity: 0;
+}
+.hero-wisp-1 { left: 30%; top: 34%; animation: wisp-rise  9s ease-in-out infinite .8s; }
+.hero-wisp-2 { left: 51%; top: 28%; animation: wisp-rise 12s ease-in-out infinite 3.5s; }
+.hero-wisp-3 { left: 69%; top: 36%; animation: wisp-rise 15s ease-in-out infinite 6s; }
+@keyframes wisp-rise {
+  0%   { transform: translateY(46px) skewX(0deg);  opacity: 0; }
+  35%  { opacity: .85; }
+  70%  { opacity: .3; }
+  100% { transform: translateY(-70px) skewX(-6deg); opacity: 0; }
+}
+
+/* Gold dust — crema specks drifting upward (box-shadow star field) */
+.hero-dust {
+  position: absolute;
+  width: 2px; height: 2px;
+  border-radius: 50%;
+  background: transparent;
+}
+.hero-dust-1 {
+  top: 68%; left: 12%;
+  box-shadow:
+    40px -30px 0 rgba(200,163,117,.30), 180px 10px 0 rgba(244,242,238,.14),
+    320px -60px 0 rgba(200,163,117,.22), 460px 24px 0 rgba(244,242,238,.10),
+    620px -20px 0 rgba(200,163,117,.26), 760px -70px 0 rgba(244,242,238,.12),
+    900px 6px 0 rgba(200,163,117,.18);
+  animation: dust-drift 26s linear infinite;
+}
+.hero-dust-2 {
+  top: 82%; left: 6%;
+  box-shadow:
+    90px -40px 0 rgba(244,242,238,.10), 250px 16px 0 rgba(200,163,117,.24),
+    410px -55px 0 rgba(244,242,238,.13), 570px 10px 0 rgba(200,163,117,.18),
+    730px -35px 0 rgba(244,242,238,.09), 890px -8px 0 rgba(200,163,117,.22);
+  animation: dust-drift 34s linear infinite 9s;
+}
+@keyframes dust-drift {
+  0%   { transform: translateY(0);      opacity: 0; }
+  12%  { opacity: 1; }
+  85%  { opacity: .6; }
+  100% { transform: translateY(-46vh);  opacity: 0; }
 }
 
 /* Full-width bottom vignette — blends hero into the section below */
@@ -473,7 +534,17 @@ nav.scrolled {
 
 /* Warm coffee-caramel accent — only in hero */
 .hero-warm {
-  color: var(--coffee);
+  color: var(--coffee); /* fallback if background-clip:text unsupported */
+  background: linear-gradient(105deg, #c8a375 38%, #f0ddc0 50%, #c8a375 62%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: warm-shimmer 7s ease-in-out infinite;
+}
+@keyframes warm-shimmer {
+  0%, 100% { background-position: 120% 0; }
+  50%      { background-position: -20% 0; }
 }
 
 .hero-body {
@@ -1764,6 +1835,9 @@ textarea.form-input { resize: vertical; min-height: 100px; }
     transform: none !important;
   }
   .deco-item      { animation: none; }
+  .hero-aurora, .hero-ring-orbit, .hero-wisp, .hero-dust, .hero-warm { animation: none; }
+  .hero-wisp, .hero-dust { opacity: 0; }
+  .hero-bg-motion { transition: none; }
   .mode-how-dot   { animation: none; }
   .mode-how[open] .mode-how-steps::before,
   .mode-how[open] .mode-how-steps li,
@@ -1805,7 +1879,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .nav-links { display: none; }
   .nav-hamburger { display: flex; }
   .hero-actions { flex-direction: column; align-items: center; }
-  .hero-photo-right { width: 100%; opacity: 0.22; }
+  .hero-ring-orbit, .hero-wisp, .hero-dust { display: none; }
   .fan-card-left, .fan-card-right { display: none; }
   .fan-card-center { transform: none; width: 100%; max-width: 360px; margin: 0 auto; }
   .hero-stat-div { display: none; }
