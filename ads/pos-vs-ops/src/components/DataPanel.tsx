@@ -8,6 +8,44 @@ export type DataRow = {
   accent?: boolean;
 };
 
+// Splits "$2,340" / "420g left" / "+$180" / "2.1%" into
+// prefix ("$" / "+$"), the numeric magnitude, and a trailing suffix.
+const NUMERIC_RE = /^([^\d]*)([\d,]+(?:\.\d+)?)(.*)$/;
+
+const AnimatedValue: React.FC<{ value: string; delayFrames: number }> = ({
+  value,
+  delayFrames,
+}) => {
+  const frame = useCurrentFrame();
+  const local = frame - delayFrames;
+  const match = value.match(NUMERIC_RE);
+
+  if (!match) return <>{value}</>;
+
+  const [, prefix, numStr, suffix] = match;
+  const target = parseFloat(numStr.replace(/,/g, ""));
+  const decimals = numStr.includes(".") ? numStr.split(".")[1].length : 0;
+
+  const progress = interpolate(local, [0, 22], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.out(Easing.cubic),
+  });
+  const current = target * progress;
+  const formatted = current.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+
+  return (
+    <>
+      {prefix}
+      {formatted}
+      {suffix}
+    </>
+  );
+};
+
 const Row: React.FC<{ row: DataRow; delayFrames: number }> = ({
   row,
   delayFrames,
@@ -58,7 +96,7 @@ const Row: React.FC<{ row: DataRow; delayFrames: number }> = ({
           fontVariantNumeric: "tabular-nums",
         }}
       >
-        {row.value}
+        <AnimatedValue value={row.value} delayFrames={delayFrames + 6} />
       </span>
     </div>
   );

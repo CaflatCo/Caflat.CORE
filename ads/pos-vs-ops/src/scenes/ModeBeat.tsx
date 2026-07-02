@@ -1,13 +1,15 @@
 import React from "react";
 import {
   AbsoluteFill,
-  Easing,
   interpolate,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
 import { CinematicBackground } from "../components/CinematicBackground";
 import { DataPanel, DataRow } from "../components/DataPanel";
+import { AnimatedIcon } from "../components/AnimatedIcon";
+import { KineticHeadline } from "../components/KineticHeadline";
+import { MiniBarChart, BarDatum } from "../components/MiniBarChart";
 import { fontFamily } from "../theme";
 
 export type ModeBeatProps = {
@@ -16,6 +18,8 @@ export type ModeBeatProps = {
   headline: string[]; // lines
   eyebrow: string;
   rows: DataRow[];
+  icon: string[];
+  chart?: BarDatum[];
 };
 
 export const ModeBeat: React.FC<ModeBeatProps> = ({
@@ -24,24 +28,15 @@ export const ModeBeat: React.FC<ModeBeatProps> = ({
   headline,
   eyebrow,
   rows,
+  icon,
+  chart,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const badgeOpacity = interpolate(frame, [0, 12], [0, 1], {
+  const badgeOpacity = interpolate(frame, [10, 22], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
-  });
-
-  const headlineOpacity = interpolate(frame, [4, 20], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
-  const headlineY = interpolate(frame, [4, 24], [26, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
   const bigNumOpacity = interpolate(frame, [0, 20], [0, 0.08], {
@@ -53,6 +48,8 @@ export const ModeBeat: React.FC<ModeBeatProps> = ({
   const bgScale = interpolate(frame, [0, fps * 3], [1.0, 1.06], {
     extrapolateRight: "clamp",
   });
+
+  const panelStart = 26 + headline.length * 10;
 
   return (
     <AbsoluteFill>
@@ -81,7 +78,6 @@ export const ModeBeat: React.FC<ModeBeatProps> = ({
         style={{
           justifyContent: "center",
           alignItems: "center",
-          padding: "0 80px",
         }}
       >
         <div
@@ -89,9 +85,14 @@ export const ModeBeat: React.FC<ModeBeatProps> = ({
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 28,
+            gap: 22,
+            padding: "0 80px",
+            boxSizing: "border-box",
+            maxWidth: "100%",
           }}
         >
+          <AnimatedIcon paths={icon} size={56} delayFrames={0} />
+
           <div
             style={{
               opacity: badgeOpacity,
@@ -109,30 +110,23 @@ export const ModeBeat: React.FC<ModeBeatProps> = ({
             {badge}
           </div>
 
-          <div
-            style={{
-              opacity: headlineOpacity,
-              translate: `0px ${headlineY}px`,
-              fontFamily,
-              fontWeight: 800,
-              fontSize: 64,
-              lineHeight: 1.14,
-              color: "#ffffff",
-              textAlign: "center",
-              maxWidth: 820,
-            }}
-          >
-            {headline.map((line, i) => (
-              <React.Fragment key={i}>
-                {line}
-                {i < headline.length - 1 ? <br /> : null}
-              </React.Fragment>
-            ))}
+          <KineticHeadline
+            lines={headline}
+            startFrame={16}
+            fontSize={64}
+            wordStep={2}
+            lineGap={4}
+          />
+
+          <div style={{ marginTop: 10 }}>
+            <DataPanel eyebrow={eyebrow} rows={rows} startFrame={panelStart} />
           </div>
 
-          <div style={{ marginTop: 12 }}>
-            <DataPanel eyebrow={eyebrow} rows={rows} startFrame={26} />
-          </div>
+          {chart ? (
+            <div style={{ marginTop: 6 }}>
+              <MiniBarChart data={chart} startFrame={panelStart + 30} />
+            </div>
+          ) : null}
         </div>
       </AbsoluteFill>
     </AbsoluteFill>
