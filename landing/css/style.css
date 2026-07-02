@@ -979,6 +979,141 @@ nav.scrolled {
 .grain .showcase-list li::before  { background: rgba(255,255,255,.32); }
 .section-light .showcase-list li::before { background: rgba(10,10,11,.36); }
 
+/* ─── How It Works (drawn timeline) ──────────────────────────── */
+.mode-how { margin-top: 26px; }
+
+.mode-how-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color .18s;
+}
+.mode-how-toggle::-webkit-details-marker { display: none; }
+.section-dark .mode-how-toggle:hover,
+.grain        .mode-how-toggle:hover { color: var(--text-white); }
+.section-light .mode-how-toggle       { color: var(--text-gray); }
+.section-light .mode-how-toggle:hover { color: var(--dark); }
+
+.mode-how-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--coffee);
+  flex-shrink: 0;
+  animation: how-dot-breathe 2.8s ease-in-out infinite;
+}
+@keyframes how-dot-breathe {
+  0%, 100% { opacity: .45; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.35); }
+}
+
+.mode-how-toggle::after {
+  content: '+';
+  font-size: 1.05rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--coffee);
+  transition: transform .22s cubic-bezier(.22,.61,.36,1);
+}
+.mode-how[open] .mode-how-toggle::after { transform: rotate(45deg); }
+.mode-how[open] .mode-how-dot { animation: none; opacity: 1; }
+
+.mode-how-steps {
+  list-style: none;
+  position: relative;
+  margin: 20px 0 0 2px;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.mode-how-steps::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 6px; bottom: 6px;
+  width: 1px;
+  transform-origin: top;
+}
+.section-dark  .mode-how-steps::before,
+.grain         .mode-how-steps::before {
+  background: linear-gradient(to bottom, rgba(255,255,255,.28), transparent);
+}
+.section-light .mode-how-steps::before {
+  background: linear-gradient(to bottom, rgba(10,10,11,.22), transparent);
+}
+.mode-how[open] .mode-how-steps::before {
+  animation: how-rail-draw .6s cubic-bezier(.22,.61,.36,1) both;
+}
+@keyframes how-rail-draw {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+.mode-how-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding-left: 22px;
+  position: relative;
+}
+/* gold tick connecting rail to numeral */
+.mode-how-steps li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: .95em;
+  width: 10px; height: 1px;
+  background: var(--coffee);
+  opacity: .7;
+}
+
+.how-num {
+  font-size: 1.55rem;
+  font-weight: 200;
+  line-height: 1.15;
+  letter-spacing: .02em;
+  flex-shrink: 0;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,.45);
+}
+.section-light .how-num { -webkit-text-stroke: 1px rgba(10,10,11,.4); }
+
+.mode-how-steps strong {
+  display: block;
+  font-size: .95rem;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.section-dark  .mode-how-steps strong,
+.grain         .mode-how-steps strong { color: var(--text-white); }
+.section-light .mode-how-steps strong { color: var(--dark); }
+
+.mode-how-steps p {
+  font-size: .87rem;
+  line-height: 1.6;
+  margin: 0;
+}
+.section-dark  .mode-how-steps p,
+.grain         .mode-how-steps p { color: var(--text-dim); }
+.section-light .mode-how-steps p { color: var(--text-gray); }
+
+.mode-how[open] .mode-how-steps li {
+  animation: how-step-in .45s cubic-bezier(.22,.61,.36,1) both;
+}
+.mode-how[open] .mode-how-steps li:nth-child(1) { animation-delay: .12s; }
+.mode-how[open] .mode-how-steps li:nth-child(2) { animation-delay: .24s; }
+.mode-how[open] .mode-how-steps li:nth-child(3) { animation-delay: .36s; }
+@keyframes how-step-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ─── Mock Panels ────────────────────────────────────────────── */
 .mock-panel {
   border-radius: var(--radius-lg);
@@ -1587,6 +1722,9 @@ textarea.form-input { resize: vertical; min-height: 100px; }
     transform: none !important;
   }
   .deco-item      { animation: none; }
+  .mode-how-dot   { animation: none; }
+  .mode-how[open] .mode-how-steps::before,
+  .mode-how[open] .mode-how-steps li { animation: none; }
 }
 
 /* ─── Responsive ─────────────────────────────────────────────── */
