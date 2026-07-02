@@ -17,7 +17,7 @@ const FLASHES: Flash[] = [
   { text: "Alerts. Early.", bg: theme.dark, fg: "#ffffff" },
 ];
 
-const FLASH_LEN = 16;
+const FLASH_LEN = 24;
 
 const FlashCard: React.FC<Flash> = ({ text, bg, fg }) => {
   const frame = useCurrentFrame();
