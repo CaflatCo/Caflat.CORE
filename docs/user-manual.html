@@ -466,7 +466,7 @@ code {
     <div class="cover-brand">CAFLAT<span class="gold">.CORE</span></div>
     <div class="cover-divider"></div>
     <div class="cover-subtitle">
-      The operating system for specialty coffee.<br>
+      The operating system behind every great café.<br>
       Complete reference for owners, managers, and staff.
     </div>
   </div>
@@ -502,20 +502,21 @@ code {
     <li class="toc-item"><span class="toc-num">07</span><span class="toc-title"><strong>Supplier Mode</strong> — Vendor management, invoices, purchase orders</span></li>
     <li class="toc-item"><span class="toc-num">08</span><span class="toc-title"><strong>Events Mode</strong> — Catering bookings, event billing</span></li>
     <li class="toc-item"><span class="toc-num">09</span><span class="toc-title"><strong>Production Mode</strong> — Batch production, output tracking</span></li>
+    <li class="toc-item"><span class="toc-num">10</span><span class="toc-title"><strong>Treasury</strong> — Manual cash &amp; bank tracking, transaction log</span></li>
 
     <div class="toc-group-label">Built-in Tools</div>
-    <li class="toc-item"><span class="toc-num">10</span><span class="toc-title"><strong>Product Lab</strong> — Sandbox for new menu items</span></li>
-    <li class="toc-item"><span class="toc-num">11</span><span class="toc-title"><strong>Cost Lab</strong> — Ingredient, labor &amp; overhead margin analysis</span></li>
-    <li class="toc-item"><span class="toc-num">12</span><span class="toc-title"><strong>Recipe Catalog</strong> — Brew recipes, parameters, tasting notes</span></li>
-    <li class="toc-item"><span class="toc-num">13</span><span class="toc-title"><strong>Shopping List</strong> — Auto-generated purchase lists</span></li>
+    <li class="toc-item"><span class="toc-num">11</span><span class="toc-title"><strong>Product Lab</strong> — Sandbox for new menu items</span></li>
+    <li class="toc-item"><span class="toc-num">12</span><span class="toc-title"><strong>Cost Lab</strong> — Ingredient, labor &amp; overhead margin analysis</span></li>
+    <li class="toc-item"><span class="toc-num">13</span><span class="toc-title"><strong>Recipe Catalog</strong> — Brew recipes, parameters, tasting notes</span></li>
+    <li class="toc-item"><span class="toc-num">14</span><span class="toc-title"><strong>Shopping List</strong> — Auto-generated purchase lists</span></li>
 
     <div class="toc-group-label">Operations</div>
-    <li class="toc-item"><span class="toc-num">14</span><span class="toc-title"><strong>Finished Goods</strong> — Batch-produced goods, yield tracking</span></li>
-    <li class="toc-item"><span class="toc-num">15</span><span class="toc-title"><strong>Management</strong> — Void, refund, settings, security, data</span></li>
+    <li class="toc-item"><span class="toc-num">15</span><span class="toc-title"><strong>Finished Goods</strong> — Batch-produced goods, yield tracking</span></li>
+    <li class="toc-item"><span class="toc-num">16</span><span class="toc-title"><strong>Management</strong> — Void, refund, settings, security, data</span></li>
 
     <div class="toc-group-label">Reference</div>
-    <li class="toc-item"><span class="toc-num">16</span><span class="toc-title"><strong>Plans</strong> — Free, Pro, Cloud, Enterprise</span></li>
-    <li class="toc-item"><span class="toc-num">17</span><span class="toc-title"><strong>FAQ &amp; Reference</strong> — Receipts, common questions</span></li>
+    <li class="toc-item"><span class="toc-num">17</span><span class="toc-title"><strong>Plans</strong> — Free, Pro, Cloud, Enterprise</span></li>
+    <li class="toc-item"><span class="toc-num">18</span><span class="toc-title"><strong>FAQ &amp; Reference</strong> — Receipts, common questions</span></li>
   </ul>
 </div>
 
@@ -536,7 +537,7 @@ code {
       <li><strong>Create an admin account</strong> — Enter a username and a secure password. The username must be unique within the system; it cannot be changed later without a data reset.</li>
       <li><strong>Set your café name</strong> — This appears on receipts and reports.</li>
       <li><strong>Choose your currency</strong> — Select the currency used for all transactions.</li>
-      <li><strong>Select active modules</strong> — Enable the optional modes your café needs (Supplier, Events, Production). You can change this later in Settings.</li>
+      <li><strong>Select active modules</strong> — Enable the optional modes your café needs (Supplier, Events, Production, Treasury). You can change this later in Settings.</li>
       <li><strong>Complete setup</strong> — You are taken directly to the Dashboard.</li>
     </ol>
 
@@ -928,11 +929,51 @@ code {
 </div>
 
 <!-- ═══════════════════════════════════
-     10 — PRODUCT LAB
+     10 — TREASURY
 ═══════════════════════════════════ -->
 <div class="page page-content">
   <div class="section-header">
     <span class="section-num">10</span>
+    <h1>Treasury</h1>
+  </div>
+  <div class="section-body">
+    <div class="tag">Optional Mode</div>
+    <p>Treasury is a manual cash and bank tracker, completely disconnected from inventory, ingredients, and sales. It answers one question at a glance: how much money does the business actually have right now, in the bank and in cash? Enable via <strong>Settings → Modules</strong>.</p>
+
+    <h2>Accounts</h2>
+    <p>Before logging any money movement, set up the accounts the business actually uses — cash on hand, GCash, a bank account, or anything else.</p>
+    <ol class="steps">
+      <li>Go to <strong>Treasury</strong> in the sidebar.</li>
+      <li>Tap <strong>Manage Accounts</strong>.</li>
+      <li>Add an account — give it a name (e.g. "Cash Till", "BDO Checking"), choose Cash or Bank, and enter its opening balance.</li>
+      <li>Repeat for every account the business actually uses.</li>
+    </ol>
+
+    <h2>Logging a Transaction</h2>
+    <p>Every entry in Treasury is either money coming in (<strong>Add</strong>) or money going out (<strong>Deduct</strong>) — tagged to an account with a plain-language reason.</p>
+    <ol class="steps">
+      <li>Tap <strong>+ New Transaction</strong>.</li>
+      <li>Choose <strong>Add Money</strong> or <strong>Deduct Money</strong>.</li>
+      <li>Enter the amount, pick the account, and add a reason — tap a quick preset (Rent, Payroll, Supplies, Utilities, Owner Deposit, Sales Deposit, Bank Fee) or type your own.</li>
+      <li>Confirm the date (defaults to today) and save.</li>
+    </ol>
+
+    <h2>How Balances Work</h2>
+    <p>Account balances are never edited by hand — they're calculated live from the opening balance plus every Add and minus every Deduct logged against that account. There is nothing to reconcile: the number shown is always accurate as long as transactions are logged as they happen.</p>
+
+    <div class="callout">
+      <div class="callout-label">Fully Disconnected</div>
+      <p>Treasury does not read from or write to inventory, ingredients, or sales data. It's a standalone ledger for tracking actual cash position — nothing here affects stock levels, product costs, or POS reporting.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     11 — PRODUCT LAB
+═══════════════════════════════════ -->
+<div class="page page-content">
+  <div class="section-header">
+    <span class="section-num">11</span>
     <h1>Product Lab</h1>
   </div>
   <div class="section-body">
@@ -974,11 +1015,11 @@ code {
 </div>
 
 <!-- ═══════════════════════════════════
-     11 — COST LAB
+     12 — COST LAB
 ═══════════════════════════════════ -->
 <div class="page page-content">
   <div class="section-header">
-    <span class="section-num">11</span>
+    <span class="section-num">12</span>
     <h1>Cost Lab</h1>
   </div>
   <div class="section-body">
@@ -1019,11 +1060,11 @@ code {
 </div>
 
 <!-- ═══════════════════════════════════
-     12 — RECIPE CATALOG
+     13 — RECIPE CATALOG
 ═══════════════════════════════════ -->
 <div class="page page-content">
   <div class="section-header">
-    <span class="section-num">12</span>
+    <span class="section-num">13</span>
     <h1>Recipe Catalog</h1>
   </div>
   <div class="section-body">
@@ -1078,11 +1119,11 @@ code {
 </div>
 
 <!-- ═══════════════════════════════════
-     13 — SHOPPING LIST
+     14 — SHOPPING LIST
 ═══════════════════════════════════ -->
 <div class="page page-content">
   <div class="section-header">
-    <span class="section-num">13</span>
+    <span class="section-num">14</span>
     <h1>Shopping List</h1>
   </div>
   <div class="section-body">
@@ -1114,11 +1155,11 @@ code {
 </div>
 
 <!-- ═══════════════════════════════════
-     14 — FINISHED GOODS
+     15 — FINISHED GOODS
 ═══════════════════════════════════ -->
 <div class="page page-content">
   <div class="section-header">
-    <span class="section-num">14</span>
+    <span class="section-num">15</span>
     <h1>Finished Goods</h1>
   </div>
   <div class="section-body">
@@ -1148,11 +1189,11 @@ code {
 </div>
 
 <!-- ═══════════════════════════════════
-     15 — MANAGEMENT
+     16 — MANAGEMENT
 ═══════════════════════════════════ -->
 <div class="page page-content">
   <div class="section-header">
-    <span class="section-num">15</span>
+    <span class="section-num">16</span>
     <h1>Management</h1>
   </div>
   <div class="section-body">
@@ -1179,7 +1220,7 @@ code {
     <ul class="doc-list">
       <li><strong>General</strong> — Café name, currency, receipt details</li>
       <li><strong>Users</strong> — Add staff accounts, reset passwords, change roles</li>
-      <li><strong>Modules</strong> — Enable/disable optional modes (Supplier, Events, Production)</li>
+      <li><strong>Modules</strong> — Enable/disable optional modes (Supplier, Events, Production, Treasury)</li>
       <li><strong>Receipt</strong> — Customize what appears on printed and digital receipts</li>
       <li><strong>Cost Lab</strong> — Set global labor and overhead rates</li>
     </ul>
@@ -1226,11 +1267,11 @@ code {
 </div>
 
 <!-- ═══════════════════════════════════
-     16 — PLANS
+     17 — PLANS
 ═══════════════════════════════════ -->
 <div class="page page-content">
   <div class="section-header">
-    <span class="section-num">16</span>
+    <span class="section-num">17</span>
     <h1>Plans</h1>
   </div>
   <div class="section-body">
@@ -1257,7 +1298,7 @@ code {
           <li>All 12+ modules</li>
           <li>Unlimited products</li>
           <li>Unlimited transactions</li>
-          <li>All 4 optional modes</li>
+          <li>All 5 optional modes</li>
           <li>Export reports (PDF/CSV)</li>
           <li>Single location</li>
         </ul>
@@ -1312,11 +1353,11 @@ code {
 </div>
 
 <!-- ═══════════════════════════════════
-     17 — FAQ & REFERENCE
+     18 — FAQ & REFERENCE
 ═══════════════════════════════════ -->
 <div class="page page-content">
   <div class="section-header">
-    <span class="section-num">17</span>
+    <span class="section-num">18</span>
     <h1>FAQ &amp; Reference</h1>
   </div>
   <div class="section-body">
