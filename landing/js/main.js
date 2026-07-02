@@ -1,3 +1,19 @@
+/* ─── Promo bar ──────────────────────────────────────────────── */
+(() => {
+  const PROMO_KEY = 'caflat_promo_dismissed_v1';
+  const closeBtn = document.getElementById('promoBarClose');
+  if (!closeBtn) return;
+
+  if (!localStorage.getItem(PROMO_KEY)) {
+    document.body.classList.add('has-promo');
+  }
+
+  closeBtn.addEventListener('click', () => {
+    document.body.classList.remove('has-promo');
+    localStorage.setItem(PROMO_KEY, '1');
+  });
+})();
+
 /* ─── Nav scroll state ──────────────────────────────────────── */
 const nav = document.querySelector('nav');
 window.addEventListener('scroll', () => {
