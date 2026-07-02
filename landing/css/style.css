@@ -1261,6 +1261,29 @@ nav.scrolled {
 }
 .mock-qr-label { font-size: .72rem; color: var(--text-muted); font-weight: 600; }
 
+/* Treasury transaction rows */
+.mock-txn-list {
+  padding: 4px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--dark-border);
+  margin-top: 4px;
+}
+.mock-txn-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.mock-txn-row:last-child { border: none; }
+.mock-txn-desc { font-size: .78rem; font-weight: 600; color: rgba(244,242,238,.82); }
+.mock-txn-date { font-size: .6rem; color: var(--text-muted); margin-top: 2px; }
+.mock-txn-amt { font-size: .82rem; font-weight: 800; white-space: nowrap; }
+.mock-txn-amt.add    { color: var(--green); }
+.mock-txn-amt.deduct { color: var(--red); }
+
 /* Event cards */
 .mock-event-card {
   display: flex;
