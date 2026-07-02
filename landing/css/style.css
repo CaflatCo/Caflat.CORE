@@ -253,7 +253,9 @@ nav.scrolled {
   display: flex;
   align-items: center;
   padding: 160px 0 120px;
-  background: var(--dark);
+  /* warm lift at the top so the hero reads lighter than pure black */
+  background:
+    radial-gradient(ellipse 110% 85% at 50% 0%, #1a1611 0%, #100f0e 52%, var(--dark) 100%);
   overflow: hidden;
   text-align: center;
   position: relative;
@@ -263,8 +265,8 @@ nav.scrolled {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,.032) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.032) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse 80% 70% at 50% 8%, black 25%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 8%, black 25%, transparent 100%);
@@ -290,13 +292,13 @@ nav.scrolled {
 .hero-aurora-1 {
   width: 1100px; height: 780px;
   top: -22%; left: 50%; margin-left: -550px;
-  background: radial-gradient(ellipse 55% 42% at 50% 40%, rgba(200,163,117,.13) 0%, transparent 68%);
+  background: radial-gradient(ellipse 55% 42% at 50% 40%, rgba(200,163,117,.19) 0%, transparent 68%);
   animation: aurora-drift-1 38s ease-in-out infinite alternate;
 }
 .hero-aurora-2 {
   width: 900px; height: 700px;
   top: 4%; left: 50%; margin-left: -280px;
-  background: radial-gradient(ellipse 50% 40% at 50% 45%, rgba(255,255,255,.045) 0%, transparent 66%);
+  background: radial-gradient(ellipse 50% 40% at 50% 45%, rgba(255,255,255,.07) 0%, transparent 66%);
   animation: aurora-drift-2 52s ease-in-out infinite alternate;
 }
 @keyframes aurora-drift-1 {
@@ -387,6 +389,109 @@ nav.scrolled {
   12%  { opacity: 1; }
   85%  { opacity: .6; }
   100% { transform: translateY(-46vh);  opacity: 0; }
+}
+
+/* ─── The Pour — hands, pitcher, cup, milk stream ────────────── */
+.hero-hands {
+  position: absolute;
+  left: 50%;
+  top: 80px;
+  width: min(1240px, 98vw);
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hh-arm, .hh-hand {
+  stroke: rgba(244,242,238,.30);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hh-vessel {
+  stroke: rgba(244,242,238,.58);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hh-milkline {
+  stroke: rgba(244,242,238,.22);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.hh-steam {
+  stroke: rgba(200,163,117,.5);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+/* Entrance — hands slide in from their edges */
+.pour-left  { animation: hand-enter-left 1.1s cubic-bezier(.22,.61,.36,1) .5s both; }
+.pour-right { animation: hand-enter-right 1.1s cubic-bezier(.22,.61,.36,1) .7s both; }
+@keyframes hand-enter-left {
+  from { transform: translateX(-170px); opacity: 0; }
+  to   { transform: translateX(0);      opacity: 1; }
+}
+@keyframes hand-enter-right {
+  from { transform: translateX(170px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* Pour cycle — pitcher tips, stream draws down, ripple answers */
+.pour-tilt {
+  transform-box: fill-box;
+  transform-origin: 96% 10%; /* pivot near the spout */
+  animation: jug-tilt 7s ease-in-out 2s infinite;
+}
+@keyframes jug-tilt {
+  0%, 100% { transform: rotate(0deg); }
+  16%      { transform: rotate(-8deg); }
+  62%      { transform: rotate(-8deg); }
+  84%      { transform: rotate(0deg); }
+}
+
+.hh-stream {
+  stroke: rgba(244,242,238,.9);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  opacity: 0;
+  animation: stream-pour 7s ease-in-out 2s infinite;
+}
+@keyframes stream-pour {
+  0%, 16%  { stroke-dashoffset: 100;  opacity: 0; }
+  20%      { opacity: .9; }
+  28%      { stroke-dashoffset: 0; }
+  58%      { stroke-dashoffset: 0;    opacity: .9; }
+  72%      { stroke-dashoffset: -100; opacity: 0; }
+  100%     { stroke-dashoffset: -100; opacity: 0; }
+}
+
+.hh-ripple {
+  stroke: rgba(244,242,238,.45);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(.4);
+  opacity: 0;
+  animation: cup-ripple 7s ease-in-out 2s infinite;
+}
+@keyframes cup-ripple {
+  0%, 26%  { transform: scale(.4);  opacity: 0; }
+  34%      { transform: scale(1);   opacity: .55; }
+  48%      { transform: scale(1.18); opacity: .4; }
+  62%      { transform: scale(1.05); opacity: .3; }
+  74%, 100%{ transform: scale(.5);  opacity: 0; }
+}
+
+.hh-steam-1 { animation: steam-curl 5s ease-in-out 2.4s infinite; }
+.hh-steam-2 { animation: steam-curl 6.5s ease-in-out 4s infinite; }
+@keyframes steam-curl {
+  0%   { transform: translateY(8px);   opacity: 0; }
+  35%  { opacity: .8; }
+  70%  { opacity: .25; }
+  100% { transform: translateY(-14px); opacity: 0; }
 }
 
 /* Full-width bottom vignette — blends hero into the section below */
@@ -1838,6 +1943,8 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .hero-aurora, .hero-ring-orbit, .hero-wisp, .hero-dust, .hero-warm { animation: none; }
   .hero-wisp, .hero-dust { opacity: 0; }
   .hero-bg-motion { transition: none; }
+  .pour-left, .pour-right, .pour-tilt, .hh-stream, .hh-ripple, .hh-steam { animation: none; }
+  .hh-stream, .hh-ripple { opacity: 0; }
   .mode-how-dot   { animation: none; }
   .mode-how[open] .mode-how-steps::before,
   .mode-how[open] .mode-how-steps li,
@@ -1848,6 +1955,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
 /* ─── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 1060px) {
   .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-hands   { display: none; } /* side margins too tight for the pour scene */
 }
 
 @media (max-width: 1000px) {
@@ -1880,6 +1988,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .nav-hamburger { display: flex; }
   .hero-actions { flex-direction: column; align-items: center; }
   .hero-ring-orbit, .hero-wisp, .hero-dust { display: none; }
+  .hero-hands { display: none; }
   .fan-card-left, .fan-card-right { display: none; }
   .fan-card-center { transform: none; width: 100%; max-width: 360px; margin: 0 auto; }
   .hero-stat-div { display: none; }

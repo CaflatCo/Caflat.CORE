@@ -66,24 +66,50 @@
     <div class="hero-dust hero-dust-2"></div>
   </div>
 
-  <!-- Floating coffee marks -->
-  <div class="hero-deco" aria-hidden="true">
-    <svg class="deco-item deco-bean-1" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5">
-      <ellipse cx="32" cy="32" rx="17" ry="26" transform="rotate(-24 32 32)"/>
-      <path d="M24 12 C36 24 28 40 40 52" stroke-linecap="round"/>
-    </svg>
-    <svg class="deco-item deco-bean-2" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5">
-      <ellipse cx="32" cy="32" rx="17" ry="26" transform="rotate(14 32 32)"/>
-      <path d="M26 10 C38 24 26 40 38 54" stroke-linecap="round"/>
-    </svg>
-    <svg class="deco-item deco-ring" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="32" cy="32" r="24"/>
-      <circle cx="32" cy="32" r="15" opacity=".5"/>
-    </svg>
-    <svg class="deco-item deco-steam" viewBox="0 0 32 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-      <path d="M16 56 C8 46 24 38 16 28 C10 20 20 12 16 6"/>
-    </svg>
-  </div>
+  <!-- The Pour — hands in the side margins, milk arcing across behind the title -->
+  <svg class="hero-hands" viewBox="0 0 1200 520" fill="none" aria-hidden="true">
+    <!-- Left margin: hand + milk pitcher -->
+    <g class="pour-left">
+      <g class="pour-tilt">
+        <!-- forearm from left edge -->
+        <path class="hh-arm" d="M -10 196 C 40 192 78 190 104 190"/>
+        <path class="hh-arm" d="M -10 252 C 44 248 80 242 102 238"/>
+        <!-- hand gripping the handle -->
+        <path class="hh-hand" d="M 104 190 C 120 191 128 200 126 210 C 133 213 134 223 129 228 C 133 234 129 242 121 244 C 114 249 104 247 99 241 C 95 236 96 239 102 238"/>
+        <!-- pitcher handle -->
+        <path class="hh-vessel" d="M 128 172 C 106 180 104 226 126 234"/>
+        <!-- pitcher body, spout to the right -->
+        <path class="hh-vessel" d="M 132 162 L 226 146 L 254 156 L 232 168 L 242 230 C 239 248 158 258 142 242 Z"/>
+        <!-- milk fill hint inside -->
+        <path class="hh-milkline" d="M 150 178 L 224 164"/>
+      </g>
+    </g>
+
+    <!-- Milk stream — long arc crossing behind the headline -->
+    <path class="hh-stream" d="M 252 160 C 470 330 780 335 972 320" pathLength="100"/>
+
+    <!-- Right margin: hand + saucer + coffee cup -->
+    <g class="pour-right">
+      <!-- forearm from right edge -->
+      <path class="hh-arm" d="M 1210 436 C 1188 432 1168 427 1150 420"/>
+      <path class="hh-arm" d="M 1210 496 C 1190 486 1174 462 1162 446"/>
+      <!-- fingers under the saucer -->
+      <path class="hh-hand" d="M 1150 420 C 1128 415 1110 410 1096 407 M 1162 446 C 1140 438 1120 429 1106 421"/>
+      <!-- saucer -->
+      <path class="hh-vessel" d="M 913 402 C 946 418 1060 418 1093 402"/>
+      <path class="hh-vessel" opacity=".45" d="M 936 405 C 961 414 1045 414 1070 405"/>
+      <!-- cup -->
+      <path class="hh-vessel" d="M 929 330 C 929 372 956 396 1003 396 C 1050 396 1077 372 1077 330"/>
+      <ellipse class="hh-vessel" cx="1003" cy="330" rx="74" ry="13"/>
+      <!-- cup handle -->
+      <path class="hh-vessel" d="M 1077 342 C 1100 340 1104 367 1079 371"/>
+      <!-- ripple where the milk lands -->
+      <ellipse class="hh-ripple" cx="985" cy="330" rx="30" ry="6"/>
+      <!-- steam curls -->
+      <path class="hh-steam hh-steam-1" d="M 972 300 C 966 288 980 280 974 268 C 970 260 978 252 976 244"/>
+      <path class="hh-steam hh-steam-2" d="M 1032 304 C 1026 294 1038 286 1032 274 C 1028 266 1036 258 1034 250"/>
+    </g>
+  </svg>
 
   <div class="container hero-content reveal">
     <h1 class="hero-title">
