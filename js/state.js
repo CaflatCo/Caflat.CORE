@@ -14,7 +14,8 @@ const APP_STATE = {
     lowStockThreshold: 5,
     voidPin: '000000',          // Admin void PIN — changeable in Settings
     paymentQRImages: {},        // { gcash, maya, qrph } — base64 images
-    supplierModeEnabled: false  // Supplier Mode feature toggle
+    supplierModeEnabled: false, // Supplier Mode feature toggle
+    treasuryModeEnabled: false  // Treasury feature toggle
   },
 
   receiptCounter: 0,            // Sequential permanent counter, never resets
@@ -43,6 +44,10 @@ const APP_STATE = {
   originOrders: [],             // B2B wholesale orders
   originClients: [],            // Origin Mode client directory
   originOrderCounter: 0,        // Sequential origin order counter
+
+  // Treasury — manual cash/bank tracker, disconnected from inventory
+  treasuryAccounts: [],         // { id, name, type: 'cash'|'bank', openingBalance, createdAt }
+  treasuryTransactions: [],     // { id, accountId, kind: 'add'|'deduct', amount, reason, date, createdAt }
 
   costLabSettings: {
     targetMargin: 60,
@@ -91,6 +96,8 @@ function resetState() {
   APP_STATE.originOrders = [];
   APP_STATE.originClients = [];
   APP_STATE.originOrderCounter = 0;
+  APP_STATE.treasuryAccounts = [];
+  APP_STATE.treasuryTransactions = [];
   persistState();
 }
 

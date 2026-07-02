@@ -88,6 +88,7 @@ function renderEverything() {
     'applySupplierCartButton',
     'applyOriginModeToggle',
     'renderOriginDashboard',
+    'applyTreasuryModeToggle',
     'renderCostLab',
     'renderCart',
     'refreshDashboard',
@@ -243,6 +244,7 @@ function switchPage(target) {
   }
   if (cleanTarget === 'production' && typeof renderProductionView === 'function') renderProductionView();
   if (cleanTarget === 'origin'     && typeof renderOriginView    === 'function') renderOriginView();
+  if (cleanTarget === 'treasury'   && typeof renderTreasuryView  === 'function') renderTreasuryView();
   if (cleanTarget === 'costlab'    && typeof renderCostLab        === 'function') renderCostLab();
   if (cleanTarget === 'settings'   && typeof renderCloudBackupList === 'function') renderCloudBackupList();
   if (cleanTarget === 'inventory') {
@@ -291,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateOpsNavGroup() {
   const group = document.getElementById('navOpsGroup');
   if (!group) return;
-  const ids = ['navSupply', 'navProduction', 'navCoffeeCart'];
+  const ids = ['navSupply', 'navProduction', 'navCoffeeCart', 'navOrigin', 'navTreasury'];
   const anyVisible = ids.some(id => {
     const el = document.getElementById(id);
     return el && el.style.display !== 'none';
