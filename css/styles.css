@@ -1030,6 +1030,10 @@ tbody tr:hover td { background: var(--gray-50); }
 }
 
 /* ═══ TREASURY — app-like transaction entry ═══ */
+.ttx-modal h3 { text-align: center; }
+.ttx-modal .form-group label { text-align: center; }
+.ttx-modal .modal-actions { justify-content: center; }
+
 .ttx-kind-toggle {
   display: flex;
   gap: 8px;
@@ -1078,7 +1082,8 @@ tbody tr:hover td { background: var(--gray-50); }
   font-size: 40px;
   font-weight: 900;
   color: var(--black);
-  width: 100%;
+  text-align: center;
+  width: 9ch;
   max-width: 220px;
   padding: 0;
 }
@@ -1094,6 +1099,7 @@ tbody tr:hover td { background: var(--gray-50); }
 .ttx-chip-row {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
 }
 .ttx-chip {
