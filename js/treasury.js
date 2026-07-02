@@ -6,7 +6,46 @@
    never stored — so there is nothing to reconcile.
 ═══════════════════════════════════════════════════════ */
 
-const TREASURY_ACCOUNT_ICONS = { cash: '💵', bank: '🏦' };
+/* ── Icons — custom line-art, matches the app's monochrome nav-icon system ── */
+
+function _treasuryVaultIcon(size = 56) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 64 64" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gray-300);">
+    <rect x="8" y="6" width="48" height="52" rx="6"/>
+    <circle cx="28" cy="32" r="11"/>
+    <line x1="28" y1="24.5" x2="28" y2="27"/>
+    <line x1="34.3" y1="28.3" x2="32.4" y2="29.6"/>
+    <line x1="34.3" y1="35.7" x2="32.4" y2="34.4"/>
+    <line x1="21.7" y1="28.3" x2="23.6" y2="29.6"/>
+    <line x1="21.7" y1="35.7" x2="23.6" y2="34.4"/>
+    <circle cx="28" cy="32" r="2" fill="currentColor" stroke="none"/>
+    <path d="M43 27h5.5a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-2.5 2.5H43" stroke-linejoin="round"/>
+    <circle cx="15" cy="14" r="1.6" fill="currentColor" stroke="none"/>
+    <circle cx="49" cy="14" r="1.6" fill="currentColor" stroke="none"/>
+    <circle cx="15" cy="50" r="1.6" fill="currentColor" stroke="none"/>
+    <circle cx="49" cy="50" r="1.6" fill="currentColor" stroke="none"/>
+  </svg>`;
+}
+
+function _treasuryAccountIcon(type, size = 16) {
+  const common = `width="${size}" height="${size}" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"`;
+  if (type === 'cash') {
+    return `<svg ${common}>
+      <rect x="1.5" y="4" width="13" height="8" rx="1.25"/>
+      <circle cx="8" cy="8" r="2"/>
+      <line x1="3.25" y1="6" x2="3.25" y2="6"/>
+      <line x1="12.75" y1="10" x2="12.75" y2="10"/>
+    </svg>`;
+  }
+  // bank / fallback — matches the Treasury nav icon glyph
+  return `<svg ${common}>
+    <rect x="1.5" y="4" width="13" height="9" rx="1.5"/>
+    <circle cx="8" cy="8.5" r="2.25"/>
+    <line x1="4" y1="4" x2="4" y2="1.75"/>
+    <line x1="12" y1="4" x2="12" y2="1.75"/>
+  </svg>`;
+}
 
 /* ── Balance helpers ── */
 
@@ -34,7 +73,7 @@ function renderTreasuryView() {
   if (!accounts.length) {
     container.innerHTML = `
       <div style="text-align:center;padding:64px 24px;">
-        <div style="font-size:40px;margin-bottom:12px;">🏦</div>
+        <div style="margin-bottom:16px;">${_treasuryVaultIcon(56)}</div>
         <div style="font-size:16px;font-weight:800;margin-bottom:6px;">Add your first account</div>
         <div style="font-size:13px;color:var(--gray-500);margin-bottom:20px;max-width:360px;margin-left:auto;margin-right:auto;">
           Track your cash on hand and bank balances here. Fully manual, fully disconnected from inventory.
@@ -57,7 +96,7 @@ function renderTreasuryView() {
       </div>
       ${accounts.map(a => `
         <div class="stat-card">
-          <div class="label">${TREASURY_ACCOUNT_ICONS[a.type]||'💰'} ${escapeHtml(a.name)}</div>
+          <div class="label">${_treasuryAccountIcon(a.type, 14)} ${escapeHtml(a.name)}</div>
           <div class="value">${formatCurrency(getTreasuryAccountBalance(a.id))}</div>
           <div class="sub">${a.type === 'bank' ? 'Bank' : 'Cash'}</div>
         </div>`).join('')}
@@ -138,7 +177,7 @@ function openTreasuryTxnModal(id) {
       <div class="form-group">
         <label>Account</label>
         <select id="ttxAccount">
-          ${accounts.map(a => `<option value="${a.id}" ${t?.accountId===a.id?'selected':''}>${TREASURY_ACCOUNT_ICONS[a.type]||''} ${escapeHtml(a.name)}</option>`).join('')}
+          ${accounts.map(a => `<option value="${a.id}" ${t?.accountId===a.id?'selected':''}>${escapeHtml(a.name)}</option>`).join('')}
         </select>
       </div>
 
@@ -245,7 +284,7 @@ function _renderTreasuryAccountsModal() {
             <div style="display:flex;align-items:center;justify-content:space-between;
               padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-lg);">
               <div>
-                <div style="font-size:13px;font-weight:700;">${TREASURY_ACCOUNT_ICONS[a.type]||''} ${escapeHtml(a.name)}</div>
+                <div style="font-size:13px;font-weight:700;">${_treasuryAccountIcon(a.type, 14)} ${escapeHtml(a.name)}</div>
                 <div style="font-size:11px;color:var(--gray-400);">${formatCurrency(getTreasuryAccountBalance(a.id))} · ${a.type === 'bank' ? 'Bank' : 'Cash'}</div>
               </div>
               <button class="btn btn-sm btn-secondary" type="button" style="color:var(--danger);"
