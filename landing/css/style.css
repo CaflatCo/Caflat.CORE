@@ -253,9 +253,7 @@ nav.scrolled {
   display: flex;
   align-items: center;
   padding: 160px 0 120px;
-  /* warm lift at the top so the hero reads lighter than pure black */
-  background:
-    radial-gradient(ellipse 110% 85% at 50% 0%, #1a1611 0%, #100f0e 52%, var(--dark) 100%);
+  background: var(--dark);
   overflow: hidden;
   text-align: center;
   position: relative;
@@ -265,8 +263,8 @@ nav.scrolled {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,.032) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.032) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse 80% 70% at 50% 8%, black 25%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 8%, black 25%, transparent 100%);
@@ -274,155 +272,58 @@ nav.scrolled {
   z-index: 0;
 }
 
-/* ─── Midnight Roast — layered ambient motion ────────────────── */
-.hero-bg-motion {
+/* Warm coffee glow — slightly stronger to fill atmosphere */
+.hero-warm-glow {
   position: absolute;
-  inset: 0;
+  top: -8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1200px;
+  height: 800px;
+  background:
+    radial-gradient(ellipse 60% 42% at 50% 10%, rgba(200,163,117,.15) 0%, transparent 70%),
+    radial-gradient(ellipse 85% 65% at 50% 24%, rgba(255,255,255,.032) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
-  transform: translate(var(--par-x, 0px), var(--par-y, 0px));
-  transition: transform .6s ease-out;
 }
 
-/* Aurora — two huge soft blobs drifting on long alternate loops */
-.hero-aurora {
+/* Hero photo — espresso machine, full-width to eliminate hard left edge */
+.hero-photo-right {
   position: absolute;
-  border-radius: 50%;
+  right: 0;
+  top: 0;
+  width: 100%;   /* full-width: gradient masks left side — no visible seam */
+  height: 100%;
+  background-image: url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1000&q=75&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center 30%;
+  pointer-events: none;
+  z-index: 0;
 }
-.hero-aurora-1 {
-  width: 1100px; height: 780px;
-  top: -22%; left: 50%; margin-left: -550px;
-  background: radial-gradient(ellipse 55% 42% at 50% 40%, rgba(200,163,117,.19) 0%, transparent 68%);
-  animation: aurora-drift-1 38s ease-in-out infinite alternate;
-}
-.hero-aurora-2 {
-  width: 900px; height: 700px;
-  top: 4%; left: 50%; margin-left: -280px;
-  background: radial-gradient(ellipse 50% 40% at 50% 45%, rgba(255,255,255,.07) 0%, transparent 66%);
-  animation: aurora-drift-2 52s ease-in-out infinite alternate;
-}
-@keyframes aurora-drift-1 {
-  from { transform: translate(-60px, 0)   scale(1); }
-  to   { transform: translate(70px, 40px) scale(1.12); }
-}
-@keyframes aurora-drift-2 {
-  from { transform: translate(50px, 20px)  scale(1.08); }
-  to   { transform: translate(-70px, -25px) scale(.96); }
-}
-
-/* The Ring — slow-rotating circle with an orbiting gold bean-dot */
-.hero-ring-orbit {
-  position: absolute;
-  width: 780px; height: 780px;
-  top: 50%; left: 50%;
-  margin: -390px 0 0 -140px;
-  border: 1px solid rgba(200,163,117,.13);
-  border-radius: 50%;
-  animation: ring-spin 140s linear infinite;
-}
-.hero-ring-orbit::before {
+.hero-photo-right::before {
   content: '';
   position: absolute;
-  top: -3px; left: 50%;
-  width: 6px; height: 6px;
-  margin-left: -3px;
-  border-radius: 50%;
-  background: var(--coffee);
-  box-shadow: 0 0 12px 2px rgba(200,163,117,.5);
-}
-/* faint inner ring for depth */
-.hero-ring-orbit::after {
-  content: '';
-  position: absolute;
-  inset: 90px;
-  border: 1px solid rgba(255,255,255,.045);
-  border-radius: 50%;
-}
-@keyframes ring-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-/* Steam wisps — thin streaks rising behind the headline */
-.hero-wisp {
-  position: absolute;
-  width: 2px; height: 190px;
-  background: linear-gradient(to top, transparent, rgba(244,242,238,.11) 45%, transparent);
-  opacity: 0;
-}
-.hero-wisp-1 { left: 30%; top: 34%; animation: wisp-rise  9s ease-in-out infinite .8s; }
-.hero-wisp-2 { left: 51%; top: 28%; animation: wisp-rise 12s ease-in-out infinite 3.5s; }
-.hero-wisp-3 { left: 69%; top: 36%; animation: wisp-rise 15s ease-in-out infinite 6s; }
-@keyframes wisp-rise {
-  0%   { transform: translateY(46px) skewX(0deg);  opacity: 0; }
-  35%  { opacity: .85; }
-  70%  { opacity: .3; }
-  100% { transform: translateY(-70px) skewX(-6deg); opacity: 0; }
+  inset: 0;
+  background:
+    linear-gradient(to right,
+      var(--dark)              0%,
+      var(--dark)             30%,
+      rgba(10,10,11,.88)      42%,
+      rgba(10,10,11,.52)      58%,
+      rgba(10,10,11,.38)      72%,
+      rgba(10,10,11,.55)      86%,
+      rgba(10,10,11,.72)     100%
+    ),
+    linear-gradient(to bottom,
+      rgba(10,10,11,.90)       0%,
+      rgba(10,10,11,.20)      16%,
+      transparent             30%,
+      transparent             72%,
+      rgba(10,10,11,.94)     100%
+    );
+  z-index: 1;
 }
 
-/* Gold dust — crema specks drifting upward (box-shadow star field) */
-.hero-dust {
-  position: absolute;
-  width: 2px; height: 2px;
-  border-radius: 50%;
-  background: transparent;
-}
-.hero-dust-1 {
-  top: 68%; left: 12%;
-  box-shadow:
-    40px -30px 0 rgba(200,163,117,.30), 180px 10px 0 rgba(244,242,238,.14),
-    320px -60px 0 rgba(200,163,117,.22), 460px 24px 0 rgba(244,242,238,.10),
-    620px -20px 0 rgba(200,163,117,.26), 760px -70px 0 rgba(244,242,238,.12),
-    900px 6px 0 rgba(200,163,117,.18);
-  animation: dust-drift 26s linear infinite;
-}
-.hero-dust-2 {
-  top: 82%; left: 6%;
-  box-shadow:
-    90px -40px 0 rgba(244,242,238,.10), 250px 16px 0 rgba(200,163,117,.24),
-    410px -55px 0 rgba(244,242,238,.13), 570px 10px 0 rgba(200,163,117,.18),
-    730px -35px 0 rgba(244,242,238,.09), 890px -8px 0 rgba(200,163,117,.22);
-  animation: dust-drift 34s linear infinite 9s;
-}
-@keyframes dust-drift {
-  0%   { transform: translateY(0);      opacity: 0; }
-  12%  { opacity: 1; }
-  85%  { opacity: .6; }
-  100% { transform: translateY(-46vh);  opacity: 0; }
-}
-
-/* Crema — enormous latte swirl, rotating once every 3 minutes.
-   Felt more than seen: soft conic arms masked to a borderless disc. */
-.hero-crema {
-  position: absolute;
-  width: 1600px;
-  height: 1600px;
-  left: 50%;
-  top: -55%;
-  margin-left: -800px;
-  border-radius: 50%;
-  background: conic-gradient(
-    from 20deg,
-    transparent 0deg,
-    rgba(200,163,117,.055) 28deg,
-    transparent 62deg,
-    rgba(255,255,255,.022) 96deg,
-    transparent 128deg,
-    rgba(200,163,117,.045) 165deg,
-    transparent 200deg,
-    rgba(255,255,255,.018) 236deg,
-    transparent 268deg,
-    rgba(200,163,117,.05) 305deg,
-    transparent 340deg,
-    transparent 360deg
-  );
-  mask-image: radial-gradient(circle, black 28%, transparent 66%);
-  -webkit-mask-image: radial-gradient(circle, black 28%, transparent 66%);
-  animation: crema-spin 180s linear infinite;
-}
-@keyframes crema-spin {
-  to { transform: rotate(360deg); }
-}
 
 /* Full-width bottom vignette — blends hero into the section below */
 .hero::after {
@@ -1870,10 +1771,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
     transform: none !important;
   }
   .deco-item      { animation: none; }
-  .hero-aurora, .hero-ring-orbit, .hero-wisp, .hero-dust, .hero-warm,
-  .hero-crema { animation: none; }
-  .hero-wisp, .hero-dust { opacity: 0; }
-  .hero-bg-motion { transition: none; }
+  .hero-warm      { animation: none; }
   .mode-how-dot   { animation: none; }
   .mode-how[open] .mode-how-steps::before,
   .mode-how[open] .mode-how-steps li,
@@ -1915,7 +1813,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .nav-links { display: none; }
   .nav-hamburger { display: flex; }
   .hero-actions { flex-direction: column; align-items: center; }
-  .hero-ring-orbit, .hero-wisp, .hero-dust { display: none; }
+  .hero-photo-right { width: 100%; opacity: 0.22; }
   .fan-card-left, .fan-card-right { display: none; }
   .fan-card-center { transform: none; width: 100%; max-width: 360px; margin: 0 auto; }
   .hero-stat-div { display: none; }

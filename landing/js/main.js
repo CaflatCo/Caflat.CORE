@@ -239,25 +239,3 @@ document.querySelectorAll('.mode-how').forEach(details => {
     }
   });
 });
-
-/* ─── Hero pointer parallax ─────────────────────────────────── */
-(() => {
-  const hero = document.querySelector('.hero');
-  const layer = document.querySelector('.hero-bg-motion');
-  if (!hero || !layer) return;
-  if (!window.matchMedia('(pointer: fine)').matches) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  hero.addEventListener('pointermove', e => {
-    const r = hero.getBoundingClientRect();
-    const nx = (e.clientX - r.left) / r.width  - .5; // -0.5 … 0.5
-    const ny = (e.clientY - r.top)  / r.height - .5;
-    layer.style.setProperty('--par-x', (nx * -24).toFixed(1) + 'px');
-    layer.style.setProperty('--par-y', (ny * -16).toFixed(1) + 'px');
-  }, { passive: true });
-
-  hero.addEventListener('pointerleave', () => {
-    layer.style.setProperty('--par-x', '0px');
-    layer.style.setProperty('--par-y', '0px');
-  });
-})();
