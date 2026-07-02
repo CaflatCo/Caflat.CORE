@@ -191,3 +191,22 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
+
+/* ─── "How it works" animated close ────────────────────────── */
+document.querySelectorAll('.mode-how').forEach(details => {
+  const toggle = details.querySelector('.mode-how-toggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', e => {
+    if (!details.open || details.classList.contains('closing')) return;
+    e.preventDefault();
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      details.open = false;
+      return;
+    }
+    details.classList.add('closing');
+    setTimeout(() => {
+      details.open = false;
+      details.classList.remove('closing');
+    }, 440);
+  });
+});
