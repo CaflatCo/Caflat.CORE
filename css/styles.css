@@ -1127,9 +1127,6 @@ tbody tr:hover td { background: var(--gray-50); }
 }
 .ttx-suggest-chip:hover { border-color: var(--black); border-style: solid; color: var(--black); }
 
-.ttx-save-btn.is-add    { background: var(--success); border-color: var(--success); }
-.ttx-save-btn.is-deduct { background: var(--danger);  border-color: var(--danger); }
-
 /* ═══ DASHBOARD ═══ */
 .stats-grid {
   display: grid;
