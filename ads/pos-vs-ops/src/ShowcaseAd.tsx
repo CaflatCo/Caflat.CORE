@@ -17,6 +17,7 @@ import {
 } from "./scenes/RapidFlashScene";
 import { ShowcasePayoffScene } from "./scenes/ShowcasePayoffScene";
 import { ShowcaseEndCard } from "./scenes/ShowcaseEndCard";
+import { SfxTrack } from "./SfxTrack";
 import { MODE_ICONS } from "./components/icons";
 import { EspressoCup } from "./components/illustrations/EspressoCup";
 import { SupplierHandoff } from "./components/illustrations/SupplierHandoff";
@@ -33,10 +34,11 @@ import { TreasuryScreen } from "./screens/TreasuryScreen";
 import { theme } from "./theme";
 
 const COLD_OPEN_DUR = 120;
-const PAYOFF_DUR = 100;
+const PAYOFF_DUR = 120;
 const ENDCARD_DUR = 130;
 
 const T_FADE = 18;
+const T_FADE_SLOW = 24;
 const T_SLIDE = 22;
 const LIGHT_LEAK_DUR = 40;
 
@@ -116,7 +118,7 @@ export const calculateShowcaseDuration = () => {
     T_FADE + // cold open -> first vignette
     (VIGNETTES.length - 1) * T_SLIDE + // between vignettes
     // last vignette -> rapid flash: hard cut under a LightLeak overlay
-    T_FADE + // rapid flash -> payoff
+    T_FADE_SLOW + // rapid flash -> payoff (unhurried)
     T_FADE; // payoff -> end card
   return sumScenes - sumTransitions;
 };
@@ -126,17 +128,19 @@ export const ShowcaseAd: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: theme.dark }}>
+      {/* quiet music bed under the SFX */}
       <Audio
-        src={staticFile("music.wav")}
+        src={staticFile("bg-music.mp3")}
         volume={(f: number) =>
           interpolate(
             f,
-            [0, 30, totalDuration - 40, totalDuration],
-            [0, 0.5, 0.5, 0],
+            [0, 30, totalDuration - 60, totalDuration],
+            [0, 0.22, 0.22, 0],
             { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
           )
         }
       />
+      <SfxTrack />
 
       <TransitionSeries>
         <TransitionSeries.Sequence durationInFrames={COLD_OPEN_DUR}>
@@ -178,7 +182,7 @@ export const ShowcaseAd: React.FC = () => {
 
         <TransitionSeries.Transition
           presentation={fade()}
-          timing={linearTiming({ durationInFrames: T_FADE })}
+          timing={linearTiming({ durationInFrames: T_FADE_SLOW })}
         />
 
         <TransitionSeries.Sequence durationInFrames={PAYOFF_DUR}>

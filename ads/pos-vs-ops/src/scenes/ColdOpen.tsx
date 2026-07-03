@@ -77,7 +77,7 @@ export const ColdOpen: React.FC = () => {
               color: theme.coffee,
             }}
           >
-            Run everything.
+            Your entire café. Connected.
           </div>
         </div>
       </AbsoluteFill>

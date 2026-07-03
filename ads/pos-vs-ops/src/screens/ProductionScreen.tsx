@@ -8,10 +8,15 @@ const Card: React.FC<{
   sub: string;
   highlight?: boolean;
   slideX?: number;
-}> = ({ title, sub, highlight, slideX = 0 }) => (
+  lift?: number;
+}> = ({ title, sub, highlight, slideX = 0, lift = 0 }) => (
   <div
     style={{
-      translate: `${slideX}px 0px`,
+      translate: `${slideX}px ${-6 * lift}px`,
+      scale: 1 + lift * 0.06,
+      boxShadow: lift > 0.05 ? `0 ${14 * lift}px ${30 * lift}px rgba(0,0,0,0.5)` : "none",
+      position: "relative",
+      zIndex: lift > 0.05 ? 2 : 1,
       background: highlight
         ? "rgba(61,189,122,0.10)"
         : "rgba(255,255,255,0.05)",
@@ -103,6 +108,7 @@ export const ProductionScreen: React.FC = () => {
                     sub="48 units · Ana"
                     highlight={crossed}
                     slideX={cardX}
+                    lift={Math.sin(cross * Math.PI)}
                   />
                   <Card title="Sourdough #9" sub="20 units · Marco" />
                 </>

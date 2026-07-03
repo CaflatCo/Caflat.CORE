@@ -3,6 +3,7 @@ import {
   AbsoluteFill,
   Easing,
   interpolate,
+  Sequence,
   useCurrentFrame,
 } from "remotion";
 import { VignetteStage } from "../components/VignetteStage";
@@ -75,7 +76,12 @@ export const ModeVignette: React.FC<ModeVignetteProps> = ({
               startFrame={cutStart + 6}
               screenTitle={screenTitle}
             >
-              <Screen />
+              {/* screen animations start counting only once the
+                  tablet is revealed — not while the illustration
+                  still covers it */}
+              <Sequence from={cutStart + 10} layout="none">
+                <Screen />
+              </Sequence>
             </TabletMockup>
           </div>
         </AbsoluteFill>
@@ -113,20 +119,20 @@ export const ModeVignette: React.FC<ModeVignetteProps> = ({
             translate: `0px ${(1 - labelIn) * -16 + 130}px`,
             display: "flex",
             alignItems: "center",
-            gap: 16,
-            border: "1px solid rgba(200,163,117,0.45)",
-            background: "rgba(10,10,11,0.55)",
+            gap: 20,
+            border: "1.5px solid rgba(200,163,117,0.5)",
+            background: "rgba(10,10,11,0.6)",
             borderRadius: 999,
-            padding: "14px 34px",
+            padding: "18px 44px",
           }}
         >
-          <AnimatedIcon paths={icon} size={34} delayFrames={6} />
+          <AnimatedIcon paths={icon} size={46} delayFrames={6} />
           <span
             style={{
               fontFamily,
-              fontWeight: 700,
-              fontSize: 27,
-              letterSpacing: 6,
+              fontWeight: 800,
+              fontSize: 38,
+              letterSpacing: 5,
               textTransform: "uppercase",
               color: theme.cream,
             }}
