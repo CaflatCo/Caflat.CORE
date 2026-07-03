@@ -38,7 +38,7 @@ export const MiniBarChart: React.FC<{
         const grow = interpolate(localBar, [0, 22], [0, 1], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
-          easing: Easing.bezier(0.16, 1, 0.3, 1),
+          easing: Easing.inOut(Easing.cubic),
         });
         const barHeight = (d.value / max) * (height - 34) * grow;
 
