@@ -95,6 +95,9 @@ const StationCard: React.FC<{
     extrapolateRight: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
+  // During the pull-back every card is on screen at once — large blur
+  // shadows there make 4K software rasterization catastrophically slow.
+  const heavyShadows = frame < 440;
 
   return (
   <div
@@ -110,7 +113,7 @@ const StationCard: React.FC<{
       border: "1.5px solid rgba(200,163,117,0.4)",
       borderRadius: 24,
       padding: "30px 40px 24px",
-      boxShadow: "0 40px 90px rgba(0,0,0,0.5)",
+      boxShadow: heavyShadows ? "0 40px 90px rgba(0,0,0,0.5)" : "none",
     }}
   >
     <div
@@ -435,8 +438,8 @@ const ChainAct: React.FC = () => {
             height: 1390,
             border: "3px solid #2a2a30",
             borderRadius: 46,
-            boxShadow:
-              "0 0 0 14px #060607, 0 60px 140px rgba(0,0,0,0.7)",
+            // hard offset ring only — no blur, cheap at 4K
+            boxShadow: "0 0 0 14px #060607",
           }}
         />
       </AbsoluteFill>
