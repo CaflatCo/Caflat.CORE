@@ -6,11 +6,11 @@ import { fontFamily, theme } from "../theme";
  * used everywhere a "state A" → "state B" color needs to happen over
  * time instead of snapping at a threshold frame. */
 type RGBA = [number, number, number, number];
-const hexToRgba = (hex: string, alpha = 1): RGBA => {
+export const hexToRgba = (hex: string, alpha = 1): RGBA => {
   const n = parseInt(hex.replace("#", ""), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255, alpha];
 };
-const lerpRgba = (a: RGBA, b: RGBA, t: number): string => {
+export const lerpRgba = (a: RGBA, b: RGBA, t: number): string => {
   const r = a[0] + (b[0] - a[0]) * t;
   const g = a[1] + (b[1] - a[1]) * t;
   const bch = a[2] + (b[2] - a[2]) * t;

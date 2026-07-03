@@ -6,6 +6,7 @@ import { Composition } from "remotion";
 void fontsReady;
 import { ShowcaseAd, calculateShowcaseDuration } from "./ShowcaseAd";
 import { Reel1, REEL1_DURATION } from "./reels/Reel1";
+import { Reel2, REEL2_DURATION } from "./reels/Reel2";
 import { WIDTH, HEIGHT, FPS } from "./theme";
 
 export const RemotionRoot: React.FC = () => {
@@ -23,6 +24,14 @@ export const RemotionRoot: React.FC = () => {
         id="Reel1PosVsPlatform"
         component={Reel1}
         durationInFrames={REEL1_DURATION}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+      />
+      <Composition
+        id="Reel2LeakingMoney"
+        component={Reel2}
+        durationInFrames={REEL2_DURATION}
         fps={FPS}
         width={WIDTH}
         height={HEIGHT}
