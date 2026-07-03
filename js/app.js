@@ -220,11 +220,7 @@ function switchPage(target) {
   if (cleanTarget === 'reports'   && typeof renderReports      === 'function') renderReports();
   if (cleanTarget === 'supply'    && typeof renderSupplyView      === 'function') renderSupplyView();
   if (cleanTarget === 'coffeecart' && typeof renderCoffeeCartView === 'function') renderCoffeeCartView();
-  if (cleanTarget === 'lab') {
-    if (typeof renderLabView === 'function') renderLabView();
-    const openLabBtn = document.getElementById('openLabBtn');
-    if (openLabBtn) openLabBtn.textContent = '← Back to Products';
-  }
+  if (cleanTarget === 'lab' && typeof renderLabView === 'function') renderLabView();
   if (cleanTarget === 'recipes') {
     if (typeof renderRecipeCatalog === 'function') renderRecipeCatalog();
     const openRecipesBtn = document.getElementById('openRecipesBtn');
@@ -238,8 +234,6 @@ function switchPage(target) {
     if (formView)  formView.style.display  = 'none';
   }
   if (cleanTarget === 'products') {
-    const openLabBtn = document.getElementById('openLabBtn');
-    if (openLabBtn) openLabBtn.textContent = 'Open Lab ↗';
     const openRecipesBtn = document.getElementById('openRecipesBtn');
     if (openRecipesBtn) openRecipesBtn.textContent = 'Recipes ↗';
   }

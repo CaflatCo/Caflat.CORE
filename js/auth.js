@@ -134,8 +134,8 @@ function applyRoleAccess(role) {
   });
 
   /* ── Products page ── */
-  // Staff can VIEW products but not add/edit/delete/export/lab
-  ['addProductBtn', 'exportDataBtnProducts', 'loadDemoBtnProducts', 'openLabBtn'].forEach(
+  // Staff can VIEW products but not add/edit/delete/export
+  ['addProductBtn', 'exportDataBtnProducts', 'loadDemoBtnProducts'].forEach(
     id => isAdmin ? show(id) : hide(id)
   );
   // Edit/Delete buttons in product table — re-render handles this via renderProductsTable
