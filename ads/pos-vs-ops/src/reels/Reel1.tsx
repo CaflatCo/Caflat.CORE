@@ -60,9 +60,9 @@ const FOCUS_SEGS: Seg[] = [
 
 const SCALE_SEGS: Seg[] = [
   [0, 445, 1, 1],
-  [445, 545, 1, 0.42],
-  [545, 605, 0.42, 0.36],
-  [605, 660, 0.36, 0.36],
+  [445, 545, 1, 0.4],
+  [545, 605, 0.4, 0.33],
+  [605, 660, 0.33, 0.33],
 ];
 
 const segValue = (segs: Seg[], frame: number): number => {
@@ -86,14 +86,26 @@ export const REEL1_DURATION = CHAIN_DUR + PAYOFF_DUR - T_SLIDE; // 808
 const StationCard: React.FC<{
   y: number;
   label: string;
+  revealAt: number;
   children: React.ReactNode;
-}> = ({ y, label, children }) => (
+}> = ({ y, label, revealAt, children }) => {
+  const frame = useCurrentFrame();
+  const reveal = interpolate(frame, [revealAt, revealAt + 26], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
+  });
+
+  return (
   <div
     style={{
       position: "absolute",
       top: y - 330,
       left: 120,
       width: 840,
+      opacity: reveal,
+      translate: `0px ${(1 - reveal) * 44}px`,
+      scale: 0.95 + reveal * 0.05,
       background: "rgba(10,10,11,0.88)",
       border: "1.5px solid rgba(200,163,117,0.4)",
       borderRadius: 24,
@@ -116,7 +128,8 @@ const StationCard: React.FC<{
     </div>
     {children}
   </div>
-);
+  );
+};
 
 /* ── stations ───────────────────────────────────────────────── */
 
@@ -393,7 +406,12 @@ const ChainAct: React.FC = () => {
 
         {/* stations */}
         {STATIONS.map(({ label, dwell, Content }, i) => (
-          <StationCard key={label} y={ST_Y[i]} label={label}>
+          <StationCard
+            key={label}
+            y={ST_Y[i]}
+            label={label}
+            revealAt={dwell - 34}
+          >
             <Sequence from={dwell - 6} layout="none">
               <Content />
             </Sequence>
@@ -413,8 +431,8 @@ const ChainAct: React.FC = () => {
           style={{
             opacity: bezelIn,
             scale: 1.18 - bezelIn * 0.18,
-            width: 830,
-            height: 1560,
+            width: 790,
+            height: 1390,
             border: "3px solid #2a2a30",
             borderRadius: 46,
             boxShadow:
@@ -428,12 +446,12 @@ const ChainAct: React.FC = () => {
         <div
           style={{
             position: "absolute",
-            bottom: 120,
+            bottom: 64,
             opacity: revealText,
             translate: `0px ${(1 - revealText) * 18}px`,
             fontFamily,
             fontWeight: 900,
-            fontSize: 62,
+            fontSize: 58,
             color: "#ffffff",
             textAlign: "center",
           }}
@@ -504,7 +522,7 @@ const PayoffCta: React.FC = () => {
               textAlign: "center",
             }}
           >
-            A POS rings the sale.
+            You sell the coffee.
           </div>
           <div
             style={{
@@ -519,10 +537,8 @@ const PayoffCta: React.FC = () => {
               maxWidth: 880,
             }}
           >
-            Caflat.CORE runs{" "}
-            <span style={{ color: theme.coffee }}>
-              everything it triggers.
-            </span>
+            Caflat.CORE{" "}
+            <span style={{ color: theme.coffee }}>handles the rest.</span>
           </div>
 
           <div
@@ -578,6 +594,57 @@ const PayoffCta: React.FC = () => {
   );
 };
 
+/* ── futuristic UI sound design ─────────────────────────────── */
+
+type SfxEvent = { file: string; frame: number; volume: number };
+
+const REEL1_SFX: SfxEvent[] = [
+  // hook
+  { file: "swish", frame: 6, volume: 0.3 }, // "One coffee sale."
+  { file: "pop", frame: 26, volume: 0.55 }, // $4.50 chip
+  { file: "swish", frame: 36, volume: 0.3 }, // "Watch what it triggers"
+
+  // spark travels (one glide per station)
+  { file: "glide", frame: 75, volume: 0.5 },
+  { file: "glide", frame: 165, volume: 0.5 },
+  { file: "glide", frame: 255, volume: 0.5 },
+  { file: "glide", frame: 345, volume: 0.5 },
+
+  // cards materialize
+  { file: "activate", frame: 81, volume: 0.55 },
+  { file: "activate", frame: 171, volume: 0.55 },
+  { file: "activate", frame: 261, volume: 0.55 },
+  { file: "activate", frame: 351, volume: 0.55 },
+
+  // station 1 — inventory drains, then confirmed
+  { file: "tickdown", frame: 110, volume: 0.5 },
+  { file: "confirm", frame: 143, volume: 0.45 },
+
+  // station 2 — alert + reorder
+  { file: "alertf", frame: 203, volume: 0.55 },
+  { file: "swish", frame: 221, volume: 0.4 },
+
+  // station 3 — delivered + balance pays down
+  { file: "confirm", frame: 315, volume: 0.5 },
+  { file: "tickdown", frame: 329, volume: 0.5 },
+
+  // station 4 — ledger rows, balance, recorded
+  { file: "activate", frame: 381, volume: 0.35 },
+  { file: "activate", frame: 391, volume: 0.35 },
+  { file: "tickup", frame: 405, volume: 0.5 },
+  { file: "confirm", frame: 423, volume: 0.45 },
+
+  // reveal
+  { file: "pullback", frame: 445, volume: 0.55 },
+  { file: "dock", frame: 560, volume: 0.5 },
+  { file: "pop", frame: 590, volume: 0.4 }, // "All of it. Automatic."
+
+  // payoff + CTA (scene starts at 638)
+  { file: "swish", frame: 638, volume: 0.5 },
+  { file: "swish", frame: 662, volume: 0.3 },
+  { file: "pop", frame: 726, volume: 0.5 }, // follow pill
+];
+
 /* ── composition ────────────────────────────────────────────── */
 
 export const Reel1: React.FC = () => {
@@ -594,6 +661,11 @@ export const Reel1: React.FC = () => {
           )
         }
       />
+      {REEL1_SFX.map((e, i) => (
+        <Sequence key={i} from={e.frame} layout="none">
+          <Audio src={staticFile(`sfx/${e.file}.wav`)} volume={e.volume} />
+        </Sequence>
+      ))}
 
       <TransitionSeries>
         <TransitionSeries.Sequence durationInFrames={CHAIN_DUR}>
