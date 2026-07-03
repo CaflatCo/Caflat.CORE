@@ -17,7 +17,6 @@ import {
 } from "./scenes/RapidFlashScene";
 import { ShowcasePayoffScene } from "./scenes/ShowcasePayoffScene";
 import { ShowcaseEndCard } from "./scenes/ShowcaseEndCard";
-import { SfxTrack } from "./SfxTrack";
 import { MODE_ICONS } from "./components/icons";
 import { EspressoCup } from "./components/illustrations/EspressoCup";
 import { SupplierHandoff } from "./components/illustrations/SupplierHandoff";
@@ -140,7 +139,6 @@ export const ShowcaseAd: React.FC = () => {
           )
         }
       />
-      <SfxTrack />
 
       <TransitionSeries>
         <TransitionSeries.Sequence durationInFrames={COLD_OPEN_DUR}>

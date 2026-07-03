@@ -104,23 +104,22 @@ export const ProductionScreen: React.FC = () => {
                 <>
                   {/* travelling card — rendered in the left column, slides right */}
                   <Card
-                    title="Cookie Dough #12"
+                    title="Cookies #12"
                     sub="48 units · Ana"
                     highlight={crossed}
                     slideX={cardX}
                     lift={Math.sin(cross * Math.PI)}
                   />
                   <Card title="Sourdough #9" sub="20 units · Marco" />
+                  <Card title="Banana Bread #8" sub="16 units · Liya" />
                 </>
               ) : (
-                <>
-                  {/* invisible placeholder reserving the landing slot for
-                      the travelling card — keeps it from overlapping */}
-                  <div style={{ opacity: 0 }}>
-                    <Card title="Cookie Dough #12" sub="48 units · Ana" />
-                  </div>
-                  <Card title="Banana Bread #8" sub="16 units ✓" />
-                </>
+                /* invisible placeholder reserving the landing slot for
+                   the travelling card — keeps the column empty until
+                   it arrives */
+                <div style={{ opacity: 0 }}>
+                  <Card title="Cookies #12" sub="48 units · Ana" />
+                </div>
               )}
             </div>
           </div>
