@@ -8,481 +8,569 @@ import {
   useCurrentFrame,
 } from "remotion";
 import { Audio } from "@remotion/media";
-import { LightLeak } from "@remotion/light-leaks";
+import {
+  TransitionSeries,
+  springTiming,
+} from "@remotion/transitions";
+import { slide } from "@remotion/transitions/slide";
+import { VignetteStage } from "../components/VignetteStage";
+import { EspressoCup } from "../components/illustrations/EspressoCup";
+import {
+  CountUp,
+  FlipChip,
+  LevelBar,
+  PopBadge,
+  ScreenRow,
+} from "../screens/screenUi";
 import { CinematicBackground } from "../components/CinematicBackground";
-import { LevelBar, PopBadge } from "../screens/screenUi";
 import { fontFamily, theme } from "../theme";
 
 /**
- * Reel 1 — "POS vs. Operations Platform" (~25s, 1080×1920)
- * Hook → stacked split-frame comparison → payoff → CTA.
- * House style throughout; render with --scale=2 for 2160×3840.
+ * Reel 1 (redo) — "One sale. Watch what it triggers."
+ * A chain-reaction one-take: a gold fuse carries a spark from a single
+ * coffee sale down through inventory → alert → supplier → ledger,
+ * then the camera pulls back to reveal the whole machine and swallows
+ * it into a tablet. No mid-video cuts.
  */
 
-const HOOK_DUR = 105;
-const SPLIT_START = 105;
-const SPLIT_DUR = 400;
-const PAYOFF_START = SPLIT_START + SPLIT_DUR; // 505
-const PAYOFF_DUR = 130;
-const CTA_START = PAYOFF_START + PAYOFF_DUR; // 635
-const CTA_DUR = 115;
-export const REEL1_DURATION = CTA_START + CTA_DUR; // 750
+/* ── world geometry ─────────────────────────────────────────── */
 
-/* ── Hook ─────────────────────────────────────────────────────── */
+const WORLD_H = 4810;
+const CUP_Y = 700; // cup center
+const ST_Y = [1750, 2450, 3150, 3850]; // station centers
+const FUSE_TOP = 860; // fuse starts under the cup
 
-const Hook: React.FC = () => {
-  const frame = useCurrentFrame();
-  const pushIn = interpolate(frame, [0, HOOK_DUR], [1, 1.07], {
-    extrapolateRight: "clamp",
-  });
+/* camera focus (world y that sits at screen center) + zoom */
 
-  const line1In = interpolate(frame, [2, 16], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
-  const cut = 44;
-  const line2 = frame >= cut;
-  const line2Scale = interpolate(frame, [cut, cut + 12], [1.18, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
-  const flash = interpolate(frame, [cut, cut + 4], [0.9, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+type Seg = [number, number, number, number];
 
-  return (
-    <AbsoluteFill>
-      <AbsoluteFill style={{ scale: pushIn }}>
-        <CinematicBackground
-          tint={line2 ? "rgba(224,92,92,0.10)" : "rgba(200,163,117,0.07)"}
-        />
-      </AbsoluteFill>
+const FOCUS_SEGS: Seg[] = [
+  [0, 75, 960, 960], // hook hold
+  [75, 115, 960, ST_Y[0]],
+  [115, 165, ST_Y[0], ST_Y[0]], // dwell 1
+  [165, 205, ST_Y[0], ST_Y[1]],
+  [205, 255, ST_Y[1], ST_Y[1]], // dwell 2
+  [255, 295, ST_Y[1], ST_Y[2]],
+  [295, 345, ST_Y[2], ST_Y[2]], // dwell 3
+  [345, 385, ST_Y[2], ST_Y[3]],
+  [385, 445, ST_Y[3], ST_Y[3]], // dwell 4
+  [445, 545, ST_Y[3], 2405], // pull back to world middle
+  [545, 660, 2405, 2405],
+];
 
-      <AbsoluteFill
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-          padding: "0 90px",
-        }}
-      >
-        {!line2 ? (
-          <div
-            style={{
-              opacity: line1In,
-              translate: `0px ${(1 - line1In) * 22}px`,
-              fontFamily,
-              fontWeight: 800,
-              fontSize: 72,
-              lineHeight: 1.2,
-              color: "#ffffff",
-              textAlign: "center",
-            }}
-          >
-            If you're only
-            <br />
-            looking at a POS…
-          </div>
-        ) : (
-          <div
-            style={{
-              scale: line2Scale,
-              fontFamily,
-              fontWeight: 900,
-              fontSize: 84,
-              lineHeight: 1.16,
-              color: theme.red,
-              textAlign: "center",
-              textShadow: "0 0 70px rgba(224,92,92,0.4)",
-            }}
-          >
-            you're already
-            <br />
-            losing money.
-          </div>
-        )}
-      </AbsoluteFill>
+const SCALE_SEGS: Seg[] = [
+  [0, 445, 1, 1],
+  [445, 545, 1, 0.42],
+  [545, 605, 0.42, 0.36],
+  [605, 660, 0.36, 0.36],
+];
 
-      <AbsoluteFill style={{ backgroundColor: "#fff", opacity: flash }} />
-    </AbsoluteFill>
-  );
+const segValue = (segs: Seg[], frame: number): number => {
+  for (const [f0, f1, v0, v1] of segs) {
+    if (frame < f1) {
+      if (frame <= f0) return v0;
+      const t = Easing.inOut(Easing.cubic)((frame - f0) / (f1 - f0));
+      return v0 + (v1 - v0) * t;
+    }
+  }
+  return segs[segs.length - 1][3];
 };
 
-/* ── Split frame ──────────────────────────────────────────────── */
+const CHAIN_DUR = 660;
+const PAYOFF_DUR = 170;
+const T_SLIDE = 22;
+export const REEL1_DURATION = CHAIN_DUR + PAYOFF_DUR - T_SLIDE; // 808
 
-const PanelLabel: React.FC<{ text: string; gold?: boolean; inAt: number }> = ({
-  text,
-  gold,
-  inAt,
-}) => {
-  const frame = useCurrentFrame();
-  const opacity = interpolate(frame, [inAt, inAt + 12], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  return (
+/* ── shared card shell for stations ─────────────────────────── */
+
+const StationCard: React.FC<{
+  y: number;
+  label: string;
+  children: React.ReactNode;
+}> = ({ y, label, children }) => (
+  <div
+    style={{
+      position: "absolute",
+      top: y - 330,
+      left: 120,
+      width: 840,
+      background: "rgba(10,10,11,0.88)",
+      border: "1.5px solid rgba(200,163,117,0.4)",
+      borderRadius: 24,
+      padding: "30px 40px 24px",
+      boxShadow: "0 40px 90px rgba(0,0,0,0.5)",
+    }}
+  >
     <div
       style={{
-        opacity,
         fontFamily,
         fontWeight: 800,
-        fontSize: 30,
+        fontSize: 26,
         letterSpacing: 5,
         textTransform: "uppercase",
-        color: gold ? theme.coffee : "rgba(255,255,255,0.4)",
-        marginBottom: 18,
-        textAlign: "center",
+        color: theme.coffee,
+        marginBottom: 20,
       }}
     >
-      {text}
+      {label}
     </div>
-  );
-};
+    {children}
+  </div>
+);
 
-const DeadPos: React.FC<{ inAt: number }> = ({ inAt }) => {
+/* ── stations ───────────────────────────────────────────────── */
+
+const InventoryStation: React.FC = () => (
+  <div>
+    <LevelBar label="Beans" fromPct={57} toPct={51} startFrame={0} />
+    <LevelBar label="Milk" fromPct={64} toPct={58} startFrame={6} />
+    <LevelBar label="Flour" fromPct={22} toPct={12} startFrame={12} low />
+    <div style={{ textAlign: "center", marginTop: 10 }}>
+      <PopBadge text="INGREDIENTS DEDUCTED" color={theme.coffee} startFrame={34} />
+    </div>
+  </div>
+);
+
+const AlertStation: React.FC = () => {
   const frame = useCurrentFrame();
-  const enter = interpolate(frame, [inAt, inAt + 18], [0, 1], {
+  const chipX = interpolate(frame, [22, 44], [-60, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
-
-  return (
-    <div
-      style={{
-        opacity: enter,
-        translate: `0px ${(1 - enter) * 34}px`,
-        width: 820,
-        background: "#3a3a3e",
-        borderRadius: 18,
-        padding: "30px 38px",
-        filter: "grayscale(1)",
-      }}
-    >
-      {["Flat White ×2 — $9.00", "Butter Croissant — $4.50"].map((row) => (
-        <div
-          key={row}
-          style={{
-            fontFamily,
-            fontWeight: 500,
-            fontSize: 27,
-            color: "rgba(255,255,255,0.5)",
-            padding: "14px 0",
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          {row}
-        </div>
-      ))}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          paddingTop: 18,
-          fontFamily,
-          fontWeight: 800,
-          fontSize: 32,
-          color: "rgba(255,255,255,0.75)",
-        }}
-      >
-        <span>Total</span>
-        <span>$13.50</span>
-      </div>
-      <div
-        style={{
-          marginTop: 14,
-          fontFamily,
-          fontWeight: 500,
-          fontSize: 21,
-          color: "rgba(255,255,255,0.3)",
-          fontStyle: "italic",
-        }}
-      >
-        …and that's all it knows.
-      </div>
-    </div>
-  );
-};
-
-const CaflatPanel: React.FC<{ inAt: number }> = ({ inAt }) => {
-  const frame = useCurrentFrame();
-  const enter = interpolate(frame, [inAt, inAt + 18], [0, 1], {
+  const chipOpacity = interpolate(frame, [22, 36], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
 
   return (
-    <div
-      style={{
-        opacity: enter,
-        translate: `0px ${(1 - enter) * 34}px`,
-        width: 820,
-        background: theme.dark,
-        border: "1.5px solid rgba(200,163,117,0.4)",
-        borderRadius: 18,
-        padding: "26px 38px 18px",
-        boxShadow: "0 40px 90px rgba(0,0,0,0.5)",
-      }}
-    >
+    <div style={{ textAlign: "center" }}>
+      <div style={{ scale: 1.25, display: "inline-block", margin: "10px 0 26px" }}>
+        <PopBadge text="⚠ LOW STOCK — FLOUR" color={theme.amber} startFrame={4} />
+      </div>
       <div
         style={{
+          opacity: chipOpacity,
+          translate: `${chipX}px 0px`,
           display: "flex",
-          justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 20,
+          justifyContent: "center",
+          gap: 14,
+          fontFamily,
+          fontWeight: 700,
+          fontSize: 26,
+          color: theme.cream,
         }}
       >
-        <span
-          style={{
-            fontFamily,
-            fontWeight: 900,
-            fontSize: 27,
-            color: "#fff",
-          }}
-        >
-          Caflat.CORE
-        </span>
-        <span
-          style={{
-            fontFamily,
-            fontWeight: 600,
-            fontSize: 17,
-            letterSpacing: 2.5,
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.4)",
-          }}
-        >
-          Same sale
-        </span>
+        <span style={{ color: theme.coffee, fontSize: 34 }}>→</span>
+        Reorder sent to Sunrise Mills
       </div>
-
-      <Sequence from={inAt + 14} layout="none">
-        <div>
-          <LevelBar label="Milk" fromPct={64} toPct={58} startFrame={0} />
-          <LevelBar label="Butter" fromPct={41} toPct={33} startFrame={8} />
-          <LevelBar label="Flour" fromPct={22} toPct={12} startFrame={16} low />
-          <div style={{ textAlign: "center", marginTop: 6, marginBottom: 8 }}>
-            <PopBadge
-              text="⚠ LOW STOCK — FLOUR"
-              color={theme.amber}
-              startFrame={52}
-            />
-          </div>
-        </div>
-      </Sequence>
     </div>
   );
 };
 
-const SplitFrame: React.FC = () => {
+const SupplierStation: React.FC = () => {
   const frame = useCurrentFrame();
-  const pushIn = interpolate(frame, [0, SPLIT_DUR], [1, 1.05], {
-    extrapolateRight: "clamp",
-  });
-
-  const questionIn = interpolate(frame, [210, 228], [0, 1], {
+  const boxIn = interpolate(frame, [0, 20], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
+  });
+
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 14,
+        }}
+      >
+        {/* box glyph */}
+        <svg
+          width={130}
+          height={90}
+          viewBox="0 0 130 90"
+          style={{
+            opacity: boxIn,
+            translate: `${(1 - boxIn) * -50}px 0px`,
+          }}
+        >
+          <circle cx={40} cy={22} r={16} fill={theme.latte} />
+          <circle cx={66} cy={16} r={19} fill={theme.cream} />
+          <circle cx={92} cy={22} r={15} fill={theme.caramel} />
+          <rect x={10} y={26} width={110} height={60} rx={8} fill={theme.latte} />
+          <rect x={10} y={26} width={110} height={16} rx={8} fill={theme.caramel} />
+          <rect x={58} y={26} width={16} height={60} fill={theme.caramel} opacity={0.55} />
+        </svg>
+        <FlipChip before="IN TRANSIT" after="DELIVERED" flipFrame={26} />
+      </div>
+      <ScreenRow
+        label="Outstanding balance"
+        value={<CountUp from={245} to={0} startFrame={40} decimals={2} prefix="$" />}
+        valueColor={theme.green}
+        startFrame={34}
+      />
+    </div>
+  );
+};
+
+const LedgerStation: React.FC = () => (
+  <div>
+    <ScreenRow label="Supplies — Cash" value="−$245.00" valueColor={theme.red} startFrame={2} />
+    <ScreenRow label="Sale — Card" value="+$4.50" valueColor={theme.green} startFrame={12} />
+    <ScreenRow
+      label="Balance"
+      value={<CountUp from={7160} to={6919.5} startFrame={26} decimals={2} prefix="$" />}
+      valueColor="#ffffff"
+      startFrame={22}
+    />
+    <div style={{ textAlign: "center", marginTop: 12 }}>
+      <PopBadge text="EVERY CENT RECORDED" color={theme.coffee} startFrame={44} />
+    </div>
+  </div>
+);
+
+const STATIONS: { label: string; dwell: number; Content: React.FC }[] = [
+  { label: "Inventory", dwell: 115, Content: InventoryStation },
+  { label: "Alert", dwell: 205, Content: AlertStation },
+  { label: "Supplier", dwell: 295, Content: SupplierStation },
+  { label: "Treasury", dwell: 385, Content: LedgerStation },
+];
+
+/* ── the one-take chain act ─────────────────────────────────── */
+
+const ChainAct: React.FC = () => {
+  const frame = useCurrentFrame();
+
+  const focusY = segValue(FOCUS_SEGS, frame);
+  const S = segValue(SCALE_SEGS, frame);
+  const tx = 540 - 540 * S;
+  const ty = 960 - focusY * S;
+
+  // fuse draws down to the spark; spark rides the camera focus.
+  // Once the chain has completed (dwell 4), the fuse stays fully drawn
+  // so the pull-back shows the whole circuit.
+  const sparkY =
+    frame >= 385 ? ST_Y[3] : Math.max(FUSE_TOP, Math.min(focusY, ST_Y[3]));
+  const sparkVisible = frame >= 70 && frame < 445;
+  const sparkPulse = 0.7 + Math.sin(frame / 2.2) * 0.3;
+
+  // hook text
+  const line1 = interpolate(frame, [6, 20], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
+  });
+  const line2 = interpolate(frame, [36, 50], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
+  });
+  const saleChip = interpolate(frame, [26, 38], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.34, 1.56, 0.64, 1),
+  });
+
+  // reveal overlays
+  const bezelIn = interpolate(frame, [560, 590], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
+  });
+  const revealText = interpolate(frame, [590, 610], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
   });
 
   return (
     <AbsoluteFill>
-      <AbsoluteFill style={{ scale: pushIn }}>
-        <CinematicBackground tint="rgba(200,163,117,0.07)" />
-      </AbsoluteFill>
+      <VignetteStage lightY={22} />
 
-      <AbsoluteFill
+      {/* the world */}
+      <div
         style={{
-          justifyContent: "center",
-          alignItems: "center",
+          position: "absolute",
+          width: 1080,
+          height: WORLD_H,
+          transform: `translate(${tx}px, ${ty}px) scale(${S})`,
+          transformOrigin: "0 0",
         }}
       >
+        {/* fuse line + spark (behind cards) */}
+        <svg
+          width={1080}
+          height={WORLD_H}
+          style={{ position: "absolute", top: 0, left: 0 }}
+        >
+          <line
+            x1={540}
+            y1={FUSE_TOP}
+            x2={540}
+            y2={sparkY}
+            stroke={theme.coffee}
+            strokeWidth={5}
+            strokeLinecap="round"
+            opacity={0.8}
+          />
+          {sparkVisible ? (
+            <>
+              <circle cx={540} cy={sparkY} r={26} fill={theme.coffee} opacity={0.25 * sparkPulse} />
+              <circle cx={540} cy={sparkY} r={12} fill={theme.coffee} opacity={0.9} />
+              <circle cx={540} cy={sparkY} r={5} fill={theme.cream} />
+            </>
+          ) : null}
+        </svg>
+
+        {/* hook: the cup */}
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 44,
+            position: "absolute",
+            top: CUP_Y - 260,
+            left: 230,
+            width: 620,
+            height: 465,
           }}
         >
-          <div>
-            <PanelLabel text="What they sell you" inAt={6} />
-            <DeadPos inAt={12} />
-          </div>
-
-          {/* question banner */}
-          <div
-            style={{
-              opacity: questionIn,
-              scale: 0.94 + questionIn * 0.06,
-              fontFamily,
-              fontWeight: 800,
-              fontSize: 40,
-              lineHeight: 1.35,
-              textAlign: "center",
-              color: theme.cream,
-              maxWidth: 860,
-            }}
-          >
-            Does your POS know how much
-            <br />
-            <span style={{ color: theme.coffee }}>butter you have left?</span>
-          </div>
-
-          <div>
-            <PanelLabel text="What you actually need" gold inAt={60} />
-            <CaflatPanel inAt={66} />
-          </div>
+          <EspressoCup />
         </div>
-      </AbsoluteFill>
-    </AbsoluteFill>
-  );
-};
-
-/* ── Payoff ───────────────────────────────────────────────────── */
-
-const Payoff: React.FC = () => {
-  const frame = useCurrentFrame();
-  const pushIn = interpolate(frame, [0, PAYOFF_DUR], [1.04, 1.1], {
-    extrapolateRight: "clamp",
-  });
-
-  const line1 = interpolate(frame, [4, 18], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
-  const line2 = interpolate(frame, [34, 50], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
-
-  return (
-    <AbsoluteFill>
-      <AbsoluteFill style={{ scale: pushIn }}>
-        <CinematicBackground tint="rgba(200,163,117,0.09)" />
-      </AbsoluteFill>
-      <AbsoluteFill
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-          padding: "0 90px",
-        }}
-      >
+        {/* $4.50 chip */}
         <div
           style={{
+            position: "absolute",
+            top: CUP_Y - 300,
+            left: 660,
+            scale: saleChip,
             fontFamily,
-            fontSize: 66,
-            lineHeight: 1.3,
+            fontWeight: 800,
+            fontSize: 34,
+            color: theme.dark,
+            background: theme.cream,
+            padding: "12px 26px",
+            borderRadius: 999,
+            rotate: "6deg",
+          }}
+        >
+          $4.50
+        </div>
+        {/* hook lines */}
+        <div
+          style={{
+            position: "absolute",
+            top: CUP_Y + 320,
+            width: 1080,
             textAlign: "center",
           }}
         >
           <div
             style={{
               opacity: line1,
-              translate: `0px ${(1 - line1) * 18}px`,
-              fontWeight: 500,
-              color: "rgba(255,255,255,0.6)",
+              translate: `0px ${(1 - line1) * 20}px`,
+              fontFamily,
+              fontWeight: 900,
+              fontSize: 74,
+              color: "#ffffff",
             }}
           >
-            That's the difference
-            <br />
-            between a POS…
+            One coffee sale.
           </div>
           <div
             style={{
               opacity: line2,
-              translate: `0px ${(1 - line2) * 18}px`,
-              fontWeight: 900,
-              color: "#ffffff",
-              marginTop: 22,
+              translate: `0px ${(1 - line2) * 20}px`,
+              fontFamily,
+              fontWeight: 600,
+              fontSize: 44,
+              color: theme.coffee,
+              marginTop: 16,
             }}
           >
-            …and an{" "}
-            <span style={{ color: theme.coffee }}>operations platform.</span>
+            Watch what it triggers ↓
           </div>
+        </div>
+
+        {/* stations */}
+        {STATIONS.map(({ label, dwell, Content }, i) => (
+          <StationCard key={label} y={ST_Y[i]} label={label}>
+            <Sequence from={dwell - 6} layout="none">
+              <Content />
+            </Sequence>
+          </StationCard>
+        ))}
+      </div>
+
+      {/* tablet bezel closing around the shrunken machine */}
+      <AbsoluteFill
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          pointerEvents: "none",
+        }}
+      >
+        <div
+          style={{
+            opacity: bezelIn,
+            scale: 1.18 - bezelIn * 0.18,
+            width: 830,
+            height: 1560,
+            border: "3px solid #2a2a30",
+            borderRadius: 46,
+            boxShadow:
+              "0 0 0 14px #060607, 0 60px 140px rgba(0,0,0,0.7)",
+          }}
+        />
+      </AbsoluteFill>
+
+      {/* reveal caption */}
+      <AbsoluteFill style={{ alignItems: "center", pointerEvents: "none" }}>
+        <div
+          style={{
+            position: "absolute",
+            bottom: 120,
+            opacity: revealText,
+            translate: `0px ${(1 - revealText) * 18}px`,
+            fontFamily,
+            fontWeight: 900,
+            fontSize: 62,
+            color: "#ffffff",
+            textAlign: "center",
+          }}
+        >
+          All of it. <span style={{ color: theme.coffee }}>Automatic.</span>
         </div>
       </AbsoluteFill>
     </AbsoluteFill>
   );
 };
 
-/* ── CTA ──────────────────────────────────────────────────────── */
+/* ── payoff + CTA ───────────────────────────────────────────── */
 
-const Cta: React.FC = () => {
+const PayoffCta: React.FC = () => {
   const frame = useCurrentFrame();
 
-  const markIn = interpolate(frame, [0, 16], [0, 1], {
+  const line1 = interpolate(frame, [4, 18], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.bezier(0.16, 1, 0.3, 1),
   });
-  const pillIn = interpolate(frame, [22, 38], [0, 1], {
+  const line2 = interpolate(frame, [24, 40], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
+  });
+  const markIn = interpolate(frame, [70, 86], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
+  });
+  const pillIn = interpolate(frame, [88, 104], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.bezier(0.34, 1.56, 0.64, 1),
   });
-  const siteIn = interpolate(frame, [40, 54], [0, 1], {
+  const siteIn = interpolate(frame, [104, 118], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   return (
     <AbsoluteFill>
-      <CinematicBackground tint="rgba(200,163,117,0.08)" />
+      <CinematicBackground tint="rgba(200,163,117,0.09)" />
       <AbsoluteFill
-        style={{ justifyContent: "center", alignItems: "center" }}
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "0 90px",
+        }}
       >
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 26,
+            gap: 20,
           }}
         >
           <div
             style={{
-              opacity: markIn,
-              translate: `0px ${(1 - markIn) * 16}px`,
+              opacity: line1,
+              translate: `0px ${(1 - line1) * 18}px`,
+              fontFamily,
+              fontWeight: 500,
+              fontSize: 52,
+              color: "rgba(255,255,255,0.6)",
+              textAlign: "center",
+            }}
+          >
+            A POS rings the sale.
+          </div>
+          <div
+            style={{
+              opacity: line2,
+              translate: `0px ${(1 - line2) * 18}px`,
               fontFamily,
               fontWeight: 900,
-              fontSize: 68,
+              fontSize: 60,
+              lineHeight: 1.22,
               color: "#ffffff",
+              textAlign: "center",
+              maxWidth: 880,
             }}
           >
-            Caflat.CORE
+            Caflat.CORE runs{" "}
+            <span style={{ color: theme.coffee }}>
+              everything it triggers.
+            </span>
           </div>
+
           <div
             style={{
-              scale: pillIn,
-              fontFamily,
-              fontWeight: 700,
-              fontSize: 30,
-              color: theme.dark,
-              background: "#ffffff",
-              padding: "20px 46px",
-              borderRadius: 999,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 18,
+              marginTop: 44,
             }}
           >
-            Follow for more café ops
-          </div>
-          <div
-            style={{
-              opacity: siteIn,
-              fontFamily,
-              fontWeight: 600,
-              fontSize: 26,
-              letterSpacing: 1.5,
-              color: theme.coffee,
-            }}
-          >
-            caflatcore.com
+            <div
+              style={{
+                opacity: markIn,
+                fontFamily,
+                fontWeight: 900,
+                fontSize: 54,
+                color: "#ffffff",
+              }}
+            >
+              Caflat.CORE
+            </div>
+            <div
+              style={{
+                scale: pillIn,
+                fontFamily,
+                fontWeight: 700,
+                fontSize: 28,
+                color: theme.dark,
+                background: "#ffffff",
+                padding: "18px 42px",
+                borderRadius: 999,
+              }}
+            >
+              Follow for more café ops
+            </div>
+            <div
+              style={{
+                opacity: siteIn,
+                fontFamily,
+                fontWeight: 600,
+                fontSize: 24,
+                letterSpacing: 1.5,
+                color: theme.coffee,
+              }}
+            >
+              caflatcore.com
+            </div>
           </div>
         </div>
       </AbsoluteFill>
@@ -490,7 +578,7 @@ const Cta: React.FC = () => {
   );
 };
 
-/* ── Composition ──────────────────────────────────────────────── */
+/* ── composition ────────────────────────────────────────────── */
 
 export const Reel1: React.FC = () => {
   return (
@@ -507,31 +595,21 @@ export const Reel1: React.FC = () => {
         }
       />
 
-      <Sequence durationInFrames={HOOK_DUR}>
-        <Hook />
-      </Sequence>
-
-      {/* gold light-leak accent over the hook → split cut */}
-      <Sequence from={HOOK_DUR - 16} durationInFrames={32}>
-        <LightLeak seed={5} hueShift={0} />
-      </Sequence>
-
-      <Sequence from={SPLIT_START} durationInFrames={SPLIT_DUR}>
-        <SplitFrame />
-      </Sequence>
-
-      <Sequence from={PAYOFF_START} durationInFrames={PAYOFF_DUR}>
-        <Payoff />
-      </Sequence>
-
-      {/* second gold accent into the CTA */}
-      <Sequence from={CTA_START - 14} durationInFrames={28}>
-        <LightLeak seed={2} hueShift={0} />
-      </Sequence>
-
-      <Sequence from={CTA_START} durationInFrames={CTA_DUR}>
-        <Cta />
-      </Sequence>
+      <TransitionSeries>
+        <TransitionSeries.Sequence durationInFrames={CHAIN_DUR}>
+          <ChainAct />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition
+          presentation={slide({ direction: "from-bottom" })}
+          timing={springTiming({
+            config: { damping: 200 },
+            durationInFrames: T_SLIDE,
+          })}
+        />
+        <TransitionSeries.Sequence durationInFrames={PAYOFF_DUR}>
+          <PayoffCta />
+        </TransitionSeries.Sequence>
+      </TransitionSeries>
     </AbsoluteFill>
   );
 };
