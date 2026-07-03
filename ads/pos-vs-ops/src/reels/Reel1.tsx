@@ -422,7 +422,10 @@ const ChainAct: React.FC = () => {
         ))}
       </div>
 
-      {/* tablet bezel closing around the shrunken machine */}
+      {/* tablet bezel closing around the shrunken machine, with the
+          reveal caption grouped underneath it (not pinned to the raw
+          frame edge — that sat too close to where TikTok/Reels UI
+          chrome lives) */}
       <AbsoluteFill
         style={{
           justifyContent: "center",
@@ -432,34 +435,38 @@ const ChainAct: React.FC = () => {
       >
         <div
           style={{
-            opacity: bezelIn,
-            scale: 1.18 - bezelIn * 0.18,
-            width: 790,
-            height: 1390,
-            border: "3px solid #2a2a30",
-            borderRadius: 46,
-            // hard offset ring only — no blur, cheap at 4K
-            boxShadow: "0 0 0 14px #060607",
-          }}
-        />
-      </AbsoluteFill>
-
-      {/* reveal caption */}
-      <AbsoluteFill style={{ alignItems: "center", pointerEvents: "none" }}>
-        <div
-          style={{
-            position: "absolute",
-            bottom: 64,
-            opacity: revealText,
-            translate: `0px ${(1 - revealText) * 18}px`,
-            fontFamily,
-            fontWeight: 900,
-            fontSize: 58,
-            color: "#ffffff",
-            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 64,
           }}
         >
-          All of it. <span style={{ color: theme.coffee }}>Automatic.</span>
+          <div
+            style={{
+              opacity: bezelIn,
+              scale: 1.18 - bezelIn * 0.18,
+              width: 790,
+              height: 1290,
+              border: "3px solid #2a2a30",
+              borderRadius: 46,
+              // hard offset ring only — no blur, cheap at 4K
+              boxShadow: "0 0 0 14px #060607",
+            }}
+          />
+          <div
+            style={{
+              opacity: revealText,
+              translate: `0px ${(1 - revealText) * 18}px`,
+              fontFamily,
+              fontWeight: 900,
+              fontSize: 58,
+              color: "#ffffff",
+              textAlign: "center",
+            }}
+          >
+            All of it.{" "}
+            <span style={{ color: theme.coffee }}>Automatic.</span>
+          </div>
         </div>
       </AbsoluteFill>
     </AbsoluteFill>
@@ -601,51 +608,24 @@ const PayoffCta: React.FC = () => {
 
 type SfxEvent = { file: string; frame: number; volume: number };
 
+// Only two categories of sound remain: numbers ticking (tickup/
+// tickdown) and notifications (confirm/alertf). No whooshes, no sound
+// on the spark's travel, nothing from the pull-back reveal onward.
 const REEL1_SFX: SfxEvent[] = [
-  // hook
-  { file: "swish", frame: 6, volume: 0.3 }, // "One coffee sale."
-  { file: "pop", frame: 26, volume: 0.55 }, // $4.50 chip
-  { file: "swish", frame: 36, volume: 0.3 }, // "Watch what it triggers"
-
-  // spark travels (one glide per station)
-  { file: "glide", frame: 75, volume: 0.5 },
-  { file: "glide", frame: 165, volume: 0.5 },
-  { file: "glide", frame: 255, volume: 0.5 },
-  { file: "glide", frame: 345, volume: 0.5 },
-
-  // cards materialize
-  { file: "activate", frame: 81, volume: 0.55 },
-  { file: "activate", frame: 171, volume: 0.55 },
-  { file: "activate", frame: 261, volume: 0.55 },
-  { file: "activate", frame: 351, volume: 0.55 },
-
   // station 1 — inventory drains, then confirmed
   { file: "tickdown", frame: 110, volume: 0.5 },
   { file: "confirm", frame: 143, volume: 0.45 },
 
-  // station 2 — alert + reorder
+  // station 2 — alert
   { file: "alertf", frame: 203, volume: 0.55 },
-  { file: "swish", frame: 221, volume: 0.4 },
 
   // station 3 — delivered + balance pays down
   { file: "confirm", frame: 315, volume: 0.5 },
   { file: "tickdown", frame: 329, volume: 0.5 },
 
   // station 4 — ledger rows, balance, recorded
-  { file: "activate", frame: 381, volume: 0.35 },
-  { file: "activate", frame: 391, volume: 0.35 },
   { file: "tickup", frame: 405, volume: 0.5 },
   { file: "confirm", frame: 423, volume: 0.45 },
-
-  // reveal
-  { file: "pullback", frame: 445, volume: 0.55 },
-  { file: "dock", frame: 560, volume: 0.5 },
-  { file: "pop", frame: 590, volume: 0.4 }, // "All of it. Automatic."
-
-  // payoff + CTA (scene starts at 638)
-  { file: "swish", frame: 638, volume: 0.5 },
-  { file: "swish", frame: 662, volume: 0.3 },
-  { file: "pop", frame: 726, volume: 0.5 }, // follow pill
 ];
 
 /* ── composition ────────────────────────────────────────────── */
