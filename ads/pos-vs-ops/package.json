@@ -6,7 +6,9 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
+    "@fontsource/nunito": "^5.2.7",
     "@remotion/cli": "4.0.484",
+    "@remotion/fonts": "4.0.484",
     "@remotion/google-fonts": "4.0.484",
     "@remotion/light-leaks": "4.0.484",
     "@remotion/media": "4.0.484",
@@ -32,6 +34,7 @@
     "lint": "eslint src && tsc"
   },
   "sideEffects": [
-    "*.css"
+    "*.css",
+    "src/fonts.ts"
   ]
 }

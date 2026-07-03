@@ -30,6 +30,6 @@ export const FPS = 30;
 export const WIDTH = 1080;
 export const HEIGHT = 1920;
 
-// System stack — no network fetch required at render time.
+// Nunito is the Caflat.CORE brand font; loaded locally via src/fonts.ts.
 export const fontFamily =
-  "'Helvetica Neue', Helvetica, Arial, 'Segoe UI', sans-serif";
+  "'Nunito', 'Helvetica Neue', Helvetica, Arial, sans-serif";
