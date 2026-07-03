@@ -52,7 +52,7 @@ const VIGNETTES: VignetteDef[] = [
     Screen: PosScreen,
     screenTitle: "Checkout",
     illustrationFrames: 70,
-    duration: 200,
+    duration: 230,
   },
   {
     key: "supplier",
@@ -62,7 +62,7 @@ const VIGNETTES: VignetteDef[] = [
     Screen: SupplierScreen,
     screenTitle: "Suppliers",
     illustrationFrames: 88,
-    duration: 190,
+    duration: 225,
   },
   {
     key: "production",
@@ -72,7 +72,7 @@ const VIGNETTES: VignetteDef[] = [
     Screen: ProductionScreen,
     screenTitle: "Production",
     illustrationFrames: 84,
-    duration: 190,
+    duration: 225,
   },
   {
     key: "events",
@@ -82,7 +82,7 @@ const VIGNETTES: VignetteDef[] = [
     Screen: EventsScreen,
     screenTitle: "Events",
     illustrationFrames: 90,
-    duration: 200,
+    duration: 240,
   },
   {
     key: "origin",
@@ -92,7 +92,7 @@ const VIGNETTES: VignetteDef[] = [
     Screen: OriginScreen,
     screenTitle: "Origin",
     illustrationFrames: 92,
-    duration: 210,
+    duration: 240,
   },
   {
     key: "treasury",
@@ -102,7 +102,7 @@ const VIGNETTES: VignetteDef[] = [
     Screen: TreasuryScreen,
     screenTitle: "Treasury",
     illustrationFrames: 90,
-    duration: 200,
+    duration: 230,
   },
 ];
 
