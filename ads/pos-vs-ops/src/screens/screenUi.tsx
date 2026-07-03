@@ -144,11 +144,14 @@ export const FlipChip: React.FC<{
   afterColor?: string;
 }> = ({ before, after, flipFrame, afterColor = theme.green }) => {
   const frame = useCurrentFrame();
-  const FLIP_LEN = 16;
+  // Easing.out fronts most of its motion in the first third of the window —
+  // still reads as a fast pop. inOut ramps up and back down symmetrically,
+  // so there's no instant burst right at the trigger frame.
+  const FLIP_LEN = 30;
   const t = interpolate(frame, [flipFrame, flipFrame + FLIP_LEN], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
+    easing: Easing.inOut(Easing.cubic),
   });
   // continuous bounce that is exactly 1 at t=0 and t=1, peaks mid-flip —
   // never jumps, unlike a boolean-gated scale.

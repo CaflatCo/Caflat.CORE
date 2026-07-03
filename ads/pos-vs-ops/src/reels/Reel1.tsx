@@ -90,10 +90,13 @@ const StationCard: React.FC<{
   children: React.ReactNode;
 }> = ({ y, label, revealAt, children }) => {
   const frame = useCurrentFrame();
-  const reveal = interpolate(frame, [revealAt, revealAt + 26], [0, 1], {
+  // Easing.out fronts most of its motion in the first third of the window —
+  // still reads as a fast pop. inOut ramps up and back down symmetrically,
+  // so there's no instant burst right at the trigger frame.
+  const reveal = interpolate(frame, [revealAt, revealAt + 36], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
+    easing: Easing.inOut(Easing.cubic),
   });
   // During the pull-back every card is on screen at once — large blur
   // shadows there make 4K software rasterization catastrophically slow.
@@ -111,8 +114,8 @@ const StationCard: React.FC<{
       left: 120,
       width: 840,
       opacity: reveal,
-      translate: `0px ${(1 - reveal) * 44}px`,
-      scale: 0.95 + reveal * 0.05,
+      translate: `0px ${(1 - reveal) * 60}px`,
+      scale: 0.92 + reveal * 0.08,
       background: "rgba(10,10,11,0.88)",
       border: "1.5px solid rgba(200,163,117,0.4)",
       borderRadius: 24,
@@ -422,7 +425,7 @@ const ChainAct: React.FC = () => {
             key={label}
             y={ST_Y[i]}
             label={label}
-            revealAt={dwell - 34}
+            revealAt={dwell - 46}
           >
             <Sequence from={dwell - 6} layout="none">
               <Content />
