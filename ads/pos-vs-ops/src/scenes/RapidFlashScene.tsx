@@ -17,7 +17,9 @@ const FLASHES: Flash[] = [
   { text: "Alerts. Early.", bg: theme.dark, fg: "#ffffff" },
 ];
 
-const FLASH_LEN = 24;
+const FLASH_LEN = 30;
+// dark hold before the first card so the light leak clears first
+const LEAD_IN = 14;
 
 const FlashCard: React.FC<Flash> = ({ text, bg, fg }) => {
   const frame = useCurrentFrame();
@@ -64,7 +66,7 @@ export const RapidFlashScene: React.FC = () => {
       {FLASHES.map((flash, i) => (
         <Sequence
           key={flash.text}
-          from={i * FLASH_LEN}
+          from={LEAD_IN + i * FLASH_LEN}
           durationInFrames={FLASH_LEN}
           layout="none"
         >
@@ -75,4 +77,4 @@ export const RapidFlashScene: React.FC = () => {
   );
 };
 
-export const RAPID_FLASH_DURATION = FLASHES.length * FLASH_LEN;
+export const RAPID_FLASH_DURATION = LEAD_IN + FLASHES.length * FLASH_LEN;
