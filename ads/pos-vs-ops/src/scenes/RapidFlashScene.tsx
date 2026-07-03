@@ -7,29 +7,27 @@ import {
 } from "remotion";
 import { theme, fontFamily } from "../theme";
 
-type Flash = { text: string; bg: string; fg: string };
+type Flash = { text: string; bg: string; fg: string; len: number };
 
+// "Alerts. Early." holds twice as long so it lands before the payoff.
 const FLASHES: Flash[] = [
-  { text: "Inventory. Automatic.", bg: theme.dark, fg: "#ffffff" },
-  { text: "Batches. Tracked.", bg: "#ffffff", fg: theme.dark },
-  { text: "Beans. Traceable.", bg: "#2e2113", fg: theme.latte },
-  { text: "Money. Accounted.", bg: "#ffffff", fg: theme.dark },
-  { text: "Alerts. Early.", bg: theme.dark, fg: "#ffffff" },
+  { text: "Inventory. Automatic.", bg: theme.dark, fg: "#ffffff", len: 30 },
+  { text: "Batches. Tracked.", bg: "#ffffff", fg: theme.dark, len: 30 },
+  { text: "Beans. Traceable.", bg: "#2e2113", fg: theme.latte, len: 30 },
+  { text: "Money. Accounted.", bg: "#ffffff", fg: theme.dark, len: 30 },
+  { text: "Alerts. Early.", bg: theme.dark, fg: "#ffffff", len: 60 },
 ];
 
-const FLASH_LEN = 30;
 // dark hold before the first card so the light leak clears first
 const LEAD_IN = 14;
 
-const FlashCard: React.FC<Flash> = ({ text, bg, fg }) => {
+const FlashCard: React.FC<Flash> = ({ text, bg, fg, len }) => {
   const frame = useCurrentFrame();
-  const opacity = interpolate(
-    frame,
-    [0, 4, FLASH_LEN - 4, FLASH_LEN],
-    [0, 1, 1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-  );
-  const scale = interpolate(frame, [0, FLASH_LEN], [1.06, 1.0], {
+  const opacity = interpolate(frame, [0, 4, len - 6, len], [0, 1, 1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const scale = interpolate(frame, [0, len], [1.06, 1.0], {
     extrapolateRight: "clamp",
   });
 
@@ -61,20 +59,27 @@ const FlashCard: React.FC<Flash> = ({ text, bg, fg }) => {
 };
 
 export const RapidFlashScene: React.FC = () => {
+  let cursor = LEAD_IN;
+
   return (
     <AbsoluteFill>
-      {FLASHES.map((flash, i) => (
-        <Sequence
-          key={flash.text}
-          from={LEAD_IN + i * FLASH_LEN}
-          durationInFrames={FLASH_LEN}
-          layout="none"
-        >
-          <FlashCard {...flash} />
-        </Sequence>
-      ))}
+      {FLASHES.map((flash) => {
+        const from = cursor;
+        cursor += flash.len;
+        return (
+          <Sequence
+            key={flash.text}
+            from={from}
+            durationInFrames={flash.len}
+            layout="none"
+          >
+            <FlashCard {...flash} />
+          </Sequence>
+        );
+      })}
     </AbsoluteFill>
   );
 };
 
-export const RAPID_FLASH_DURATION = LEAD_IN + FLASHES.length * FLASH_LEN;
+export const RAPID_FLASH_DURATION =
+  LEAD_IN + FLASHES.reduce((a, f) => a + f.len, 0);
