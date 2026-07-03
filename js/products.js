@@ -225,10 +225,10 @@ function renderProductsTable() {
               onclick="toggleProductMenu(this, '${product.id}')"
               style="padding:5px 10px;font-size:14px;letter-spacing:2px;line-height:1;">···</button>
             <div class="three-dot-menu" id="pmenu-${product.id}"
-              style="display:none;position:absolute;right:0;top:calc(100% + 4px);
+              style="display:none;position:fixed;
                 background:var(--white);border:1.5px solid var(--border);
                 border-radius:var(--radius-md);box-shadow:var(--shadow-md);
-                min-width:130px;z-index:200;overflow:hidden;">
+                min-width:130px;z-index:900;overflow:hidden;">
               <button type="button" data-action="clone-product" data-id="${product.id}"
                 class="three-dot-item">Clone</button>
               <button type="button" data-action="delete-product" data-id="${product.id}"
@@ -318,7 +318,17 @@ function toggleProductMenu(btn, productId) {
   if (!menu) return;
   const isOpen = menu.style.display !== 'none';
   document.querySelectorAll('.three-dot-menu').forEach(m => { m.style.display = 'none'; });
-  menu.style.display = isOpen ? 'none' : 'block';
+  if (isOpen) return;
+
+  // Fixed positioning escapes .table-wrapper's overflow clipping, which
+  // otherwise hides the menu for rows near the bottom of the list.
+  menu.style.display = 'block';
+  const r = btn.getBoundingClientRect();
+  const w = menu.offsetWidth;
+  const h = menu.offsetHeight;
+  menu.style.left = Math.max(8, r.right - w) + 'px';
+  const fitsBelow = r.bottom + 4 + h <= window.innerHeight - 8;
+  menu.style.top = (fitsBelow ? r.bottom + 4 : r.top - 4 - h) + 'px';
 }
 
 document.addEventListener('click', e => {
@@ -326,6 +336,12 @@ document.addEventListener('click', e => {
     document.querySelectorAll('.three-dot-menu').forEach(m => { m.style.display = 'none'; });
   }
 });
+
+// A fixed-position menu doesn't follow its button when anything scrolls —
+// close instead of drifting.
+document.addEventListener('scroll', () => {
+  document.querySelectorAll('.three-dot-menu').forEach(m => { m.style.display = 'none'; });
+}, true);
 
 window.toggleProductMenu = toggleProductMenu;
 
