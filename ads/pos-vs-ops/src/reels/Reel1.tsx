@@ -24,6 +24,7 @@ import {
 } from "../screens/screenUi";
 import { CinematicBackground } from "../components/CinematicBackground";
 import { fontFamily, theme } from "../theme";
+import { Seg, segValue } from "./camera";
 
 /**
  * Reel 1 (redo) — "One sale. Watch what it triggers."
@@ -41,8 +42,6 @@ const ST_Y = [1750, 2450, 3150, 3850]; // station centers
 const FUSE_TOP = 860; // fuse starts under the cup
 
 /* camera focus (world y that sits at screen center) + zoom */
-
-type Seg = [number, number, number, number];
 
 const FOCUS_SEGS: Seg[] = [
   [0, 75, 960, 960], // hook hold
@@ -64,17 +63,6 @@ const SCALE_SEGS: Seg[] = [
   [545, 605, 0.4, 0.33],
   [605, 660, 0.33, 0.33],
 ];
-
-const segValue = (segs: Seg[], frame: number): number => {
-  for (const [f0, f1, v0, v1] of segs) {
-    if (frame < f1) {
-      if (frame <= f0) return v0;
-      const t = Easing.inOut(Easing.cubic)((frame - f0) / (f1 - f0));
-      return v0 + (v1 - v0) * t;
-    }
-  }
-  return segs[segs.length - 1][3];
-};
 
 const CHAIN_DUR = 660;
 const PAYOFF_DUR = 170;
