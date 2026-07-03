@@ -97,7 +97,11 @@ const StationCard: React.FC<{
   });
   // During the pull-back every card is on screen at once — large blur
   // shadows there make 4K software rasterization catastrophically slow.
-  const heavyShadows = frame < 440;
+  // Fade the shadow's alpha out over a window instead of an instant cut.
+  const shadowAlpha = interpolate(frame, [415, 440], [0.5, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
   return (
   <div
@@ -113,7 +117,7 @@ const StationCard: React.FC<{
       border: "1.5px solid rgba(200,163,117,0.4)",
       borderRadius: 24,
       padding: "30px 40px 24px",
-      boxShadow: heavyShadows ? "0 40px 90px rgba(0,0,0,0.5)" : "none",
+      boxShadow: `0 40px 90px rgba(0,0,0,${shadowAlpha.toFixed(3)})`,
     }}
   >
     <div
@@ -270,7 +274,16 @@ const ChainAct: React.FC = () => {
   // so the pull-back shows the whole circuit.
   const sparkY =
     frame >= 385 ? ST_Y[3] : Math.max(FUSE_TOP, Math.min(focusY, ST_Y[3]));
-  const sparkVisible = frame >= 70 && frame < 445;
+  // fades in/out instead of popping in/out at a boolean threshold
+  const sparkFade =
+    interpolate(frame, [70, 82], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }) *
+    interpolate(frame, [433, 445], [1, 0], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    });
   const sparkPulse = 0.7 + Math.sin(frame / 2.2) * 0.3;
 
   // hook text
@@ -331,13 +344,9 @@ const ChainAct: React.FC = () => {
             strokeLinecap="round"
             opacity={0.8}
           />
-          {sparkVisible ? (
-            <>
-              <circle cx={540} cy={sparkY} r={26} fill={theme.coffee} opacity={0.25 * sparkPulse} />
-              <circle cx={540} cy={sparkY} r={12} fill={theme.coffee} opacity={0.9} />
-              <circle cx={540} cy={sparkY} r={5} fill={theme.cream} />
-            </>
-          ) : null}
+          <circle cx={540} cy={sparkY} r={26} fill={theme.coffee} opacity={0.25 * sparkPulse * sparkFade} />
+          <circle cx={540} cy={sparkY} r={12} fill={theme.coffee} opacity={0.9 * sparkFade} />
+          <circle cx={540} cy={sparkY} r={5} fill={theme.cream} opacity={sparkFade} />
         </svg>
 
         {/* hook: the cup */}
@@ -633,17 +642,6 @@ const REEL1_SFX: SfxEvent[] = [
 export const Reel1: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: theme.dark }}>
-      <Audio
-        src={staticFile("bg-music.mp3")}
-        volume={(f: number) =>
-          interpolate(
-            f,
-            [0, 24, REEL1_DURATION - 50, REEL1_DURATION],
-            [0, 0.22, 0.22, 0],
-            { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-          )
-        }
-      />
       {REEL1_SFX.map((e, i) => (
         <Sequence key={i} from={e.frame} layout="none">
           <Audio src={staticFile(`sfx/${e.file}.wav`)} volume={e.volume} />
