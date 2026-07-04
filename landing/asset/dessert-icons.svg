@@ -1,0 +1,24 @@
+<!-- reference sheet only, not used directly by the page; symbols inlined into index.html -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="ic-croissant" viewBox="0 0 60 60">
+    <path d="M14 40 Q22 12 46 20 Q34 30 46 40 Q22 48 14 40Z" fill="none" stroke="currentColor" stroke-width="3"/>
+  </symbol>
+  <symbol id="ic-cookie" viewBox="0 0 60 60">
+    <circle cx="30" cy="30" r="18" fill="none" stroke="currentColor" stroke-width="3"/>
+    <circle cx="24" cy="24" r="2.4" fill="currentColor"/>
+    <circle cx="36" cy="26" r="2.4" fill="currentColor"/>
+    <circle cx="30" cy="36" r="2.4" fill="currentColor"/>
+    <circle cx="22" cy="35" r="2" fill="currentColor"/>
+  </symbol>
+  <symbol id="ic-cake" viewBox="0 0 60 60">
+    <path d="M14 44 L46 44 L40 20 L20 20 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+    <line x1="20" y1="20" x2="14" y2="44" stroke="currentColor" stroke-width="0"/>
+    <path d="M28 20 L26 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M26 10 Q23 6 27 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-macaron" viewBox="0 0 60 60">
+    <ellipse cx="30" cy="22" rx="16" ry="7" fill="none" stroke="currentColor" stroke-width="3"/>
+    <ellipse cx="30" cy="34" rx="16" ry="7" fill="none" stroke="currentColor" stroke-width="3"/>
+    <line x1="14" y1="28" x2="46" y2="28" stroke="currentColor" stroke-width="2.5"/>
+  </symbol>
+</svg>
