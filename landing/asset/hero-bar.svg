@@ -2,23 +2,87 @@
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#0a0a0b"/>
-      <stop offset=".55" stop-color="#110d09"/>
+      <stop offset=".5" stop-color="#120d09"/>
       <stop offset="1" stop-color="#0a0a0b"/>
     </linearGradient>
-    <radialGradient id="lamp" cx=".5" cy=".5" r=".5">
-      <stop offset="0" stop-color="#c8a375" stop-opacity=".22"/>
-      <stop offset=".5" stop-color="#c8a375" stop-opacity=".07"/>
+    <radialGradient id="lampGlowOuter" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#c8a375" stop-opacity=".24"/>
+      <stop offset=".45" stop-color="#c8a375" stop-opacity=".08"/>
       <stop offset="1" stop-color="#c8a375" stop-opacity="0"/>
     </radialGradient>
+    <radialGradient id="lampGlowInner" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#fff3da" stop-opacity=".65"/>
+      <stop offset=".55" stop-color="#e9c98a" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#e9c98a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lightCone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e9c98a" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#e9c98a" stop-opacity="0"/>
+    </linearGradient>
     <linearGradient id="counter" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#221610"/>
-      <stop offset=".14" stop-color="#170f0a"/>
+      <stop offset="0" stop-color="#2a1c12"/>
+      <stop offset=".08" stop-color="#241811"/>
+      <stop offset=".4" stop-color="#170f0a"/>
       <stop offset="1" stop-color="#0a0a0b"/>
     </linearGradient>
+    <linearGradient id="counterSheen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e9c98a" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#e9c98a" stop-opacity=".05"/>
+      <stop offset="1" stop-color="#e9c98a" stop-opacity="0"/>
+    </linearGradient>
     <linearGradient id="rimV" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#c8a375" stop-opacity=".5"/>
+      <stop offset="0" stop-color="#f0ddc0" stop-opacity=".62"/>
       <stop offset="1" stop-color="#c8a375" stop-opacity="0"/>
     </linearGradient>
+    <linearGradient id="rimTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6e6c8" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#c8a375" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bodyMetal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a2a1c"/>
+      <stop offset=".10" stop-color="#2c2015"/>
+      <stop offset=".45" stop-color="#1c130c"/>
+      <stop offset=".8" stop-color="#150e08"/>
+      <stop offset="1" stop-color="#0e0a06"/>
+    </linearGradient>
+    <linearGradient id="bodySheen" x1="0" y1="0" x2="1" y2=".25">
+      <stop offset="0" stop-color="#f0ddc0" stop-opacity="0"/>
+      <stop offset=".42" stop-color="#f0ddc0" stop-opacity=".10"/>
+      <stop offset=".5" stop-color="#fff6e4" stop-opacity=".16"/>
+      <stop offset=".58" stop-color="#f0ddc0" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#f0ddc0" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="gaugeGlass" cx=".35" cy=".3" r=".8">
+      <stop offset="0" stop-color="#fff6e4" stop-opacity=".5"/>
+      <stop offset=".4" stop-color="#e9c98a" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#0e0a06" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="coffeeLiquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#caa06a"/>
+      <stop offset=".18" stop-color="#8a5a30"/>
+      <stop offset="1" stop-color="#3a2412"/>
+    </linearGradient>
+    <linearGradient id="ceramicCup" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4ece0"/>
+      <stop offset="1" stop-color="#d8c8ae"/>
+    </linearGradient>
+    <linearGradient id="streamGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e9c98a" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#8a5a30" stop-opacity=".7"/>
+    </linearGradient>
+    <radialGradient id="hopperGlass" cx=".3" cy=".2" r=".9">
+      <stop offset="0" stop-color="#5a4530" stop-opacity=".55"/>
+      <stop offset=".6" stop-color="#241810" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#120c07" stop-opacity=".65"/>
+    </radialGradient>
+    <radialGradient id="tankGlass" cx=".3" cy=".2" r=".9">
+      <stop offset="0" stop-color="#bcd8e6" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#12222a" stop-opacity=".35"/>
+    </radialGradient>
+    <radialGradient id="shadowSoft" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#000" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
     <linearGradient id="fadeL" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#0a0a0b"/>
       <stop offset=".6" stop-color="#0a0a0b" stop-opacity=".7"/>
@@ -28,63 +92,268 @@
 
   <rect width="1600" height="1050" fill="url(#sky)"/>
 
-  <!-- far bokeh — out-of-focus café lights, very dim -->
-  <circle cx="220" cy="300" r="40" fill="#c8a375" opacity=".04"/>
-  <circle cx="360" cy="210" r="22" fill="#e9c98a" opacity=".04"/>
-  <circle cx="120" cy="470" r="26" fill="#c8a375" opacity=".03"/>
-  <circle cx="520" cy="330" r="16" fill="#f0ddc0" opacity=".04"/>
+  <!-- far bokeh — out-of-focus café lights, very dim, opposite the bar -->
+  <circle cx="220" cy="300" r="42" fill="#c8a375" opacity=".045"/>
+  <circle cx="360" cy="215" r="24" fill="#e9c98a" opacity=".04"/>
+  <circle cx="120" cy="475" r="28" fill="#c8a375" opacity=".035"/>
+  <circle cx="520" cy="335" r="17" fill="#f0ddc0" opacity=".04"/>
+  <circle cx="650" cy="470" r="12" fill="#e9c98a" opacity=".035"/>
 
-  <!-- pendant lamp above the machine -->
-  <line x1="1485" y1="0" x2="1485" y2="238" stroke="#1e1610" stroke-width="4"/>
-  <path d="M1449 238 L1521 238 L1505 280 L1465 280 Z" fill="#161009" stroke="rgba(200,163,117,.38)" stroke-width="1.5"/>
-  <ellipse cx="1485" cy="287" rx="15" ry="5" fill="#e9c98a" opacity=".5"/>
-  <circle cx="1485" cy="430" r="215" fill="url(#lamp)"/>
+  <!-- subway-tile backsplash behind the bar, barely-there texture -->
+  <g stroke="#c8a375" stroke-width="1" opacity=".05">
+    <line x1="1080" y1="360" x2="1080" y2="700"/>
+    <line x1="1122" y1="360" x2="1122" y2="700"/>
+    <line x1="1164" y1="360" x2="1164" y2="700"/>
+    <line x1="1206" y1="360" x2="1206" y2="700"/>
+    <line x1="1248" y1="360" x2="1248" y2="700"/>
+    <line x1="1290" y1="360" x2="1290" y2="700"/>
+    <line x1="1332" y1="360" x2="1332" y2="700"/>
+    <line x1="1374" y1="360" x2="1374" y2="700"/>
+    <line x1="1416" y1="360" x2="1416" y2="700"/>
+    <line x1="1458" y1="360" x2="1458" y2="700"/>
+    <line x1="1080" y1="440" x2="1500" y2="440"/>
+    <line x1="1080" y1="520" x2="1500" y2="520"/>
+    <line x1="1080" y1="600" x2="1500" y2="600"/>
+  </g>
+
+  <!-- ══ pendant lamp — cord, canopy, shade, glowing bulb, soft light cone ══ -->
+  <line x1="1485" y1="0" x2="1485" y2="234" stroke="#1e1610" stroke-width="4"/>
+  <rect x="1478" y="0" width="14" height="10" fill="#161009"/>
+  <path d="M1447 234 L1523 234 L1507 278 L1463 278 Z" fill="#171009" stroke="rgba(200,163,117,.4)" stroke-width="1.5"/>
+  <path d="M1451 236 L1519 236" stroke="rgba(200,163,117,.5)" stroke-width="1"/>
+  <ellipse cx="1485" cy="283" rx="17" ry="6" fill="#fff3da" opacity=".8"/>
+  <ellipse cx="1485" cy="283" rx="9" ry="3.4" fill="#fff9ec"/>
+  <path d="M1463 279 L1420 430 L1550 430 L1507 279 Z" fill="url(#lightCone)"/>
+  <circle cx="1485" cy="430" r="230" fill="url(#lampGlowOuter)"/>
+  <circle cx="1485" cy="330" r="110" fill="url(#lampGlowInner)"/>
 
   <!-- counter -->
   <rect x="0" y="700" width="1600" height="350" fill="url(#counter)"/>
-  <line x1="0" y1="700" x2="1600" y2="700" stroke="rgba(200,163,117,.25)" stroke-width="2"/>
-  <ellipse cx="1485" cy="718" rx="300" ry="20" fill="#c8a375" opacity=".06"/>
+  <line x1="0" y1="700" x2="1600" y2="700" stroke="rgba(200,163,117,.3)" stroke-width="2"/>
+  <line x1="0" y1="703" x2="1600" y2="703" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/>
+  <rect x="0" y="700" width="1600" height="350" fill="url(#counterSheen)"/>
+  <g stroke="#000" stroke-width="1" opacity=".12">
+    <line x1="0" y1="760" x2="1600" y2="758"/>
+    <line x1="0" y1="830" x2="1600" y2="833"/>
+    <line x1="0" y1="905" x2="1600" y2="901"/>
+  </g>
+  <ellipse cx="1485" cy="722" rx="340" ry="24" fill="#c8a375" opacity=".08"/>
 
-  <!-- ══ espresso machine — bleeds off the right edge, ambient ══ -->
+  <!-- ══ espresso machine assembly — bleeds off the right edge ══ -->
   <g transform="translate(260 0)">
-    <!-- body -->
-    <rect x="1060" y="470" width="330" height="178" rx="14" fill="#161009"/>
-    <!-- top cup-warmer tray -->
-    <rect x="1048" y="448" width="354" height="30" rx="10" fill="#1c120b"/>
-    <line x1="1052" y1="450" x2="1398" y2="450" stroke="rgba(200,163,117,.55)" stroke-width="2.5"/>
-    <!-- brand strip -->
-    <rect x="1060" y="490" width="330" height="7" fill="rgba(200,163,117,.18)"/>
-    <!-- gauge -->
-    <circle cx="1225" cy="532" r="21" fill="#0e0906" stroke="rgba(200,163,117,.45)" stroke-width="2"/>
-    <line x1="1225" y1="532" x2="1236" y2="521" stroke="rgba(233,201,138,.65)" stroke-width="2"/>
-    <!-- group heads + portafilters -->
+
+    <!-- grounding shadow for the whole assembly -->
+    <ellipse cx="1240" cy="712" rx="380" ry="26" fill="url(#shadowSoft)"/>
+
+    <!-- ── grinder, left of the machine ── -->
     <g>
+      <ellipse cx="1000" cy="708" rx="52" ry="9" fill="url(#shadowSoft)"/>
+      <!-- hopper -->
+      <path d="M968 396 L1032 396 L1022 452 L978 452 Z" fill="url(#hopperGlass)" stroke="rgba(200,163,117,.4)" stroke-width="1.5"/>
+      <ellipse cx="1000" cy="396" rx="32" ry="10" fill="#241810" stroke="rgba(200,163,117,.4)" stroke-width="1.5"/>
+      <ellipse cx="1000" cy="393" rx="27" ry="7.5" fill="#150e08"/>
+      <!-- bean texture inside the hopper -->
+      <g fill="#4a3216">
+        <ellipse cx="988" cy="415" rx="5" ry="3.4" transform="rotate(20 988 415)"/>
+        <ellipse cx="1002" cy="410" rx="5" ry="3.4" transform="rotate(-15 1002 410)"/>
+        <ellipse cx="1014" cy="418" rx="5" ry="3.4" transform="rotate(35 1014 418)"/>
+        <ellipse cx="994" cy="428" rx="5" ry="3.4" transform="rotate(-25 994 428)"/>
+        <ellipse cx="1008" cy="432" rx="5" ry="3.4" transform="rotate(10 1008 432)"/>
+        <ellipse cx="982" cy="436" rx="4.5" ry="3" transform="rotate(40 982 436)"/>
+        <ellipse cx="1018" cy="440" rx="4.5" ry="3" transform="rotate(-20 1018 440)"/>
+      </g>
+      <g fill="#8a6a42" opacity=".55">
+        <ellipse cx="986" cy="413" rx="1.6" ry="1"/>
+        <ellipse cx="1000" cy="408" rx="1.6" ry="1"/>
+        <ellipse cx="1012" cy="416" rx="1.6" ry="1"/>
+      </g>
+      <!-- grind chamber / body -->
+      <rect x="962" y="452" width="76" height="94" rx="8" fill="url(#bodyMetal)"/>
+      <rect x="962" y="452" width="76" height="94" rx="8" fill="url(#bodySheen)"/>
+      <line x1="964" y1="474" x2="1036" y2="474" stroke="rgba(200,163,117,.35)" stroke-width="1.5"/>
+      <!-- grind-size collar -->
+      <circle cx="1000" cy="488" r="12" fill="#120c07" stroke="rgba(200,163,117,.45)" stroke-width="1.5"/>
+      <line x1="1000" y1="488" x2="1000" y2="479" stroke="rgba(233,201,138,.6)" stroke-width="1.5"/>
+      <g stroke="rgba(200,163,117,.3)" stroke-width="1">
+        <line x1="1000" y1="478" x2="1000" y2="482"/>
+        <line x1="1012" y1="488" x2="1008" y2="488"/>
+        <line x1="1000" y1="498" x2="1000" y2="494"/>
+        <line x1="988" y1="488" x2="992" y2="488"/>
+      </g>
+      <!-- doser lever -->
+      <rect x="1030" y="510" width="20" height="6" rx="3" fill="#1c130c" stroke="rgba(200,163,117,.4)" stroke-width="1"/>
+      <rect x="962" y="452" width="3" height="94" fill="url(#rimV)" opacity=".6"/>
+      <!-- doser tray + ground coffee mound -->
+      <rect x="972" y="546" width="56" height="14" rx="4" fill="#170f0a"/>
+      <ellipse cx="1000" cy="548" rx="20" ry="5" fill="#3a2414"/>
+      <!-- feet -->
+      <rect x="972" y="560" width="12" height="10" rx="2" fill="#110b07"/>
+      <rect x="1016" y="560" width="12" height="10" rx="2" fill="#110b07"/>
+    </g>
+
+    <!-- ── espresso machine body ── -->
+    <rect x="1060" y="470" width="330" height="178" rx="16" fill="url(#bodyMetal)"/>
+    <rect x="1060" y="470" width="330" height="178" rx="16" fill="url(#bodySheen)"/>
+    <rect x="1060" y="470" width="330" height="178" rx="16" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="1.5"/>
+
+    <!-- top cup-warmer tray with grate texture -->
+    <rect x="1048" y="448" width="354" height="30" rx="10" fill="#1c120b"/>
+    <rect x="1048" y="448" width="354" height="30" rx="10" fill="url(#bodySheen)"/>
+    <line x1="1052" y1="450" x2="1398" y2="450" stroke="rgba(200,163,117,.6)" stroke-width="2.5"/>
+    <g stroke="#0a0704" stroke-width="1" opacity=".6">
+      <line x1="1060" y1="460" x2="1394" y2="460"/>
+      <line x1="1060" y1="466" x2="1394" y2="466"/>
+    </g>
+
+    <!-- corner rivets -->
+    <g fill="#0c0805" stroke="rgba(200,163,117,.35)" stroke-width="1">
+      <circle cx="1072" cy="484" r="3"/>
+      <circle cx="1378" cy="484" r="3"/>
+      <circle cx="1072" cy="634" r="3"/>
+      <circle cx="1378" cy="634" r="3"/>
+    </g>
+
+    <!-- brand badge -->
+    <g transform="translate(1225 500)">
+      <rect x="-42" y="-8" width="84" height="16" rx="8" fill="#0e0a06" stroke="rgba(200,163,117,.3)" stroke-width="1"/>
+      <line x1="-30" y1="0" x2="-6" y2="0" stroke="#c8a375" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="2" cy="0" r="2.2" fill="#e9c98a"/>
+      <line x1="10" y1="0" x2="30" y2="0" stroke="#c8a375" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <!-- control panel: buttons + tiny digital display -->
+    <g transform="translate(1090 516)">
+      <rect x="0" y="0" width="46" height="18" rx="3" fill="#0a1410" stroke="rgba(120,200,160,.35)" stroke-width="1"/>
+      <line x1="5" y1="9" x2="18" y2="9" stroke="#7be0b0" stroke-width="1.6" opacity=".8"/>
+      <line x1="22" y1="9" x2="41" y2="9" stroke="#7be0b0" stroke-width="1.6" opacity=".5"/>
+    </g>
+    <g fill="#120c07" stroke="rgba(200,163,117,.4)" stroke-width="1.3">
+      <circle cx="1330" cy="524" r="8"/>
+      <circle cx="1352" cy="524" r="8"/>
+      <circle cx="1374" cy="524" r="8"/>
+    </g>
+    <g fill="#e9c98a" opacity=".7">
+      <circle cx="1327" cy="521" r="1.4"/>
+      <circle cx="1349" cy="521" r="1.4"/>
+      <circle cx="1371" cy="521" r="1.4"/>
+    </g>
+
+    <!-- pressure gauge -->
+    <circle cx="1225" cy="558" r="26" fill="#0e0a06" stroke="rgba(200,163,117,.5)" stroke-width="2.5"/>
+    <circle cx="1225" cy="558" r="26" fill="url(#gaugeGlass)"/>
+    <path d="M1225 558 m-21 0 a21 21 0 1 1 42 0" fill="none" stroke="#e05c5c" stroke-width="2" opacity=".55"/>
+    <g stroke="rgba(233,201,138,.55)" stroke-width="1.3">
+      <line x1="1225" y1="536" x2="1225" y2="540"/>
+      <line x1="1246" y1="558" x2="1242" y2="558"/>
+      <line x1="1225" y1="580" x2="1225" y2="576"/>
+      <line x1="1204" y1="558" x2="1208" y2="558"/>
+      <line x1="1240" y1="543" x2="1237" y2="546"/>
+      <line x1="1210" y1="543" x2="1213" y2="546"/>
+    </g>
+    <line x1="1225" y1="558" x2="1238" y2="544" stroke="#fff3da" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="1225" cy="558" r="3" fill="#fff3da"/>
+    <path d="M1210 546 a18 18 0 0 1 20 -4" fill="none" stroke="#fff6e4" stroke-width="2" opacity=".4" stroke-linecap="round"/>
+
+    <!-- water tank, right side panel -->
+    <g transform="translate(1330 486)">
+      <rect x="0" y="0" width="42" height="52" rx="6" fill="url(#tankGlass)" stroke="rgba(200,163,117,.4)" stroke-width="1.5"/>
+      <line x1="4" y1="20" x2="38" y2="20" stroke="rgba(188,216,230,.4)" stroke-width="1.5"/>
+      <circle cx="21" cy="-4" r="6" fill="#150e08" stroke="rgba(200,163,117,.4)" stroke-width="1.2"/>
+    </g>
+
+    <!-- ── group heads, portafilters, cups, pours ── -->
+    <g>
+      <!-- collars -->
+      <ellipse cx="1146" cy="596" rx="42" ry="9" fill="#0e0a06" stroke="rgba(200,163,117,.4)" stroke-width="1.3"/>
+      <ellipse cx="1308" cy="596" rx="42" ry="9" fill="#0e0a06" stroke="rgba(200,163,117,.4)" stroke-width="1.3"/>
       <rect x="1108" y="580" width="76" height="34" rx="7" fill="#1f1409"/>
       <rect x="1270" y="580" width="76" height="34" rx="7" fill="#1f1409"/>
-      <line x1="1110" y1="582" x2="1182" y2="582" stroke="rgba(200,163,117,.35)" stroke-width="1.5"/>
-      <line x1="1272" y1="582" x2="1344" y2="582" stroke="rgba(200,163,117,.35)" stroke-width="1.5"/>
-      <rect x="1128" y="614" width="36" height="10" rx="5" fill="#221610"/>
-      <rect x="1290" y="614" width="36" height="10" rx="5" fill="#221610"/>
-      <rect x="1141" y="624" width="10" height="18" rx="3" fill="#1c120b"/>
-      <rect x="1303" y="624" width="10" height="18" rx="3" fill="#1c120b"/>
+      <line x1="1110" y1="582" x2="1182" y2="582" stroke="rgba(200,163,117,.4)" stroke-width="1.5"/>
+      <line x1="1272" y1="582" x2="1344" y2="582" stroke="rgba(200,163,117,.4)" stroke-width="1.5"/>
+
+      <!-- portafilter handles -->
+      <rect x="1122" y="614" width="48" height="12" rx="6" fill="#241610" stroke="rgba(200,163,117,.35)" stroke-width="1"/>
+      <rect x="1284" y="614" width="48" height="12" rx="6" fill="#241610" stroke="rgba(200,163,117,.35)" stroke-width="1"/>
+      <circle cx="1146" cy="626" r="9" fill="#0e0a06" stroke="rgba(200,163,117,.45)" stroke-width="1.3"/>
+      <circle cx="1308" cy="626" r="9" fill="#0e0a06" stroke="rgba(200,163,117,.45)" stroke-width="1.3"/>
+      <path d="M1138 630 L1154 630 L1149 644 L1143 644 Z" fill="#170f0a"/>
+      <path d="M1300 630 L1316 630 L1311 644 L1305 644 Z" fill="#170f0a"/>
+
+      <!-- twin spouts + pours -->
+      <line x1="1142" y1="644" x2="1142" y2="654" stroke="#0e0a06" stroke-width="2"/>
+      <line x1="1150" y1="644" x2="1150" y2="654" stroke="#0e0a06" stroke-width="2"/>
+      <line x1="1304" y1="644" x2="1304" y2="654" stroke="#0e0a06" stroke-width="2"/>
+      <line x1="1312" y1="644" x2="1312" y2="654" stroke="#0e0a06" stroke-width="2"/>
+      <path d="M1142 652 L1145 668 L1148 652" fill="none" stroke="url(#streamGrad)" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M1150 652 L1148 668" fill="none" stroke="url(#streamGrad)" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M1304 652 L1307 668 L1310 652" fill="none" stroke="url(#streamGrad)" stroke-width="2.4" stroke-linecap="round"/>
+      <ellipse cx="1146" cy="669" rx="4" ry="2" fill="#e9c98a" opacity=".5"/>
+      <ellipse cx="1308" cy="669" rx="4" ry="2" fill="#e9c98a" opacity=".5"/>
+
+      <!-- demitasse cups + coffee + crema + handle + saucer + micro-steam -->
+      <g transform="translate(1146 682)">
+        <ellipse cx="0" cy="16" rx="34" ry="7" fill="url(#shadowSoft)"/>
+        <ellipse cx="0" cy="14" rx="30" ry="7" fill="#efe6d6" stroke="rgba(200,163,117,.4)" stroke-width="1"/>
+        <path d="M-20 -8 h40 v14 a10 10 0 0 1 -10 10 h-20 a10 10 0 0 1 -10 -10 Z" fill="url(#ceramicCup)" stroke="rgba(200,163,117,.4)" stroke-width="1.3"/>
+        <ellipse cx="0" cy="-8" rx="20" ry="5" fill="url(#coffeeLiquid)"/>
+        <ellipse cx="0" cy="-9" rx="20" ry="4.4" fill="none" stroke="#e9c98a" stroke-width="1" opacity=".5"/>
+        <path d="M18 -4 q10 2 8 10 q-2 6 -8 6" fill="none" stroke="#e6dccb" stroke-width="2.4"/>
+        <path d="M-3 -22 q3 6 -1 10" stroke="#fff" stroke-width="1.3" fill="none" opacity=".28" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(1308 682)">
+        <ellipse cx="0" cy="16" rx="34" ry="7" fill="url(#shadowSoft)"/>
+        <ellipse cx="0" cy="14" rx="30" ry="7" fill="#efe6d6" stroke="rgba(200,163,117,.4)" stroke-width="1"/>
+        <path d="M-20 -8 h40 v14 a10 10 0 0 1 -10 10 h-20 a10 10 0 0 1 -10 -10 Z" fill="url(#ceramicCup)" stroke="rgba(200,163,117,.4)" stroke-width="1.3"/>
+        <ellipse cx="0" cy="-8" rx="20" ry="5" fill="url(#coffeeLiquid)"/>
+        <ellipse cx="0" cy="-9" rx="20" ry="4.4" fill="none" stroke="#e9c98a" stroke-width="1" opacity=".5"/>
+        <path d="M18 -4 q10 2 8 10 q-2 6 -8 6" fill="none" stroke="#e6dccb" stroke-width="2.4"/>
+        <path d="M4 -22 q4 6 0 10" stroke="#fff" stroke-width="1.3" fill="none" opacity=".28" stroke-linecap="round"/>
+      </g>
     </g>
-    <!-- steam wand -->
-    <path d="M1390 550 q34 8 40 52 l-8 46" fill="none" stroke="#221610" stroke-width="9" stroke-linecap="round"/>
-    <!-- rim lights -->
+
+    <!-- steam wand with nozzle + joint + tiny wisp -->
+    <circle cx="1394" cy="546" r="7" fill="#1c130c" stroke="rgba(200,163,117,.4)" stroke-width="1.3"/>
+    <path d="M1394 550 q34 8 40 52 l-8 46" fill="none" stroke="#221610" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="1426" cy="648" r="4" fill="#0e0a06" stroke="rgba(200,163,117,.4)" stroke-width="1"/>
+    <path d="M1418 654 q6 -10 -2 -18" stroke="#f0ddc0" stroke-width="1.6" fill="none" opacity=".3" stroke-linecap="round"/>
+
+    <!-- rim lights on the body's vertical edges + top -->
     <rect x="1387" y="470" width="3" height="152" fill="url(#rimV)"/>
-    <rect x="1060" y="470" width="3" height="132" fill="url(#rimV)" opacity=".5"/>
-    <!-- drip tray + legs -->
-    <rect x="1070" y="672" width="310" height="14" rx="6" fill="#170f0a"/>
-    <line x1="1074" y1="674" x2="1376" y2="674" stroke="rgba(200,163,117,.28)" stroke-width="1.5"/>
-    <rect x="1088" y="686" width="18" height="14" rx="3" fill="#110b07"/>
-    <rect x="1344" y="686" width="18" height="14" rx="3" fill="#110b07"/>
-    <!-- cups under the group heads + espresso streams -->
-    <g fill="#1c120b" stroke="rgba(200,163,117,.45)" stroke-width="1.5">
-      <path d="M1126 654 h40 v18 a12 12 0 0 1 -12 12 h-16 a12 12 0 0 1 -12 -12 Z"/>
-      <path d="M1288 654 h40 v18 a12 12 0 0 1 -12 12 h-16 a12 12 0 0 1 -12 -12 Z"/>
+    <rect x="1060" y="470" width="3" height="132" fill="url(#rimV)" opacity=".55"/>
+    <rect x="1060" y="470" width="330" height="3" fill="url(#rimTop)" opacity=".7"/>
+
+    <!-- drip tray with grate slats -->
+    <rect x="1070" y="672" width="310" height="16" rx="6" fill="#170f0a"/>
+    <g stroke="rgba(200,163,117,.32)" stroke-width="1.4">
+      <line x1="1078" y1="678" x2="1078" y2="684"/>
+      <line x1="1100" y1="678" x2="1100" y2="684"/>
+      <line x1="1122" y1="678" x2="1122" y2="684"/>
+      <line x1="1144" y1="678" x2="1144" y2="684"/>
+      <line x1="1166" y1="678" x2="1166" y2="684"/>
+      <line x1="1188" y1="678" x2="1188" y2="684"/>
+      <line x1="1262" y1="678" x2="1262" y2="684"/>
+      <line x1="1284" y1="678" x2="1284" y2="684"/>
+      <line x1="1306" y1="678" x2="1306" y2="684"/>
+      <line x1="1328" y1="678" x2="1328" y2="684"/>
+      <line x1="1350" y1="678" x2="1350" y2="684"/>
+      <line x1="1372" y1="678" x2="1372" y2="684"/>
     </g>
-    <line x1="1146" y1="642" x2="1146" y2="654" stroke="rgba(233,201,138,.45)" stroke-width="2.5"/>
-    <line x1="1308" y1="642" x2="1308" y2="654" stroke="rgba(233,201,138,.45)" stroke-width="2.5"/>
+    <line x1="1074" y1="674" x2="1376" y2="674" stroke="rgba(200,163,117,.3)" stroke-width="1.5"/>
+
+    <!-- feet -->
+    <rect x="1088" y="690" width="20" height="16" rx="3" fill="#110b07" stroke="rgba(200,163,117,.25)" stroke-width="1"/>
+    <rect x="1342" y="690" width="20" height="16" rx="3" fill="#110b07" stroke="rgba(200,163,117,.25)" stroke-width="1"/>
+
+    <!-- stacked cups & saucers, right of the machine, bleeding further off-frame -->
+    <g transform="translate(1462 0)">
+      <ellipse cx="60" cy="696" rx="58" ry="9" fill="url(#shadowSoft)"/>
+      <ellipse cx="60" cy="686" rx="54" ry="11" fill="#efe6d6" stroke="rgba(200,163,117,.35)" stroke-width="1.3"/>
+      <path d="M8 664 h104 v14 a11 11 0 0 1 -11 11 h-82 a11 11 0 0 1 -11 -11 Z" fill="url(#ceramicCup)" stroke="rgba(200,163,117,.35)" stroke-width="1.3"/>
+      <ellipse cx="60" cy="642" rx="44" ry="10" fill="#efe6d6" stroke="rgba(200,163,117,.3)" stroke-width="1.2"/>
+      <path d="M16 622 h88 v12 a9 9 0 0 1 -9 9 h-70 a9 9 0 0 1 -9 -9 Z" fill="url(#ceramicCup)" stroke="rgba(200,163,117,.3)" stroke-width="1.2"/>
+      <ellipse cx="60" cy="602" rx="36" ry="9" fill="#efe6d6" stroke="rgba(200,163,117,.3)" stroke-width="1.2"/>
+      <rect x="8" y="664" width="4" height="30" fill="url(#rimV)" opacity=".4"/>
+    </g>
   </g>
 
   <!-- left fade keeps the text side clean -->
