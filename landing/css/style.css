@@ -379,20 +379,25 @@ nav.scrolled {
   50%      { opacity: 1;   scale: 1.05; }
 }
 
-/* Hero photo — espresso machine, full-width to eliminate hard left edge.
-   Slow Ken Burns drift makes the frame feel filmed, not pasted. */
+/* Hero backdrop — hand-drawn espresso bar at night (vector: crisp at
+   any resolution, no third-party request, same illustrated cinematic
+   language as the brand films). Slow Ken Burns drift keeps it filmed. */
 .hero-photo-right {
   position: absolute;
   right: 0;
   top: 0;
   width: 100%;   /* full-width: gradient masks left side — no visible seam */
   height: 100%;
-  background-image: url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1000&q=75&auto=format&fit=crop');
-  background-size: cover;
-  background-position: center 30%;
+  background-image: url('../asset/hero-bar.svg');
+  /* fixed authored scale, pinned to the corner the scene was composed
+     for — no cover-crop magnification, stays crisp and proportioned */
+  background-size: 1600px 1050px;
+  background-position: right top;
+  background-repeat: no-repeat;
+  background-color: var(--dark);
   pointer-events: none;
   z-index: 0;
-  transform-origin: 68% 38%;
+  transform-origin: 78% 60%;
   animation: hero-kenburns 38s ease-in-out infinite alternate;
   will-change: transform;
 }
@@ -404,22 +409,22 @@ nav.scrolled {
   content: '';
   position: absolute;
   inset: 0;
+  /* the SVG scene is already dark and fades its own left side —
+     this only blends the frame edges into the page */
   background:
     linear-gradient(to right,
       var(--dark)              0%,
-      var(--dark)             30%,
-      rgba(10,10,11,.88)      42%,
-      rgba(10,10,11,.52)      58%,
-      rgba(10,10,11,.38)      72%,
-      rgba(10,10,11,.55)      86%,
-      rgba(10,10,11,.72)     100%
+      rgba(10,10,11,.62)      34%,
+      rgba(10,10,11,.10)      58%,
+      transparent             75%,
+      rgba(10,10,11,.30)     100%
     ),
     linear-gradient(to bottom,
-      rgba(10,10,11,.90)       0%,
-      rgba(10,10,11,.20)      16%,
+      rgba(10,10,11,.85)       0%,
+      rgba(10,10,11,.15)      16%,
       transparent             30%,
-      transparent             72%,
-      rgba(10,10,11,.94)     100%
+      transparent             70%,
+      rgba(10,10,11,.92)     100%
     );
   z-index: 1;
 }
