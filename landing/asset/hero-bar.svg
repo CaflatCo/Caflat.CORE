@@ -88,6 +88,19 @@
       <stop offset=".6" stop-color="#0a0a0b" stop-opacity=".7"/>
       <stop offset="1" stop-color="#0a0a0b" stop-opacity="0"/>
     </linearGradient>
+
+    <!-- demitasse cup: oval rim + tapered body + handle, raised clear of a smaller saucer beneath -->
+    <g id="demiCup">
+      <ellipse cx="0" cy="26" rx="30" ry="7" fill="url(#shadowSoft)"/>
+      <ellipse cx="0" cy="22" rx="24" ry="6" fill="#efe6d6" stroke="rgba(200,163,117,.4)" stroke-width="1"/>
+      <ellipse cx="0" cy="18" rx="15" ry="3.2" fill="#000" opacity=".22"/>
+      <path d="M-17,0 C-17,8 -14,15 -8,18 L8,18 C14,15 17,8 17,0 Z" fill="url(#ceramicCup)" stroke="rgba(200,163,117,.45)" stroke-width="1.3"/>
+      <path d="M16,3 q12,1 10,10 q-2,7 -11,6" fill="none" stroke="#d8c8ae" stroke-width="2.8" stroke-linecap="round"/>
+      <ellipse cx="0" cy="0" rx="17" ry="4.6" fill="#2a1c12" stroke="rgba(200,163,117,.5)" stroke-width="1"/>
+      <ellipse cx="0" cy="0" rx="13" ry="3.4" fill="url(#coffeeLiquid)"/>
+      <ellipse cx="0" cy="-.5" rx="13" ry="3" fill="none" stroke="#e9c98a" stroke-width=".8" opacity=".5"/>
+      <path d="M-2,-15 q4,6 -2,10" stroke="#fff" stroke-width="1.2" fill="none" opacity=".26" stroke-linecap="round"/>
+    </g>
   </defs>
 
   <rect width="1600" height="1050" fill="url(#sky)"/>
@@ -145,9 +158,9 @@
     <!-- grounding shadow for the whole assembly -->
     <ellipse cx="1240" cy="712" rx="380" ry="26" fill="url(#shadowSoft)"/>
 
-    <!-- ── grinder, left of the machine ── -->
-    <g>
-      <ellipse cx="1000" cy="708" rx="52" ry="9" fill="url(#shadowSoft)"/>
+    <!-- ── grinder, left of the machine, standing on the counter ── -->
+    <ellipse cx="1000" cy="708" rx="52" ry="9" fill="url(#shadowSoft)"/>
+    <g transform="translate(0 136)">
       <!-- hopper -->
       <path d="M968 396 L1032 396 L1022 452 L978 452 Z" fill="url(#hopperGlass)" stroke="rgba(200,163,117,.4)" stroke-width="1.5"/>
       <ellipse cx="1000" cy="396" rx="32" ry="10" fill="#241810" stroke="rgba(200,163,117,.4)" stroke-width="1.5"/>
@@ -186,7 +199,7 @@
       <!-- doser tray + ground coffee mound -->
       <rect x="972" y="546" width="56" height="14" rx="4" fill="#170f0a"/>
       <ellipse cx="1000" cy="548" rx="20" ry="5" fill="#3a2414"/>
-      <!-- feet -->
+      <!-- feet, flush on the counter -->
       <rect x="972" y="560" width="12" height="10" rx="2" fill="#110b07"/>
       <rect x="1016" y="560" width="12" height="10" rx="2" fill="#110b07"/>
     </g>
@@ -284,31 +297,15 @@
       <line x1="1150" y1="644" x2="1150" y2="654" stroke="#0e0a06" stroke-width="2"/>
       <line x1="1304" y1="644" x2="1304" y2="654" stroke="#0e0a06" stroke-width="2"/>
       <line x1="1312" y1="644" x2="1312" y2="654" stroke="#0e0a06" stroke-width="2"/>
-      <path d="M1142 652 L1145 668 L1148 652" fill="none" stroke="url(#streamGrad)" stroke-width="2.4" stroke-linecap="round"/>
-      <path d="M1150 652 L1148 668" fill="none" stroke="url(#streamGrad)" stroke-width="1.8" stroke-linecap="round"/>
-      <path d="M1304 652 L1307 668 L1310 652" fill="none" stroke="url(#streamGrad)" stroke-width="2.4" stroke-linecap="round"/>
-      <ellipse cx="1146" cy="669" rx="4" ry="2" fill="#e9c98a" opacity=".5"/>
-      <ellipse cx="1308" cy="669" rx="4" ry="2" fill="#e9c98a" opacity=".5"/>
+      <path d="M1142 652 L1145 670 L1148 652" fill="none" stroke="url(#streamGrad)" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M1150 652 L1148 670" fill="none" stroke="url(#streamGrad)" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M1304 652 L1307 670 L1310 652" fill="none" stroke="url(#streamGrad)" stroke-width="2.4" stroke-linecap="round"/>
+      <ellipse cx="1146" cy="670" rx="4" ry="2" fill="#e9c98a" opacity=".5"/>
+      <ellipse cx="1308" cy="670" rx="4" ry="2" fill="#e9c98a" opacity=".5"/>
 
-      <!-- demitasse cups + coffee + crema + handle + saucer + micro-steam -->
-      <g transform="translate(1146 682)">
-        <ellipse cx="0" cy="16" rx="34" ry="7" fill="url(#shadowSoft)"/>
-        <ellipse cx="0" cy="14" rx="30" ry="7" fill="#efe6d6" stroke="rgba(200,163,117,.4)" stroke-width="1"/>
-        <path d="M-20 -8 h40 v14 a10 10 0 0 1 -10 10 h-20 a10 10 0 0 1 -10 -10 Z" fill="url(#ceramicCup)" stroke="rgba(200,163,117,.4)" stroke-width="1.3"/>
-        <ellipse cx="0" cy="-8" rx="20" ry="5" fill="url(#coffeeLiquid)"/>
-        <ellipse cx="0" cy="-9" rx="20" ry="4.4" fill="none" stroke="#e9c98a" stroke-width="1" opacity=".5"/>
-        <path d="M18 -4 q10 2 8 10 q-2 6 -8 6" fill="none" stroke="#e6dccb" stroke-width="2.4"/>
-        <path d="M-3 -22 q3 6 -1 10" stroke="#fff" stroke-width="1.3" fill="none" opacity=".28" stroke-linecap="round"/>
-      </g>
-      <g transform="translate(1308 682)">
-        <ellipse cx="0" cy="16" rx="34" ry="7" fill="url(#shadowSoft)"/>
-        <ellipse cx="0" cy="14" rx="30" ry="7" fill="#efe6d6" stroke="rgba(200,163,117,.4)" stroke-width="1"/>
-        <path d="M-20 -8 h40 v14 a10 10 0 0 1 -10 10 h-20 a10 10 0 0 1 -10 -10 Z" fill="url(#ceramicCup)" stroke="rgba(200,163,117,.4)" stroke-width="1.3"/>
-        <ellipse cx="0" cy="-8" rx="20" ry="5" fill="url(#coffeeLiquid)"/>
-        <ellipse cx="0" cy="-9" rx="20" ry="4.4" fill="none" stroke="#e9c98a" stroke-width="1" opacity=".5"/>
-        <path d="M18 -4 q10 2 8 10 q-2 6 -8 6" fill="none" stroke="#e6dccb" stroke-width="2.4"/>
-        <path d="M4 -22 q4 6 0 10" stroke="#fff" stroke-width="1.3" fill="none" opacity=".28" stroke-linecap="round"/>
-      </g>
+      <!-- demitasse cups, rim resting where the pours land, saucers flush on the counter -->
+      <use href="#demiCup" x="1146" y="670"/>
+      <use href="#demiCup" x="1308" y="670"/>
     </g>
 
     <!-- steam wand with nozzle + joint + tiny wisp -->
@@ -344,15 +341,15 @@
     <rect x="1088" y="690" width="20" height="16" rx="3" fill="#110b07" stroke="rgba(200,163,117,.25)" stroke-width="1"/>
     <rect x="1342" y="690" width="20" height="16" rx="3" fill="#110b07" stroke="rgba(200,163,117,.25)" stroke-width="1"/>
 
-    <!-- stacked cups & saucers, right of the machine, bleeding further off-frame -->
+    <!-- nested stack of saucers, right of the machine, bleeding further off-frame -->
     <g transform="translate(1462 0)">
-      <ellipse cx="60" cy="696" rx="58" ry="9" fill="url(#shadowSoft)"/>
-      <ellipse cx="60" cy="686" rx="54" ry="11" fill="#efe6d6" stroke="rgba(200,163,117,.35)" stroke-width="1.3"/>
-      <path d="M8 664 h104 v14 a11 11 0 0 1 -11 11 h-82 a11 11 0 0 1 -11 -11 Z" fill="url(#ceramicCup)" stroke="rgba(200,163,117,.35)" stroke-width="1.3"/>
-      <ellipse cx="60" cy="642" rx="44" ry="10" fill="#efe6d6" stroke="rgba(200,163,117,.3)" stroke-width="1.2"/>
-      <path d="M16 622 h88 v12 a9 9 0 0 1 -9 9 h-70 a9 9 0 0 1 -9 -9 Z" fill="url(#ceramicCup)" stroke="rgba(200,163,117,.3)" stroke-width="1.2"/>
-      <ellipse cx="60" cy="602" rx="36" ry="9" fill="#efe6d6" stroke="rgba(200,163,117,.3)" stroke-width="1.2"/>
-      <rect x="8" y="664" width="4" height="30" fill="url(#rimV)" opacity=".4"/>
+      <ellipse cx="60" cy="709" rx="58" ry="9" fill="url(#shadowSoft)"/>
+      <ellipse cx="60" cy="699" rx="52" ry="10" fill="#e8ddc9" stroke="rgba(200,163,117,.3)" stroke-width="1.1"/>
+      <ellipse cx="60" cy="691" rx="52" ry="10" fill="#efe6d6" stroke="rgba(200,163,117,.32)" stroke-width="1.1"/>
+      <ellipse cx="60" cy="683" rx="52" ry="10" fill="#e8ddc9" stroke="rgba(200,163,117,.3)" stroke-width="1.1"/>
+      <ellipse cx="60" cy="675" rx="52" ry="10" fill="#efe6d6" stroke="rgba(200,163,117,.32)" stroke-width="1.1"/>
+      <ellipse cx="60" cy="667" rx="52" ry="10" fill="#e8ddc9" stroke="rgba(200,163,117,.35)" stroke-width="1.2"/>
+      <ellipse cx="60" cy="667" rx="52" ry="10" fill="none" stroke="rgba(240,221,192,.35)" stroke-width="1"/>
     </g>
   </g>
 

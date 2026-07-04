@@ -119,43 +119,46 @@
     <path d="M106 610 L200 438 L226 438 L132 610 Z" fill="#fff6e4" opacity=".035"/>
     <path d="M250 610 L320 438 L336 438 L266 610 Z" fill="#fff6e4" opacity=".03"/>
 
-    <!-- shelves -->
+    <!-- shelves: top ledge, two internal planks, floor — three tiers, each with a real surface to rest on -->
+    <line x1="98" y1="440" x2="442" y2="440" stroke="rgba(200,163,117,.6)" stroke-width="2.5"/>
     <line x1="98" y1="562" x2="442" y2="562" stroke="rgba(200,163,117,.45)" stroke-width="3"/>
     <line x1="98" y1="565" x2="442" y2="565" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
-    <line x1="98" y1="440" x2="442" y2="440" stroke="rgba(200,163,117,.6)" stroke-width="2.5"/>
+    <line x1="98" y1="610" x2="442" y2="610" stroke="rgba(200,163,117,.45)" stroke-width="3"/>
+    <line x1="98" y1="613" x2="442" y2="613" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
     <line x1="98" y1="686" x2="442" y2="686" stroke="rgba(200,163,117,.6)" stroke-width="2.5"/>
 
-    <!-- interior puck lights, one per shelf, casting a soft downward glow -->
+    <!-- interior puck lights, one per tier, casting a soft downward glow -->
     <ellipse cx="150" cy="452" rx="60" ry="14" fill="url(#puckGlow)"/>
     <ellipse cx="270" cy="452" rx="60" ry="14" fill="url(#puckGlow)"/>
     <ellipse cx="390" cy="452" rx="50" ry="12" fill="url(#puckGlow)"/>
-    <ellipse cx="220" cy="574" rx="70" ry="14" fill="url(#puckGlow)" opacity=".7"/>
-    <ellipse cx="380" cy="574" rx="50" ry="12" fill="url(#puckGlow)" opacity=".6"/>
+    <ellipse cx="220" cy="572" rx="90" ry="13" fill="url(#puckGlow)" opacity=".65"/>
+    <ellipse cx="185" cy="620" rx="70" ry="13" fill="url(#puckGlow)" opacity=".6"/>
+    <ellipse cx="355" cy="620" rx="55" ry="12" fill="url(#puckGlow)" opacity=".55"/>
 
     <!-- top shelf: croissants — shaded crescent + lamination flakes + shine + shadow -->
     <g>
-      <g transform="translate(120 494)">
+      <g transform="translate(120 532)">
         <ellipse cx="30" cy="30" rx="30" ry="7" fill="url(#shadowSoft2)"/>
         <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="url(#croissantShade)" stroke="rgba(120,80,40,.5)" stroke-width="1.3"/>
         <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.7)" stroke-width="1.3" stroke-linecap="round"/>
         <path d="M12,17 Q22,22 32,20 M22,22 Q34,26 44,22" fill="none" stroke="rgba(90,55,25,.4)" stroke-width="1" stroke-linecap="round"/>
         <path d="M10,10 q6,-6 14,-4" stroke="#fff6e4" stroke-width="1.6" fill="none" opacity=".45" stroke-linecap="round"/>
       </g>
-      <g transform="translate(182 500)">
+      <g transform="translate(182 532)">
         <ellipse cx="30" cy="30" rx="30" ry="7" fill="url(#shadowSoft2)"/>
         <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="url(#croissantShade)" stroke="rgba(120,80,40,.5)" stroke-width="1.3"/>
         <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.7)" stroke-width="1.3" stroke-linecap="round"/>
         <path d="M12,17 Q22,22 32,20 M22,22 Q34,26 44,22" fill="none" stroke="rgba(90,55,25,.4)" stroke-width="1" stroke-linecap="round"/>
         <path d="M10,10 q6,-6 14,-4" stroke="#fff6e4" stroke-width="1.6" fill="none" opacity=".45" stroke-linecap="round"/>
       </g>
-      <g transform="translate(244 494)">
+      <g transform="translate(244 532)">
         <ellipse cx="30" cy="30" rx="30" ry="7" fill="url(#shadowSoft2)"/>
         <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="url(#croissantShade)" stroke="rgba(120,80,40,.5)" stroke-width="1.3"/>
         <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.7)" stroke-width="1.3" stroke-linecap="round"/>
         <path d="M12,17 Q22,22 32,20 M22,22 Q34,26 44,22" fill="none" stroke="rgba(90,55,25,.4)" stroke-width="1" stroke-linecap="round"/>
         <path d="M10,10 q6,-6 14,-4" stroke="#fff6e4" stroke-width="1.6" fill="none" opacity=".45" stroke-linecap="round"/>
       </g>
-      <g transform="translate(306 500)">
+      <g transform="translate(306 532)">
         <ellipse cx="30" cy="30" rx="30" ry="7" fill="url(#shadowSoft2)"/>
         <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="url(#croissantShade)" stroke="rgba(120,80,40,.5)" stroke-width="1.3"/>
         <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.7)" stroke-width="1.3" stroke-linecap="round"/>
@@ -166,28 +169,28 @@
 
     <!-- middle shelf: macarons — gradient shells, glossy highlight, filling band, cast shadow -->
     <g>
-      <g transform="translate(140 636)">
+      <g transform="translate(140 586)">
         <ellipse cx="20" cy="24" rx="21" ry="6" fill="url(#shadowSoft2)"/>
         <ellipse cx="20" cy="16" rx="19" ry="7" fill="#c8895a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
         <rect x="3" y="12" width="34" height="6" rx="3" fill="#f0ddc0"/>
         <ellipse cx="20" cy="8" rx="18" ry="6.6" fill="#d9a06a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
         <ellipse cx="14" cy="5" rx="6" ry="2.4" fill="#fff6e4" opacity=".5"/>
       </g>
-      <g transform="translate(196 640)">
+      <g transform="translate(196 586)">
         <ellipse cx="20" cy="24" rx="21" ry="6" fill="url(#shadowSoft2)"/>
         <ellipse cx="20" cy="16" rx="19" ry="7" fill="#b8734a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
         <rect x="3" y="12" width="34" height="6" rx="3" fill="#e8b9d4"/>
         <ellipse cx="20" cy="8" rx="18" ry="6.6" fill="#c8895a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
         <ellipse cx="14" cy="5" rx="6" ry="2.4" fill="#fff6e4" opacity=".5"/>
       </g>
-      <g transform="translate(252 636)">
+      <g transform="translate(252 586)">
         <ellipse cx="20" cy="24" rx="21" ry="6" fill="url(#shadowSoft2)"/>
         <ellipse cx="20" cy="16" rx="19" ry="7" fill="#d9a06a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
         <rect x="3" y="12" width="34" height="6" rx="3" fill="#f0ddc0"/>
         <ellipse cx="20" cy="8" rx="18" ry="6.6" fill="#e0b378" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
         <ellipse cx="14" cy="5" rx="6" ry="2.4" fill="#fff6e4" opacity=".5"/>
       </g>
-      <g transform="translate(308 640)">
+      <g transform="translate(308 586)">
         <ellipse cx="20" cy="24" rx="21" ry="6" fill="url(#shadowSoft2)"/>
         <ellipse cx="20" cy="16" rx="19" ry="7" fill="#c8895a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
         <rect x="3" y="12" width="34" height="6" rx="3" fill="#f6d9a8"/>
