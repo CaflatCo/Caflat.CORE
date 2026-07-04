@@ -379,31 +379,22 @@ nav.scrolled {
   50%      { opacity: 1;   scale: 1.05; }
 }
 
-/* Hero backdrop — hand-drawn espresso bar at night (vector: crisp at
-   any resolution, no third-party request, same illustrated cinematic
-   language as the brand films). Slow Ken Burns drift keeps it filmed. */
+/* Hero photo — espresso machine, full-width to eliminate hard left edge.
+   Slow Ken Burns drift makes the frame feel filmed, not pasted.
+   Requested at a much higher width than the original (2400 vs 1000) —
+   the original was visibly soft on large/retina screens at w=1000&q=75. */
 .hero-photo-right {
   position: absolute;
   right: 0;
   top: 0;
-  /* NOT 100%: both this layer and .hero-case paint a fully opaque
-     full-canvas scene (their own sky background), so at 100% width
-     the later one in the DOM (.hero-case) would opaquely cover this
-     one's visible right-edge content across the whole hero, not just
-     its own left side. Shrinking each to its own side keeps them from
-     spatially overlapping where either one actually has content. */
-  width: 66%;
+  width: 100%;   /* full-width: gradient masks left side — no visible seam */
   height: 100%;
-  background-image: url('../asset/hero-bar.svg');
-  /* fixed authored scale, pinned to the corner the scene was composed
-     for — no cover-crop magnification, stays crisp and proportioned */
-  background-size: 1600px 1050px;
-  background-position: right top;
-  background-repeat: no-repeat;
-  background-color: var(--dark);
+  background-image: url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=2400&q=85&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center 30%;
   pointer-events: none;
   z-index: 0;
-  transform-origin: 78% 60%;
+  transform-origin: 68% 38%;
   animation: hero-kenburns 38s ease-in-out infinite alternate;
   will-change: transform;
 }
@@ -415,65 +406,22 @@ nav.scrolled {
   content: '';
   position: absolute;
   inset: 0;
-  /* the SVG scene is already dark and fades its own left side —
-     this only blends the frame edges into the page */
   background:
     linear-gradient(to right,
       var(--dark)              0%,
-      rgba(10,10,11,.62)      34%,
-      rgba(10,10,11,.10)      58%,
-      transparent             75%,
-      rgba(10,10,11,.30)     100%
+      var(--dark)             30%,
+      rgba(10,10,11,.88)      42%,
+      rgba(10,10,11,.52)      58%,
+      rgba(10,10,11,.38)      72%,
+      rgba(10,10,11,.55)      86%,
+      rgba(10,10,11,.72)     100%
     ),
     linear-gradient(to bottom,
-      rgba(10,10,11,.85)       0%,
-      rgba(10,10,11,.15)      16%,
+      rgba(10,10,11,.90)       0%,
+      rgba(10,10,11,.20)      16%,
       transparent             30%,
-      transparent             70%,
-      rgba(10,10,11,.92)     100%
-    );
-  z-index: 1;
-}
-
-/* Hero counter, left side — hand-drawn pastry case, the other end of the
-   same shop counter as .hero-photo-right. Deliberately static (not Ken
-   Burns'd): staying put reads as the grounded, stable end of the room,
-   a calmer counterweight to the espresso side's drift. */
-.hero-case {
-  position: absolute;
-  left: 0;
-  top: 0;
-  /* NOT 100% — see the matching note on .hero-photo-right */
-  width: 66%;
-  height: 100%;
-  background-image: url('../asset/hero-case.svg');
-  background-size: 1600px 1050px;
-  background-position: left top;
-  background-repeat: no-repeat;
-  background-color: var(--dark);
-  pointer-events: none;
-  z-index: 0;
-}
-.hero-case::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* mirrors .hero-photo-right::before — blends the case into the page
-     on the side away from the text; the SVG fades its own right edge */
-  background:
-    linear-gradient(to left,
-      var(--dark)              0%,
-      rgba(10,10,11,.62)      34%,
-      rgba(10,10,11,.10)      58%,
-      transparent             75%,
-      rgba(10,10,11,.30)     100%
-    ),
-    linear-gradient(to bottom,
-      rgba(10,10,11,.85)       0%,
-      rgba(10,10,11,.15)      16%,
-      transparent             30%,
-      transparent             70%,
-      rgba(10,10,11,.92)     100%
+      transparent             72%,
+      rgba(10,10,11,.94)     100%
     );
   z-index: 1;
 }
@@ -548,10 +496,6 @@ nav.scrolled {
 @media (max-width: 720px) {
   .hero-steam { display: none; }
   .hero-crema { width: 1100px; height: 1100px; }
-  /* Unlike the machine (whose mobile-visible slice sits behind the
-     opaque card-fan mockups), the case's slice lands directly behind
-     the readable paragraph/CTA text with nothing to mask it. */
-  .hero-case { display: none; }
 }
 
 /* Full-width bottom vignette — blends hero into the section below */
