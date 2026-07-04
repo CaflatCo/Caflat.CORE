@@ -2,21 +2,36 @@
   <defs>
     <linearGradient id="csky" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#0a0a0b"/>
-      <stop offset=".55" stop-color="#110d09"/>
+      <stop offset=".5" stop-color="#110d09"/>
       <stop offset="1" stop-color="#0a0a0b"/>
     </linearGradient>
-    <radialGradient id="caselight" cx=".5" cy=".5" r=".5">
-      <stop offset="0" stop-color="#e9c98a" stop-opacity=".26"/>
-      <stop offset=".5" stop-color="#c8a375" stop-opacity=".09"/>
+    <radialGradient id="caselightOuter" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#e9c98a" stop-opacity=".3"/>
+      <stop offset=".5" stop-color="#c8a375" stop-opacity=".1"/>
       <stop offset="1" stop-color="#c8a375" stop-opacity="0"/>
     </radialGradient>
+    <radialGradient id="puckGlow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#fff3da" stop-opacity=".9"/>
+      <stop offset=".4" stop-color="#e9c98a" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#e9c98a" stop-opacity="0"/>
+    </radialGradient>
     <linearGradient id="ccounter" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#221610"/>
-      <stop offset=".14" stop-color="#170f0a"/>
+      <stop offset="0" stop-color="#2a1c12"/>
+      <stop offset=".08" stop-color="#241610"/>
+      <stop offset=".4" stop-color="#170f0a"/>
       <stop offset="1" stop-color="#0a0a0b"/>
     </linearGradient>
+    <linearGradient id="counterSheenR" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e9c98a" stop-opacity=".05"/>
+      <stop offset=".5" stop-color="#e9c98a" stop-opacity=".02"/>
+      <stop offset="1" stop-color="#e9c98a" stop-opacity="0"/>
+    </linearGradient>
     <linearGradient id="crimV" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#c8a375" stop-opacity=".5"/>
+      <stop offset="0" stop-color="#f0ddc0" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#c8a375" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="crimTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6e6c8" stop-opacity=".8"/>
       <stop offset="1" stop-color="#c8a375" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="fadeR" x1="0" y1="0" x2="1" y2="0">
@@ -25,126 +40,247 @@
       <stop offset="1" stop-color="#0a0a0b"/>
     </linearGradient>
     <linearGradient id="glassTint" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#e9c98a" stop-opacity=".10"/>
+      <stop offset="0" stop-color="#e9c98a" stop-opacity=".12"/>
       <stop offset="1" stop-color="#e9c98a" stop-opacity=".02"/>
     </linearGradient>
+    <radialGradient id="shadowSoft2" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#000" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="domeSpec" cx=".32" cy=".22" r=".85">
+      <stop offset="0" stop-color="#fff6e4" stop-opacity=".55"/>
+      <stop offset=".5" stop-color="#e9c98a" stop-opacity=".1"/>
+      <stop offset="1" stop-color="#0e0a06" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="croissantShade" cx=".35" cy=".3" r=".8">
+      <stop offset="0" stop-color="#e9b878"/>
+      <stop offset="1" stop-color="#a5703f"/>
+    </radialGradient>
   </defs>
 
   <rect width="1600" height="1050" fill="url(#csky)"/>
 
-  <!-- dim far bokeh, mirrored feel from the right scene -->
-  <circle cx="1380" cy="300" r="40" fill="#c8a375" opacity=".04"/>
-  <circle cx="1240" cy="210" r="22" fill="#e9c98a" opacity=".04"/>
-  <circle cx="1480" cy="470" r="26" fill="#c8a375" opacity=".03"/>
+  <!-- dim far bokeh, opposite the case -->
+  <circle cx="1380" cy="300" r="42" fill="#c8a375" opacity=".045"/>
+  <circle cx="1240" cy="210" r="24" fill="#e9c98a" opacity=".04"/>
+  <circle cx="1480" cy="470" r="28" fill="#c8a375" opacity=".035"/>
+  <circle cx="1100" cy="340" r="14" fill="#f0ddc0" opacity=".04"/>
+
+  <!-- subway-tile backsplash, matching the bar's texture -->
+  <g stroke="#c8a375" stroke-width="1" opacity=".05">
+    <line x1="80" y1="360" x2="80" y2="700"/>
+    <line x1="122" y1="360" x2="122" y2="700"/>
+    <line x1="164" y1="360" x2="164" y2="700"/>
+    <line x1="206" y1="360" x2="206" y2="700"/>
+    <line x1="248" y1="360" x2="248" y2="700"/>
+    <line x1="290" y1="360" x2="290" y2="700"/>
+    <line x1="332" y1="360" x2="332" y2="700"/>
+    <line x1="374" y1="360" x2="374" y2="700"/>
+    <line x1="416" y1="360" x2="416" y2="700"/>
+    <line x1="80" y1="440" x2="460" y2="440"/>
+    <line x1="80" y1="520" x2="460" y2="520"/>
+    <line x1="80" y1="600" x2="460" y2="600"/>
+  </g>
 
   <!-- case interior warm light -->
-  <circle cx="115" cy="470" r="230" fill="url(#caselight)"/>
+  <circle cx="115" cy="470" r="250" fill="url(#caselightOuter)"/>
 
   <!-- counter -->
   <rect x="0" y="700" width="1600" height="350" fill="url(#ccounter)"/>
-  <line x1="0" y1="700" x2="1600" y2="700" stroke="rgba(200,163,117,.25)" stroke-width="2"/>
-  <ellipse cx="115" cy="718" rx="260" ry="20" fill="#c8a375" opacity=".07"/>
+  <line x1="0" y1="700" x2="1600" y2="700" stroke="rgba(200,163,117,.3)" stroke-width="2"/>
+  <line x1="0" y1="703" x2="1600" y2="703" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/>
+  <rect x="0" y="700" width="1600" height="350" fill="url(#counterSheenR)"/>
+  <g stroke="#000" stroke-width="1" opacity=".12">
+    <line x1="0" y1="760" x2="1600" y2="762"/>
+    <line x1="0" y1="830" x2="1600" y2="827"/>
+    <line x1="0" y1="905" x2="1600" y2="908"/>
+  </g>
+  <ellipse cx="115" cy="722" rx="280" ry="22" fill="#c8a375" opacity=".09"/>
 
   <!-- ══ pastry display case — bleeds off the left edge ══ -->
   <g transform="translate(-260 0)">
-    <!-- case body: two glass shelves in a rim-lit frame -->
-    <rect x="90" y="430" width="360" height="270" rx="14" fill="#161009"/>
-    <!-- glass front panel tint -->
-    <rect x="106" y="446" width="328" height="238" rx="8" fill="url(#glassTint)"/>
-    <!-- shelves -->
-    <line x1="98" y1="560" x2="442" y2="560" stroke="rgba(200,163,117,.4)" stroke-width="3"/>
-    <line x1="98" y1="446" x2="442" y2="446" stroke="rgba(200,163,117,.55)" stroke-width="2.5"/>
-    <line x1="98" y1="684" x2="442" y2="684" stroke="rgba(200,163,117,.55)" stroke-width="2.5"/>
 
-    <!-- top shelf: croissants — crescent body + a few flake ridges so they
-         read as a distinct pastry shape rather than a rounded blob -->
+    <!-- grounding shadow -->
+    <ellipse cx="290" cy="712" rx="300" ry="24" fill="url(#shadowSoft2)"/>
+
+    <!-- case frame -->
+    <rect x="90" y="420" width="360" height="282" rx="16" fill="#161009"/>
+    <rect x="90" y="420" width="360" height="282" rx="16" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="1.5"/>
+
+    <!-- glass front: tint + faceted vertical seams -->
+    <rect x="106" y="438" width="328" height="248" rx="8" fill="url(#glassTint)"/>
+    <g stroke="rgba(233,201,138,.14)" stroke-width="1.4">
+      <line x1="150" y1="438" x2="150" y2="686"/>
+      <line x1="220" y1="438" x2="220" y2="686"/>
+      <line x1="290" y1="438" x2="290" y2="686"/>
+      <line x1="360" y1="438" x2="360" y2="686"/>
+    </g>
+    <!-- glass diagonal shine streaks -->
+    <path d="M106 610 L200 438 L226 438 L132 610 Z" fill="#fff6e4" opacity=".035"/>
+    <path d="M250 610 L320 438 L336 438 L266 610 Z" fill="#fff6e4" opacity=".03"/>
+
+    <!-- shelves -->
+    <line x1="98" y1="562" x2="442" y2="562" stroke="rgba(200,163,117,.45)" stroke-width="3"/>
+    <line x1="98" y1="565" x2="442" y2="565" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
+    <line x1="98" y1="440" x2="442" y2="440" stroke="rgba(200,163,117,.6)" stroke-width="2.5"/>
+    <line x1="98" y1="686" x2="442" y2="686" stroke="rgba(200,163,117,.6)" stroke-width="2.5"/>
+
+    <!-- interior puck lights, one per shelf, casting a soft downward glow -->
+    <ellipse cx="150" cy="452" rx="60" ry="14" fill="url(#puckGlow)"/>
+    <ellipse cx="270" cy="452" rx="60" ry="14" fill="url(#puckGlow)"/>
+    <ellipse cx="390" cy="452" rx="50" ry="12" fill="url(#puckGlow)"/>
+    <ellipse cx="220" cy="574" rx="70" ry="14" fill="url(#puckGlow)" opacity=".7"/>
+    <ellipse cx="380" cy="574" rx="50" ry="12" fill="url(#puckGlow)" opacity=".6"/>
+
+    <!-- top shelf: croissants — shaded crescent + lamination flakes + shine + shadow -->
     <g>
       <g transform="translate(120 494)">
-        <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="#c8935a" stroke="rgba(233,201,138,.55)" stroke-width="1.5"/>
-        <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.6)" stroke-width="1.3" stroke-linecap="round"/>
+        <ellipse cx="30" cy="30" rx="30" ry="7" fill="url(#shadowSoft2)"/>
+        <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="url(#croissantShade)" stroke="rgba(120,80,40,.5)" stroke-width="1.3"/>
+        <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.7)" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M12,17 Q22,22 32,20 M22,22 Q34,26 44,22" fill="none" stroke="rgba(90,55,25,.4)" stroke-width="1" stroke-linecap="round"/>
+        <path d="M10,10 q6,-6 14,-4" stroke="#fff6e4" stroke-width="1.6" fill="none" opacity=".45" stroke-linecap="round"/>
       </g>
       <g transform="translate(182 500)">
-        <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="#d9a06a" stroke="rgba(233,201,138,.55)" stroke-width="1.5"/>
-        <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.6)" stroke-width="1.3" stroke-linecap="round"/>
+        <ellipse cx="30" cy="30" rx="30" ry="7" fill="url(#shadowSoft2)"/>
+        <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="url(#croissantShade)" stroke="rgba(120,80,40,.5)" stroke-width="1.3"/>
+        <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.7)" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M12,17 Q22,22 32,20 M22,22 Q34,26 44,22" fill="none" stroke="rgba(90,55,25,.4)" stroke-width="1" stroke-linecap="round"/>
+        <path d="M10,10 q6,-6 14,-4" stroke="#fff6e4" stroke-width="1.6" fill="none" opacity=".45" stroke-linecap="round"/>
       </g>
       <g transform="translate(244 494)">
-        <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="#c8935a" stroke="rgba(233,201,138,.55)" stroke-width="1.5"/>
-        <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.6)" stroke-width="1.3" stroke-linecap="round"/>
+        <ellipse cx="30" cy="30" rx="30" ry="7" fill="url(#shadowSoft2)"/>
+        <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="url(#croissantShade)" stroke="rgba(120,80,40,.5)" stroke-width="1.3"/>
+        <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.7)" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M12,17 Q22,22 32,20 M22,22 Q34,26 44,22" fill="none" stroke="rgba(90,55,25,.4)" stroke-width="1" stroke-linecap="round"/>
+        <path d="M10,10 q6,-6 14,-4" stroke="#fff6e4" stroke-width="1.6" fill="none" opacity=".45" stroke-linecap="round"/>
       </g>
       <g transform="translate(306 500)">
-        <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="#b8845a" stroke="rgba(233,201,138,.55)" stroke-width="1.5"/>
-        <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.6)" stroke-width="1.3" stroke-linecap="round"/>
+        <ellipse cx="30" cy="30" rx="30" ry="7" fill="url(#shadowSoft2)"/>
+        <path d="M4,22 C14,4 46,4 56,20 C46,30 36,26 30,18 C24,26 14,30 4,22 Z" fill="url(#croissantShade)" stroke="rgba(120,80,40,.5)" stroke-width="1.3"/>
+        <path d="M16,12 Q20,8 24,11 M28,9 Q32,5 36,9 M40,11 Q44,8 47,12" fill="none" stroke="rgba(255,238,210,.7)" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M12,17 Q22,22 32,20 M22,22 Q34,26 44,22" fill="none" stroke="rgba(90,55,25,.4)" stroke-width="1" stroke-linecap="round"/>
+        <path d="M10,10 q6,-6 14,-4" stroke="#fff6e4" stroke-width="1.6" fill="none" opacity=".45" stroke-linecap="round"/>
       </g>
     </g>
 
-    <!-- middle shelf: macarons — shell / filling / shell, so each one reads
-         as a sandwich cookie instead of a soft lozenge -->
-    <g stroke="rgba(233,201,138,.55)" stroke-width="1.3">
+    <!-- middle shelf: macarons — gradient shells, glossy highlight, filling band, cast shadow -->
+    <g>
       <g transform="translate(140 636)">
-        <ellipse cx="20" cy="16" rx="19" ry="7"/>
-        <ellipse cx="20" cy="16" rx="19" ry="7" fill="#c8895a"/>
-        <rect x="3" y="12" width="34" height="6" rx="3" fill="#f0ddc0" stroke="none"/>
-        <ellipse cx="20" cy="8" rx="18" ry="6.6" fill="#d9a06a"/>
+        <ellipse cx="20" cy="24" rx="21" ry="6" fill="url(#shadowSoft2)"/>
+        <ellipse cx="20" cy="16" rx="19" ry="7" fill="#c8895a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
+        <rect x="3" y="12" width="34" height="6" rx="3" fill="#f0ddc0"/>
+        <ellipse cx="20" cy="8" rx="18" ry="6.6" fill="#d9a06a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
+        <ellipse cx="14" cy="5" rx="6" ry="2.4" fill="#fff6e4" opacity=".5"/>
       </g>
       <g transform="translate(196 640)">
-        <ellipse cx="20" cy="16" rx="19" ry="7"/>
-        <ellipse cx="20" cy="16" rx="19" ry="7" fill="#b8734a"/>
-        <rect x="3" y="12" width="34" height="6" rx="3" fill="#e8b9d4" stroke="none"/>
-        <ellipse cx="20" cy="8" rx="18" ry="6.6" fill="#c8895a"/>
+        <ellipse cx="20" cy="24" rx="21" ry="6" fill="url(#shadowSoft2)"/>
+        <ellipse cx="20" cy="16" rx="19" ry="7" fill="#b8734a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
+        <rect x="3" y="12" width="34" height="6" rx="3" fill="#e8b9d4"/>
+        <ellipse cx="20" cy="8" rx="18" ry="6.6" fill="#c8895a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
+        <ellipse cx="14" cy="5" rx="6" ry="2.4" fill="#fff6e4" opacity=".5"/>
       </g>
       <g transform="translate(252 636)">
-        <ellipse cx="20" cy="16" rx="19" ry="7"/>
-        <ellipse cx="20" cy="16" rx="19" ry="7" fill="#d9a06a"/>
-        <rect x="3" y="12" width="34" height="6" rx="3" fill="#f0ddc0" stroke="none"/>
-        <ellipse cx="20" cy="8" rx="18" ry="6.6" fill="#e0b378"/>
+        <ellipse cx="20" cy="24" rx="21" ry="6" fill="url(#shadowSoft2)"/>
+        <ellipse cx="20" cy="16" rx="19" ry="7" fill="#d9a06a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
+        <rect x="3" y="12" width="34" height="6" rx="3" fill="#f0ddc0"/>
+        <ellipse cx="20" cy="8" rx="18" ry="6.6" fill="#e0b378" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
+        <ellipse cx="14" cy="5" rx="6" ry="2.4" fill="#fff6e4" opacity=".5"/>
       </g>
       <g transform="translate(308 640)">
-        <ellipse cx="20" cy="16" rx="19" ry="7"/>
-        <ellipse cx="20" cy="16" rx="19" ry="7" fill="#c8895a"/>
-        <rect x="3" y="12" width="34" height="6" rx="3" fill="#f6d9a8" stroke="none"/>
-        <ellipse cx="20" cy="8" rx="18" ry="6.6" fill="#b8734a"/>
+        <ellipse cx="20" cy="24" rx="21" ry="6" fill="url(#shadowSoft2)"/>
+        <ellipse cx="20" cy="16" rx="19" ry="7" fill="#c8895a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
+        <rect x="3" y="12" width="34" height="6" rx="3" fill="#f6d9a8"/>
+        <ellipse cx="20" cy="8" rx="18" ry="6.6" fill="#b8734a" stroke="rgba(233,201,138,.55)" stroke-width="1.2"/>
+        <ellipse cx="14" cy="5" rx="6" ry="2.4" fill="#fff6e4" opacity=".5"/>
       </g>
     </g>
 
-    <!-- bottom shelf: cake slices — visible layer line + a frosting cap
-         instead of the separate frosting-dot rects (read as noise at scale) -->
+    <!-- bottom shelf: cake slices — layered sponge, drizzle, berry, doily -->
     <g>
       <g>
-        <path d="M130 682 L170 682 L150 632 Z" fill="#8a5a36" stroke="rgba(233,201,138,.45)" stroke-width="1.5"/>
-        <path d="M136 668 L164 668" stroke="rgba(240,221,192,.55)" stroke-width="1.5"/>
+        <ellipse cx="150" cy="686" rx="26" ry="5" fill="#f4ece0" opacity=".8"/>
+        <path d="M130 682 L170 682 L150 632 Z" fill="#8a5a36" stroke="rgba(233,201,138,.5)" stroke-width="1.4"/>
+        <path d="M133 664 L167 664" stroke="#f0ddc0" stroke-width="3" opacity=".85"/>
+        <path d="M136 649 L164 649" stroke="rgba(240,221,192,.5)" stroke-width="1.4"/>
         <path d="M150 632 Q156 638 152 646 Q158 650 154 656" fill="none" stroke="#f0ddc0" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+        <circle cx="150" cy="638" r="3.4" fill="#c8425c"/>
+        <ellipse cx="149" cy="637" rx="1.2" ry=".8" fill="#fff" opacity=".6"/>
       </g>
       <g>
-        <path d="M190 682 L230 682 L210 636 Z" fill="#96613a" stroke="rgba(233,201,138,.45)" stroke-width="1.5"/>
-        <path d="M196 670 L224 670" stroke="rgba(240,221,192,.55)" stroke-width="1.5"/>
+        <ellipse cx="210" cy="686" rx="26" ry="5" fill="#f4ece0" opacity=".8"/>
+        <path d="M190 682 L230 682 L210 636 Z" fill="#96613a" stroke="rgba(233,201,138,.5)" stroke-width="1.4"/>
+        <path d="M193 668 L227 668" stroke="#f0ddc0" stroke-width="3" opacity=".85"/>
+        <path d="M196 653 L224 653" stroke="rgba(240,221,192,.5)" stroke-width="1.4"/>
         <path d="M210 636 Q216 642 212 650 Q218 654 214 660" fill="none" stroke="#f0ddc0" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+        <circle cx="211" cy="642" r="3.4" fill="#c8425c"/>
+        <ellipse cx="210" cy="641" rx="1.2" ry=".8" fill="#fff" opacity=".6"/>
       </g>
       <g>
-        <path d="M330 682 L376 682 L353 630 Z" fill="#8a5a36" stroke="rgba(233,201,138,.45)" stroke-width="1.5"/>
-        <path d="M337 666 L369 666" stroke="rgba(240,221,192,.55)" stroke-width="1.5"/>
+        <ellipse cx="353" cy="686" rx="28" ry="5" fill="#f4ece0" opacity=".8"/>
+        <path d="M330 682 L376 682 L353 630 Z" fill="#8a5a36" stroke="rgba(233,201,138,.5)" stroke-width="1.4"/>
+        <path d="M334 664 L372 664" stroke="#f0ddc0" stroke-width="3" opacity=".85"/>
+        <path d="M337 648 L369 648" stroke="rgba(240,221,192,.5)" stroke-width="1.4"/>
         <path d="M353 630 Q359 636 355 645 Q361 649 357 656" fill="none" stroke="#f0ddc0" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+        <circle cx="354" cy="636" r="3.4" fill="#c8425c"/>
+        <ellipse cx="353" cy="635" rx="1.2" ry=".8" fill="#fff" opacity=".6"/>
       </g>
     </g>
 
-    <!-- cake stand under a glass dome, right end of the case, on the counter -->
+    <!-- gold handle + a small price label on the case front -->
+    <rect x="440" y="540" width="6" height="60" rx="3" fill="#c8a375" opacity=".55"/>
+    <g transform="translate(360 452)">
+      <rect x="0" y="0" width="46" height="26" rx="2" fill="#efe6d6" opacity=".9" transform="rotate(-4)"/>
+      <line x1="6" y1="9" x2="38" y2="7" stroke="#8a6a42" stroke-width="1.3" transform="rotate(-4)" opacity=".7"/>
+      <line x1="6" y1="16" x2="30" y2="14" stroke="#8a6a42" stroke-width="1.3" transform="rotate(-4)" opacity=".5"/>
+    </g>
+
+    <!-- cake stand under a fluted glass dome, right end of the case -->
     <g>
-      <ellipse cx="500" cy="700" rx="60" ry="10" fill="#1c120b"/>
-      <rect x="470" y="686" width="60" height="14" rx="4" fill="#221610"/>
-      <path d="M478 686 a42 60 0 0 1 84 0 Z" fill="url(#glassTint)" stroke="rgba(200,163,117,.4)" stroke-width="1.5"/>
-      <ellipse cx="500" cy="676" rx="30" ry="12" fill="#8a5a36"/>
-      <ellipse cx="500" cy="668" rx="26" ry="10" fill="#c8935a"/>
-      <circle cx="490" cy="662" r="4" fill="#e05c5c" opacity=".8"/>
-      <circle cx="508" cy="664" r="3.5" fill="#e05c5c" opacity=".8"/>
+      <ellipse cx="500" cy="702" rx="64" ry="10" fill="url(#shadowSoft2)"/>
+      <rect x="466" y="686" width="68" height="15" rx="4" fill="#221610" stroke="rgba(200,163,117,.4)" stroke-width="1.3"/>
+      <ellipse cx="500" cy="686" rx="34" ry="7" fill="#2a1c12"/>
+      <line x1="470" y1="687" x2="530" y2="687" stroke="rgba(200,163,117,.5)" stroke-width="1.3"/>
+
+      <!-- fluted dome -->
+      <path d="M472 686 a28 62 0 0 1 56 0 Z" fill="url(#glassTint)" stroke="rgba(200,163,117,.5)" stroke-width="1.5"/>
+      <path d="M472 686 a28 62 0 0 1 56 0 Z" fill="url(#domeSpec)"/>
+      <g stroke="rgba(233,201,138,.28)" stroke-width="1">
+        <line x1="484" y1="680" x2="480" y2="628"/>
+        <line x1="493" y1="684" x2="491" y2="626"/>
+        <line x1="500" y1="686" x2="500" y2="624"/>
+        <line x1="507" y1="684" x2="509" y2="626"/>
+        <line x1="516" y1="680" x2="520" y2="628"/>
+      </g>
+      <path d="M478 660 q6 -30 8 -50" stroke="#fff6e4" stroke-width="2.4" fill="none" opacity=".4" stroke-linecap="round"/>
+      <line x1="472" y1="686" x2="528" y2="686" stroke="#e9c98a" stroke-width="1.5" opacity=".5"/>
+
+      <!-- cake beneath the dome: two-tier sponge + piped border + topper -->
+      <ellipse cx="500" cy="680" rx="32" ry="10" fill="#7a4e2c"/>
+      <ellipse cx="500" cy="676" rx="32" ry="10" fill="#8a5a36"/>
+      <ellipse cx="500" cy="668" rx="27" ry="9" fill="#c8935a"/>
+      <ellipse cx="500" cy="660" rx="22" ry="7.5" fill="#e0b378"/>
+      <g fill="#fff6e4" opacity=".85">
+        <circle cx="480" cy="668" r="2.6"/>
+        <circle cx="488" cy="670.5" r="2.6"/>
+        <circle cx="496" cy="672" r="2.6"/>
+        <circle cx="504" cy="672" r="2.6"/>
+        <circle cx="512" cy="670.5" r="2.6"/>
+        <circle cx="520" cy="668" r="2.6"/>
+      </g>
+      <path d="M494 660 l3 -8 l3 8 Z" fill="#e9c98a"/>
+      <circle cx="497" cy="650" r="2.6" fill="#f6d9a8"/>
     </g>
 
     <!-- rim lights on the case frame -->
-    <rect x="90" y="430" width="3" height="270" fill="url(#crimV)"/>
-    <rect x="447" y="430" width="3" height="270" fill="url(#crimV)" opacity=".6"/>
+    <rect x="90" y="420" width="3" height="282" fill="url(#crimV)"/>
+    <rect x="447" y="420" width="3" height="282" fill="url(#crimV)" opacity=".6"/>
+    <rect x="90" y="420" width="360" height="3" fill="url(#crimTop)" opacity=".65"/>
 
     <!-- case base -->
-    <rect x="100" y="702" width="340" height="16" rx="5" fill="#170f0a"/>
-    <rect x="118" y="718" width="18" height="14" rx="3" fill="#110b07"/>
-    <rect x="404" y="718" width="18" height="14" rx="3" fill="#110b07"/>
+    <rect x="100" y="704" width="340" height="16" rx="5" fill="#170f0a"/>
+    <rect x="118" y="720" width="18" height="14" rx="3" fill="#110b07" stroke="rgba(200,163,117,.25)" stroke-width="1"/>
+    <rect x="404" y="720" width="18" height="14" rx="3" fill="#110b07" stroke="rgba(200,163,117,.25)" stroke-width="1"/>
   </g>
 
   <!-- right fade keeps the text side clean (case sits at the LEFT edge) -->

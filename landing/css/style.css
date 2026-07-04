@@ -386,7 +386,13 @@ nav.scrolled {
   position: absolute;
   right: 0;
   top: 0;
-  width: 100%;   /* full-width: gradient masks left side — no visible seam */
+  /* NOT 100%: both this layer and .hero-case paint a fully opaque
+     full-canvas scene (their own sky background), so at 100% width
+     the later one in the DOM (.hero-case) would opaquely cover this
+     one's visible right-edge content across the whole hero, not just
+     its own left side. Shrinking each to its own side keeps them from
+     spatially overlapping where either one actually has content. */
+  width: 66%;
   height: 100%;
   background-image: url('../asset/hero-bar.svg');
   /* fixed authored scale, pinned to the corner the scene was composed
@@ -437,7 +443,8 @@ nav.scrolled {
   position: absolute;
   left: 0;
   top: 0;
-  width: 100%;
+  /* NOT 100% — see the matching note on .hero-photo-right */
+  width: 66%;
   height: 100%;
   background-image: url('../asset/hero-case.svg');
   background-size: 1600px 1050px;
