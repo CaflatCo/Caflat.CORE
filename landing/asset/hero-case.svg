@@ -56,6 +56,23 @@
       <stop offset="0" stop-color="#e9b878"/>
       <stop offset="1" stop-color="#a5703f"/>
     </radialGradient>
+
+    <!-- black steel corner-post edge highlight, matching the machine's chrome accents -->
+    <linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8edf2"/>
+      <stop offset=".15" stop-color="#aeb8c2"/>
+      <stop offset=".4" stop-color="#6b747c"/>
+      <stop offset=".55" stop-color="#8b95a0"/>
+      <stop offset=".75" stop-color="#4a5158"/>
+      <stop offset="1" stop-color="#2a2e33"/>
+    </linearGradient>
+    <!-- under-shelf LED strip: bright warm core, fading at both ends -->
+    <linearGradient id="ledStrip" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff3da" stop-opacity="0"/>
+      <stop offset=".15" stop-color="#fff3da" stop-opacity=".95"/>
+      <stop offset=".85" stop-color="#fff3da" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#fff3da" stop-opacity="0"/>
+    </linearGradient>
   </defs>
 
   <rect width="1600" height="1050" fill="url(#csky)"/>
@@ -119,7 +136,14 @@
     <path d="M106 610 L200 438 L226 438 L132 610 Z" fill="#fff6e4" opacity=".035"/>
     <path d="M250 610 L320 438 L336 438 L266 610 Z" fill="#fff6e4" opacity=".03"/>
 
+    <!-- black steel corner posts framing the glass -->
+    <rect x="90" y="420" width="18" height="282" fill="#0c0805"/>
+    <rect x="432" y="420" width="18" height="282" fill="#0c0805"/>
+    <rect x="104" y="424" width="3" height="274" fill="url(#chrome)" opacity=".55"/>
+    <rect x="433" y="424" width="3" height="274" fill="url(#chrome)" opacity=".55"/>
+
     <!-- shelves: top ledge, two internal planks, floor — three tiers, each with a real surface to rest on -->
+    <line x1="98" y1="438" x2="442" y2="438" stroke="rgba(255,255,255,.2)" stroke-width="1"/>
     <line x1="98" y1="440" x2="442" y2="440" stroke="rgba(200,163,117,.6)" stroke-width="2.5"/>
     <line x1="98" y1="562" x2="442" y2="562" stroke="rgba(200,163,117,.45)" stroke-width="3"/>
     <line x1="98" y1="565" x2="442" y2="565" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
@@ -127,13 +151,18 @@
     <line x1="98" y1="613" x2="442" y2="613" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
     <line x1="98" y1="686" x2="442" y2="686" stroke="rgba(200,163,117,.6)" stroke-width="2.5"/>
 
-    <!-- interior puck lights, one per tier, casting a soft downward glow -->
+    <!-- interior puck lights, one per tier, casting a soft downward bounce glow -->
     <ellipse cx="150" cy="452" rx="60" ry="14" fill="url(#puckGlow)"/>
     <ellipse cx="270" cy="452" rx="60" ry="14" fill="url(#puckGlow)"/>
     <ellipse cx="390" cy="452" rx="50" ry="12" fill="url(#puckGlow)"/>
     <ellipse cx="220" cy="572" rx="90" ry="13" fill="url(#puckGlow)" opacity=".65"/>
     <ellipse cx="185" cy="620" rx="70" ry="13" fill="url(#puckGlow)" opacity=".6"/>
     <ellipse cx="355" cy="620" rx="55" ry="12" fill="url(#puckGlow)" opacity=".55"/>
+
+    <!-- under-shelf LED strips, mounted fixtures rather than just ambient glow -->
+    <rect x="100" y="441.5" width="340" height="2" fill="url(#ledStrip)"/>
+    <rect x="100" y="566" width="340" height="2" fill="url(#ledStrip)"/>
+    <rect x="100" y="614" width="340" height="2" fill="url(#ledStrip)"/>
 
     <!-- top shelf: croissants — shaded crescent + lamination flakes + shine + shadow -->
     <g>
@@ -280,8 +309,25 @@
     <rect x="447" y="420" width="3" height="282" fill="url(#crimV)" opacity=".6"/>
     <rect x="90" y="420" width="360" height="3" fill="url(#crimTop)" opacity=".65"/>
 
-    <!-- case base -->
+    <!-- case base, with a compressor ventilation grille -->
     <rect x="100" y="704" width="340" height="16" rx="5" fill="#170f0a"/>
+    <g stroke="#0a0704" stroke-width="2" opacity=".8">
+      <line x1="160" y1="708" x2="160" y2="716"/>
+      <line x1="176" y1="708" x2="176" y2="716"/>
+      <line x1="192" y1="708" x2="192" y2="716"/>
+      <line x1="208" y1="708" x2="208" y2="716"/>
+      <line x1="224" y1="708" x2="224" y2="716"/>
+      <line x1="240" y1="708" x2="240" y2="716"/>
+      <line x1="256" y1="708" x2="256" y2="716"/>
+      <line x1="272" y1="708" x2="272" y2="716"/>
+      <line x1="288" y1="708" x2="288" y2="716"/>
+      <line x1="304" y1="708" x2="304" y2="716"/>
+      <line x1="320" y1="708" x2="320" y2="716"/>
+      <line x1="336" y1="708" x2="336" y2="716"/>
+      <line x1="352" y1="708" x2="352" y2="716"/>
+      <line x1="368" y1="708" x2="368" y2="716"/>
+      <line x1="384" y1="708" x2="384" y2="716"/>
+    </g>
     <rect x="118" y="720" width="18" height="14" rx="3" fill="#110b07" stroke="rgba(200,163,117,.25)" stroke-width="1"/>
     <rect x="404" y="720" width="18" height="14" rx="3" fill="#110b07" stroke="rgba(200,163,117,.25)" stroke-width="1"/>
   </g>
