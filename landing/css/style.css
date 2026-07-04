@@ -372,9 +372,15 @@ nav.scrolled {
     radial-gradient(ellipse 85% 65% at 50% 24%, rgba(255,255,255,.032) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
+  animation: glow-breathe 11s ease-in-out infinite;
+}
+@keyframes glow-breathe {
+  0%, 100% { opacity: .85; scale: 1; }
+  50%      { opacity: 1;   scale: 1.05; }
 }
 
-/* Hero photo — espresso machine, full-width to eliminate hard left edge */
+/* Hero photo — espresso machine, full-width to eliminate hard left edge.
+   Slow Ken Burns drift makes the frame feel filmed, not pasted. */
 .hero-photo-right {
   position: absolute;
   right: 0;
@@ -386,6 +392,13 @@ nav.scrolled {
   background-position: center 30%;
   pointer-events: none;
   z-index: 0;
+  transform-origin: 68% 38%;
+  animation: hero-kenburns 38s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes hero-kenburns {
+  from { transform: scale(1)    translateX(0); }
+  to   { transform: scale(1.09) translateX(-18px); }
 }
 .hero-photo-right::before {
   content: '';
@@ -411,6 +424,78 @@ nav.scrolled {
   z-index: 1;
 }
 
+
+/* ─── Hero Cinematic Layers ──────────────────────────────────── */
+
+/* Crema undercurrent — huge blurred swirl of warm browns rotating
+   once per 90s behind the content, like looking down into a cup.
+   Felt, never seen as a shape. */
+.hero-crema {
+  position: absolute;
+  left: 50%;
+  bottom: -46%;
+  translate: -50% 0;
+  width: 1700px;
+  height: 1700px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg,
+    rgba(200,163,117,.14), rgba(58,42,29,.10), rgba(240,221,192,.08),
+    rgba(138,104,68,.12), rgba(200,163,117,.14));
+  filter: blur(70px);
+  opacity: .09;
+  animation: crema-swirl 90s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes crema-swirl { to { rotate: 360deg; } }
+
+/* Steam rising off the espresso machine — blurred bezier wisps,
+   staggered so one is always mid-air */
+.hero-steam {
+  position: absolute;
+  right: 7%;
+  top: 30%;
+  width: 190px;
+  height: 420px;
+  pointer-events: none;
+  z-index: 1;
+  color: #f2e3cc;
+}
+.steam-wisp {
+  position: absolute;
+  bottom: 0;
+  width: 66px;
+  height: 240px;
+  filter: blur(11px);
+  opacity: 0;
+}
+.steam-wisp-1 { left: 16%; animation: wisp-rise 10s   ease-in-out         infinite; }
+.steam-wisp-2 { left: 36%; animation: wisp-rise 13s   ease-in-out 3.2s    infinite; }
+.steam-wisp-3 { left: 52%; animation: wisp-rise 11.5s ease-in-out 6.4s    infinite; }
+@keyframes wisp-rise {
+  0%   { opacity: 0;   translate: 0 60px;      scale: .85; }
+  22%  { opacity: .2; }
+  55%  { opacity: .13; translate: 10px -70px; }
+  100% { opacity: 0;   translate: -6px -180px; scale: 1.1; }
+}
+
+/* Film-title word reveal — each word rises, unblurs, and lands with
+   a ~90ms stagger (--wi set inline per word) */
+.ht-w {
+  display: inline-block;
+  opacity: 0;
+  animation: ht-word-in .95s cubic-bezier(.22,.61,.36,1)
+             calc(.25s + var(--wi) * .09s) both;
+}
+@keyframes ht-word-in {
+  from { opacity: 0; translate: 0 26px; filter: blur(14px); }
+  to   { opacity: 1; translate: 0 0;    filter: blur(0);    }
+}
+
+@media (max-width: 720px) {
+  .hero-steam { display: none; }
+  .hero-crema { width: 1100px; height: 1100px; }
+}
 
 /* Full-width bottom vignette — blends hero into the section below */
 .hero::after {
@@ -759,6 +844,25 @@ nav.scrolled {
   padding: 2px 8px;
 }
 
+/* Gold sheen sweeping across the front card every few seconds —
+   premium-object lighting, like a watch dial catching light */
+.fan-card-center::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg,
+    transparent 32%, rgba(255,255,255,.13) 46%,
+    rgba(240,221,192,.30) 50%, rgba(255,255,255,.13) 54%, transparent 68%);
+  translate: -130% 0;
+  animation: card-sheen 7s ease-in-out 2.6s infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+@keyframes card-sheen {
+  0%        { translate: -130% 0; }
+  16%, 100% { translate: 130% 0; }
+}
+
 /* Fan card body — fills remaining height below topbar */
 .fan-body { flex: 1; min-height: 0; text-align: left; overflow: hidden; }
 
@@ -865,8 +969,15 @@ nav.scrolled {
   border-radius: 50%;
   flex-shrink: 0;
 }
-.fan-act-dot.green { background: #16a34a; }
+.fan-act-dot.green {
+  background: #16a34a;
+  animation: dot-pulse 2.6s ease-in-out infinite;
+}
 .fan-act-dot.red   { background: #dc2626; }
+@keyframes dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(22,163,74,.45); }
+  55%      { box-shadow: 0 0 0 5px rgba(22,163,74,0); }
+}
 .fan-act-time { margin-left: auto; font-size: .56rem; color: #aaa; font-weight: 500; white-space: nowrap; }
 
 /* ── Reports card ── */
@@ -1889,6 +2000,11 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .mode-how[open] .mode-how-steps li,
   .mode-how.closing .mode-how-steps::before,
   .mode-how.closing .mode-how-steps li { animation: none; }
+  .hero-photo-right, .hero-crema, .hero-warm-glow,
+  .steam-wisp, .fan-card-center::after,
+  .fan-act-dot.green { animation: none; }
+  .hero-steam { display: none; }
+  .ht-w { animation: none; opacity: 1; filter: none; translate: none; }
 }
 
 /* ─── Responsive ─────────────────────────────────────────────── */
