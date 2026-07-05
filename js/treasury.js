@@ -306,17 +306,22 @@ function deleteTreasuryTransaction(id) {
 
 /* ── Manage Accounts modal ── */
 
-function openTreasuryAccountsModal() {
+function openTreasuryAccountsModal(editId) {
   let m = document.getElementById('treasuryAccountsModal');
   if (!m) { m = document.createElement('div'); m.id = 'treasuryAccountsModal'; m.className = 'modal-overlay'; document.body.appendChild(m); }
-  _renderTreasuryAccountsModal();
+  _renderTreasuryAccountsModal(editId);
   openModal('treasuryAccountsModal');
 }
 
-function _renderTreasuryAccountsModal() {
+function editTreasuryAccount(id) {
+  _renderTreasuryAccountsModal(id);
+}
+
+function _renderTreasuryAccountsModal(editId) {
   const m = document.getElementById('treasuryAccountsModal');
   if (!m) return;
   const accounts = APP_STATE.treasuryAccounts || [];
+  const editing = editId ? accounts.find(a => a.id === editId) : null;
 
   m.innerHTML = `
     <div class="modal" style="max-width:460px;">
@@ -326,29 +331,38 @@ function _renderTreasuryAccountsModal() {
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
           ${accounts.map(a => `
             <div style="display:flex;align-items:center;justify-content:space-between;
-              padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-lg);">
+              padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-lg);
+              ${editing?.id === a.id ? 'background:var(--gray-50);' : ''}">
               <div>
                 <div style="font-size:13px;font-weight:700;">${_treasuryAccountIcon(a.type, 14)} ${escapeHtml(a.name)}</div>
                 <div style="font-size:11px;color:var(--gray-400);">${formatCurrency(getTreasuryAccountBalance(a.id))} · ${a.type === 'bank' ? 'Bank' : 'Cash'}</div>
               </div>
-              <button class="btn btn-sm btn-secondary" type="button" style="color:var(--danger);"
-                onclick="deleteTreasuryAccount('${a.id}')">Delete</button>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-sm btn-secondary" type="button"
+                  onclick="editTreasuryAccount('${a.id}')">Edit</button>
+                <button class="btn btn-sm btn-secondary" type="button" style="color:var(--danger);"
+                  onclick="deleteTreasuryAccount('${a.id}')">Delete</button>
+              </div>
             </div>`).join('')}
         </div>` : `<div style="font-size:12px;color:var(--gray-400);margin-bottom:16px;">No accounts yet.</div>`}
 
       <div style="padding-top:16px;border-top:1px solid var(--border);">
-        <div style="font-size:12px;font-weight:800;margin-bottom:10px;">Add Account</div>
+        <div style="font-size:12px;font-weight:800;margin-bottom:10px;">${editing ? 'Edit Account' : 'Add Account'}</div>
         <div class="form-group"><label>Name</label>
-          <input id="tacName" type="text" placeholder="e.g. Cash Till, BDO Checking" /></div>
+          <input id="tacName" type="text" placeholder="e.g. Cash Till, BDO Checking" value="${escapeHtml(editing?.name || '')}" /></div>
         <div class="form-group"><label>Type</label>
           <select id="tacType">
-            <option value="cash">Cash</option>
-            <option value="bank">Bank</option>
+            <option value="cash" ${editing && editing.type !== 'bank' ? 'selected' : ''}>Cash</option>
+            <option value="bank" ${editing?.type === 'bank' ? 'selected' : ''}>Bank</option>
           </select>
         </div>
         <div class="form-group"><label>Opening Balance</label>
-          <input id="tacOpeningBalance" type="number" min="0" step="0.01" placeholder="0.00" /></div>
-        <button class="btn" type="button" style="width:100%;" onclick="saveTreasuryAccount()">+ Add Account</button>
+          <input id="tacOpeningBalance" type="number" min="0" step="0.01" placeholder="0.00" value="${editing ? safeNumber(editing.openingBalance) : ''}" /></div>
+        <div style="display:flex;gap:8px;">
+          ${editing ? `<button class="btn btn-secondary" type="button" onclick="_renderTreasuryAccountsModal()">Cancel</button>` : ''}
+          <button class="btn" type="button" style="flex:1;" onclick="saveTreasuryAccount('${editing?.id || ''}')">
+            ${editing ? 'Save Changes' : '+ Add Account'}</button>
+        </div>
       </div>
 
       <div class="modal-actions">
@@ -357,7 +371,7 @@ function _renderTreasuryAccountsModal() {
     </div>`;
 }
 
-function saveTreasuryAccount() {
+function saveTreasuryAccount(editId) {
   const name = sanitizeText(document.getElementById('tacName')?.value || '');
   const type = document.getElementById('tacType')?.value === 'bank' ? 'bank' : 'cash';
   const openingBalance = safeNumber(document.getElementById('tacOpeningBalance')?.value);
@@ -365,13 +379,24 @@ function saveTreasuryAccount() {
   if (!name) { showNotification('Account name required', 'error'); return; }
 
   if (!APP_STATE.treasuryAccounts) APP_STATE.treasuryAccounts = [];
-  APP_STATE.treasuryAccounts.push({
-    id: generateId(), name, type, openingBalance,
-    createdAt: new Date().toISOString()
-  });
 
-  persistState();
-  showNotification('Account added', 'success');
+  if (editId) {
+    const account = APP_STATE.treasuryAccounts.find(a => a.id === editId);
+    if (!account) return;
+    account.name = name;
+    account.type = type;
+    account.openingBalance = openingBalance;
+    persistState();
+    showNotification('Account updated', 'success');
+  } else {
+    APP_STATE.treasuryAccounts.push({
+      id: generateId(), name, type, openingBalance,
+      createdAt: new Date().toISOString()
+    });
+    persistState();
+    showNotification('Account added', 'success');
+  }
+
   _renderTreasuryAccountsModal();
   renderTreasuryView();
 }

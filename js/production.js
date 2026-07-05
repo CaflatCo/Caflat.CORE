@@ -230,7 +230,7 @@ function _populateJobDropdowns() {
 /* ── Product lines ── */
 function _addProductToEditingJob(productId) {
   if (!_editingJob) return;
-  const product = (APP_STATE.products||[]).find(p=>p.id===productId);
+  const product = (APP_STATE.products||[]).find(p=>String(p.id)===String(productId));
   if (!product) return;
   _editingJob.products = _editingJob.products||[];
   _editingJob.products.push({
@@ -254,7 +254,7 @@ function _renderJobProductLines() {
 
   container.innerHTML = products.map((line, idx) => {
     // Stock-based yield calculation: how many units can current ingredient stock support?
-    const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
+    const product = (APP_STATE.products||[]).find(p=>String(p.id)===String(line.productId));
     let maxFromStock = null;
     let constraintName = '';
     if (product && Array.isArray(product.recipe) && product.recipe.length) {
@@ -423,7 +423,7 @@ function saveProductionJob() {
   _editingJob.products.forEach(line => {
     if (line.ingredientsDeducted) return; // already consumed
     if (['CANCELLED'].includes(line.status)) return; // cancelled lines don't consume
-    const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
+    const product = (APP_STATE.products||[]).find(p=>String(p.id)===String(line.productId));
     if (!product) return;
     const isFG = typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(product);
     if (isFG) return; // FG products deduct ingredients at production done, not at job create
@@ -503,7 +503,7 @@ function setProductLineStatus(jobId, lineId, newStatus) {
   if (newStatus==='DONE' && !line.ingredientsDeducted) {
     // Edge case: line added to a job that was created before immediate-deduction existed,
     // or a line whose ingredients weren't deducted for some reason. Deduct now.
-    const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
+    const product = (APP_STATE.products||[]).find(p=>String(p.id)===String(line.productId));
     const isFG = typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(product);
     if (!isFG) {
       _deductLineIngredients(job, line);
@@ -511,7 +511,7 @@ function setProductLineStatus(jobId, lineId, newStatus) {
     line.ingredientsDeducted = true;
   }
   if (newStatus==='DONE') {
-    const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
+    const product = (APP_STATE.products||[]).find(p=>String(p.id)===String(line.productId));
     const isFG = typeof isFinishedGoodsProduct==='function' && isFinishedGoodsProduct(product);
     if (isFG && job.fundingType !== 'CLIENT' && !line.readyForTransfer) {
       line.readyForTransfer = true;
@@ -544,7 +544,7 @@ function setProductLineStatus(jobId, lineId, newStatus) {
 }
 
 function _deductLineIngredients(job, line) {
-  const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
+  const product = (APP_STATE.products||[]).find(p=>String(p.id)===String(line.productId));
   if (!product||!Array.isArray(product.recipe)) return;
   const units     = line.actualYield??line.targetQty;
   const batchYield= Math.max(1, Number(product.batchYield||1));
@@ -567,7 +567,7 @@ function _deductLineIngredients(job, line) {
 }
 
 function _restoreLineIngredients(job, line) {
-  const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
+  const product = (APP_STATE.products||[]).find(p=>String(p.id)===String(line.productId));
   if (!product||!Array.isArray(product.recipe)) return;
   const units     = line.actualYield??line.targetQty;
   const batchYield= Math.max(1, Number(product.batchYield||1));
@@ -710,7 +710,7 @@ function getIngredientForecast(jobs) {
   activeJobs.forEach(job=>{
     (job.products||[]).filter(l=>!['DONE','PACKED','CANCELLED'].includes(l.status))
     .forEach(line=>{
-      const product = (APP_STATE.products||[]).find(p=>p.id===line.productId);
+      const product = (APP_STATE.products||[]).find(p=>String(p.id)===String(line.productId));
       if (!product||!Array.isArray(product.recipe)) return;
       const qty       = line.targetQty||0;
       const batchYield= Math.max(1,Number(product.batchYield||1));
