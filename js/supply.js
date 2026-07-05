@@ -894,7 +894,7 @@ function openSupplyCheckoutModal(orderId) {
       <div class="form-row">
         <div class="form-group">
           <label>Payment Method</label>
-          <select id="supplyCheckoutMethod">
+          <select id="supplyCheckoutMethod" onchange="_toggleSupplyCheckoutQR()">
             <option value="cash">Cash</option>
             <option value="invoice">Invoice / On Account</option>
             ${methodOptions}
@@ -905,6 +905,22 @@ function openSupplyCheckoutModal(orderId) {
           <input id="supplyCheckoutReference" type="text" placeholder="Check #, wire ref…" />
         </div>
       </div>
+      <div id="supplyCheckoutQrSection" style="display:none;text-align:center;margin-bottom:16px;">
+        <div class="payment-badge" id="supplyCheckoutQrBadge">QR PAYMENT</div>
+        <div style="display:flex;justify-content:center;">
+          <img id="supplyCheckoutQrImage" src=""
+            style="width:180px;border:1px solid var(--border);padding:10px;
+              background:#fff;border-radius:12px;object-fit:contain;
+              display:none;margin:0 auto;" />
+          <div id="supplyCheckoutQrFallback"
+            style="width:180px;height:180px;border:1px solid var(--border);
+              border-radius:12px;background:var(--gray-50);display:flex;align-items:center;
+              justify-content:center;font-size:12px;color:var(--gray-400);
+              text-align:center;padding:16px;">
+            No QR uploaded.<br>Add one in Settings.
+          </div>
+        </div>
+      </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" type="button" onclick="closeModal('supplyCheckoutModal')">Cancel</button>
         <button class="btn" type="button" data-action="confirm-supply-checkout"
@@ -913,6 +929,31 @@ function openSupplyCheckoutModal(orderId) {
     </div>`;
 
   openModal('supplyCheckoutModal');
+  _toggleSupplyCheckoutQR();
+}
+
+/* Shows the selected payment method's QR code, mirroring togglePaymentFields()
+   in sales.js for the POS checkout — same APP_STATE.settings.paymentMethods
+   lookup, same qrImage/fallback pattern. */
+function _toggleSupplyCheckoutQR() {
+  const method  = document.getElementById('supplyCheckoutMethod')?.value || 'cash';
+  const section = document.getElementById('supplyCheckoutQrSection');
+  if (!section) return;
+
+  const methods = APP_STATE.settings?.paymentMethods || [];
+  const matched = methods.find(m => m.name.toLowerCase().replace(/\s+/g, '_') === method);
+  const showQR  = matched?.type === 'qr' && matched?.qrImage;
+
+  section.style.display = showQR ? 'block' : 'none';
+  if (!showQR) return;
+
+  const badge = document.getElementById('supplyCheckoutQrBadge');
+  if (badge) badge.textContent = (matched?.name || 'QR').toUpperCase() + ' PAYMENT';
+
+  const img      = document.getElementById('supplyCheckoutQrImage');
+  const fallback = document.getElementById('supplyCheckoutQrFallback');
+  if (img)      { img.src = matched.qrImage; img.style.display = 'block'; }
+  if (fallback) fallback.style.display = 'none';
 }
 
 function confirmSupplyCheckout(orderId) {
