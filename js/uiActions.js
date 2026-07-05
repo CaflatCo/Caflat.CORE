@@ -606,6 +606,8 @@ function bindDelegatedActions() {
       case 'open-status-picker':       openStatusPickerModal(actionEl.dataset.id || ''); break;
       case 'set-supply-status':        setSupplyStatus(actionEl.dataset.orderId || '', actionEl.dataset.status || ''); break;
       case 'cancel-supply-order':    cancelSupplyOrder(actionEl.dataset.id || ''); break;
+      case 'toggle-supply-row-menu': if(typeof toggleSupplyRowMenu==='function') toggleSupplyRowMenu(actionEl.dataset.id || ''); break;
+      case 'confirm-supply-checkout': if(typeof confirmSupplyCheckout==='function') confirmSupplyCheckout(actionEl.dataset.id || ''); break;
       case 'save-supply-order':      saveSupplyOrder(); break;
       case 'export-supply-csv':      exportSupplyCSV(); break;
       case 'add-supply-line':        addSupplyLineItemRow(); break;

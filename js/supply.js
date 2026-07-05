@@ -15,8 +15,10 @@ function _auditSupplyEvent(action, order, outcome='SUCCESS', details='') {
 }
 
 
-async function _createSupplySalesRecord(order) {
+async function _createSupplySalesRecord(order, paymentInfo) {
   if (!order || order.salesRecordId) return;
+  const paymentMethod    = paymentInfo?.method    || 'invoice';
+  const paymentReference = paymentInfo?.reference || '';
 
   const timestamp     = new Date().toISOString();
   const saleId        = typeof generateId === 'function' ? generateId()
@@ -53,20 +55,20 @@ async function _createSupplySalesRecord(order) {
       clientId: order.clientId   || ''
     },
     payment: {
-      method:          'invoice',
+      method:          paymentMethod,
       tendered:        total,
       change:          0,
-      referenceNumber: receiptNumber
+      referenceNumber: paymentReference || receiptNumber
     },
     totals: { subtotal, discount, tax, total },
     items,
     sourceOrderId: order.id,
     // Legacy flat fields for analytics compatibility
     customerName:  order.clientName || 'B2B Client',
-    paymentMethod: 'invoice',
+    paymentMethod: paymentMethod,
     subtotal, discount, tax, total,
     tendered: total, change: 0,
-    referenceNumber: receiptNumber,
+    referenceNumber: paymentReference || receiptNumber,
     createdAt:  timestamp,
     completedAt: timestamp,
     audit: {
@@ -631,8 +633,7 @@ function _deductSupplyStock(order) {
   });
   if (hasFGItems && typeof deductFGForSupply === 'function') deductFGForSupply(order);
 
-  // Release reservation now that stock is hard-deducted
-  if (order.stockDeducted) { _restoreSupplyStock(order); order.stockDeducted = false; }
+  // Release any reservation now that stock is hard-deducted
   _releaseSupplyReservation(order);
 
   _logInventoryMovements(order, 'supply-delivery-deduction', 0,
@@ -728,7 +729,7 @@ function _checkSupplyStockAvailability(order) {
    STATUS ADVANCEMENT with inventory hooks
 ═══════════════════════════════════════════════════════ */
 
-async function setSupplyStatus(orderId, newStatus) {
+async function setSupplyStatus(orderId, newStatus, paymentInfo) {
   if (!newStatus) return;
   const orders = getSupplyOrders();
   const order  = orders.find(o => String(o.id) === String(orderId));
@@ -738,38 +739,75 @@ async function setSupplyStatus(orderId, newStatus) {
   if (prevStatus === newStatus) return;
   const newLabel = SUPPLY_STATUS_LABELS[newStatus] || newStatus;
 
-  // ── Stock logic on status change ──
+  // Moving to PAID needs a captured payment method first — open the checkout
+  // screen; its confirm handler re-calls setSupplyStatus with paymentInfo set.
+  if (newStatus === 'PAID' && !order.salesRecordId && !paymentInfo) {
+    closeModal('statusPickerModal');
+    openSupplyCheckoutModal(orderId);
+    return;
+  }
 
-  // Moving TO ORDERED from a non-ordered state — deduct stock
-  if (newStatus === 'ORDERED' && !order.stockDeducted) {
+  // ── Stock logic on status change ──
+  // ORDERED   → soft-reserve (holds stock without touching real inventory)
+  // DELIVERED → hard-deduct (uses same engine as POS sales)
+
+  // Moving TO ORDERED — soft-reserve stock
+  if (newStatus === 'ORDERED' && !order.reservedStock && !order.stockDeducted) {
+    const errors = _checkSupplyStockAvailability(order);
+    if (errors.length) {
+      if (!confirm(`Stock warning:\n${errors.join('\n')}\n\nProceed anyway?`)) return;
+    }
+    _reserveSupplyStock(order);
+    order.reservedStock = true;
+    _auditSupplyEvent('SUPPLY_STOCK_RESERVED', order);
+  }
+
+  // Moving TO DELIVERED — hard-deduct stock (releases any ORDERED reservation)
+  if (newStatus === 'DELIVERED' && !order.stockDeducted) {
     const errors = _checkSupplyStockAvailability(order);
     if (errors.length) {
       if (!confirm(`Stock warning:\n${errors.join('\n')}\n\nProceed anyway?`)) return;
     }
     _deductSupplyStock(order);
     order.stockDeducted = true;
+    order.reservedStock = false;
     _auditSupplyEvent('SUPPLY_STOCK_DEDUCTED', order);
   }
 
-  // Moving AWAY from ORDERED back to DRAFTED — restore stock
-  if (prevStatus === 'ORDERED' && newStatus === 'DRAFTED' && order.stockDeducted) {
-    if (!confirm('Moving back to Draft will restore stock. Continue?')) return;
+  // Moving AWAY from ORDERED back to DRAFTED — release the reservation (no real stock was touched)
+  if (prevStatus === 'ORDERED' && newStatus === 'DRAFTED' && order.reservedStock) {
+    if (!confirm('Moving back to Draft will release the stock reservation. Continue?')) return;
+    _releaseSupplyReservation(order);
+    order.reservedStock = false;
+    _auditSupplyEvent('SUPPLY_RESERVATION_RELEASED', order);
+  }
+
+  // Moving AWAY from DELIVERED-or-later back to an earlier state — restore real stock
+  if (['DRAFTED','ORDERED'].includes(newStatus) && order.stockDeducted &&
+      ['DELIVERED','INVOICED','PAID'].includes(prevStatus)) {
+    if (!confirm('Moving back will restore previously delivered stock. Continue?')) return;
     _restoreSupplyStock(order);
     order.stockDeducted = false;
     _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);
   }
 
-  // Moving to CANCELLED or VOIDED — restore stock if deducted
-  if (['CANCELLED','VOIDED'].includes(newStatus) && order.stockDeducted) {
-    if (!confirm(`Cancelling will restore stock for all line items. Continue?`)) return;
-    _restoreSupplyStock(order);
-    order.stockDeducted = false;
-    _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);
+  // Moving to CANCELLED or VOIDED — release reservation and/or restore hard-deducted stock
+  if (['CANCELLED','VOIDED'].includes(newStatus)) {
+    if (order.stockDeducted) {
+      if (!confirm(`Cancelling will restore stock for all line items. Continue?`)) return;
+      _restoreSupplyStock(order);
+      order.stockDeducted = false;
+      _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);
+    } else if (order.reservedStock) {
+      _releaseSupplyReservation(order);
+      order.reservedStock = false;
+      _auditSupplyEvent('SUPPLY_RESERVATION_RELEASED', order);
+    }
   }
 
   // Moving to PAID — create sales record if not already done
   if (newStatus === 'PAID' && !order.salesRecordId) {
-    await _createSupplySalesRecord(order);
+    await _createSupplySalesRecord(order, paymentInfo);
     _auditSupplyEvent('SUPPLY_ORDER_PAID', order);
   }
 
@@ -827,16 +865,76 @@ function openStatusPickerModal(orderId) {
   openModal('statusPickerModal');
 }
 
+/* ── Supply checkout / payment screen — captures a real payment method before
+   marking an order PAID, instead of silently stamping 'invoice' with no input ── */
+function openSupplyCheckoutModal(orderId) {
+  const order = getSupplyOrders().find(o => String(o.id) === String(orderId));
+  if (!order) return;
+
+  let m = document.getElementById('supplyCheckoutModal');
+  if (!m) { m = document.createElement('div'); m.id = 'supplyCheckoutModal'; m.className = 'modal-overlay'; document.body.appendChild(m); }
+
+  const methods = APP_STATE.settings?.paymentMethods || [];
+  const methodOptions = methods.map(mth => {
+    const value = mth.name.toLowerCase().replace(/\s+/g, '_');
+    return `<option value="${value}">${escapeHtml(mth.name)}</option>`;
+  }).join('');
+
+  m.innerHTML = `
+    <div class="modal" style="max-width:420px;">
+      <h3>Confirm Payment</h3>
+      <div class="form-group">
+        <label>Order</label>
+        <input type="text" readonly value="${escapeHtml(order.invoiceNumber||'')} · ${escapeHtml(order.clientName||'')}" />
+      </div>
+      <div class="form-group">
+        <label>Total Due</label>
+        <input id="supplyCheckoutTotal" readonly type="text" class="text-xl" value="${formatCurrency(order.grandTotal||0)}" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Payment Method</label>
+          <select id="supplyCheckoutMethod">
+            <option value="cash">Cash</option>
+            <option value="invoice">Invoice / On Account</option>
+            ${methodOptions}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Reference Number <span style="font-size:10px;color:var(--gray-400);font-weight:600;">(optional)</span></label>
+          <input id="supplyCheckoutReference" type="text" placeholder="Check #, wire ref…" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" onclick="closeModal('supplyCheckoutModal')">Cancel</button>
+        <button class="btn" type="button" data-action="confirm-supply-checkout"
+          data-id="${orderId}">Confirm Payment</button>
+      </div>
+    </div>`;
+
+  openModal('supplyCheckoutModal');
+}
+
+function confirmSupplyCheckout(orderId) {
+  const method    = document.getElementById('supplyCheckoutMethod')?.value || 'invoice';
+  const reference = document.getElementById('supplyCheckoutReference')?.value?.trim() || '';
+  closeModal('supplyCheckoutModal');
+  setSupplyStatus(orderId, 'PAID', { method, reference });
+}
+
 function cancelSupplyOrder(orderId) {
   if (!confirm('Cancel this supply order?')) return;
   const orders = getSupplyOrders();
   const order  = orders.find(o => String(o.id) === String(orderId));
   if (!order) return;
 
-  // Release reservation if exists
+  // Restore hard-deducted stock, or just release a soft reservation
   if (order.stockDeducted) {
     _restoreSupplyStock(order);
     order.stockDeducted = false;
+    order.reservedStock = false;
+  } else if (order.reservedStock) {
+    _releaseSupplyReservation(order);
     order.reservedStock = false;
   }
 
@@ -880,6 +978,10 @@ function supplyStatusBadge(status) {
 function renderSupplyTable() {
   const tbody = document.querySelector('#supplyTable tbody');
   if (!tbody) return;
+
+  // Any open row-menu dropdown lives in <body>, detached from this table —
+  // clean it up before the rows underneath it get replaced.
+  document.querySelectorAll('.row-menu-dropdown').forEach(el => el.remove());
 
   const statusFilter = document.getElementById('supplyStatusFilter')?.value || '';
   const clientFilter = document.getElementById('supplyClientFilter')?.value || '';
@@ -952,13 +1054,21 @@ function renderSupplyTable() {
               data-id="${order.id}">View</button>
             <button class="btn btn-sm" data-action="open-status-picker"
               data-id="${order.id}">Set Status</button>
-            <button class="btn btn-sm btn-secondary" data-action="edit-supply-order"
-              data-id="${order.id}">Edit</button>
-            ${canAdvance
-              ? `<button class="btn btn-sm btn-secondary" data-action="cancel-supply-order"
-                  data-id="${order.id}">Cancel</button>` : ''}
-            <button class="btn btn-sm btn-secondary" data-action="delete-supply-order"
-              data-id="${order.id}">Delete</button>
+            <div class="row-menu">
+              <button type="button" class="row-menu-btn" data-action="toggle-supply-row-menu"
+                data-id="${order.id}" aria-label="More actions">⋯</button>
+              <template class="row-menu-template">
+                <div class="row-menu-dropdown">
+                  <button type="button" data-action="edit-supply-order"
+                    data-id="${order.id}">Edit</button>
+                  ${canAdvance
+                    ? `<button type="button" data-action="cancel-supply-order"
+                        data-id="${order.id}">Cancel</button>` : ''}
+                  <button type="button" class="danger" data-action="delete-supply-order"
+                    data-id="${order.id}">Delete</button>
+                </div>
+              </template>
+            </div>
           </div>
         </td>
       </tr>`;
@@ -972,6 +1082,39 @@ function renderSupplyTable() {
       () => { window.supplyTableLimit = 5; renderSupplyTable(); }
     );
   }
+}
+
+/* ── Row overflow menu (Edit / Cancel / Delete) ──
+   Appended to <body> and positioned with position:fixed via getBoundingClientRect —
+   the table's overflow-x:auto scroll container clips overflow-y too (a CSS quirk),
+   so a dropdown nested inside the row would be invisibly clipped. */
+function toggleSupplyRowMenu(orderId) {
+  const wasOpen = document.querySelector(`.row-menu-btn[data-id="${orderId}"]`)?.dataset.menuOpen === 'true';
+  document.querySelectorAll('.row-menu-dropdown').forEach(el => el.remove());
+  document.querySelectorAll('.row-menu-btn').forEach(b => b.dataset.menuOpen = 'false');
+  if (wasOpen) return;
+
+  const btn = document.querySelector(`.row-menu-btn[data-id="${orderId}"]`);
+  const template = btn?.parentElement.querySelector('.row-menu-template');
+  if (!btn || !template) return;
+
+  const dropdown = template.content.firstElementChild.cloneNode(true);
+  document.body.appendChild(dropdown);
+  dropdown.classList.add('open');
+
+  const rect = btn.getBoundingClientRect();
+  dropdown.style.top  = `${rect.bottom + 4}px`;
+  dropdown.style.left = `${Math.max(8, rect.right - dropdown.offsetWidth)}px`;
+
+  btn.dataset.menuOpen = 'true';
+}
+if (!window._supplyRowMenuOutsideClickBound) {
+  window._supplyRowMenuOutsideClickBound = true;
+  document.addEventListener('click', event => {
+    if (event.target.closest('.row-menu')) return;
+    document.querySelectorAll('.row-menu-dropdown').forEach(el => el.remove());
+    document.querySelectorAll('.row-menu-btn').forEach(b => b.dataset.menuOpen = 'false');
+  });
 }
 
 /* ═══════════════════════════════════════════════════════

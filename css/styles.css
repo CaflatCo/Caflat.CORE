@@ -854,6 +854,41 @@ tbody tr:hover td { background: var(--gray-50); }
   white-space: nowrap;
 }
 
+/* Row overflow menu — a "⋯" button that reveals secondary row actions.
+   The dropdown is appended to <body> and positioned with position:fixed via JS
+   (see toggleSupplyRowMenu in supply.js) — table cells sit inside a scroll
+   container with overflow-x:auto, which clips overflow-y too (a CSS quirk:
+   a non-visible overflow-x forces overflow-y to compute as auto), so an
+   absolutely-positioned dropdown nested in the row would be invisibly clipped. */
+.row-menu { display: inline-flex; }
+.row-menu-btn {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  background: var(--white); color: var(--gray-500);
+  font-size: 16px; font-weight: 900; line-height: 1; letter-spacing: 1px;
+  cursor: pointer; transition: background var(--transition), color var(--transition);
+}
+.row-menu-btn:hover { background: var(--gray-50); color: var(--black); }
+.row-menu-dropdown {
+  display: none;
+  position: fixed;
+  min-width: 140px; z-index: 400;
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+  padding: 6px; flex-direction: column; gap: 2px;
+}
+.row-menu-dropdown.open { display: flex; }
+.row-menu-dropdown button {
+  display: block; width: 100%; text-align: left;
+  padding: 7px 10px; border: none; background: none;
+  font-size: 12px; font-weight: 700; color: var(--black);
+  border-radius: calc(var(--radius-md) - 4px); cursor: pointer;
+  transition: background var(--transition);
+}
+.row-menu-dropdown button:hover { background: var(--gray-50); }
+.row-menu-dropdown button.danger { color: var(--danger); }
+
 .low-stock-row td { background: #fffbfb !important; }
 .low-stock-row td:first-child { border-left: 3px solid var(--danger); }
 
