@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <title>Mise — Everything in its place</title>
 <style>
 /* ═══════════════════════════════════════════════════════════════
@@ -420,6 +425,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 /* Stagger utility: children animate in sequence (set --i per child) */
 .stagger > * { animation: fadeUp var(--d-med) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms); }
 </style>
+</head><body>
 <div id="root"></div>
 <div id="toasts"></div>
 <script>
@@ -1439,3 +1445,4 @@ VIEWS.larder = function (root) {
   requestAnimationFrame(() => M.stagger(root.querySelector('.grid'), 40));
 };
 </script>
+</body></html>

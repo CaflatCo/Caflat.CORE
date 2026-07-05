@@ -2,10 +2,16 @@
    MISE — STORE  ·  tiny reactive state
 ═══════════════════════════════════════════════════════════════ */
 const STORE = (() => {
+  // Safe storage — localStorage throws a SecurityError in sandboxed/private
+  // contexts (iPad preview, file://). Never let that blank the whole app.
+  const safeStore = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } },
+  };
+  const prefersDark = (() => { try { return matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return false; } })();
   const state = {
     view: 'command',
-    theme: localStorage.getItem('mise-theme') ||
-           (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
+    theme: safeStore.get('mise-theme') || (prefersDark ? 'dark' : 'light'),
     cart: [],                     // {id, name, price, qty, emoji}
     asOfHour: DATA.today.getHours(),
     completedToday: 0,
@@ -35,7 +41,7 @@ const STORE = (() => {
   function applyTheme() { document.documentElement.setAttribute('data-theme', state.theme); }
   function toggleTheme() {
     const t = state.theme === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('mise-theme', t); set({ theme: t }); applyTheme();
+    safeStore.set('mise-theme', t); set({ theme: t }); applyTheme();
   }
 
   return { state, set, sub, addToCart, decCart, clearCart, cartTotal, cartCount, applyTheme, toggleTheme };
