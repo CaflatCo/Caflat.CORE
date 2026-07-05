@@ -2,6 +2,7 @@
    MISE — DESIGN TOKENS  ·  "Editorial Noir"
    Ink on paper. Colour earns its place.
 ═══════════════════════════════════════════════════════════════ */
+/* Nunito + DM Mono are embedded (base64 woff2) in css/fonts.css — no network needed. */
 :root {
   /* ── Ink & Paper (the only greys the UI is allowed) ── */
   --ink:        #0a0a0a;   /* near-black — primary text, fills   */
@@ -25,12 +26,11 @@
   --warn-glow:  rgba(217,119,6,.14);
   --crit-glow:  rgba(220,38,38,.14);
 
-  /* ── Type ── */
-  --serif: 'Iowan Old Style', 'Palatino Linotype', 'URW Palladio L',
-           Georgia, 'Times New Roman', serif;
-  --sans:  ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
-           'Helvetica Neue', Arial, sans-serif;
-  --mono:  ui-monospace, 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
+  /* ── Type ── Nunito throughout; hierarchy carried by weight, size, spacing.
+     'display' is Nunito at its heaviest (900); UI at 400–800. ── */
+  --serif: 'Nunito', ui-sans-serif, system-ui, sans-serif;   /* display role */
+  --sans:  'Nunito', ui-sans-serif, system-ui, sans-serif;   /* UI/body role */
+  --mono:  'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   /* fluid display scale */
   --t-hero:   clamp(2.6rem, 1.4rem + 4.2vw, 5.2rem);

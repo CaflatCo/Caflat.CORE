@@ -47,7 +47,7 @@
 
 /* ── Metric ── */
 .metric { display: flex; flex-direction: column; gap: 6px; }
-.metric .val { font-family: var(--serif); font-size: clamp(2rem,1.2rem+2vw,3rem); line-height: .92; letter-spacing: -0.03em; }
+.metric .val { font-family: var(--serif); font-weight: 900; font-size: clamp(2rem,1.2rem+2vw,3rem); line-height: .92; letter-spacing: -0.035em; }
 .metric .cap { display: flex; align-items: center; gap: 6px; font-size: var(--t-xs); }
 .delta { display: inline-flex; align-items: center; gap: 3px; font-weight: 700; font-size: var(--t-xs); }
 .delta.up { color: var(--live); } .delta.down { color: var(--crit); }
@@ -109,6 +109,12 @@
 
 /* ── Divider ── */
 .hr { height: 1px; background: var(--line); border: none; margin: var(--s4) 0; }
+
+/* Product / UI icon sizing — SVGs fill their box, colour via currentColor */
+.pico { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 22px; height: 22px; color: var(--ink-2); }
+.pico svg { width: 100%; height: 100%; }
+.pico.lg { width: 26px; height: 26px; }
+.pico.xl { width: 30px; height: 30px; color: var(--ink); }
 
 /* Number reveal helper */
 .count { opacity: 0; }

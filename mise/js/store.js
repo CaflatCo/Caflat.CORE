@@ -25,7 +25,7 @@ const STORE = (() => {
   function addToCart(p) {
     const line = state.cart.find(l => l.id === p.id);
     if (line) line.qty++;
-    else state.cart.push({ id: p.id, name: p.name, price: p.price, qty: 1, emoji: p.emoji });
+    else state.cart.push({ id: p.id, name: p.name, price: p.price, qty: 1, icon: p.icon });
     set({ cart: state.cart });
   }
   function decCart(id) {

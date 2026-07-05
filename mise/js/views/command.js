@@ -27,7 +27,7 @@ VIEWS.command = function (root) {
     <!-- HERO -->
     <div class="grid" style="grid-template-columns: 1.55fr 1fr; align-items:stretch; margin-bottom:var(--s6)">
       <div class="card-ink card pad" style="display:flex;flex-direction:column;justify-content:space-between;gap:var(--s5);border-radius:var(--r-xl);overflow:hidden;position:relative">
-        <div style="position:absolute;right:-40px;top:-40px;font-size:220px;opacity:.05;line-height:1">☕</div>
+        <div style="position:absolute;right:-24px;top:-24px;width:200px;height:200px;opacity:.07;color:var(--paper)">${UI_ICON.cup}</div>
         <div>
           <span class="eyebrow">Morning Briefing · ${DATA.today.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
           <h1 class="display" style="color:var(--paper);margin-top:var(--s3);font-size:var(--t-h1);max-width:22ch">Good morning, Camille.</h1>
@@ -92,14 +92,14 @@ VIEWS.command = function (root) {
           <div class="stack gap2">
             ${f.prepList.slice(0, 3).map(p => `
               <div class="lrow" style="padding:10px 0">
-                <span style="font-size:20px">${p.emoji}</span>
+                <span class="pico lg">${prodIcon(p.icon)}</span>
                 <div class="grow"><div class="name">${p.name}</div>
                   <div class="sub">Sells out ~${DATA.hourLabel(p.selloutHour)} · prep <b>${p.recPrep}</b></div></div>
                 <span class="chip ${p.status}"><span class="dot"></span>${p.status === 'crit' ? 'Urgent' : 'Prep'}</span>
               </div>`).join('')}
             ${shortIng ? `
               <div class="lrow" style="padding:10px 0">
-                <span style="font-size:20px">📦</span>
+                <span class="pico lg" style="color:var(--crit)">${UI_ICON.box}</span>
                 <div class="grow"><div class="name">${shortIng.name} low</div>
                   <div class="sub">Need ${shortIng.need}${shortIng.unit} for today's prep · ${shortIng.stock}${shortIng.unit} on hand</div></div>
                 <span class="chip crit"><span class="dot"></span>Order</span>

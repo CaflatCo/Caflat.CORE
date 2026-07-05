@@ -101,12 +101,12 @@ VIEWS.foresight = function (root) {
     root.querySelector('#prepCount').innerHTML = `<span class="dot"></span>${f.prepList.length} to make`;
     if (!f.prepList.length) {
       pl.innerHTML = `<div style="padding:var(--s6) 0;text-align:center;color:var(--ink-4)">
-        <div style="font-size:34px;opacity:.4">✓</div><div style="font-size:var(--t-sm);margin-top:8px">All caught up — prep is right-sized for the rest of the day.</div></div>`;
+        <span class="pico" style="width:34px;height:34px;color:var(--live)">${UI_ICON.check}</span><div style="font-size:var(--t-sm);margin-top:10px">All caught up — prep is right-sized for the rest of the day.</div></div>`;
     } else {
       pl.innerHTML = f.prepList.map(p => {
         const done = prepped.has(p.id);
         return `<div class="lrow" style="padding:var(--s3) 0;${done ? 'opacity:.5' : ''}">
-          <span style="font-size:26px">${p.emoji}</span>
+          <span class="pico xl">${prodIcon(p.icon)}</span>
           <div class="grow">
             <div class="row gap2" style="align-items:baseline"><span class="name" style="font-size:var(--t-body)">${p.name}</span>
               <span class="chip ${p.status}" style="height:20px;font-size:9px"><span class="dot"></span>${p.status === 'crit' ? 'Urgent' : 'Soon'}</span></div>
@@ -114,9 +114,9 @@ VIEWS.foresight = function (root) {
           </div>
           <div style="text-align:right;margin-right:var(--s3)">
             <div class="eyebrow">Make</div>
-            <div class="num serif" style="font-size:1.6rem;line-height:1">${p.recPrep}</div>
+            <div class="num serif" style="font-size:1.7rem;line-height:1;font-weight:900;letter-spacing:-0.03em">${p.recPrep}</div>
           </div>
-          <button class="btn btn-sm ${done ? 'btn-ghost' : ''}" data-prep="${p.id}">${done ? 'Queued ✓' : 'Prep'}</button>
+          <button class="btn btn-sm ${done ? 'btn-ghost' : ''}" data-prep="${p.id}">${done ? 'Queued' + UI_ICON.check : 'Prep'}</button>
         </div>`;
       }).join('');
       pl.querySelectorAll('[data-prep]').forEach(b => b.addEventListener('click', () => {
@@ -143,7 +143,7 @@ VIEWS.foresight = function (root) {
     root.querySelector('#wasteList').innerHTML = f.wasteList.length
       ? f.wasteList.map(w => `
         <div class="lrow" style="padding:8px 0">
-          <span style="font-size:20px">${w.emoji}</span>
+          <span class="pico lg">${prodIcon(w.icon)}</span>
           <div class="grow"><div class="name" style="font-size:var(--t-sm)">${w.name}</div>
             <div class="sub">${w.surplus} over demand · ${DATA.fmt$(w.surplus * w.cost)} at risk</div></div>
           <span class="chip warn" style="height:22px"><span class="dot"></span>Markdown</span>
@@ -168,7 +168,7 @@ VIEWS.larder = function (root) {
           <div class="row between"><span class="name" style="font-weight:640">${ing.name}</span>
             <span class="chip ${tone}" style="height:20px;font-size:9px"><span class="dot"></span>${tone === 'crit' ? 'Reorder' : tone === 'warn' ? 'Low' : 'Good'}</span></div>
           <div class="row" style="align-items:baseline;gap:6px;margin:var(--s3) 0 var(--s2)">
-            <span class="num serif" style="font-size:1.8rem">${ing.stock}</span>
+            <span class="num serif" style="font-size:1.8rem;font-weight:900;letter-spacing:-0.03em">${ing.stock}</span>
             <span class="muted num" style="font-size:var(--t-sm)">/ ${ing.par} ${ing.unit} par</span></div>
           <div class="meter ${tone}"><i style="width:${Math.min(100, ratio * 100)}%"></i></div>
         </div>`;

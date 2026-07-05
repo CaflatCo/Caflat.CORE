@@ -21,25 +21,25 @@ const DATA = (() => {
   /* ── Menu ── prepared units sit in `stock`; kitchen replenishes via prep */
   const products = [
     // Viennoiserie
-    { id: 'p_croissant', name: 'Butter Croissant',   cat: 'Viennoiserie', price: 4.50, cost: 1.35, base: 120, curve: 'am', batch: 12, stock: 46, emoji: '🥐' },
-    { id: 'p_pdc',       name: 'Pain au Chocolat',   cat: 'Viennoiserie', price: 4.75, cost: 1.55, base: 95,  curve: 'am', batch: 12, stock: 38, emoji: '🍫' },
-    { id: 'p_almond',    name: 'Almond Croissant',   cat: 'Viennoiserie', price: 5.50, cost: 1.90, base: 60,  curve: 'am', batch: 8,  stock: 12, emoji: '🌰' },
-    { id: 'p_kouign',    name: 'Kouign-Amann',       cat: 'Viennoiserie', price: 5.75, cost: 1.80, base: 40,  curve: 'am', batch: 8,  stock: 58, emoji: '🧈' },
+    { id: 'p_croissant', name: 'Butter Croissant',   cat: 'Viennoiserie', price: 4.50, cost: 1.35, base: 120, curve: 'am', batch: 12, stock: 46, icon: 'croissant' },
+    { id: 'p_pdc',       name: 'Pain au Chocolat',   cat: 'Viennoiserie', price: 4.75, cost: 1.55, base: 95,  curve: 'am', batch: 12, stock: 38, icon: 'pdc' },
+    { id: 'p_almond',    name: 'Almond Croissant',   cat: 'Viennoiserie', price: 5.50, cost: 1.90, base: 60,  curve: 'am', batch: 8,  stock: 12, icon: 'almond' },
+    { id: 'p_kouign',    name: 'Kouign-Amann',       cat: 'Viennoiserie', price: 5.75, cost: 1.80, base: 40,  curve: 'am', batch: 8,  stock: 58, icon: 'kouign' },
     // Bread
-    { id: 'p_sourdough', name: 'Sourdough Loaf',     cat: 'Bread',        price: 9.00, cost: 2.10, base: 45,  curve: 'flat', batch: 6, stock: 22, emoji: '🍞' },
-    { id: 'p_baguette',  name: 'Baguette Tradition', cat: 'Bread',        price: 4.00, cost: 0.95, base: 80,  curve: 'twin', batch: 10, stock: 34, emoji: '🥖' },
-    { id: 'p_miche',     name: 'Country Miche',      cat: 'Bread',        price: 12.00, cost: 2.80, base: 20, curve: 'flat', batch: 4, stock: 33, emoji: '🌾' },
+    { id: 'p_sourdough', name: 'Sourdough Loaf',     cat: 'Bread',        price: 9.00, cost: 2.10, base: 45,  curve: 'flat', batch: 6, stock: 22, icon: 'sourdough' },
+    { id: 'p_baguette',  name: 'Baguette Tradition', cat: 'Bread',        price: 4.00, cost: 0.95, base: 80,  curve: 'twin', batch: 10, stock: 34, icon: 'baguette' },
+    { id: 'p_miche',     name: 'Country Miche',      cat: 'Bread',        price: 12.00, cost: 2.80, base: 20, curve: 'flat', batch: 4, stock: 33, icon: 'miche' },
     // Patisserie
-    { id: 'p_canele',    name: 'Canelé',             cat: 'Patisserie',   price: 3.50, cost: 0.90, base: 70,  curve: 'pm', batch: 12, stock: 41, emoji: '🍮' },
-    { id: 'p_eclair',    name: 'Chocolate Éclair',   cat: 'Patisserie',   price: 6.50, cost: 1.75, base: 38,  curve: 'pm', batch: 6,  stock: 19, emoji: '🍫' },
-    { id: 'p_tart',      name: 'Lemon Tart',         cat: 'Patisserie',   price: 7.00, cost: 2.00, base: 30,  curve: 'pm', batch: 6,  stock: 46, emoji: '🍋' },
-    { id: 'p_macaron',   name: 'Macaron',            cat: 'Patisserie',   price: 2.75, cost: 0.70, base: 140, curve: 'flat', batch: 24, stock: 205, emoji: '🌈' },
+    { id: 'p_canele',    name: 'Canelé',             cat: 'Patisserie',   price: 3.50, cost: 0.90, base: 70,  curve: 'pm', batch: 12, stock: 41, icon: 'canele' },
+    { id: 'p_eclair',    name: 'Chocolate Éclair',   cat: 'Patisserie',   price: 6.50, cost: 1.75, base: 38,  curve: 'pm', batch: 6,  stock: 19, icon: 'eclair' },
+    { id: 'p_tart',      name: 'Lemon Tart',         cat: 'Patisserie',   price: 7.00, cost: 2.00, base: 30,  curve: 'pm', batch: 6,  stock: 46, icon: 'tart' },
+    { id: 'p_macaron',   name: 'Macaron',            cat: 'Patisserie',   price: 2.75, cost: 0.70, base: 140, curve: 'flat', batch: 24, stock: 205, icon: 'macaron' },
     // Café
-    { id: 'p_espresso',  name: 'Espresso',           cat: 'Café',         price: 3.25, cost: 0.55, base: 90,  curve: 'am', batch: 0, stock: 999, emoji: '☕' },
-    { id: 'p_cortado',   name: 'Cortado',            cat: 'Café',         price: 4.25, cost: 0.75, base: 75,  curve: 'am', batch: 0, stock: 999, emoji: '☕' },
-    { id: 'p_capp',      name: 'Cappuccino',         cat: 'Café',         price: 4.75, cost: 0.85, base: 110, curve: 'am', batch: 0, stock: 999, emoji: '☕' },
-    { id: 'p_filter',    name: 'Filter Coffee',      cat: 'Café',         price: 3.75, cost: 0.45, base: 65,  curve: 'flat', batch: 0, stock: 999, emoji: '☕' },
-    { id: 'p_matcha',    name: 'Matcha Latte',       cat: 'Café',         price: 5.50, cost: 1.20, base: 45,  curve: 'pm', batch: 0, stock: 999, emoji: '🍵' },
+    { id: 'p_espresso',  name: 'Espresso',           cat: 'Café',         price: 3.25, cost: 0.55, base: 90,  curve: 'am', batch: 0, stock: 999, icon: 'coffee' },
+    { id: 'p_cortado',   name: 'Cortado',            cat: 'Café',         price: 4.25, cost: 0.75, base: 75,  curve: 'am', batch: 0, stock: 999, icon: 'coffee' },
+    { id: 'p_capp',      name: 'Cappuccino',         cat: 'Café',         price: 4.75, cost: 0.85, base: 110, curve: 'am', batch: 0, stock: 999, icon: 'coffee' },
+    { id: 'p_filter',    name: 'Filter Coffee',      cat: 'Café',         price: 3.75, cost: 0.45, base: 65,  curve: 'flat', batch: 0, stock: 999, icon: 'coffee' },
+    { id: 'p_matcha',    name: 'Matcha Latte',       cat: 'Café',         price: 5.50, cost: 1.20, base: 45,  curve: 'pm', batch: 0, stock: 999, icon: 'matcha' },
   ];
 
   /* ── Ingredients (larder) ── */

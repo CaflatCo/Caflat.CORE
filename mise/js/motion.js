@@ -10,12 +10,16 @@ const M = (() => {
     if (reduce) { el.textContent = prefix + fmt(to) + suffix; return; }
     const t0 = performance.now();
     const ease = (t) => 1 - Math.pow(1 - t, 3);
-    (function tick(now) {
-      const p = Math.min(1, (now - t0) / dur);
+    // NB: read performance.now() inside the tick — do NOT use the timestamp arg
+    // that requestAnimationFrame passes. Inside an iframe the RAF timestamp has a
+    // different time origin than performance.now(), which makes (now - t0) go
+    // negative and the animation explode. One clock, always.
+    (function tick() {
+      const p = Math.min(1, (performance.now() - t0) / dur);
       const v = from + (to - from) * ease(p);
       el.textContent = prefix + fmt(v) + suffix;
       if (p < 1) requestAnimationFrame(tick);
-    })(t0);
+    })();
   }
 
   /* Reveal children in sequence. Elements should have .count; we add .in. */
@@ -59,11 +63,11 @@ const M = (() => {
   function tween(from, to, dur, cb, ease = (t) => 1 - Math.pow(1 - t, 3)) {
     if (reduce) { cb(to); return; }
     const t0 = performance.now();
-    (function f(now) {
-      const p = Math.min(1, (now - t0) / dur);
+    (function f() {
+      const p = Math.min(1, (performance.now() - t0) / dur);
       cb(from + (to - from) * ease(p));
       if (p < 1) requestAnimationFrame(f);
-    })(t0);
+    })();
   }
 
   return { countUp, stagger, segThumb, toast, reveal, tween, reduce };

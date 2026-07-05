@@ -35,7 +35,7 @@ VIEWS.service = function (root) {
             <div class="row between"><span class="muted" style="font-size:var(--t-sm)">Tax (8%)</span><span class="num" id="tax">$0.00</span></div>
             <div class="row between" style="align-items:baseline">
               <span style="font-weight:700">Total</span>
-              <span class="num serif" id="total" style="font-size:1.9rem;letter-spacing:-0.02em">$0.00</span>
+              <span class="num serif" id="total" style="font-size:1.9rem;letter-spacing:-0.03em;font-weight:900">$0.00</span>
             </div>
           </div>
           <button class="btn btn-block" id="charge" style="height:52px;font-size:var(--t-body)" disabled>Charge $0.00</button>
@@ -50,7 +50,7 @@ VIEWS.service = function (root) {
       const low = p.batch > 0 && p.stock <= p.batch;
       return `<button class="card lift pad prod" data-prod="${p.id}"
         style="--i:${items.indexOf(p)};text-align:left;display:flex;flex-direction:column;gap:6px;padding:var(--s4);border-radius:var(--r-lg)">
-        <div class="row between"><span style="font-size:30px">${p.emoji}</span>
+        <div class="row between"><span class="pico xl">${prodIcon(p.icon)}</span>
           ${low ? '<span class="chip crit" style="height:20px;font-size:9px"><span class="dot"></span>Low</span>' : ''}</div>
         <div style="font-weight:640;line-height:1.2;margin-top:2px">${p.name}</div>
         <div class="row between" style="margin-top:auto;padding-top:6px">
@@ -80,12 +80,12 @@ VIEWS.service = function (root) {
   function renderTicket() {
     const c = STORE.state.cart, host = root.querySelector('#ticketLines');
     if (!c.length) {
-      host.innerHTML = `<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s2);color:var(--ink-4);text-align:center;padding:var(--s7) 0">
-        <span style="font-size:40px;opacity:.4">🧾</span><span style="font-size:var(--t-sm)">Tap items to build the order</span></div>`;
+      host.innerHTML = `<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s3);color:var(--ink-4);text-align:center;padding:var(--s7) 0">
+        <span class="pico" style="width:40px;height:40px;opacity:.5;color:var(--ink-4)">${UI_ICON.receipt}</span><span style="font-size:var(--t-sm)">Tap items to build the order</span></div>`;
     } else {
       host.innerHTML = c.map(l => `
         <div class="lrow" data-line="${l.id}" style="padding:10px 0;animation:fadeUp .25s var(--ease-out) both">
-          <span style="font-size:20px">${l.emoji}</span>
+          <span class="pico">${prodIcon(l.icon)}</span>
           <div class="grow"><div class="name" style="font-size:var(--t-sm)">${l.name}</div>
             <div class="sub num">${DATA.fmt$c(l.price)}</div></div>
           <div class="row gap2" style="align-items:center">
