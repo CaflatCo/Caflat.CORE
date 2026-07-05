@@ -1,0 +1,138 @@
+/* ═══════════════════════════════════════════════════════════════
+   MISE — APP SHELL  ·  rail nav · topbar · view stage
+═══════════════════════════════════════════════════════════════ */
+.app {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  min-height: 100vh;
+}
+
+/* ── Left rail ── */
+.rail {
+  position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--s2);
+  padding: var(--s5) 0 var(--s4);
+  background: var(--card);
+  border-right: 1px solid var(--line);
+  z-index: 40;
+}
+.rail-brand {
+  width: 44px; height: 44px; margin-bottom: var(--s5);
+  display: grid; place-items: center;
+  background: var(--ink); color: var(--paper);
+  border-radius: 13px; box-shadow: var(--e-ink);
+  font-family: var(--serif); font-size: 22px; font-weight: 700;
+  transition: transform var(--d-med) var(--ease-spring);
+}
+.rail-brand:hover { transform: rotate(-8deg) scale(1.06); }
+
+.rail-nav { display: flex; flex-direction: column; gap: var(--s1); flex: 1; }
+.rail-btn {
+  position: relative;
+  width: 52px; height: 52px; border-radius: var(--r-md);
+  display: grid; place-items: center;
+  color: var(--ink-3);
+  transition: color var(--d-fast) var(--ease-out),
+              background var(--d-fast) var(--ease-out);
+}
+.rail-btn svg { width: 22px; height: 22px; }
+.rail-btn:hover { color: var(--ink); background: var(--line-2); }
+.rail-btn.active { color: var(--ink); }
+.rail-btn.active::before {
+  content: ""; position: absolute; left: -18px; top: 50%;
+  width: 4px; height: 26px; border-radius: 99px; background: var(--ink);
+  transform: translateY(-50%) scaleY(0);
+  animation: railmark var(--d-med) var(--ease-spring) forwards;
+}
+@keyframes railmark { to { transform: translateY(-50%) scaleY(1); } }
+.rail-btn .tip {
+  position: absolute; left: 64px; top: 50%; transform: translateY(-50%) translateX(-6px);
+  background: var(--ink); color: var(--paper);
+  font-size: var(--t-xs); font-weight: 600; letter-spacing: .01em;
+  padding: 6px 10px; border-radius: 8px; white-space: nowrap;
+  opacity: 0; pointer-events: none; box-shadow: var(--e2);
+  transition: opacity var(--d-fast) var(--ease-out), transform var(--d-fast) var(--ease-out);
+}
+.rail-btn:hover .tip { opacity: 1; transform: translateY(-50%) translateX(0); }
+
+/* ── Main column ── */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: var(--s4);
+  padding: var(--s4) var(--s7);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-title { display: flex; flex-direction: column; gap: 2px; }
+.topbar-title .now { font-family: var(--serif); font-size: var(--t-h2); line-height: 1; }
+.topbar-spacer { flex: 1; }
+
+.live-clock {
+  display: flex; align-items: center; gap: var(--s2);
+  font-size: var(--t-sm); color: var(--ink-3); font-weight: 600;
+}
+.pulse { width: 8px; height: 8px; border-radius: 99px; background: var(--live);
+  box-shadow: 0 0 0 0 var(--live-glow); animation: pulse 2.4s var(--ease-out) infinite; }
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 var(--live-glow); }
+  70% { box-shadow: 0 0 0 12px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.icon-btn {
+  width: 40px; height: 40px; border-radius: var(--r-md);
+  display: grid; place-items: center; color: var(--ink-2);
+  border: 1px solid var(--line);
+  transition: all var(--d-fast) var(--ease-out);
+}
+.icon-btn:hover { background: var(--card); box-shadow: var(--e1); transform: translateY(-1px); }
+.icon-btn svg { width: 18px; height: 18px; }
+
+.avatar {
+  width: 40px; height: 40px; border-radius: var(--r-full);
+  display: grid; place-items: center; background: var(--ink); color: var(--paper);
+  font-weight: 700; font-size: var(--t-sm); box-shadow: var(--e-ink);
+}
+
+/* ── View stage ── */
+.stage { flex: 1; padding: var(--s7); max-width: 1560px; width: 100%; margin: 0 auto; }
+.view { animation: viewIn var(--d-page) var(--ease-out) both; }
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(14px); filter: blur(3px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+
+/* Section header used across views */
+.sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s4); margin-bottom: var(--s5); }
+.sec-head .eyebrow { margin-bottom: var(--s2); }
+
+/* Layout helpers */
+.grid { display: grid; gap: var(--s5); }
+.stack { display: flex; flex-direction: column; }
+.row { display: flex; align-items: center; }
+.between { justify-content: space-between; }
+.wrap { flex-wrap: wrap; }
+.gap2 { gap: var(--s2); } .gap3 { gap: var(--s3); } .gap4 { gap: var(--s4); } .gap5 { gap: var(--s5); }
+
+/* Responsive: rail collapses to bottom bar on narrow screens */
+@media (max-width: 860px) {
+  .app { grid-template-columns: 1fr; }
+  .rail {
+    position: fixed; bottom: 0; top: auto; left: 0; right: 0;
+    height: 64px; width: 100%; flex-direction: row; justify-content: center;
+    padding: 0 var(--s4); border-right: none; border-top: 1px solid var(--line);
+  }
+  .rail-brand, .rail-btn .tip { display: none; }
+  .rail-nav { flex-direction: row; flex: 0; gap: var(--s2); }
+  .rail-btn.active::before { left: 50%; top: auto; bottom: -2px; width: 22px; height: 3px;
+    transform: translateX(-50%) scaleX(0); animation: railmark-h var(--d-med) var(--ease-spring) forwards; }
+  @keyframes railmark-h { to { transform: translateX(-50%) scaleX(1); } }
+  .topbar { padding: var(--s4); }
+  .stage { padding: var(--s5) var(--s4) 88px; }
+}

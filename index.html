@@ -416,6 +416,18 @@
                 </svg>
                 Dashboard
               </button>
+              <!-- ═══ MISE PREVIEW nav (temporary — remove to revert) ═══ -->
+              <button data-view="mise" id="navMise">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 11.5l3.3-3.3 2 2 4.7-5.2"/>
+                  <path d="M9.5 5h3v3"/>
+                  <circle cx="5.3" cy="8.2" r=".7" fill="currentColor" stroke="none"/>
+                  <circle cx="7.3" cy="10.2" r=".7" fill="currentColor" stroke="none"/>
+                </svg>
+                Mise
+                <span style="margin-left:auto;font-size:8px;font-weight:800;letter-spacing:.08em;padding:2px 6px;border-radius:99px;background:#111;color:#fff;">NEW</span>
+              </button>
+              <!-- ═══ /MISE PREVIEW nav ═══ -->
               <button data-view="sales">
                 <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 1.5h10v13l-2-1.4-1.5 1.4-2-1.4-1.5 1.4L4.5 13.5 3 14.5z"/>
@@ -2045,6 +2057,12 @@
 
         </div>
       </section>
+
+      <!-- ═══ MISE PREVIEW (temporary — remove this whole block + its nav button to revert) ═══ -->
+      <section class="view" id="view-mise">
+        <iframe class="mise-frame" src="./mise/index.html" title="Mise preview" loading="lazy"></iframe>
+      </section>
+      <!-- ═══ /MISE PREVIEW ═══ -->
 
     </main>
 
