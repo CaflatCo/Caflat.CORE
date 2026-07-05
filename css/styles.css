@@ -2798,8 +2798,6 @@ html[data-theme="dark"] .cl-sim-input { background: var(--gray-100); color: var(
 html[data-theme="dark"] .cl-filter-bar input,
 html[data-theme="dark"] .cl-filter-bar select { background: var(--gray-100); color: var(--gray-900); }
 
-/* ═══ MISE PREVIEW (temporary — remove this block to revert) ═══ */
-#view-mise { padding: 0; overflow: hidden; }
-#view-mise.active { display: flex; }
-.mise-frame { flex: 1; width: 100%; height: 100%; min-height: 100%; border: 0; display: block; }
-/* ═══ /MISE PREVIEW ═══ */
+/* ═══ CAFLAT 2.0 launcher — the sidebar link styles itself as a nav item ═══ */
+#navMise { display: flex; align-items: center; }
+/* ═══ /CAFLAT 2.0 launcher ═══ */

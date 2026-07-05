@@ -1,0 +1,76 @@
+/* ═══════════════════════════════════════════════════════════════
+   MISE — BASE  ·  reset · typography · paper grain
+═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--sans);
+  font-size: var(--t-body);
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1, "cv01" 1;
+  overflow-x: hidden;
+  transition: background var(--d-med) var(--ease-inout),
+              color var(--d-med) var(--ease-inout);
+}
+
+/* Paper grain — one tiny inline SVG tiled, GPU-cheap, no image request */
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: .5; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+}
+:root[data-theme="dark"] body::before { mix-blend-mode: screen; opacity: .35; }
+
+/* Headings — Nunito Black, tight, editorial. Weight carries the hierarchy
+   that the serif used to. */
+h1, h2, h3, .display {
+  font-family: var(--serif);
+  font-weight: 900;
+  letter-spacing: -0.022em;
+  line-height: 1.04;
+  color: var(--ink);
+}
+.display-hero { font-size: var(--t-hero); letter-spacing: -0.035em; line-height: .96; }
+h1 { font-size: var(--t-h1); }
+h2 { font-size: var(--t-h2); }
+h3 { font-size: var(--t-h3); font-family: var(--sans); font-weight: 800; letter-spacing: -0.012em; }
+
+/* Eyebrow / label — the grotesque, spaced, uppercase */
+.eyebrow {
+  font-family: var(--sans);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.eyebrow svg { width: 13px; height: 13px; vertical-align: -2px; display: inline-block; }
+
+.num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.serif { font-family: var(--serif); }
+.muted { color: var(--ink-3); }
+.faint { color: var(--ink-4); }
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+::selection { background: var(--ink); color: var(--paper); }
+
+/* Focus — visible, on-brand */
+:focus-visible { outline: 2px solid var(--data-1); outline-offset: 2px; border-radius: 4px; }
+
+/* Scrollbar — thin, inky */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; border: 3px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background: var(--ink-4); background-clip: content-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
