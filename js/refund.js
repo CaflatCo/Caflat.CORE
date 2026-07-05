@@ -63,7 +63,7 @@ function openRefundModal(saleId) {
   setTimeout(() => el('refundReason')?.focus(), 100);
 }
 
-function confirmRefund() {
+async function confirmRefund() {
   const saleId = document.getElementById('refundSaleId')?.value || '';
   const reason = String(document.getElementById('refundReason')?.value || '').trim();
 
@@ -88,6 +88,13 @@ function confirmRefund() {
   sale.audit = sale.audit || {};
   sale.audit.refundedAt = timestamp;
   sale.audit.refundedBy = APP_STATE.currentUserRole || 'ADMIN';
+
+  // Re-seal — the integrity hash covers status, so it must be recomputed
+  // after this legitimate transition or verifyTransaction() will flag it
+  // as tampered (HASH_MISMATCH) even though the refund was authorized.
+  if (typeof sealTransaction === 'function') {
+    await sealTransaction(sale);
+  }
 
   updateState('sales', () => sales);
 

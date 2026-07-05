@@ -349,7 +349,7 @@ function renderInventoryMovementLog(limit) {
         <td style="font-weight:700;">${itemName}</td>
         <td style="font-variant-numeric:tabular-nums;font-weight:800;${qtyColor}">${qty === 0 ? '—' : qtyLabel}</td>
         <td style="font-variant-numeric:tabular-nums;color:var(--gray-500);">${m.previousStock ?? '—'} → ${m.newStock ?? '—'}</td>
-        <td style="color:var(--gray-400);font-size:11px;">${(m.reason || '—').replace(/</g,'&lt;')}</td>
+        <td style="color:var(--gray-400);font-size:11px;">${escapeHtml(m.reason || '—')}</td>
       </tr>`;
   }).join('');
 

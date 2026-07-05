@@ -702,7 +702,7 @@ function printOriginLotLabel(lotId) {
   if (!win) { showNotification('Allow popups to print labels', 'info'); return; }
 
   win.document.write(`<!DOCTYPE html><html><head>
-<title>${lot.lotNumber}</title>
+<title>${escapeHtml(lot.lotNumber)}</title>
 <style>
   body{font-family:sans-serif;margin:0;padding:20px;background:#fff;}
   .card{width:300px;border:2px solid #000;border-radius:8px;padding:18px;margin:0 auto;}

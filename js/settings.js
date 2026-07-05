@@ -613,16 +613,16 @@ function renderPaymentMethodsList() {
   container.innerHTML = methods.map((m, i) => {
     const typeLabel = { cash:'Cash', qr:'QR Code', bank:'Bank Transfer', card:'Card', other:'Other' }[m.type] || m.type;
     const detail = m.type === 'bank'
-      ? `<div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${m.bankName || ''} · ${m.accountNumber || ''}</div>`
+      ? `<div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${escapeHtml(m.bankName || '')} · ${escapeHtml(m.accountNumber || '')}</div>`
       : m.type === 'qr' && m.qrImage
-        ? `<img src="${m.qrImage}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-top:4px;" />`
+        ? `<img src="${escapeHtml(m.qrImage)}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-top:4px;" />`
         : '';
 
     return `<div style="display:flex;align-items:center;justify-content:space-between;
       padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-md);
       margin-bottom:8px;gap:12px;">
       <div style="flex:1;min-width:0;">
-        <div style="font-weight:700;font-size:13px;">${sanitizeText(m.name)}</div>
+        <div style="font-weight:700;font-size:13px;">${escapeHtml(m.name)}</div>
         <div style="font-size:11px;color:var(--gray-400);margin-top:1px;">${typeLabel}</div>
         ${detail}
       </div>
