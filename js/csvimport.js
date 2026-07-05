@@ -205,7 +205,7 @@ function _csvShowMappingStep() {
   container.innerHTML = fields.map(f => {
     const autoIdx = autoMap[f.key] ?? -1;
     const opts = headers.map((h, i) =>
-      `<option value="${i}"${i === autoIdx ? ' selected' : ''}>${h}</option>`
+      `<option value="${i}"${i === autoIdx ? ' selected' : ''}>${escapeHtml(h)}</option>`
     ).join('');
     return `
       <div style="display:flex;align-items:center;justify-content:space-between;

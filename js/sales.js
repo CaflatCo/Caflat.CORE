@@ -1284,7 +1284,7 @@ function exportSalesReport() {
 }
 
 /* ── Pending sale management ── */
-function completePendingSale(saleId) {
+async function completePendingSale(saleId) {
   const sales = getSales();
   const sale = sales.find(s => String(s.id) === String(saleId));
   if (!sale) return;
@@ -1293,6 +1293,13 @@ function completePendingSale(saleId) {
   sale.audit = sale.audit || {};
   sale.audit.completedAt = new Date().toISOString();
   sale.audit.inventoryDeducted = true;
+
+  // Re-seal — the integrity hash covers status, so it must be recomputed
+  // after this transition or verifyTransaction() will flag it as tampered.
+  if (typeof sealTransaction === 'function') {
+    await sealTransaction(sale);
+  }
+
   updateState('sales', () => sales);
   renderSalesTable();
   if (typeof refreshDashboard === 'function') refreshDashboard();

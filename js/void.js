@@ -117,7 +117,7 @@ function confirmVoid() {
   executeVoid(saleId, reason);
 }
 
-function executeVoid(saleId, reason) {
+async function executeVoid(saleId, reason) {
   const sales = getSales();
   const sale  = sales.find(s => String(s.id) === String(saleId));
   if (!sale) return;
@@ -136,6 +136,13 @@ function executeVoid(saleId, reason) {
   sale.audit = sale.audit || {};
   sale.audit.voidedAt = timestamp;
   sale.audit.voidedBy = APP_STATE.currentUserRole || 'ADMIN';
+
+  // Re-seal — the integrity hash covers status, so it must be recomputed
+  // after this legitimate transition or verifyTransaction() will flag it
+  // as tampered (HASH_MISMATCH) even though the void was authorized.
+  if (typeof sealTransaction === 'function') {
+    await sealTransaction(sale);
+  }
 
   updateState('sales', () => sales);
 
