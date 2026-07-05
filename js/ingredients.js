@@ -4,10 +4,10 @@ function getIngredients() {
 
 function setIngredients(ingredients) {
   updateState('ingredients', () => Array.isArray(ingredients) ? ingredients : []);
-  renderIngredientsTable();
-  renderIngredientDropdowns();
-  renderInventoryTable();
-  refreshDashboard();
+  if (typeof renderIngredientsTable === 'function') renderIngredientsTable();
+  if (typeof renderIngredientDropdowns === 'function') renderIngredientDropdowns();
+  if (typeof renderInventoryTable === 'function') renderInventoryTable();
+  if (typeof refreshDashboard === 'function') refreshDashboard();
 }
 
 function getIngredientFormData() {

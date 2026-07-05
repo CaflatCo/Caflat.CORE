@@ -78,22 +78,29 @@ VIEWS.foresight = function (root) {
       pl.innerHTML = `<div style="padding:var(--s6) 0;text-align:center;color:var(--ink-4)"><span class="pico" style="width:34px;height:34px;color:var(--live)">${UI_ICON.check}</span><div style="font-size:var(--t-sm);margin-top:10px">All caught up — prep is right-sized for the rest of the day.</div></div>`;
     } else {
       pl.innerHTML = f.prepList.map(p => {
-        const done = prepped.has(p.id);
-        return `<div class="lrow" style="padding:var(--s3) 0;${done ? 'opacity:.5' : ''}">
+        const busy = prepped.has(p.id);
+        return `<div class="lrow" style="padding:var(--s3) 0;${busy ? 'opacity:.5' : ''}">
           <span class="pico xl">${prodIconFor(p.name, p.cat)}</span>
           <div class="grow"><div class="row gap2" style="align-items:baseline"><span class="name" style="font-size:var(--t-body)">${escapeHtml(p.name)}</span>
             <span class="chip ${p.status}" style="height:20px;font-size:9px"><span class="dot"></span>${p.status === 'crit' ? 'Urgent' : 'Soon'}</span>
             ${p.confident ? '' : '<span class="chip" style="height:20px;font-size:9px"><span class="dot"></span>Est</span>'}</div>
             <div class="sub">${p.selloutHour != null ? `Sells out ~<b>${ADAPT.hourLabel(p.selloutHour)}</b> · ` : ''}${p.onHand != null ? p.onHand + ' on hand · ' : ''}${p.remainingDemand} more expected</div></div>
           <div style="text-align:right;margin-right:var(--s3)"><div class="eyebrow">Make</div><div class="num serif" style="font-size:1.7rem;line-height:1;font-weight:900;letter-spacing:-0.03em">${p.recPrep}</div></div>
-          <button class="btn btn-sm ${done ? 'btn-ghost' : ''}" data-prep="${p.id}">${done ? 'Queued' + UI_ICON.check : 'Prep'}</button>
+          <button class="btn btn-sm" data-prep="${p.id}" data-qty="${p.recPrep}" data-name="${escapeHtml(p.name)}" ${busy ? 'disabled' : ''}>${busy ? 'Prepping…' : 'Prep'}</button>
         </div>`;
       }).join('');
       pl.querySelectorAll('[data-prep]').forEach(b => b.addEventListener('click', () => {
-        prepped.add(b.dataset.prep);
-        const it = f.prepList.find(x => x.id === b.dataset.prep);
-        M.toast('Sent to kitchen', `${it.name} × ${it.recPrep} · queued for prep`, 'success');
-        paint(+slider.value);
+        const id = b.dataset.prep, qty = Number(b.dataset.qty), name = b.dataset.name;
+        prepped.add(id);
+        b.disabled = true; b.textContent = 'Prepping…';
+        const result = ENGINE.prep(id, qty, name);
+        if (result.ok) {
+          M.toast('Prep complete', `${name} × ${qty} added to real stock — ingredients deducted`, 'success');
+        } else {
+          M.toast('Could not prep', 'Product not found', 'crit');
+        }
+        prepped.delete(id);
+        paint(+slider.value); // stock changed for real — recompute the whole forecast
       }));
     }
 

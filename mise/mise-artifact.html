@@ -1316,7 +1316,7 @@ VIEWS.service = function (root) {
     STORE.set({ completedToday: STORE.state.completedToday + 1, revenueToday: STORE.state.revenueToday + total });
     M.toast('Payment complete', `${n} items · ${DATA.fmt$c(total)} · Ticket #${1040 + STORE.state.completedToday - 1}`, 'success');
     STORE.clearCart();
-    root.querySelector('#charge').animate([{ transform: 'scale(1)' }, { transform: 'scale(.97)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'var(--ease-spring)' });
+    root.querySelector('#charge').animate([{ transform: 'scale(1)' }, { transform: 'scale(.97)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'cubic-bezier(.34,1.56,.64,1)' });
   });
 
   const unsub = STORE.sub(renderTicket);

@@ -69,10 +69,12 @@ const ADAPT = (() => {
     const mix = Object.entries(mixMap).map(([cat, v]) => ({ cat, value: Math.round(v), pct: v / mixTotal }))
       .sort((a, b) => b.value - a.value).slice(0, 6);
 
-    // low-stock attention
+    // low-stock attention (FG-aware: routes to the finished-goods ledger for
+    // finished_goods-category products, same as the classic POS's stock checks)
     const thr = Number(APP_STATE.settings?.lowStockThreshold ?? 5);
-    const lowProducts = products().filter(p => p.trackStock !== false && Number.isFinite(Number(p.stock)) && Number(p.stock) <= thr)
-      .map(p => ({ name: p.name, stock: Number(p.stock), kind: 'product' }));
+    const stockOf = p => g(() => (typeof getEffectiveStock === 'function' ? getEffectiveStock(p) : Number(p.stock)), Number(p.stock));
+    const lowProducts = products().filter(p => p.trackStock !== false && Number(p.stock) < 900 && Number.isFinite(stockOf(p)) && stockOf(p) <= thr)
+      .map(p => ({ name: p.name, stock: stockOf(p), kind: 'product' }));
     const lowIng = ingredients().filter(i => Number.isFinite(Number(i.stock)) && Number(i.stock) <= thr)
       .map(i => ({ name: i.name, stock: Number(i.stock), unit: i.unit, kind: 'ingredient' }));
     const attention = [...lowProducts, ...lowIng].slice(0, 6);
@@ -124,7 +126,10 @@ const ADAPT = (() => {
       // an explicit batch size of 0 → forecast revenue but never flag prep/waste.
       const rawStock = Number(prod.stock);
       const madeToOrder = Number(prod.batchSize ?? prod.batch) === 0 || (Number.isFinite(rawStock) && rawStock >= 900);
-      const onHand = madeToOrder ? null : (Number.isFinite(rawStock) ? rawStock : null);
+      // FG-aware: finished_goods-category products keep their real stock in the
+      // separate FG ledger, not product.stock — same accessor the classic POS uses.
+      const effStock = g(() => (typeof getEffectiveStock === 'function' ? getEffectiveStock(prod) : rawStock), rawStock);
+      const onHand = madeToOrder ? null : (Number.isFinite(effStock) ? effStock : null);
 
       // expected units for today's weekday = mean of that weekday's daily totals (fallback: overall daily mean)
       const wdDays = Object.entries(H.perDay).filter(([k]) => k.startsWith(weekday + '|')).map(([, v]) => v);
