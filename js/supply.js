@@ -1054,6 +1054,9 @@ function renderSupplyTable() {
               data-id="${order.id}">View</button>
             <button class="btn btn-sm" data-action="open-status-picker"
               data-id="${order.id}">Set Status</button>
+            ${canAdvance && !order.salesRecordId
+              ? `<button class="btn btn-sm btn-secondary" data-action="open-supply-checkout"
+                  data-id="${order.id}">Checkout</button>` : ''}
             <div class="row-menu">
               <button type="button" class="row-menu-btn" data-action="toggle-supply-row-menu"
                 data-id="${order.id}" aria-label="More actions">⋯</button>
