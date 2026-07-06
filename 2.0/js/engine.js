@@ -107,5 +107,64 @@ const ENGINE = (() => {
     return { ok: true };
   }
 
-  return { charge, prep };
+  /* ── Production: create a real job ───────────────────────────
+     Matches production.js's _blankJob() schema exactly (openable/
+     editable in the classic app) and replicates saveProductionJob()'s
+     immediate ingredient-deduction-for-non-FG-lines behavior, via the
+     same _deductLineIngredients() used there. */
+  function createJob({ name, products, fundingType = 'RETAIL', clientName = '', notes = '', scheduledDate } = {}) {
+    if (!Array.isArray(products) || !products.length) return { ok: false, error: 'Add at least one product' };
+    const lines = products.map(p => {
+      const product = (APP_STATE.products || []).find(x => String(x.id) === String(p.productId));
+      return {
+        id: generateId(), productId: p.productId, productName: product?.name || 'Product',
+        targetQty: Number(p.targetQty || 0), batchSize: Number(product?.batchYield || 1),
+        status: 'PLANNED', actualYield: null, wasteLog: [], efficiency: null,
+      };
+    }).filter(l => l.targetQty > 0);
+    if (!lines.length) return { ok: false, error: 'Set a quantity greater than zero' };
+
+    const job = {
+      id: generateId(), name: name || lines.map(l => l.productName).join(', '),
+      fundingType, scheduledDate: scheduledDate || new Date().toISOString().slice(0, 10),
+      clientName, totalValue: 0, downPayment: 0, fullPayment: 0, balance: 0, paymentStatus: 'UNPAID',
+      eventId: null, notes, products: lines, laborAssignments: [], status: 'PLANNED',
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    };
+
+    lines.forEach(line => {
+      const product = (APP_STATE.products || []).find(p => String(p.id) === String(line.productId));
+      const isFG = typeof isFinishedGoodsProduct === 'function' && isFinishedGoodsProduct(product);
+      if (isFG) return; // FG lines deduct ingredients at DONE, not at creation
+      if (typeof _deductLineIngredients === 'function') _deductLineIngredients(job, line);
+      line.ingredientsDeducted = true;
+    });
+
+    const jobs = (typeof getProductionJobs === 'function' ? getProductionJobs() : APP_STATE.productionJobs || []);
+    jobs.push(job);
+    updateState('productionJobs', () => jobs);
+
+    if (typeof pushAuditEntry === 'function') {
+      pushAuditEntry({ action: 'PRODUCTION_JOB_CREATED', jobId: job.id, outcome: 'SUCCESS', note: `Production job created (2.0): ${job.name}` });
+    }
+    return { ok: true, job };
+  }
+
+  /* Advance a line to the next real status — the exact same state
+     machine the classic Production board uses (ingredient deduction
+     fallback, FG-transfer flagging, cancellation restore, job-status
+     rollup). */
+  function advance(jobId, lineId, newStatus) {
+    if (typeof setProductLineStatus !== 'function') return { ok: false };
+    setProductLineStatus(jobId, lineId, newStatus);
+    return { ok: true };
+  }
+
+  function transfer(jobId, lineId) {
+    if (typeof transferLineToPos !== 'function') return { ok: false };
+    transferLineToPos(jobId, lineId);
+    return { ok: true };
+  }
+
+  return { charge, prep, createJob, advance, transfer };
 })();
