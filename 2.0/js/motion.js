@@ -41,14 +41,16 @@ const M = (() => {
     thumb.style.transform = `translateX(${br.left - sr.left - 3}px)`;
   }
 
-  /* Toast notification — colour is allowed here. */
+  /* Toast notification. title/sub are escaped — callers pass plain text
+     (often real product/client/category names), never markup. */
   function toast(title, sub = '', type = 'default', ms = 3400) {
     let host = document.getElementById('toasts');
     if (!host) { host = document.createElement('div'); host.id = 'toasts'; document.body.appendChild(host); }
+    const esc = typeof escapeHtml === 'function' ? escapeHtml : (s) => String(s ?? '');
     const t = document.createElement('div');
     t.className = 'toast ' + type;
     t.innerHTML = `<div class="bar"></div><div class="grow" style="flex:1">
-      <div class="t-title">${title}</div>${sub ? `<div class="t-sub">${sub}</div>` : ''}</div>`;
+      <div class="t-title">${esc(title)}</div>${sub ? `<div class="t-sub">${esc(sub)}</div>` : ''}</div>`;
     host.appendChild(t);
     setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 340); }, ms);
   }
