@@ -498,5 +498,20 @@ const ENGINE = (() => {
     return { ok: true };
   }
 
-  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale, saveSupplierClient, createSupplyOrder, advanceSupply, addCategory, saveSettings, savePaymentMethod, saveRecipe, saveShoppingList, deleteRecipe, saveCostLabOverrides, clearCostLabOverrides, saveCostLabSettings };
+  /* ── Events (Coffee Cart mode) — mirrors coffeecart.js's saveEvent(), data-driven. ── */
+  function saveEvent(data, editId) {
+    if (!data.name) return { ok: false, error: 'Event name is required' };
+    const events = typeof getEvents === 'function' ? getEvents() : (APP_STATE.events || []);
+    const id = editId || (typeof generateId === 'function' ? generateId() : String(Date.now()));
+    const existing = events.find(e => String(e.id) === String(id));
+    if (existing) {
+      Object.assign(existing, { name: data.name, location: data.location || '', type: data.type || 'Event', date: data.date || '', notes: data.notes || '', updatedAt: new Date().toISOString() });
+    } else {
+      events.push({ id, name: data.name, location: data.location || '', type: data.type || 'Event', date: data.date || '', notes: data.notes || '', createdAt: new Date().toISOString(), status: 'UPCOMING' });
+    }
+    updateState('events', () => events);
+    return { ok: true, id };
+  }
+
+  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale, saveSupplierClient, createSupplyOrder, advanceSupply, addCategory, saveSettings, savePaymentMethod, saveRecipe, saveShoppingList, deleteRecipe, saveCostLabOverrides, clearCostLabOverrides, saveCostLabSettings, saveEvent };
 })();
