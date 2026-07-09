@@ -226,6 +226,15 @@ function renderClientsList() {
         </div>
       </div>
       <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm" data-action="client-portal" data-id="${c.id}"
+          style="display:inline-flex;align-items:center;gap:5px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+          Order Form
+        </button>
         <button class="btn btn-sm btn-secondary" data-action="edit-client" data-id="${c.id}">Edit</button>
         <button class="btn btn-sm btn-secondary" data-action="delete-client" data-id="${c.id}">Delete</button>
       </div>
@@ -242,6 +251,630 @@ function renderClientDropdowns() {
         `<option value="${c.id}"${current === c.id ? ' selected' : ''}>${escapeHtml(c.name)}</option>`
       ).join('');
   });
+}
+
+/* ═══════════════════════════════════════════════════════
+   CLIENT ORDER PORTAL
+   Per-client pricing + a shareable order form link.
+   The cafe publishes the client's catalog (with resolved
+   prices) to Supabase under an unguessable token; the
+   client orders at /order.html?t=TOKEN and submissions
+   land back here as DRAFTED supply orders.
+═══════════════════════════════════════════════════════ */
+let _portalModalClientId = null;
+
+function _getPortalConfig(client) {
+  const p = client?.portal || {};
+  return {
+    pricing: {
+      mode:       p.pricing?.mode || 'retail',       // retail | percent | amount
+      percentOff: Number(p.pricing?.percentOff || 0),
+      amountOff:  Number(p.pricing?.amountOff  || 0),
+      custom:     { ...(p.pricing?.custom || {}) }    // productId → price
+    },
+    // null = all products; array = chosen subset
+    allowedProductIds: Array.isArray(p.allowedProductIds) ? [...p.allowedProductIds] : null,
+    token:       p.token       || '',
+    publishedAt: p.publishedAt || '',
+    revoked:     p.revoked === true
+  };
+}
+
+function resolvePortalPrice(portalCfg, product) {
+  const retail = Number(product.price || 0);
+  const customRaw = portalCfg?.pricing?.custom?.[product.id];
+  if (customRaw !== undefined && customRaw !== null && customRaw !== '') {
+    const custom = Number(customRaw);
+    if (Number.isFinite(custom)) return Math.max(0, round2(custom));
+  }
+  const mode = portalCfg?.pricing?.mode || 'retail';
+  if (mode === 'percent') {
+    return Math.max(0, round2(retail * (1 - Number(portalCfg.pricing.percentOff || 0) / 100)));
+  }
+  if (mode === 'amount') {
+    return Math.max(0, round2(retail - Number(portalCfg.pricing.amountOff || 0)));
+  }
+  return round2(retail);
+}
+
+function _newPortalToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(18));
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function _portalOrderFormBase() {
+  // Same convention as the receipt QR link: configured base wins, else current dir
+  const configured = String(APP_STATE.settings?.receiptBaseUrl || '').trim().replace(/\/+$/, '');
+  const auto = window.location.href.split('?')[0].replace(/\/[^/]*$/, '');
+  return (configured || auto) + '/order.html';
+}
+
+function _portalLink(token) {
+  return `${_portalOrderFormBase()}?t=${token}`;
+}
+
+function openClientPortalModal(clientId) {
+  const client = getSupplierClients().find(c => String(c.id) === String(clientId));
+  if (!client) return;
+
+  if (typeof getTenantId !== 'function' || !getTenantId()) {
+    showNotification('Activate your license first — the order form link needs your cloud workspace', 'error');
+    return;
+  }
+
+  _portalModalClientId = String(clientId);
+  const cfg      = _getPortalConfig(client);
+  const products = Array.isArray(APP_STATE.products) ? APP_STATE.products : [];
+  const sym      = typeof getCurrencySymbol === 'function' ? getCurrencySymbol() : '₱';
+
+  let m = document.getElementById('clientPortalModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'clientPortalModal';
+    m.className = 'modal-overlay';
+    document.body.appendChild(m);
+  }
+
+  const rows = products.map(p => {
+    const included = !cfg.allowedProductIds || cfg.allowedProductIds.includes(String(p.id));
+    const custom   = cfg.pricing.custom[p.id];
+    return `
+      <tr data-portal-product="${p.id}">
+        <td style="text-align:center;">
+          <input type="checkbox" class="portal-include" data-product-id="${p.id}"
+            ${included ? 'checked' : ''} onchange="updatePortalPricePreviews()" />
+        </td>
+        <td style="font-weight:700;font-size:12px;">${escapeHtml(p.name)}</td>
+        <td style="font-size:12px;color:var(--gray-400);white-space:nowrap;">${formatCurrency(Number(p.price || 0))}</td>
+        <td>
+          <input type="number" min="0" step="0.01" class="portal-custom" data-product-id="${p.id}"
+            value="${custom !== undefined && custom !== null && custom !== '' ? custom : ''}"
+            placeholder="—" oninput="updatePortalPricePreviews()"
+            style="width:90px;padding:6px 8px;font-size:12px;border:1.5px solid var(--border);
+              border-radius:8px;font-family:inherit;" />
+        </td>
+        <td class="portal-preview" style="font-weight:900;font-size:12px;white-space:nowrap;"></td>
+      </tr>`;
+  }).join('');
+
+  const hasLink = cfg.token && !cfg.revoked;
+
+  m.innerHTML = `
+    <div class="modal" style="max-width:640px;">
+      <h3 style="margin-bottom:2px;">Order Form — ${escapeHtml(client.name)}</h3>
+      <div style="font-size:11px;color:var(--gray-400);margin-bottom:16px;">
+        Set this client's prices, pick their products, then share their private order link.
+      </div>
+
+      <div style="background:var(--gray-50);border:1.5px solid var(--border);
+        border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+          color:var(--gray-500);margin-bottom:8px;">General Pricing</div>
+        <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer;">
+            <input type="radio" name="portalPricingMode" value="retail"
+              ${cfg.pricing.mode === 'retail' ? 'checked' : ''} onchange="updatePortalPricePreviews()" />
+            Standard retail
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer;">
+            <input type="radio" name="portalPricingMode" value="percent"
+              ${cfg.pricing.mode === 'percent' ? 'checked' : ''} onchange="updatePortalPricePreviews()" />
+            Percent off
+            <input type="number" step="0.1" id="portalPercentOff" value="${cfg.pricing.percentOff || ''}"
+              placeholder="10" oninput="updatePortalPricePreviews()"
+              style="width:64px;padding:5px 7px;font-size:12px;border:1.5px solid var(--border);
+                border-radius:8px;font-family:inherit;" /> %
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer;">
+            <input type="radio" name="portalPricingMode" value="amount"
+              ${cfg.pricing.mode === 'amount' ? 'checked' : ''} onchange="updatePortalPricePreviews()" />
+            Amount off
+            <input type="number" step="0.01" id="portalAmountOff" value="${cfg.pricing.amountOff || ''}"
+              placeholder="15" oninput="updatePortalPricePreviews()"
+              style="width:74px;padding:5px 7px;font-size:12px;border:1.5px solid var(--border);
+                border-radius:8px;font-family:inherit;" /> ${escapeHtml(sym)}
+          </label>
+        </div>
+        <div style="font-size:10px;color:var(--gray-400);margin-top:6px;">
+          A custom price on a product always overrides the general adjustment.
+        </div>
+      </div>
+
+      <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
+        overflow:hidden;margin-bottom:14px;">
+        <div style="max-height:260px;overflow-y:auto;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="position:sticky;top:0;background:var(--white);box-shadow:0 1px 0 var(--border);">
+                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
+                  color:var(--gray-500);text-align:center;">
+                  <input type="checkbox" id="portalIncludeAll" checked
+                    onchange="togglePortalIncludeAll(this.checked)" title="Include all" />
+                </th>
+                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
+                  color:var(--gray-500);text-align:left;">Product</th>
+                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
+                  color:var(--gray-500);text-align:left;">Retail</th>
+                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
+                  color:var(--gray-500);text-align:left;">Custom Price</th>
+                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
+                  color:var(--gray-500);text-align:left;">They Pay</th>
+              </tr>
+            </thead>
+            <tbody>${rows || `<tr><td colspan="5" class="empty-state">No products yet</td></tr>`}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="portalShareSection" style="display:${hasLink ? 'block' : 'none'};background:var(--gray-50);
+        border:1.5px solid var(--border);border-radius:var(--radius-lg);
+        padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+          color:var(--gray-500);margin-bottom:8px;">Private Order Link</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+          <input id="portalLinkInput" type="text" readonly value="${hasLink ? escapeHtml(_portalLink(cfg.token)) : ''}"
+            style="flex:1;padding:8px 10px;font-size:11px;border:1.5px solid var(--border);
+              border-radius:8px;font-family:var(--font-mono, monospace);background:var(--white);" />
+          <button class="btn btn-sm btn-secondary" data-action="portal-copy-link">Copy</button>
+        </div>
+        <div style="display:flex;gap:14px;align-items:center;">
+          <div id="portalQrBox" style="width:110px;height:110px;flex-shrink:0;border:1.5px solid var(--border);
+            border-radius:10px;overflow:hidden;background:#fff;display:grid;place-items:center;"></div>
+          <div style="font-size:11px;color:var(--gray-500);line-height:1.6;">
+            Send this link (or let them scan the QR).<br>
+            Sharing again after price changes refreshes their form.<br>
+            <button data-action="portal-revoke" style="background:none;border:none;padding:0;margin-top:4px;
+              font-size:11px;font-weight:800;color:var(--danger);cursor:pointer;font-family:inherit;
+              text-decoration:underline;">Revoke this link</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" onclick="closeModal('clientPortalModal')">Close</button>
+        <button class="btn btn-secondary" type="button" data-action="portal-save">Save</button>
+        <button class="btn" type="button" data-action="portal-share" id="portalShareBtn">
+          ${hasLink ? 'Update & Re-share Link' : 'Save & Get Link'}
+        </button>
+      </div>
+    </div>`;
+
+  openModal('clientPortalModal');
+  updatePortalPricePreviews();
+  if (hasLink) _renderPortalQR(cfg.token);
+}
+
+function togglePortalIncludeAll(checked) {
+  document.querySelectorAll('#clientPortalModal .portal-include')
+    .forEach(cb => { cb.checked = checked; });
+  updatePortalPricePreviews();
+}
+
+function _readPortalModalConfig() {
+  const modal = document.getElementById('clientPortalModal');
+  if (!modal) return null;
+
+  const mode = modal.querySelector('input[name="portalPricingMode"]:checked')?.value || 'retail';
+  const percentOff = Number(document.getElementById('portalPercentOff')?.value || 0);
+  const amountOff  = Number(document.getElementById('portalAmountOff')?.value  || 0);
+
+  const custom = {};
+  modal.querySelectorAll('.portal-custom').forEach(inp => {
+    const v = String(inp.value).trim();
+    if (v !== '' && Number.isFinite(Number(v))) custom[inp.dataset.productId] = Number(v);
+  });
+
+  const allowed = [];
+  modal.querySelectorAll('.portal-include').forEach(cb => {
+    if (cb.checked) allowed.push(String(cb.dataset.productId));
+  });
+
+  return { pricing: { mode, percentOff, amountOff, custom }, allowedProductIds: allowed };
+}
+
+function updatePortalPricePreviews() {
+  const modal = document.getElementById('clientPortalModal');
+  if (!modal) return;
+  const cfg = _readPortalModalConfig();
+  const products = Array.isArray(APP_STATE.products) ? APP_STATE.products : [];
+
+  modal.querySelectorAll('tr[data-portal-product]').forEach(tr => {
+    const product = products.find(p => String(p.id) === String(tr.dataset.portalProduct));
+    const cell     = tr.querySelector('.portal-preview');
+    const included = tr.querySelector('.portal-include')?.checked;
+    if (!product || !cell) return;
+    if (!included) {
+      cell.innerHTML = `<span style="color:var(--gray-300);">not offered</span>`;
+      tr.style.opacity = '.45';
+      return;
+    }
+    tr.style.opacity = '1';
+    const price  = resolvePortalPrice(cfg, product);
+    const retail = round2(Number(product.price || 0));
+    const diff   = price !== retail
+      ? `<span style="font-size:10px;color:${price < retail ? '#15803d' : 'var(--danger)'};margin-left:4px;">
+           ${price < retail ? '▾' : '▴'}</span>`
+      : '';
+    cell.innerHTML = `${formatCurrency(price)}${diff}`;
+  });
+
+  const all = modal.querySelectorAll('.portal-include');
+  const allBox = document.getElementById('portalIncludeAll');
+  if (allBox) allBox.checked = [...all].every(cb => cb.checked);
+}
+
+function saveClientPortalConfig(silent = false) {
+  const clientId = _portalModalClientId;
+  const read = _readPortalModalConfig();
+  if (!clientId || !read) return null;
+
+  const clients = getSupplierClients();
+  const idx = clients.findIndex(c => String(c.id) === String(clientId));
+  if (idx < 0) return null;
+
+  const prev = _getPortalConfig(clients[idx]);
+  clients[idx] = {
+    ...clients[idx],
+    portal: { ...prev, pricing: read.pricing, allowedProductIds: read.allowedProductIds }
+  };
+  updateState('supplierClients', () => clients);
+  if (!silent) showNotification('Client pricing saved', 'success');
+  return clients[idx];
+}
+
+async function shareClientPortal() {
+  const client = saveClientPortalConfig(true);
+  if (!client) return;
+
+  const btn = document.getElementById('portalShareBtn');
+  if (btn) { btn.textContent = 'Publishing…'; btn.disabled = true; }
+
+  try {
+    const token = await _publishClientPortal(client);
+    if (!token) return;
+
+    const linkInput = document.getElementById('portalLinkInput');
+    const section   = document.getElementById('portalShareSection');
+    if (linkInput) linkInput.value = _portalLink(token);
+    if (section)   section.style.display = 'block';
+    _renderPortalQR(token);
+    showNotification('Order form published — link is ready to share', 'success');
+  } finally {
+    if (btn) { btn.textContent = 'Update & Re-share Link'; btn.disabled = false; }
+  }
+}
+
+async function _publishClientPortal(client) {
+  const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
+  if (!tenantId) {
+    showNotification('Activate your license to share order forms', 'error');
+    return null;
+  }
+
+  const cfg      = _getPortalConfig(client);
+  const products = (Array.isArray(APP_STATE.products) ? APP_STATE.products : [])
+    .filter(p => !cfg.allowedProductIds || cfg.allowedProductIds.includes(String(p.id)));
+
+  if (!products.length) {
+    showNotification('Select at least one product for this client', 'error');
+    return null;
+  }
+
+  const catalog = products.map(p => ({
+    productId: String(p.id),
+    name:      p.name,
+    category:  p.category || '',
+    price:     resolvePortalPrice(cfg, p)
+  }));
+
+  // Payment methods the client can choose from — the supply checkout's
+  // built-ins plus everything configured in Settings (QR images included
+  // so the form can display them).
+  const configured = (APP_STATE.settings?.paymentMethods || []).map(pm => ({
+    name:          pm.name,
+    type:          pm.type || 'cash',
+    qrImage:       pm.type === 'qr'  ? (pm.qrImage       || '') : '',
+    bankName:      pm.type === 'bank' ? (pm.bankName      || '') : '',
+    accountNumber: pm.type === 'bank' ? (pm.accountNumber || '') : ''
+  }));
+  const paymentMethods = [
+    { name: 'Cash', type: 'cash' },
+    { name: 'Invoice / On Account', type: 'invoice' },
+    ...configured.filter(pm => pm.name && pm.name.toLowerCase() !== 'cash')
+  ];
+
+  // Reuse the live token; rotate if never shared or previously revoked
+  const token = (cfg.token && !cfg.revoked) ? cfg.token : _newPortalToken();
+
+  const row = {
+    token,
+    tenant_id:       tenantId,
+    client_id:       String(client.id),
+    client_name:     client.name || '',
+    brand_name:      APP_STATE.settings?.brandName || 'Caflat.CORE',
+    currency:        APP_STATE.settings?.currency  || 'PHP',
+    currency_symbol: typeof getCurrencySymbol === 'function' ? getCurrencySymbol() : '₱',
+    catalog,
+    payment_methods: paymentMethods,
+    revoked:         false,
+    updated_at:      new Date().toISOString()
+  };
+
+  const res = await _sbFetch('order_portals?on_conflict=tenant_id,client_id', {
+    method: 'POST',
+    headers: {
+      'x-tenant-id': tenantId,
+      'Prefer': 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify(row)
+  });
+
+  if (!res.ok) {
+    console.error('Portal publish failed', res.status, res.data);
+    showNotification('Could not publish the order form — check your connection', 'error');
+    return null;
+  }
+
+  // Persist token locally
+  const clients = getSupplierClients();
+  const idx = clients.findIndex(c => String(c.id) === String(client.id));
+  if (idx >= 0) {
+    clients[idx] = {
+      ...clients[idx],
+      portal: {
+        ..._getPortalConfig(clients[idx]),
+        token,
+        publishedAt: new Date().toISOString(),
+        revoked: false
+      }
+    };
+    updateState('supplierClients', () => clients);
+  }
+
+  _auditSupplyEvent('SUPPLY_PORTAL_PUBLISHED', { id: client.id, clientName: client.name },
+    'SUCCESS', `Order form published for ${client.name}`);
+  return token;
+}
+
+async function revokeClientPortal() {
+  const clientId = _portalModalClientId;
+  const client = getSupplierClients().find(c => String(c.id) === String(clientId));
+  if (!client) return;
+
+  const cfg = _getPortalConfig(client);
+  if (!cfg.token) return;
+  if (!confirm(`Revoke ${client.name}'s order link? Their form stops working until you share a new one.`)) return;
+
+  const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
+  if (tenantId) {
+    const res = await _sbFetch(`order_portals?token=eq.${encodeURIComponent(cfg.token)}`, {
+      method: 'PATCH',
+      headers: { 'x-tenant-id': tenantId, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ revoked: true, updated_at: new Date().toISOString() })
+    });
+    if (!res.ok) {
+      showNotification('Could not revoke the link — check your connection', 'error');
+      return;
+    }
+  }
+
+  const clients = getSupplierClients();
+  const idx = clients.findIndex(c => String(c.id) === String(clientId));
+  if (idx >= 0) {
+    clients[idx] = { ...clients[idx], portal: { ..._getPortalConfig(clients[idx]), revoked: true } };
+    updateState('supplierClients', () => clients);
+  }
+
+  const section = document.getElementById('portalShareSection');
+  if (section) section.style.display = 'none';
+  const btn = document.getElementById('portalShareBtn');
+  if (btn) btn.textContent = 'Save & Get Link';
+
+  _auditSupplyEvent('SUPPLY_PORTAL_REVOKED', { id: client.id, clientName: client.name },
+    'SUCCESS', `Order link revoked for ${client.name}`);
+  showNotification('Order link revoked', 'success');
+}
+
+function copyPortalLink() {
+  const input = document.getElementById('portalLinkInput');
+  if (!input || !input.value) return;
+  navigator.clipboard?.writeText(input.value)
+    .then(() => showNotification('Link copied', 'success'))
+    .catch(() => {
+      input.select();
+      document.execCommand('copy');
+      showNotification('Link copied', 'success');
+    });
+}
+
+function _renderPortalQR(token) {
+  const box = document.getElementById('portalQrBox');
+  if (!box || typeof CaflatQR === 'undefined') return;
+  const svg = CaflatQR.generateSVG(_portalLink(token), { size: 110 });
+  box.innerHTML = svg;
+  const el = box.querySelector('svg');
+  if (el) { el.style.width = '100%'; el.style.height = '100%'; }
+}
+
+/* ── Portal inbox — pull client-submitted orders into Supply ── */
+let _portalInboxTimer   = null;
+let _portalInboxRunning = false;
+
+function initPortalInboxPolling() {
+  checkPortalInbox();
+  if (_portalInboxTimer) return;
+  _portalInboxTimer = setInterval(checkPortalInbox, 60 * 1000);
+}
+
+async function checkPortalInbox() {
+  if (_portalInboxRunning) return;
+  if (APP_STATE.settings?.supplierModeEnabled !== true) return;
+  // Never import before products are hydrated — a poll that races state
+  // restoration would mis-flag every line as "no longer in your products".
+  if (!(Array.isArray(APP_STATE.products) && APP_STATE.products.length)) return;
+  const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
+  if (!tenantId || typeof _sbFetch !== 'function') return;
+
+  _portalInboxRunning = true;
+  try {
+    const res = await _sbFetch(
+      'portal_orders?status=eq.pending&order=created_at.asc&limit=50&select=*',
+      { headers: { 'x-tenant-id': tenantId } }
+    );
+    if (!res.ok || !Array.isArray(res.data) || !res.data.length) return;
+
+    const orders   = getSupplyOrders();
+    const imported = new Set(orders.map(o => o.portalOrderId).filter(Boolean));
+    let importedCount = 0;
+
+    for (const row of res.data) {
+      if (imported.has(row.id)) {
+        // Already imported but the status flip didn't land — retry it
+        await _markPortalOrderImported(row.id, tenantId);
+        continue;
+      }
+      const order = _convertPortalOrder(row);
+      if (!order) continue;
+
+      orders.push(order);
+      updateState('supplyOrders', () => orders);   // persist BEFORE the flip
+      await _markPortalOrderImported(row.id, tenantId);
+      imported.add(row.id);
+      importedCount++;
+
+      _auditSupplyEvent('SUPPLY_PORTAL_ORDER_RECEIVED', order, 'SUCCESS',
+        `Client order from ${order.clientName} · ${formatCurrency(order.grandTotal)}`);
+    }
+
+    if (importedCount > 0) {
+      renderSupplyTable();
+      renderSupplyKPIs();
+      if (typeof refreshDashboard === 'function') refreshDashboard();
+      showNotification(
+        importedCount === 1
+          ? `New client order received — review it in Supply`
+          : `${importedCount} new client orders received — review them in Supply`,
+        'success');
+    }
+  } catch (e) {
+    console.error('Portal inbox check failed', e);
+  } finally {
+    _portalInboxRunning = false;
+    updatePortalInboxBadge();
+  }
+}
+
+function _convertPortalOrder(row) {
+  const rawItems = Array.isArray(row.items) ? row.items : [];
+  if (!rawItems.length) return null;
+
+  const products = Array.isArray(APP_STATE.products) ? APP_STATE.products : [];
+  const missing  = [];
+
+  const items = rawItems.map(it => {
+    const product = products.find(p => String(p.id) === String(it.productId));
+    if (!product) missing.push(it.name || it.productId);
+    const qty       = Number(it.qty || 0);
+    const unitPrice = Number(it.unitPrice || 0);
+    return {
+      productId:   String(it.productId || ''),
+      productName: it.name || product?.name || 'Unknown product',
+      description: '',
+      qty,
+      unitPrice,
+      total: Number(it.total || round2(qty * unitPrice)),
+      multiplier: 1
+    };
+  });
+
+  const subtotal  = round2(items.reduce((s, i) => s + i.total, 0));
+  const timestamp = new Date().toISOString();
+
+  const noteParts = ['Received via client order form'];
+  if (row.requested_date)    noteParts.push(`Requested delivery: ${row.requested_date}`);
+  if (row.payment_method)    noteParts.push(`Client will pay by: ${row.payment_method}`
+    + (row.payment_reference ? ` (ref ${row.payment_reference})` : ''));
+  if (row.notes)             noteParts.push(`Client notes: ${row.notes}`);
+  if (missing.length)        noteParts.push(`⚠ No longer in your products: ${missing.join(', ')}`);
+
+  return {
+    id:            generateId(),
+    invoiceNumber: typeof generateInvoiceNumber === 'function' ? generateInvoiceNumber() : `INV-${Date.now()}`,
+    clientId:      String(row.client_id || ''),
+    clientName:    row.client_name || 'B2B Client',
+    orderDate:     String(row.created_at || timestamp).slice(0, 10),
+    notes:         noteParts.join(' · '),
+    items,
+    subtotal,
+    discount:      0,
+    discountType:  'percent',
+    grandTotal:    subtotal,
+    status:        'DRAFTED',
+    reservedStock: false,
+    stockDeducted: false,
+    statusHistory: [{ status: 'DRAFTED', changedAt: timestamp,
+      note: 'Submitted by client through their order form' }],
+    portalOrderId:          row.id,
+    clientPaymentMethod:    row.payment_method    || '',
+    clientPaymentReference: row.payment_reference || '',
+    requestedDate:          row.requested_date    || '',
+    createdAt: timestamp,
+    updatedAt: timestamp
+  };
+}
+
+async function _markPortalOrderImported(rowId, tenantId) {
+  try {
+    await _sbFetch(`portal_orders?id=eq.${encodeURIComponent(rowId)}`, {
+      method: 'PATCH',
+      headers: { 'x-tenant-id': tenantId, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ status: 'imported', imported_at: new Date().toISOString() })
+    });
+  } catch (e) {
+    console.error('Could not mark portal order imported', e);
+  }
+}
+
+function updatePortalInboxBadge() {
+  const nav = document.getElementById('navSupply');
+  if (!nav) return;
+  const count = getSupplyOrders()
+    .filter(o => o.portalOrderId && o.status === 'DRAFTED').length;
+
+  let badge = document.getElementById('portalInboxBadge');
+  if (!count) { badge?.remove(); return; }
+
+  if (!badge) {
+    badge = document.createElement('span');
+    badge.id = 'portalInboxBadge';
+    badge.style.cssText = 'position:absolute;top:4px;right:4px;min-width:16px;height:16px;' +
+      'padding:0 4px;border-radius:99px;background:var(--danger,#dc2626);color:#fff;' +
+      'font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;' +
+      'line-height:1;pointer-events:none;';
+    if (getComputedStyle(nav).position === 'static') nav.style.position = 'relative';
+    nav.appendChild(badge);
+  }
+  badge.textContent = count > 9 ? '9+' : String(count);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -989,6 +1622,22 @@ function openSupplyCheckoutModal(orderId) {
   openModal('supplyCheckoutModal');
   _toggleSupplyCheckoutQR();
   _resetSupplySplitPayment();
+
+  // If the client picked a payment method on their order form, prefill it
+  if (order.clientPaymentMethod) {
+    const sel = document.getElementById('supplyCheckoutMethod');
+    if (sel) {
+      const wanted = order.clientPaymentMethod === 'Invoice / On Account'
+        ? 'invoice'
+        : order.clientPaymentMethod.toLowerCase().replace(/\s+/g, '_');
+      if ([...sel.options].some(o => o.value === wanted)) {
+        sel.value = wanted;
+        _toggleSupplyCheckoutQR();
+      }
+    }
+    const refEl = document.getElementById('supplyCheckoutReference');
+    if (refEl && order.clientPaymentReference) refEl.value = order.clientPaymentReference;
+  }
 }
 
 /* Shows the selected payment method's QR code, mirroring togglePaymentFields()
@@ -1511,6 +2160,8 @@ function renderSupplyView() {
   renderSupplyTable();
   renderClientDropdowns();
   renderClientsList();
+  initPortalInboxPolling();
+  updatePortalInboxBadge();
 
   const filterClients = document.getElementById('supplyClientFilter');
   if (filterClients) {
@@ -1546,6 +2197,16 @@ window.applySupplierModeToggle  = applySupplierModeToggle;
 window.applySupplierCartButton  = applySupplierCartButton;
 window.openSupplierOrderPrompt  = openSupplierOrderPrompt;
 window.confirmSupplierOrder     = confirmSupplierOrder;
+window.openClientPortalModal          = openClientPortalModal;
+window.checkPortalInbox               = checkPortalInbox;
+window.initPortalInboxPolling         = initPortalInboxPolling;
+window.updatePortalInboxBadge         = updatePortalInboxBadge;
+window.updatePortalPricePreviews      = updatePortalPricePreviews;
+window.togglePortalIncludeAll         = togglePortalIncludeAll;
+window.saveClientPortalConfig         = saveClientPortalConfig;
+window.shareClientPortal              = shareClientPortal;
+window.revokeClientPortal             = revokeClientPortal;
+window.copyPortalLink                 = copyPortalLink;
 window.toggleSupplySplitPayment       = toggleSupplySplitPayment;
 window.renderSupplySplitPaymentFields = renderSupplySplitPaymentFields;
 window.updateSupplySplitAmounts       = updateSupplySplitAmounts;

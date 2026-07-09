@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Order Form</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --black: #0a0a0a;
+  --paper: #faf9f7;
+  --white: #ffffff;
+  --gray-50: #f6f5f3;
+  --gray-100: #eeedeb;
+  --gray-200: #e2e0dd;
+  --gray-300: #c9c6c1;
+  --gray-400: #9b978f;
+  --gray-500: #6f6b64;
+  --gray-600: #4a4741;
+  --gold: #c8a96e;
+  --danger: #dc2626;
+  --ok: #15803d;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 1px 2px rgba(10,10,10,.04), 0 8px 24px rgba(10,10,10,.06);
+  --shadow-lg: 0 4px 12px rgba(10,10,10,.08), 0 24px 60px rgba(10,10,10,.14);
+  --ease: cubic-bezier(.22,1,.36,1);
+  --spring: cubic-bezier(.34,1.56,.64,1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--black);
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, textarea { font-family: inherit; }
+.mono { font-family: 'DM Mono', ui-monospace, monospace; }
+
+/* ── Screens ── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── Loading skeleton ── */
+#loading { padding: 28px 20px; max-width: 560px; margin: 0 auto; }
+.skel { background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-50) 50%, var(--gray-100) 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: var(--radius-sm); }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.skel-title  { height: 14px; width: 90px;  margin-bottom: 14px; }
+.skel-brand  { height: 34px; width: 220px; margin-bottom: 10px; }
+.skel-sub    { height: 14px; width: 160px; margin-bottom: 34px; }
+.skel-card   { height: 86px; width: 100%;  margin-bottom: 12px; border-radius: var(--radius); }
+
+/* ── Error / revoked ── */
+#errorState { min-height: 100dvh; display: none; align-items: center; justify-content: center;
+  padding: 32px 24px; text-align: center; }
+#errorState.active { display: flex; }
+.err-card { max-width: 380px; animation: rise .5s var(--ease) both; }
+.err-icon { width: 64px; height: 64px; margin: 0 auto 18px; border-radius: 50%;
+  background: var(--gray-100); display: grid; place-items: center; }
+.err-icon svg { width: 26px; height: 26px; stroke: var(--gray-400); }
+.err-card h1 { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+.err-card p { font-size: 14px; color: var(--gray-500); line-height: 1.6; }
+.retry-btn { margin-top: 20px; padding: 12px 28px; background: var(--black); color: #fff;
+  border-radius: 99px; font-size: 14px; font-weight: 800; transition: transform .15s var(--ease); }
+.retry-btn:active { transform: scale(.96); }
+
+/* ── Form screen ── */
+#form { max-width: 560px; margin: 0 auto; padding: 0 16px 140px; }
+
+.hero { padding: 34px 4px 26px; animation: rise .55s var(--ease) both; }
+.eyebrow { font-size: 10px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 10px; }
+.brand { font-size: clamp(26px, 7vw, 34px); font-weight: 900; letter-spacing: -.02em;
+  line-height: 1.1; margin-bottom: 8px; }
+.prepared { font-size: 13.5px; color: var(--gray-500); font-weight: 600; }
+.prepared b { color: var(--black); font-weight: 800; border-bottom: 2px solid var(--gold);
+  padding-bottom: 1px; }
+
+.cat-label { font-size: 10.5px; font-weight: 900; letter-spacing: 2.4px; text-transform: uppercase;
+  color: var(--gray-400); margin: 26px 4px 12px; display: flex; align-items: center; gap: 10px; }
+.cat-label::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
+
+/* Product card */
+.card {
+  background: var(--white); border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+  padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px;
+  transition: border-color .25s var(--ease), box-shadow .25s var(--ease), transform .25s var(--ease);
+  animation: rise .5s var(--ease) both;
+}
+.card.picked { border-color: var(--black); box-shadow: var(--shadow); }
+.card-info { flex: 1; min-width: 0; }
+.card-name { font-size: 15px; font-weight: 800; line-height: 1.25; overflow-wrap: break-word; }
+.card-price { font-size: 13.5px; color: var(--gray-500); font-weight: 700; margin-top: 3px; }
+.card.picked .card-price { color: var(--black); }
+.card-line-total { font-size: 11px; font-weight: 800; color: var(--gold); margin-top: 2px;
+  opacity: 0; transform: translateY(-3px); transition: all .25s var(--ease); }
+.card.picked .card-line-total { opacity: 1; transform: none; }
+
+/* Stepper */
+.stepper { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.step-btn { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 20px; font-weight: 800; user-select: none;
+  transition: transform .12s var(--spring), background .15s, opacity .15s; }
+.step-btn:active { transform: scale(.85); }
+.step-minus { border: 1.5px solid var(--gray-200); color: var(--gray-500); background: var(--white); }
+.step-minus[disabled] { opacity: .3; pointer-events: none; }
+.step-plus { background: var(--black); color: #fff; }
+.qty-input { width: 46px; height: 42px; text-align: center; font-size: 16px; font-weight: 900;
+  border: none; background: transparent; color: var(--black); outline: none; }
+.qty-input:focus { color: var(--gold); }
+.qty-pop { animation: pop .28s var(--spring); }
+@keyframes pop { 40% { transform: scale(1.35); } }
+
+/* Sticky summary bar */
+#summaryBar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  transform: translateY(110%); transition: transform .4s var(--spring);
+  pointer-events: none;
+}
+#summaryBar.show { transform: none; pointer-events: auto; }
+.bar-inner {
+  max-width: 560px; margin: 0 auto; background: var(--black); color: #fff;
+  border-radius: 18px; padding: 14px 16px 14px 20px; display: flex; align-items: center;
+  gap: 14px; box-shadow: var(--shadow-lg);
+}
+.bar-count { font-size: 11px; font-weight: 800; color: rgba(255,255,255,.65);
+  text-transform: uppercase; letter-spacing: 1.2px; }
+.bar-total { font-size: 21px; font-weight: 900; letter-spacing: -.01em; line-height: 1.15; }
+.bar-review { margin-left: auto; background: #fff; color: var(--black); font-size: 14px;
+  font-weight: 900; padding: 12px 22px; border-radius: 12px;
+  transition: transform .15s var(--ease); }
+.bar-review:active { transform: scale(.95); }
+
+/* ── Review bottom sheet ── */
+#sheetBackdrop { position: fixed; inset: 0; background: rgba(10,10,10,.45); z-index: 50;
+  opacity: 0; pointer-events: none; transition: opacity .3s var(--ease);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+#sheetBackdrop.show { opacity: 1; pointer-events: auto; }
+#sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 51;
+  max-height: 88dvh; display: flex; flex-direction: column;
+  background: var(--white); border-radius: 24px 24px 0 0;
+  transform: translateY(105%); transition: transform .45s var(--spring);
+  box-shadow: var(--shadow-lg);
+}
+#sheet.show { transform: none; }
+.sheet-handle { width: 40px; height: 4px; border-radius: 99px; background: var(--gray-200);
+  margin: 12px auto 4px; flex-shrink: 0; }
+.sheet-scroll { overflow-y: auto; padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+  max-width: 560px; margin: 0 auto; width: 100%; }
+.sheet-title { font-size: 19px; font-weight: 900; margin: 8px 0 14px; }
+
+.review-line { display: flex; align-items: baseline; gap: 10px; padding: 9px 0;
+  border-bottom: 1px dashed var(--gray-200); font-size: 14px; }
+.review-line .nm { font-weight: 700; flex: 1; min-width: 0; }
+.review-line .q { color: var(--gray-400); font-weight: 700; white-space: nowrap; }
+.review-line .amt { font-weight: 900; white-space: nowrap; }
+.review-total { display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 0 4px; font-weight: 900; }
+.review-total .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--gray-500); }
+.review-total .val { font-size: 24px; letter-spacing: -.01em; }
+
+.f-label { font-size: 11px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--gray-500); margin: 18px 0 8px; }
+.f-input, .f-area {
+  width: 100%; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+  padding: 12px 14px; font-size: 15px; font-weight: 600; background: var(--white);
+  color: var(--black); outline: none; transition: border-color .2s;
+}
+.f-input:focus, .f-area:focus { border-color: var(--black); }
+.f-area { resize: none; min-height: 74px; line-height: 1.5; }
+
+/* Payment chips */
+.pay-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pay-chip { padding: 11px 18px; border-radius: 99px; border: 1.5px solid var(--gray-200);
+  background: var(--white); font-size: 13.5px; font-weight: 800; color: var(--gray-600);
+  transition: all .2s var(--ease); }
+.pay-chip:active { transform: scale(.95); }
+.pay-chip.sel { background: var(--black); color: #fff; border-color: var(--black); }
+
+.pay-detail { max-height: 0; overflow: hidden; transition: max-height .45s var(--ease); }
+.pay-detail.open { max-height: 460px; }
+.pay-detail-inner { padding: 16px 0 4px; text-align: center; }
+.pay-qr-img { width: min(240px, 70vw); border: 1.5px solid var(--gray-200); border-radius: 14px;
+  padding: 10px; background: #fff; animation: rise .4s var(--ease) both; }
+.pay-qr-cap { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold); margin-top: 10px; }
+.bank-box { border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+  padding: 14px 16px; text-align: left; animation: rise .4s var(--ease) both; }
+.bank-name { font-size: 13px; font-weight: 800; color: var(--gray-500); }
+.bank-acct { font-size: 18px; font-weight: 500; margin-top: 4px; letter-spacing: .06em; }
+.bank-copy { font-size: 11px; font-weight: 800; color: var(--gold); margin-top: 6px;
+  text-transform: uppercase; letter-spacing: 1px; }
+
+.submit-btn {
+  width: 100%; margin-top: 22px; padding: 17px; background: var(--black); color: #fff;
+  border-radius: 14px; font-size: 16px; font-weight: 900; letter-spacing: .02em;
+  transition: transform .15s var(--ease), opacity .2s; position: relative;
+}
+.submit-btn:active { transform: scale(.98); }
+.submit-btn[disabled] { opacity: .55; pointer-events: none; }
+.submit-err { font-size: 13px; font-weight: 700; color: var(--danger); text-align: center;
+  margin-top: 10px; display: none; }
+
+/* ── Success ── */
+#success { min-height: 100dvh; display: none; align-items: center; justify-content: center;
+  padding: 32px 24px; text-align: center; }
+#success.active { display: flex; }
+.done-card { max-width: 400px; width: 100%; animation: rise .6s var(--ease) both; }
+.check-ring { width: 92px; height: 92px; margin: 0 auto 22px; }
+.check-ring circle { fill: none; stroke: var(--gold); stroke-width: 2.5;
+  stroke-dasharray: 285; stroke-dashoffset: 285; animation: draw 1s var(--ease) .1s forwards; }
+.check-ring path { fill: none; stroke: var(--black); stroke-width: 6; stroke-linecap: round;
+  stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60;
+  animation: draw .55s var(--ease) .7s forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.done-card h1 { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
+.done-card > p { font-size: 14px; color: var(--gray-500); line-height: 1.65; }
+.ref-chip { display: inline-block; margin: 18px 0 4px; padding: 10px 20px;
+  background: var(--white); border: 1.5px solid var(--gray-200); border-radius: 99px;
+  font-size: 15px; font-weight: 500; letter-spacing: .12em; }
+.done-pay { margin-top: 22px; padding-top: 20px; border-top: 1px dashed var(--gray-200); }
+.done-pay .f-label { margin-top: 0; text-align: center; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+@media (min-width: 640px) {
+  #form { padding-top: 16px; }
+  .card:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  #sheet { max-width: 560px; left: 50%; transform: translate(-50%, 105%); border-radius: 24px 24px 0 0; }
+  #sheet.show { transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading" class="screen active">
+  <div class="skel skel-title"></div>
+  <div class="skel skel-brand"></div>
+  <div class="skel skel-sub"></div>
+  <div class="skel skel-card"></div>
+  <div class="skel skel-card"></div>
+  <div class="skel skel-card"></div>
+  <div class="skel skel-card"></div>
+</div>
+
+<!-- Error / revoked -->
+<div id="errorState" class="screen">
+  <div class="err-card">
+    <div class="err-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+      </svg>
+    </div>
+    <h1 id="errTitle">This link isn't active</h1>
+    <p id="errBody">The order form you're looking for isn't available. Ask your supplier for a fresh link.</p>
+    <button class="retry-btn" id="retryBtn" style="display:none;">Try again</button>
+  </div>
+</div>
+
+<!-- Order form -->
+<div id="form" class="screen">
+  <div class="hero">
+    <div class="eyebrow">Order Form</div>
+    <div class="brand" id="brandName"></div>
+    <div class="prepared">Prices prepared for <b id="clientName"></b></div>
+  </div>
+  <div id="catalog"></div>
+</div>
+
+<!-- Sticky summary -->
+<div id="summaryBar">
+  <div class="bar-inner">
+    <div>
+      <div class="bar-count" id="barCount">0 items</div>
+      <div class="bar-total" id="barTotal"></div>
+    </div>
+    <button class="bar-review" id="reviewBtn">Review order</button>
+  </div>
+</div>
+
+<!-- Review sheet -->
+<div id="sheetBackdrop"></div>
+<div id="sheet" role="dialog" aria-modal="true" aria-label="Review order">
+  <div class="sheet-handle"></div>
+  <div class="sheet-scroll">
+    <div class="sheet-title">Your order</div>
+    <div id="reviewLines"></div>
+    <div class="review-total">
+      <span class="lbl">Total</span>
+      <span class="val" id="reviewTotal"></span>
+    </div>
+
+    <div class="f-label">Payment method</div>
+    <div class="pay-chips" id="payChips"></div>
+    <div class="pay-detail" id="payDetail"><div class="pay-detail-inner" id="payDetailInner"></div></div>
+    <div id="payRefWrap" style="display:none;">
+      <div class="f-label">Payment reference <span style="opacity:.5;">(optional)</span></div>
+      <input class="f-input" id="payRef" type="text" placeholder="e.g. GCash ref no." maxlength="200">
+    </div>
+
+    <div class="f-label">Requested delivery date <span style="opacity:.5;">(optional)</span></div>
+    <input class="f-input" id="reqDate" type="date">
+
+    <div class="f-label">Notes for your supplier <span style="opacity:.5;">(optional)</span></div>
+    <textarea class="f-area" id="orderNotes" maxlength="2000"
+      placeholder="Delivery instructions, packaging requests…"></textarea>
+
+    <button class="submit-btn" id="submitBtn">Place order</button>
+    <div class="submit-err" id="submitErr"></div>
+  </div>
+</div>
+
+<!-- Success -->
+<div id="success" class="screen">
+  <div class="done-card">
+    <svg class="check-ring" viewBox="0 0 96 96">
+      <circle cx="48" cy="48" r="45"/>
+      <path d="M31 49 L43 61 L66 37"/>
+    </svg>
+    <h1>Order sent</h1>
+    <p id="doneSub"></p>
+    <div class="ref-chip mono" id="doneRef"></div>
+    <p style="font-size:12px;color:var(--gray-400);margin-top:6px;">Keep this reference for your records.</p>
+    <div class="done-pay" id="donePay" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var SB_URL  = 'https://tkrsebalgonimmozbgqc.supabase.co';
+  var SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcnNlYmFsZ29uaW1tb3piZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMjc5NzEsImV4cCI6MjA5NzYwMzk3MX0.OKp5NCLYnL-5CFWnvXpA2E78jNi5r63Jzs2zABAkzsw';
+
+  var token   = new URLSearchParams(location.search).get('t') || '';
+  var portal  = null;
+  var qtys    = {};        // productId → qty
+  var chosenPay = '';
+  var lastTotal = 0;
+  var submitting = false;
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function money(n) {
+    var sym = portal && portal.currency_symbol ? portal.currency_symbol : '₱';
+    return sym + Number(n || 0).toLocaleString(undefined,
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function rpc(fn, args) {
+    return fetch(SB_URL + '/rest/v1/rpc/' + fn, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_ANON,
+        'Authorization': 'Bearer ' + SB_ANON
+      },
+      body: JSON.stringify(args)
+    }).then(function (res) {
+      return res.text().then(function (text) {
+        var data = null;
+        try { data = JSON.parse(text); } catch (e) { data = text; }
+        return { ok: res.ok, status: res.status, data: data };
+      });
+    });
+  }
+
+  function show(screenId) {
+    ['loading', 'errorState', 'form', 'success'].forEach(function (id) {
+      $(id).classList.toggle('active', id === screenId);
+    });
+  }
+
+  function fail(title, body, retriable) {
+    $('errTitle').textContent = title;
+    $('errBody').textContent  = body;
+    $('retryBtn').style.display = retriable ? 'inline-block' : 'none';
+    show('errorState');
+  }
+
+  /* ── Load portal ── */
+  function load() {
+    if (!token) {
+      fail("This link isn't active",
+        "The order form you're looking for isn't available. Ask your supplier for a fresh link.", false);
+      return;
+    }
+    show('loading');
+    rpc('get_order_portal', { p_token: token }).then(function (res) {
+      if (!res.ok) {
+        fail('Connection trouble', "We couldn't reach the order service. Check your internet and try again.", true);
+        return;
+      }
+      if (!res.data || typeof res.data !== 'object' || !Array.isArray(res.data.catalog)) {
+        fail("This link isn't active",
+          'This order link has been turned off by your supplier. Ask them for a fresh one.', false);
+        return;
+      }
+      portal = res.data;
+      render();
+      show('form');
+    }).catch(function () {
+      fail('Connection trouble', "We couldn't reach the order service. Check your internet and try again.", true);
+    });
+  }
+  $('retryBtn').addEventListener('click', load);
+
+  /* ── Render catalog ── */
+  function render() {
+    document.title = (portal.brand_name || 'Order Form') + ' — Order Form';
+    $('brandName').textContent  = portal.brand_name || 'Order Form';
+    $('clientName').textContent = portal.client_name || 'you';
+
+    var byCat = {};
+    var order = [];
+    portal.catalog.forEach(function (p) {
+      var cat = p.category || 'Products';
+      if (!byCat[cat]) { byCat[cat] = []; order.push(cat); }
+      byCat[cat].push(p);
+    });
+
+    var html = '';
+    var idx = 0;
+    order.forEach(function (cat) {
+      html += '<div class="cat-label">' + esc(cat) + '</div>';
+      byCat[cat].forEach(function (p) {
+        var delay = Math.min(idx, 12) * 45;
+        html +=
+          '<div class="card" data-pid="' + esc(p.productId) + '" style="animation-delay:' + delay + 'ms;">' +
+            '<div class="card-info">' +
+              '<div class="card-name">' + esc(p.name) + '</div>' +
+              '<div class="card-price">' + money(p.price) + '</div>' +
+              '<div class="card-line-total" data-line></div>' +
+            '</div>' +
+            '<div class="stepper">' +
+              '<button class="step-btn step-minus" data-minus aria-label="Less" disabled>−</button>' +
+              '<input class="qty-input" data-qty type="text" inputmode="decimal" value="0" aria-label="Quantity">' +
+              '<button class="step-btn step-plus" data-plus aria-label="More">+</button>' +
+            '</div>' +
+          '</div>';
+        idx++;
+      });
+    });
+    $('catalog').innerHTML = html;
+
+    $('catalog').addEventListener('click', function (e) {
+      var card = e.target.closest('.card');
+      if (!card) return;
+      var pid = card.getAttribute('data-pid');
+      if (e.target.closest('[data-plus]'))  setQty(pid, (qtys[pid] || 0) + 1, card);
+      if (e.target.closest('[data-minus]')) setQty(pid, (qtys[pid] || 0) - 1, card);
+    });
+    $('catalog').addEventListener('change', function (e) {
+      if (!e.target.hasAttribute('data-qty')) return;
+      var card = e.target.closest('.card');
+      var v = parseFloat(String(e.target.value).replace(/[^0-9.]/g, ''));
+      setQty(card.getAttribute('data-pid'), isFinite(v) ? v : 0, card);
+    });
+  }
+
+  function findProduct(pid) {
+    for (var i = 0; i < portal.catalog.length; i++) {
+      if (String(portal.catalog[i].productId) === String(pid)) return portal.catalog[i];
+    }
+    return null;
+  }
+
+  function setQty(pid, q, card) {
+    q = Math.max(0, Math.min(9999, Math.round(q * 100) / 100));
+    if (q > 0) qtys[pid] = q; else delete qtys[pid];
+
+    var product = findProduct(pid);
+    var input = card.querySelector('[data-qty]');
+    var minus = card.querySelector('[data-minus]');
+    var line  = card.querySelector('[data-line]');
+
+    input.value = q;
+    input.classList.remove('qty-pop');
+    void input.offsetWidth;
+    input.classList.add('qty-pop');
+
+    minus.disabled = q <= 0;
+    card.classList.toggle('picked', q > 0);
+    if (line && product) {
+      line.textContent = q > 0 ? money(product.price * q) : '';
+    }
+    updateBar();
+  }
+
+  /* ── Summary bar ── */
+  function currentTotal() {
+    var t = 0;
+    Object.keys(qtys).forEach(function (pid) {
+      var p = findProduct(pid);
+      if (p) t += Number(p.price) * qtys[pid];
+    });
+    return Math.round(t * 100) / 100;
+  }
+
+  function updateBar() {
+    var count = Object.keys(qtys).length;
+    var total = currentTotal();
+    $('summaryBar').classList.toggle('show', count > 0);
+    $('barCount').textContent = count === 1 ? '1 item' : count + ' items';
+    animateTotal($('barTotal'), lastTotal, total);
+    lastTotal = total;
+  }
+
+  function animateTotal(el, from, to) {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || Math.abs(to - from) < 0.005) { el.textContent = money(to); return; }
+    var start = null, dur = 350;
+    function tick(ts) {
+      if (!start) start = ts;
+      var k = Math.min(1, (ts - start) / dur);
+      k = 1 - Math.pow(1 - k, 3);
+      el.textContent = money(from + (to - from) * k);
+      if (k < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /* ── Review sheet ── */
+  function openSheet() {
+    var lines = Object.keys(qtys).map(function (pid) {
+      var p = findProduct(pid);
+      return '<div class="review-line">' +
+        '<span class="nm">' + esc(p.name) + '</span>' +
+        '<span class="q">×' + qtys[pid] + '</span>' +
+        '<span class="amt">' + money(p.price * qtys[pid]) + '</span>' +
+      '</div>';
+    }).join('');
+    $('reviewLines').innerHTML = lines;
+    $('reviewTotal').textContent = money(currentTotal());
+    renderPayChips();
+    $('sheetBackdrop').classList.add('show');
+    $('sheet').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSheet() {
+    $('sheetBackdrop').classList.remove('show');
+    $('sheet').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  $('reviewBtn').addEventListener('click', openSheet);
+  $('sheetBackdrop').addEventListener('click', closeSheet);
+
+  /* ── Payment methods ── */
+  function payMethods() {
+    return Array.isArray(portal.payment_methods) ? portal.payment_methods : [];
+  }
+
+  function renderPayChips() {
+    var methods = payMethods();
+    if (!methods.length) {
+      $('payChips').innerHTML = '<span style="font-size:13px;color:var(--gray-400);font-weight:600;">' +
+        'Settle payment directly with your supplier.</span>';
+      return;
+    }
+    if (!chosenPay) chosenPay = methods[0].name;
+    $('payChips').innerHTML = methods.map(function (m) {
+      return '<button type="button" class="pay-chip' + (m.name === chosenPay ? ' sel' : '') + '"' +
+        ' data-pay="' + esc(m.name) + '">' + esc(m.name) + '</button>';
+    }).join('');
+    renderPayDetail();
+  }
+
+  $('payChips').addEventListener('click', function (e) {
+    var chip = e.target.closest('[data-pay]');
+    if (!chip) return;
+    chosenPay = chip.getAttribute('data-pay');
+    renderPayChips();
+  });
+
+  function renderPayDetail() {
+    var m = null;
+    payMethods().forEach(function (x) { if (x.name === chosenPay) m = x; });
+    var detail  = $('payDetail');
+    var inner   = $('payDetailInner');
+    var refWrap = $('payRefWrap');
+
+    if (m && m.type === 'qr' && m.qrImage) {
+      inner.innerHTML =
+        '<img class="pay-qr-img" alt="' + esc(m.name) + ' QR code" src="' + esc(m.qrImage) + '">' +
+        '<div class="pay-qr-cap">Scan to pay with ' + esc(m.name) + '</div>';
+      detail.classList.add('open');
+      refWrap.style.display = 'block';
+    } else if (m && m.type === 'bank') {
+      inner.innerHTML =
+        '<div class="bank-box" data-copy-acct>' +
+          '<div class="bank-name">' + esc(m.bankName || 'Bank transfer') + '</div>' +
+          '<div class="bank-acct mono">' + esc(m.accountNumber || '—') + '</div>' +
+          '<div class="bank-copy">Tap to copy account number</div>' +
+        '</div>';
+      detail.classList.add('open');
+      refWrap.style.display = 'block';
+    } else {
+      detail.classList.remove('open');
+      inner.innerHTML = '';
+      refWrap.style.display = 'none';
+    }
+  }
+
+  $('payDetailInner').addEventListener('click', function (e) {
+    var box = e.target.closest('[data-copy-acct]');
+    if (!box) return;
+    var acct = box.querySelector('.bank-acct').textContent.trim();
+    if (!acct || acct === '—') return;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(acct).then(function () {
+        box.querySelector('.bank-copy').textContent = 'Copied ✓';
+        setTimeout(function () {
+          var c = box.querySelector('.bank-copy');
+          if (c) c.textContent = 'Tap to copy account number';
+        }, 1600);
+      });
+    }
+  });
+
+  /* ── Submit ── */
+  $('submitBtn').addEventListener('click', function () {
+    if (submitting) return;
+    var items = Object.keys(qtys).map(function (pid) {
+      return { productId: pid, qty: qtys[pid] };
+    });
+    if (!items.length) { closeSheet(); return; }
+
+    submitting = true;
+    var btn = $('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    $('submitErr').style.display = 'none';
+
+    rpc('submit_portal_order', {
+      p_token:             token,
+      p_items:             items,
+      p_notes:             $('orderNotes').value || '',
+      p_requested_date:    $('reqDate').value || null,
+      p_payment_method:    chosenPay || '',
+      p_payment_reference: $('payRef').value || ''
+    }).then(function (res) {
+      if (!res.ok || !res.data || !res.data.reference) {
+        var msg = (res.data && res.data.message) ? res.data.message
+          : "Couldn't send your order. Check your connection and try again.";
+        $('submitErr').textContent = msg;
+        $('submitErr').style.display = 'block';
+        submitting = false;
+        btn.disabled = false;
+        btn.textContent = 'Place order';
+        return;
+      }
+      closeSheet();
+      showSuccess(res.data);
+    }).catch(function () {
+      $('submitErr').textContent = "Couldn't send your order. Check your connection and try again.";
+      $('submitErr').style.display = 'block';
+      submitting = false;
+      btn.disabled = false;
+      btn.textContent = 'Place order';
+    });
+  });
+
+  function showSuccess(result) {
+    $('doneSub').textContent = 'Your order has been sent to ' +
+      (portal.brand_name || 'your supplier') + '. They’ll confirm it shortly.';
+    $('doneRef').textContent = 'REF ' + result.reference;
+
+    var m = null;
+    payMethods().forEach(function (x) { if (x.name === chosenPay) m = x; });
+    var pay = $('donePay');
+    if (m && m.type === 'qr' && m.qrImage) {
+      pay.innerHTML = '<div class="f-label">Pay with ' + esc(m.name) + '</div>' +
+        '<img class="pay-qr-img" alt="' + esc(m.name) + ' QR code" src="' + esc(m.qrImage) + '">';
+      pay.style.display = 'block';
+    } else if (m && m.type === 'bank') {
+      pay.innerHTML = '<div class="f-label">' + esc(m.bankName || 'Bank transfer') + '</div>' +
+        '<div class="bank-acct mono" style="text-align:center;">' + esc(m.accountNumber || '') + '</div>';
+      pay.style.display = 'block';
+    } else if (chosenPay) {
+      pay.innerHTML = '<div class="f-label">Payment</div>' +
+        '<div style="font-size:14px;font-weight:800;">' + esc(chosenPay) + '</div>';
+      pay.style.display = 'block';
+    }
+    $('summaryBar').classList.remove('show');
+    show('success');
+    window.scrollTo(0, 0);
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>
