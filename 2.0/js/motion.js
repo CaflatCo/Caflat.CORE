@@ -70,5 +70,23 @@ const M = (() => {
     })();
   }
 
-  return { countUp, stagger, segThumb, toast, reveal, tween, reduce };
+  /* Lightweight modal/sheet. Returns { close() }. innerHTML is caller-built. */
+  function sheet(html, { wide = false, onClose = null } = {}) {
+    const scrim = document.createElement('div');
+    scrim.className = 'modal-scrim';
+    scrim.innerHTML = `<div class="modal-sheet${wide ? ' wide' : ''}" style="position:relative">
+      <button type="button" class="icon-btn" data-sheet-close style="position:absolute;top:var(--s3);right:var(--s3);width:30px;height:30px">✕</button>
+      ${html}
+    </div>`;
+    document.body.appendChild(scrim);
+    function close() {
+      scrim.classList.add('out');
+      setTimeout(() => { scrim.remove(); if (onClose) onClose(); }, 180);
+    }
+    scrim.addEventListener('click', (e) => { if (e.target === scrim) close(); });
+    scrim.querySelector('[data-sheet-close]').addEventListener('click', close);
+    return { el: scrim, close };
+  }
+
+  return { countUp, stagger, segThumb, toast, reveal, tween, reduce, sheet };
 })();

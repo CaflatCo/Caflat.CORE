@@ -24,7 +24,7 @@ select.field {
   box-shadow: var(--e1);
   transition: box-shadow var(--d-med) var(--ease-out), transform var(--d-med) var(--ease-out);
 }
-.card.pad { padding: var(--s5); }
+.card.pad, .pad { padding: var(--s5); }
 .card.lift:hover { box-shadow: var(--e3); transform: translateY(-3px); }
 .card-ink { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .card-ink .eyebrow, .card-ink .muted { color: color-mix(in srgb, var(--paper) 62%, transparent); }
@@ -137,3 +137,22 @@ select.field {
 
 /* Stagger utility: children animate in sequence (set --i per child) */
 .stagger > * { animation: fadeUp var(--d-med) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms); }
+
+/* ── Modal / sheet ── */
+.modal-scrim {
+  position: fixed; inset: 0; background: color-mix(in srgb, var(--ink) 45%, transparent);
+  display: flex; align-items: center; justify-content: center; z-index: 200;
+  animation: scrimin var(--d-med) var(--ease-out) both;
+}
+.modal-scrim.out { animation: scrimout var(--d-fast) var(--ease-inout) both; }
+@keyframes scrimin { from { opacity: 0; } }
+@keyframes scrimout { to { opacity: 0; } }
+.modal-sheet {
+  background: var(--card); border-radius: var(--r-xl); box-shadow: var(--e-ink);
+  width: min(480px, calc(100vw - var(--s5) * 2)); max-height: calc(100vh - var(--s6) * 2);
+  overflow-y: auto; padding: var(--s5); animation: sheetin var(--d-med) var(--ease-spring) both;
+}
+.modal-scrim.out .modal-sheet { animation: sheetout var(--d-fast) var(--ease-inout) both; }
+@keyframes sheetin { from { opacity: 0; transform: translateY(16px) scale(.97); } }
+@keyframes sheetout { to { opacity: 0; transform: translateY(16px) scale(.97); } }
+.modal-sheet.wide { width: min(640px, calc(100vw - var(--s5) * 2)); }

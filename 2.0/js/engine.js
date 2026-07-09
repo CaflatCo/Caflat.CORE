@@ -13,7 +13,7 @@ const ENGINE = (() => {
      Mirrors js/sales.js completeSale(), minus the DOM reads (no
      checkout modal in 2.0 yet) — same validation, same seal, same
      FG-vs-direct stock routing, same audit trail. */
-  async function charge(cart, { paymentMethod = 'cash', customerName = 'Walk-in Customer' } = {}) {
+  async function charge(cart, { paymentMethod = 'cash', customerName = 'Walk-in Customer', split = null } = {}) {
     if (!cart.length) return { ok: false, error: 'Cart is empty' };
 
     // Keep the shared cart state in sync so calculateCartSubtotal/Discount/Tax
@@ -32,11 +32,26 @@ const ENGINE = (() => {
     }
 
     const total = cart.reduce((s, l) => s + Number(l.price || 0) * Number(l.quantity || 0), 0);
+
+    // Split-payment validation — same rule as the classic checkout.
+    if (split) {
+      if (!(split.amount > 0)) return { ok: false, error: 'Enter the split payment amount' };
+      if (split.amount >= total) return { ok: false, error: 'Split amount must be less than the total' };
+    }
+
     const transaction = buildTransactionSnapshot({
       status: 'COMPLETED', paymentStatus: 'PAID', paymentMethod,
       tendered: total, change: 0, referenceNumber: '', customerName, orderNotes: '',
       cartOverride: cart,
     });
+
+    // Mirrors the classic app's split-payment annotation on the transaction.
+    if (split) {
+      transaction.payment.splitMethod = split.method;
+      transaction.payment.splitAmount = split.amount;
+      transaction.payment.splitReference = '';
+      transaction.payment.method = `${paymentMethod} + ${split.method}`;
+    }
 
     if (typeof sealTransaction === 'function') await sealTransaction(transaction);
 
@@ -394,7 +409,12 @@ const ENGINE = (() => {
     if (method.type === 'bank') { method.bankName = data.bankName || ''; method.accountName = data.accountName || ''; method.accountNumber = data.accountNumber || ''; }
     updateState('settings', current => {
       const methods = [...(current.paymentMethods || [])];
-      if (editIndex != null && editIndex !== '') methods[Number(editIndex)] = method; else methods.push(method);
+      const hasIdx = editIndex != null && editIndex !== '';
+      if (method.type === 'qr') {
+        const existingImg = hasIdx ? methods[Number(editIndex)]?.qrImage : null;
+        method.qrImage = data.qrImage || existingImg || '';
+      }
+      if (hasIdx) methods[Number(editIndex)] = method; else methods.push(method);
       return { ...current, paymentMethods: methods };
     });
     return { ok: true };
@@ -448,5 +468,35 @@ const ENGINE = (() => {
     return { ok: true };
   }
 
-  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale, saveSupplierClient, createSupplyOrder, advanceSupply, addCategory, saveSettings, savePaymentMethod, saveRecipe, saveShoppingList, deleteRecipe };
+  /* ── Cost Lab (real per-product cost/margin overrides) ──
+     Mirrors js/costlab.js's saveCostLabOverrides/clearCostLabOverrides/
+     saveCostLabSettings, data-driven instead of DOM-reading. */
+  function saveCostLabOverrides(productId, { laborCostPerUnit, overheadCostPerUnit } = {}) {
+    const overrides = { ...(APP_STATE.costLabOverrides || {}) };
+    const entry = {};
+    if (laborCostPerUnit !== '' && laborCostPerUnit != null) entry.laborCostPerUnit = Number(laborCostPerUnit);
+    if (overheadCostPerUnit !== '' && overheadCostPerUnit != null) entry.overheadCostPerUnit = Number(overheadCostPerUnit);
+    if (!Object.keys(entry).length) return { ok: false, error: 'Enter at least one value to save' };
+    overrides[productId] = entry;
+    updateState('costLabOverrides', () => overrides);
+    return { ok: true };
+  }
+
+  function clearCostLabOverrides(productId) {
+    const overrides = { ...(APP_STATE.costLabOverrides || {}) };
+    delete overrides[productId];
+    updateState('costLabOverrides', () => overrides);
+    return { ok: true };
+  }
+
+  function saveCostLabSettings(data) {
+    updateState('costLabSettings', () => ({
+      targetMargin: Number(data.targetMargin || 0),
+      laborCostPerUnit: Number(data.laborCostPerUnit || 0),
+      overheadCostPerUnit: Number(data.overheadCostPerUnit || 0),
+    }));
+    return { ok: true };
+  }
+
+  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale, saveSupplierClient, createSupplyOrder, advanceSupply, addCategory, saveSettings, savePaymentMethod, saveRecipe, saveShoppingList, deleteRecipe, saveCostLabOverrides, clearCostLabOverrides, saveCostLabSettings };
 })();

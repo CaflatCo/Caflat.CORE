@@ -9,7 +9,6 @@ VIEWS.supply = function (root) {
   const realProducts = g2(() => getProducts(), []);
   let clients = g2(() => getSupplierClients(), []);
   let draft = []; // order line draft: [{productId, name, qty, unitPrice}]
-  let payingOrderId = null;
   let editingClientId = null;
 
   if (!realProducts.length) {
@@ -125,6 +124,53 @@ VIEWS.supply = function (root) {
     paintOrders();
   });
 
+  function openSupplyCheckout(o) {
+    const realMethods = g2(() => (APP_STATE.settings?.paymentMethods || []), []);
+    const methods = realMethods.length ? realMethods : [{ name: 'Cash', type: 'cash' }];
+    let method = methods[0];
+
+    const s = M.sheet(`
+      <span class="eyebrow">Checkout · ${escapeHtml(o.invoiceNumber)}</span>
+      <h3 style="margin:6px 0 var(--s4)">${escapeHtml(o.clientName)}</h3>
+      <div class="stack gap2" style="margin-bottom:var(--s4)">
+        ${(o.items || []).map(l => `<div class="row between" style="padding:4px 0;font-size:var(--t-sm)">
+          <span class="grow">${escapeHtml(l.productName || l.description || '')} × ${round2(l.qty)}</span>
+          <span class="num" style="font-weight:700">${formatCurrency(l.qty * l.unitPrice)}</span>
+        </div>`).join('')}
+      </div>
+      <div class="row between" style="font-weight:900;font-size:var(--t-body);padding-top:var(--s3);border-top:1px solid var(--line);margin-bottom:var(--s4)">
+        <span>Total</span><span class="num">${formatCurrency(o.grandTotal)}</span>
+      </div>
+      <span class="eyebrow">Payment method</span>
+      <div class="row gap2 wrap" id="scMethodRow" style="margin:var(--s2) 0 var(--s4)"></div>
+      <button class="btn btn-block" id="scConfirm" style="height:48px">Confirm payment</button>`, { wide: false });
+
+    function paintMethodRow() {
+      const host = s.el.querySelector('#scMethodRow');
+      host.innerHTML = methods.map((m, i) => `<button class="chip ${m === method ? 'sel' : ''}" data-sc-method-idx="${i}"
+        style="height:30px;${m === method ? 'background:var(--ink);color:var(--paper);border-color:var(--ink)' : ''}">${escapeHtml(m.name)}</button>`).join('')
+        + (method.type === 'qr' && method.qrImage ? `<button class="btn btn-ghost btn-sm" id="scViewQr">View QR</button>` : '');
+      host.querySelectorAll('[data-sc-method-idx]').forEach(c => c.addEventListener('click', () => {
+        method = methods[Number(c.dataset.scMethodIdx)];
+        paintMethodRow();
+      }));
+      const qrBtn = host.querySelector('#scViewQr');
+      if (qrBtn) qrBtn.addEventListener('click', () => M.sheet(`<div style="text-align:center">
+        <span class="eyebrow">${escapeHtml(method.name)}</span>
+        <img src="${method.qrImage}" style="width:100%;max-width:280px;border-radius:var(--r-lg);margin-top:var(--s3)"></div>`));
+    }
+    paintMethodRow();
+
+    s.el.querySelector('#scConfirm').addEventListener('click', async () => {
+      const btn = s.el.querySelector('#scConfirm');
+      btn.disabled = true; btn.textContent = 'Processing…';
+      await ENGINE.advanceSupply(o.id, 'PAID', { method: method.name, reference: '' });
+      M.toast('Order paid', 'Sales record created', 'success');
+      s.close();
+      paintOrders();
+    });
+  }
+
   function paintOrders() {
     const orders = g2(() => getSupplyOrders(), []).slice().reverse();
     const host = root.querySelector('#ordersList');
@@ -132,43 +178,31 @@ VIEWS.supply = function (root) {
     host.innerHTML = orders.map(o => {
       const next = nextSupplyStatus(o.status);
       const terminal = ['CANCELLED', 'VOIDED'].includes(o.status);
-      const methods = (g2(() => APP_STATE.settings?.paymentMethods, []) || []).map(m => m.name).filter(Boolean);
-      const methodOptions = methods.length ? methods : ['Invoice', 'Bank Transfer', 'Cash'];
-      const showPayForm = payingOrderId === o.id;
       return `<div class="card pad" style="border-radius:var(--r-lg)">
         <div class="row between">
           <div><div class="name">${escapeHtml(o.clientName)} <span class="muted" style="font-weight:400">· ${escapeHtml(o.invoiceNumber)}</span></div>
             <div class="sub">${o.orderDate} · ${(o.items || []).length} line${(o.items || []).length === 1 ? '' : 's'} · ${formatCurrency(o.grandTotal)}</div></div>
           <div class="row gap2" style="align-items:center">
             <span class="chip ${SUPPLY_TONE[o.status] || ''}"><span class="dot"></span>${SUPPLY_STATUS_LABELS[o.status] || o.status}</span>
-            ${!terminal && next ? `<button class="btn btn-sm" data-advance="${o.id}" data-next="${next}">Mark ${SUPPLY_STATUS_LABELS[next]}</button>` : ''}
+            ${!terminal && next ? `<button class="btn btn-sm" data-advance="${o.id}" data-next="${next}">${next === 'PAID' ? 'Checkout' : `Mark ${SUPPLY_STATUS_LABELS[next]}`}</button>` : ''}
             ${!terminal ? `<button class="btn btn-ghost btn-sm" data-cancel-ord="${o.id}" style="color:var(--crit)">Cancel</button>` : ''}
             ${o.status === 'DRAFTED' ? `<button class="btn btn-ghost btn-sm" data-del-ord="${o.id}" style="color:var(--crit)">Delete</button>` : ''}
           </div>
         </div>
-        ${showPayForm ? `<div class="row gap2 wrap" style="padding-top:var(--s3);border-top:1px solid var(--line);margin-top:var(--s3)">
-          <select class="field" id="payMethod-${o.id}">${methodOptions.map(m => `<option>${escapeHtml(m)}</option>`).join('')}</select>
-          <button class="btn btn-sm" data-confirm-pay="${o.id}">Confirm payment</button>
-          <button class="btn btn-ghost btn-sm" data-cancel-pay>Cancel</button>
-        </div>` : ''}
       </div>`;
     }).join('');
 
     host.querySelectorAll('[data-advance]').forEach(b => b.addEventListener('click', async () => {
       const id = b.dataset.advance, next = b.dataset.next;
-      if (next === 'PAID') { payingOrderId = id; paintOrders(); return; }
+      if (next === 'PAID') {
+        const order = orders.find(o => o.id === id);
+        if (order) openSupplyCheckout(order);
+        return;
+      }
       await ENGINE.advanceSupply(id, next);
       M.toast('Status updated', SUPPLY_STATUS_LABELS[next], 'success');
       paintOrders();
     }));
-    host.querySelectorAll('[data-confirm-pay]').forEach(b => b.addEventListener('click', async () => {
-      const id = b.dataset.confirmPay;
-      const method = root.querySelector(`#payMethod-${id}`).value;
-      await ENGINE.advanceSupply(id, 'PAID', { method, reference: '' });
-      M.toast('Order paid', 'Sales record created', 'success');
-      payingOrderId = null; paintOrders();
-    }));
-    host.querySelectorAll('[data-cancel-pay]').forEach(b => b.addEventListener('click', () => { payingOrderId = null; paintOrders(); }));
     host.querySelectorAll('[data-cancel-ord]').forEach(b => b.addEventListener('click', () => {
       if (typeof cancelSupplyOrder === 'function') cancelSupplyOrder(b.dataset.cancelOrd);
       paintOrders();

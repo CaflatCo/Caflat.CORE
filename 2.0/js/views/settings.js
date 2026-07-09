@@ -46,6 +46,11 @@ VIEWS.settings = function (root) {
           <input id="pmBankName" class="field" placeholder="Bank name" style="flex:1;min-width:140px">
           <input id="pmAccountNumber" class="field" placeholder="Account number" style="width:160px">
         </div>
+        <div class="row gap2" id="pmQrFields" style="margin-top:var(--s2);display:none;align-items:center">
+          <img id="pmQrPreview" style="width:64px;height:64px;object-fit:cover;border-radius:var(--r-md);border:1px solid var(--line);display:none">
+          <input type="file" accept="image/*" id="pmQrUpload" class="field" style="flex:1">
+          <button class="btn btn-ghost btn-sm" id="pmQrClear" style="display:none">Remove</button>
+        </div>
         <div class="row gap2" style="margin-top:var(--s3)"><button class="btn btn-sm" id="pmSave">Save</button><button class="btn btn-ghost btn-sm" id="pmCancel">Cancel</button></div>
       </div>
       <div class="stack gap2" id="pmList"></div>
@@ -95,24 +100,58 @@ VIEWS.settings = function (root) {
   });
 
   const pmForm = root.querySelector('#pmForm');
+  let pendingQrImage = null;
+  function setQrFieldsVisible(show) { root.querySelector('#pmQrFields').style.display = show ? 'flex' : 'none'; }
   function openPmForm(idx) {
     editingPmIndex = idx != null ? idx : null;
     const m = idx != null ? methods[idx] : null;
+    pendingQrImage = null;
     root.querySelector('#pmName').value = m?.name || '';
     root.querySelector('#pmType').value = m?.type || 'cash';
     root.querySelector('#pmBankName').value = m?.bankName || '';
     root.querySelector('#pmAccountNumber').value = m?.accountNumber || '';
     root.querySelector('#pmBankFields').style.display = (m?.type === 'bank') ? 'flex' : 'none';
+    setQrFieldsVisible(m?.type === 'qr');
+    const preview = root.querySelector('#pmQrPreview');
+    const clearBtn = root.querySelector('#pmQrClear');
+    root.querySelector('#pmQrUpload').value = '';
+    if (m?.type === 'qr' && m.qrImage) {
+      preview.src = m.qrImage; preview.style.display = 'block'; clearBtn.style.display = 'inline-block';
+    } else {
+      preview.style.display = 'none'; clearBtn.style.display = 'none';
+    }
     pmForm.style.display = 'block';
     root.querySelector('#pmName').focus();
   }
   root.querySelector('#pmAdd').addEventListener('click', () => openPmForm(null));
   root.querySelector('#pmCancel').addEventListener('click', () => { pmForm.style.display = 'none'; editingPmIndex = null; });
-  root.querySelector('#pmType').addEventListener('change', (e) => { root.querySelector('#pmBankFields').style.display = e.target.value === 'bank' ? 'flex' : 'none'; });
+  root.querySelector('#pmType').addEventListener('change', (e) => {
+    root.querySelector('#pmBankFields').style.display = e.target.value === 'bank' ? 'flex' : 'none';
+    setQrFieldsVisible(e.target.value === 'qr');
+  });
+  root.querySelector('#pmQrUpload').addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      pendingQrImage = ev.target.result;
+      const preview = root.querySelector('#pmQrPreview');
+      preview.src = pendingQrImage; preview.style.display = 'block';
+      root.querySelector('#pmQrClear').style.display = 'inline-block';
+    };
+    reader.readAsDataURL(file);
+  });
+  root.querySelector('#pmQrClear').addEventListener('click', () => {
+    pendingQrImage = '';
+    root.querySelector('#pmQrPreview').style.display = 'none';
+    root.querySelector('#pmQrClear').style.display = 'none';
+    root.querySelector('#pmQrUpload').value = '';
+  });
   root.querySelector('#pmSave').addEventListener('click', () => {
     const result = ENGINE.savePaymentMethod({
       name: sanitizeText(root.querySelector('#pmName').value), type: root.querySelector('#pmType').value,
       bankName: sanitizeText(root.querySelector('#pmBankName').value), accountNumber: sanitizeText(root.querySelector('#pmAccountNumber').value),
+      qrImage: pendingQrImage,
     }, editingPmIndex);
     if (!result.ok) { M.toast('Could not save', result.error, 'crit'); return; }
     M.toast('Payment method saved', '', 'success');
@@ -126,8 +165,9 @@ VIEWS.settings = function (root) {
     const typeLabel = { cash: 'Cash', qr: 'QR Code', bank: 'Bank Transfer', card: 'Card', other: 'Other' };
     host.innerHTML = methods.length ? methods.map((m, i) => `
       <div class="lrow" style="padding:8px 0">
+        ${m.type === 'qr' && m.qrImage ? `<img src="${escapeHtml(m.qrImage)}" style="width:36px;height:36px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--line)">` : ''}
         <div class="grow"><div class="name" style="font-size:var(--t-sm)">${escapeHtml(m.name)}</div>
-          <div class="sub">${typeLabel[m.type] || m.type}${m.type === 'bank' ? ` · ${escapeHtml(m.bankName || '')} ${escapeHtml(m.accountNumber || '')}` : ''}</div></div>
+          <div class="sub">${typeLabel[m.type] || m.type}${m.type === 'bank' ? ` · ${escapeHtml(m.bankName || '')} ${escapeHtml(m.accountNumber || '')}` : ''}${m.type === 'qr' && !m.qrImage ? ' · no QR uploaded' : ''}</div></div>
         <button class="btn btn-ghost btn-sm" data-edit-pm="${i}">Edit</button>
         <button class="btn btn-ghost btn-sm" data-del-pm="${i}" style="color:var(--crit)">Delete</button>
       </div>`).join('') : `<p class="muted" style="font-size:var(--t-sm)">No payment methods yet.</p>`;
