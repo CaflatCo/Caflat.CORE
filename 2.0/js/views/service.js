@@ -131,10 +131,10 @@ VIEWS.service = function (root) {
             : low ? '<span class="chip warn" style="height:20px;font-size:9px"><span class="dot"></span>Low</span>' : '<span></span>'}
           ${hasVariants && !out ? '<span class="chip" data-variants="' + p.id + '" style="height:20px;font-size:9px">Options ' + ICON.down + '</span>' : ''}
         </div>
-        <div style="font-weight:640;line-height:1.2;margin-top:2px">${escapeHtml(p.name)}</div>
-        <div class="row between" style="margin-top:auto;padding-top:6px">
-          <span class="num" style="font-weight:700">${formatCurrency(p.price)}</span>
-          <span class="muted" style="font-size:var(--t-2xs)">${escapeHtml(p.category || '')}</span>
+        <div style="font-weight:640;line-height:1.2;margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${escapeHtml(p.name)}</div>
+        <div class="row between" style="margin-top:auto;padding-top:6px;gap:6px">
+          <span class="num" style="font-weight:700;flex-shrink:0">${formatCurrency(p.price)}</span>
+          <span class="muted" style="font-size:var(--t-2xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${escapeHtml(p.category || '')}</span>
         </div></button>`;
     }).join('');
     grid.querySelectorAll('.prod:not([disabled])').forEach(b => b.addEventListener('click', (e) => {

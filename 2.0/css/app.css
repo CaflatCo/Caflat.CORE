@@ -28,16 +28,28 @@
 }
 .rail-brand:hover { transform: rotate(-8deg) scale(1.06); }
 
-.rail-nav { display: flex; flex-direction: column; gap: var(--s1); flex: 1; }
+/* min-height:0 lets this flex child actually shrink and scroll internally
+   instead of pushing the rail taller than the viewport — with 16+ nav
+   items the rail no longer fits every screen height, so this is load-bearing,
+   not decorative. Thin scrollbar kept visible (not hidden) so the overflow
+   is discoverable rather than silently swallowing the last few icons. */
+.rail-nav {
+  display: flex; flex-direction: column; gap: var(--s1); flex: 1; min-height: 0;
+  overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-gutter: stable;
+  padding-right: 1px;
+}
+.rail-nav::-webkit-scrollbar { width: 4px; }
+.rail-nav::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 99px; }
+.rail-nav::-webkit-scrollbar-track { background: transparent; }
 .rail-btn {
-  position: relative;
-  width: 52px; height: 52px; border-radius: var(--r-md);
+  position: relative; flex-shrink: 0;
+  width: 46px; height: 46px; border-radius: var(--r-md);
   display: grid; place-items: center;
   color: var(--ink-3);
   transition: color var(--d-fast) var(--ease-out),
               background var(--d-fast) var(--ease-out);
 }
-.rail-btn svg { width: 22px; height: 22px; }
+.rail-btn svg { width: 20px; height: 20px; }
 .rail-btn:hover { color: var(--ink); background: var(--line-2); }
 .rail-btn.active { color: var(--ink); }
 .rail-btn.active::before {
