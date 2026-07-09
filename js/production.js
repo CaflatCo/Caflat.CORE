@@ -465,7 +465,7 @@ function openProductLineStatusModal(jobId, lineId) {
   setElementValue('prodLineStatusLineId', lineId);
 
   const infoEl = document.getElementById('prodLineStatusInfo');
-  if (infoEl) infoEl.textContent = `${line.productName} — ${line.targetQty} units`;
+  if (infoEl) infoEl.textContent = `${line.productName} — ${round2(line.targetQty)} units`;
 
   const container = document.getElementById('prodLineStatusOptions');
   if (container) {
@@ -601,7 +601,7 @@ function openBatchTrackingModal(jobId, lineId) {
 
   const infoEl = document.getElementById('batchJobInfo');
   if (infoEl) infoEl.textContent =
-    `${line.productName} · Target: ${line.targetQty} units`;
+    `${line.productName} · Target: ${round2(line.targetQty)} units`;
 
   _renderWasteLogUI(line.wasteLog||[], jobId, lineId);
   openModal('batchTrackingModal');
@@ -618,7 +618,7 @@ function _renderWasteLogUI(wasteLog, jobId, lineId) {
           background:var(--gray-50);border-radius:var(--radius-md);margin-bottom:5px;
           font-size:12px;">
           <span style="font-weight:700;">${escapeHtml(w.type)}</span>
-          <span style="color:var(--gray-500);">${w.qty} units</span>
+          <span style="color:var(--gray-500);">${round2(w.qty)} units</span>
           ${w.note?`<span style="color:var(--gray-400);">— ${escapeHtml(w.note)}</span>`:''}
           <button type="button" style="margin-left:auto;background:none;border:none;
             cursor:pointer;color:var(--gray-400);"
@@ -807,7 +807,7 @@ function transferLineToPos(jobId, lineId) {
   line.transferredToPos = true;
   updateState('productionJobs', () => jobs);
   renderProductionBoard();
-  showNotification(`${line.productName} → ${unitsProduced} units transferred to POS`, 'success');
+  showNotification(`${line.productName} → ${round2(unitsProduced)} units transferred to POS`, 'success');
 }
 
 function renderProductionBoard() {
@@ -922,7 +922,7 @@ function _renderProductionJobsTable() {
           const ll = PRODUCTION_STATUS_LABELS[line.status]||line.status;
           const isDone = ['DONE','QC','PACKED'].includes(line.status);
           const actualStr = line.actualYield!=null
-            ? ` → ${line.actualYield} actual` : '';
+            ? ` → ${round2(line.actualYield)} actual` : '';
           const effStr = line.efficiency!=null
             ? ` · ${line.efficiency}% efficiency` : '';
           const waste = (line.wasteLog||[]).reduce((s,w)=>s+Number(w.qty||0),0);
@@ -936,9 +936,9 @@ function _renderProductionJobsTable() {
                   ${isDone?'text-decoration:line-through;color:var(--gray-500);':''}">
                   ${escapeHtml(line.productName)}</div>
                 <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">
-                  Target: ${line.targetQty} units${actualStr}${effStr}
+                  Target: ${round2(line.targetQty)} units${actualStr}${effStr}
                   ${waste>0?` · <span style="color:#dc2626;">
-                    ${waste} wasted</span>`:''}
+                    ${round2(waste)} wasted</span>`:''}
                 </div>
               </div>
               <!-- Status button -->
@@ -1016,7 +1016,7 @@ function renderProductionAnalytics() {
       margin-bottom:20px;">
       ${[
         ['Completed Lines', completedLines.length],
-        ['Units Produced',  totalUnits],
+        ['Units Produced',  round2(totalUnits)],
         ['Avg Efficiency',  avgEff?avgEff.toFixed(0)+'%':'—'],
         ['Total Labor',     totalLabor>0?formatCurrency(totalLabor):'—'],
       ].map(([label,val])=>`
@@ -1041,14 +1041,14 @@ function renderProductionAnalytics() {
                 <td style="font-size:11px;color:var(--gray-500);">
                   ${escapeHtml(line.jobName)}</td>
                 <td style="font-weight:700;">${escapeHtml(line.productName)}</td>
-                <td>${line.targetQty}</td>
-                <td>${line.actualYield??line.targetQty}</td>
+                <td>${round2(line.targetQty)}</td>
+                <td>${round2(line.actualYield??line.targetQty)}</td>
                 <td>${line.efficiency!=null
                   ?`<span style="color:${line.efficiency>=90?'#16a34a':
                     line.efficiency>=70?'#ea580c':'#dc2626'};">
                     ${line.efficiency}%</span>`:'—'}</td>
                 <td>${waste>0
-                  ?`<span style="color:#dc2626;">${waste}</span>`:'—'}</td>
+                  ?`<span style="color:#dc2626;">${round2(waste)}</span>`:'—'}</td>
               </tr>`;
           }).join('')}
         </tbody>

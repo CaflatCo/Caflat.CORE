@@ -161,11 +161,11 @@ function renderIngredientsTable() {
           ${(ingredient.type||'raw')==='packaging'?'Packaging':'Raw'}
         </span>
       </td>
-      <td>${ingredient.packageQuantity}</td>
+      <td>${round2(ingredient.packageQuantity)}</td>
       <td>${formatCurrency(ingredient.packageCost)}</td>
       <td>${formatCurrency(ingredient.costPerUnit)}</td>
-      <td>${ingredient.stock}</td>
-      <td>${ingredient.reorderLevel}</td>
+      <td>${round2(ingredient.stock)}</td>
+      <td>${round2(ingredient.reorderLevel)}</td>
       <td>
         <div class="table-actions">
           ${!window._staffMode ? `<button type="button" class="btn btn-sm" data-action="edit-ingredient" data-id="${ingredient.id}">Edit</button>` : ''}

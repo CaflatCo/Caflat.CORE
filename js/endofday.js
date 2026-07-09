@@ -193,7 +193,7 @@ function _renderEndOfDayContent() {
         <div style="display:flex;justify-content:space-between;padding:5px 0;
           border-bottom:1px solid var(--border);font-size:12px;">
           <span>${escapeHtml(p.name)}</span>
-          <span style="font-weight:800;">${p.available} units</span>
+          <span style="font-weight:800;">${round2(p.available)} units</span>
         </div>`).join('')}
     </div>` : ''}
 
@@ -205,7 +205,7 @@ function _renderEndOfDayContent() {
         <div style="display:flex;justify-content:space-between;padding:5px 0;
           border-bottom:1px solid #fee2e2;font-size:12px;">
           <span style="font-weight:700;">${escapeHtml(ing.name)}</span>
-          <span style="color:#dc2626;">${ing.stock} ${ing.unit} remaining</span>
+          <span style="color:#dc2626;">${round2(ing.stock)} ${ing.unit} remaining</span>
         </div>`).join('')}
     </div>` : ''}
 

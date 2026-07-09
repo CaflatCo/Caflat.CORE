@@ -53,7 +53,7 @@ VIEWS.catalog = function (root) {
     host.innerHTML = recipeDraft.length ? recipeDraft.map((r, i) => `
       <div class="lrow" style="padding:6px 0">
         <div class="grow name" style="font-size:var(--t-sm)">${escapeHtml(r.name)}</div>
-        <span class="num" style="font-weight:700">${r.quantity}</span>
+        <span class="num" style="font-weight:700">${round2(r.quantity)}</span>
         <button class="icon-btn" style="width:28px;height:28px" data-rmrec="${i}">×</button>
       </div>`).join('') : `<p class="muted" style="font-size:var(--t-xs);margin-top:4px">No ingredients — this product won't deduct stock on sale.</p>`;
     host.querySelectorAll('[data-rmrec]').forEach(b => b.addEventListener('click', () => { recipeDraft.splice(+b.dataset.rmrec, 1); renderRecipeDraft(); }));
@@ -113,7 +113,7 @@ VIEWS.catalog = function (root) {
       return `<div class="card pad" style="border-radius:var(--r-lg);display:flex;align-items:center;gap:var(--s3)">
         <span class="pico xl">${prodIconFor(p.name, p.category)}</span>
         <div class="grow"><div class="name">${escapeHtml(p.name)}</div>
-          <div class="sub">${escapeHtml(p.category)} · ${formatCurrency(p.price)} · ${(p.recipe || []).length} ingredient${(p.recipe || []).length === 1 ? '' : 's'}${p.stock < 900 ? ` · ${stock} in stock` : ''}</div></div>
+          <div class="sub">${escapeHtml(p.category)} · ${formatCurrency(p.price)} · ${(p.recipe || []).length} ingredient${(p.recipe || []).length === 1 ? '' : 's'}${p.stock < 900 ? ` · ${round2(stock)} in stock` : ''}</div></div>
         <button class="btn btn-ghost btn-sm" data-edit="${p.id}">Edit</button>
         <button class="btn btn-ghost btn-sm" data-del="${p.id}" style="color:var(--crit)">Delete</button>
       </div>`;

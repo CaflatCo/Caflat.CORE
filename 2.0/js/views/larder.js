@@ -80,8 +80,8 @@ VIEWS.larder = function (root) {
         <div class="row between"><span class="name" style="font-weight:640">${escapeHtml(ing.name)}</span>
           <span class="chip ${tone}" style="height:20px;font-size:9px"><span class="dot"></span>${tone === 'crit' ? 'Reorder' : tone === 'warn' ? 'Low' : 'Good'}</span></div>
         <div class="row" style="align-items:baseline;gap:6px;margin:var(--s3) 0 var(--s2)">
-          <span class="num serif" style="font-size:1.8rem;font-weight:900;letter-spacing:-0.03em">${stock}</span>
-          <span class="muted num" style="font-size:var(--t-sm)">/ ${par} ${escapeHtml(ing.unit || '')} reorder</span></div>
+          <span class="num serif" style="font-size:1.8rem;font-weight:900;letter-spacing:-0.03em">${round2(stock)}</span>
+          <span class="muted num" style="font-size:var(--t-sm)">/ ${round2(par)} ${escapeHtml(ing.unit || '')} reorder</span></div>
         <div class="meter ${tone}"><i style="width:${Math.min(100, ratio * 100)}%"></i></div>
         <div class="row gap2" style="margin-top:var(--s3)">
           <button class="btn btn-ghost btn-sm" data-edit="${ing.id}">Edit</button>

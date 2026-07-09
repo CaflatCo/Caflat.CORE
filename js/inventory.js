@@ -179,10 +179,10 @@ function renderInventoryTable() {
           ${(ingredient.type||'raw')==='packaging'?'Packaging':'Raw'}
         </span>
       </td>
-      <td>${ingredient.packageQuantity ?? 0}</td>
+      <td>${round2(ingredient.packageQuantity ?? 0)}</td>
       <td>${formatCurrency(ingredient.packageCost ?? 0)}</td>
-      <td>${stock}</td>
-      <td>${reorderLevel}</td>
+      <td>${round2(stock)}</td>
+      <td>${round2(reorderLevel)}</td>
       <td>
         ${lowStock
           ? `<span class="badge-low-stock">Low Stock</span>`
@@ -230,7 +230,7 @@ function renderLowStockAlerts() {
     card.className = 'low-stock-card';
     card.innerHTML = `
       <div class="low-stock-name">${escapeHtml(ingredient.name)}</div>
-      <div class="low-stock-meta">${ingredient.stock} ${escapeHtml(ingredient.unit || '')} left</div>
+      <div class="low-stock-meta">${round2(ingredient.stock)} ${escapeHtml(ingredient.unit || '')} left</div>
     `;
     container.appendChild(card);
   });

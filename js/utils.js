@@ -18,6 +18,14 @@ function safeNumber(value, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+// Caps any decimal quantity (stock, weight, cost-per-unit, %, etc.) to at
+// most 2 decimal places, absorbing floating-point drift (e.g. 4.999999999999998).
+function round2(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
 function sanitizeText(value) {
   return String(value || '').trim();
 }
