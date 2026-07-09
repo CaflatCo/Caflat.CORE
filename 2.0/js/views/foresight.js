@@ -84,8 +84,8 @@ VIEWS.foresight = function (root) {
           <div class="grow"><div class="row gap2" style="align-items:baseline"><span class="name" style="font-size:var(--t-body)">${escapeHtml(p.name)}</span>
             <span class="chip ${p.status}" style="height:20px;font-size:9px"><span class="dot"></span>${p.status === 'crit' ? 'Urgent' : 'Soon'}</span>
             ${p.confident ? '' : '<span class="chip" style="height:20px;font-size:9px"><span class="dot"></span>Est</span>'}</div>
-            <div class="sub">${p.selloutHour != null ? `Sells out ~<b>${ADAPT.hourLabel(p.selloutHour)}</b> · ` : ''}${p.onHand != null ? p.onHand + ' on hand · ' : ''}${p.remainingDemand} more expected</div></div>
-          <div style="text-align:right;margin-right:var(--s3)"><div class="eyebrow">Make</div><div class="num serif" style="font-size:1.7rem;line-height:1;font-weight:900;letter-spacing:-0.03em">${p.recPrep}</div></div>
+            <div class="sub">${p.selloutHour != null ? `Sells out ~<b>${ADAPT.hourLabel(p.selloutHour)}</b> · ` : ''}${p.onHand != null ? round2(p.onHand) + ' on hand · ' : ''}${round2(p.remainingDemand)} more expected</div></div>
+          <div style="text-align:right;margin-right:var(--s3)"><div class="eyebrow">Make</div><div class="num serif" style="font-size:1.7rem;line-height:1;font-weight:900;letter-spacing:-0.03em">${round2(p.recPrep)}</div></div>
           <button class="btn btn-sm" data-prep="${p.id}" data-qty="${p.recPrep}" data-name="${escapeHtml(p.name)}" ${busy ? 'disabled' : ''}>${busy ? 'Prepping…' : 'Prep'}</button>
         </div>`;
       }).join('');
@@ -95,7 +95,7 @@ VIEWS.foresight = function (root) {
         b.disabled = true; b.textContent = 'Prepping…';
         const result = ENGINE.prep(id, qty, name);
         if (result.ok) {
-          M.toast('Prep complete', `${name} × ${qty} added to real stock — ingredients deducted`, 'success');
+          M.toast('Prep complete', `${name} × ${round2(qty)} added to real stock — ingredients deducted`, 'success');
         } else {
           M.toast('Could not prep', 'Product not found', 'crit');
         }

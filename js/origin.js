@@ -1635,8 +1635,8 @@ function runOriginTrace() {
         ['Farmer / Supplier', lot.farmer||'—'],
         ['Purchase Date', _originDate(lot.purchaseDate)],
         ['Harvest Date', _originDate(lot.harvestDate)],
-        ['Qty Purchased', `${lot.qtyPurchased} ${lot.unit||'kg'}`],
-        ['Remaining', `${lot.qtyRemaining} ${lot.unit||'kg'}`],
+        ['Qty Purchased', `${round2(lot.qtyPurchased)} ${lot.unit||'kg'}`],
+        ['Remaining', `${round2(lot.qtyRemaining)} ${lot.unit||'kg'}`],
         ['Processing Method', lot.processingMethod||'—'],
         ['Status', lot.status],
       ])}
@@ -1655,7 +1655,7 @@ function runOriginTrace() {
   if (batch) {
     const sourceLotDetails = (batch.sourceLots||[]).map(sl => {
       const l = lots.find(x=>x.id===sl.lotId);
-      return l ? `${l.lotNumber} (${sl.qtyUsed} ${l.unit||'kg'} — ${l.origin||'Unknown'}, ${l.farmer||'Unknown'})` : sl.lotNumber;
+      return l ? `${l.lotNumber} (${round2(sl.qtyUsed)} ${l.unit||'kg'} — ${l.origin||'Unknown'}, ${l.farmer||'Unknown'})` : sl.lotNumber;
     });
     html += `
       ${_traceBlock('Batch', `${batch.batchNumber} — ${batch.type}`, [

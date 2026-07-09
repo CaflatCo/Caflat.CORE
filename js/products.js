@@ -205,8 +205,8 @@ function renderProductsTable() {
       <td style="font-weight:700;">${escapeHtml(product.name)}</td>
       <td>${escapeHtml(product.category)}</td>
       <td>${formatCurrency(product.price)}</td>
-      <td style="font-variant-numeric:tabular-nums;">${stock}</td>
-      <td>${product.reorderLevel}</td>
+      <td style="font-variant-numeric:tabular-nums;">${round2(stock)}</td>
+      <td>${round2(product.reorderLevel)}</td>
       <td style="font-variant-numeric:tabular-nums;">
         ${be && be.hasBatchContext
           ? `<span style="font-weight:800;">${be.breakEvenUnits}</span>
@@ -282,7 +282,7 @@ function renderPOSProducts() {
       <div class="pos-product-footer">
         <div class="pos-product-footer-left">
           <div class="pos-product-price">${formatCurrency(product.price)}</div>
-          <div class="pos-product-stock${lowStock ? ' low' : ''}">${soldOut ? 'SOLD OUT' : `${stock} left`}</div>
+          <div class="pos-product-stock${lowStock ? ' low' : ''}">${soldOut ? 'SOLD OUT' : `${round2(stock)} left`}</div>
         </div>
         ${hasVariants && !soldOut ? `<button class="pos-options-btn" type="button" title="Options">&#x22EF;</button>` : ''}
       </div>`;

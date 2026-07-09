@@ -248,7 +248,7 @@ function _renderCLDetail(productId) {
     const lineCost = perUnit * Number(ing.costPerUnit || 0);
     return `<div class="cl-breakdown-row">
       <span>${escapeHtml(ing.name)}</span>
-      <span>${perUnit.toFixed(4)} × ${formatCurrency(Number(ing.costPerUnit || 0))} = <strong>${formatCurrency(lineCost)}</strong></span>
+      <span>${round2(perUnit)} × ${formatCurrency(Number(ing.costPerUnit || 0))} = <strong>${formatCurrency(lineCost)}</strong></span>
     </div>`;
   }).filter(Boolean).join('');
 

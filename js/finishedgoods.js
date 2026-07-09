@@ -231,9 +231,9 @@ function renderFinishedGoodsTable() {
               <tr ${soldOut ? 'class="low-stock-row"' : ''}>
                 <td style="font-weight:700;">${escapeHtml(p.name)}</td>
                 <td>${escapeHtml(p.category)}</td>
-                <td style="font-variant-numeric:tabular-nums;">${stock}</td>
+                <td style="font-variant-numeric:tabular-nums;">${round2(stock)}</td>
                 <td style="font-variant-numeric:tabular-nums;color:${reserved>0?'#ea580c':'var(--gray-400)'};">
-                  ${reserved > 0 ? reserved : '—'}
+                  ${reserved > 0 ? round2(reserved) : '—'}
                 </td>
                 <td style="font-variant-numeric:tabular-nums;font-weight:800;">
                   ${available}

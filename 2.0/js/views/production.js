@@ -41,7 +41,7 @@ VIEWS.production = function (root) {
       <div class="lrow" style="padding:8px 0">
         <span class="pico">${prodIconFor(l.name)}</span>
         <div class="grow name" style="font-size:var(--t-sm)">${escapeHtml(l.name)}</div>
-        <span class="num" style="font-weight:700">${l.qty}</span>
+        <span class="num" style="font-weight:700">${round2(l.qty)}</span>
         <button class="icon-btn" style="width:28px;height:28px" data-rm="${i}">×</button>
       </div>`).join('') : '';
     host.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => {
@@ -111,7 +111,7 @@ VIEWS.production = function (root) {
     return `<div class="lrow" style="padding:10px 0">
       <span class="pico lg">${prodIconFor(line.productName, product?.category)}</span>
       <div class="grow"><div class="name">${escapeHtml(line.productName)}</div>
-        <div class="sub">${line.targetQty} units${line.actualYield != null ? ` · actual ${line.actualYield}` : ''}${deductedLabel}</div></div>
+        <div class="sub">${round2(line.targetQty)} units${line.actualYield != null ? ` · actual ${round2(line.actualYield)}` : ''}${deductedLabel}</div></div>
       <span class="chip" style="height:22px;background:color-mix(in srgb,${color} 14%,transparent);color:${color};border-color:color-mix(in srgb,${color} 40%,var(--line));margin-right:var(--s2)">
         <span class="dot"></span>${PRODUCTION_STATUS_LABELS[line.status] || line.status}</span>
       ${canTransfer ? `<button class="btn btn-sm" data-transfer data-job="${job.id}" data-line="${line.id}" data-name="${escapeHtml(line.productName)}">Transfer to POS</button>` : ''}

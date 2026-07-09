@@ -193,7 +193,7 @@ function renderLowStockDashboard() {
         </div>
       </div>
       <div class="low-stock-meta">
-        ${item.soldOut ? '0' : item.stock} ${escapeHtml(item.unit)} left
+        ${item.soldOut ? '0' : round2(item.stock)} ${escapeHtml(item.unit)} left
       </div>
     </div>`).join('');
 }

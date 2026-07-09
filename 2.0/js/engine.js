@@ -100,7 +100,7 @@ const ENGINE = (() => {
     if (typeof pushAuditEntry === 'function') {
       pushAuditEntry({
         action: 'PREP_COMPLETED', productId: product.id, productName: product.name, qty, outcome: 'SUCCESS',
-        note: `Foresight prep: ${product.name} × ${qty}`,
+        note: `Foresight prep: ${product.name} × ${round2(qty)}`,
       });
     }
 

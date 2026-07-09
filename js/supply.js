@@ -1201,7 +1201,7 @@ function exportSupplyCSV() {
 
   const rows = orders.map(o => {
     const productSummary = (o.items||[])
-      .map(i => `${i.productName||i.description||''} x${i.qty} @${i.unitPrice}`)
+      .map(i => `${i.productName||i.description||''} x${round2(i.qty)} @${round2(i.unitPrice)}`)
       .join('; ');
     return [
       `"${o.invoiceNumber||''}"`,

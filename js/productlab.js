@@ -420,7 +420,7 @@ function _renderLabIngPickerList(query) {
         _renderLabIngPickerList('');">
       <div style="font-weight:800;font-size:12px;">${escapeHtml(i.name)}</div>
       <div style="font-size:10px;color:var(--gray-400);margin-top:2px;">
-        ${escapeHtml(i.unit||'')} · ${getCurrencySymbol()}${Number(i.costPerUnit||0).toFixed(3)}/unit
+        ${escapeHtml(i.unit||'')} · ${getCurrencySymbol()}${round2(Number(i.costPerUnit||0))}/unit
   
       </div>
     </button>`).join('');
@@ -912,7 +912,7 @@ function _renderLabIngredientRows() {
           <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
             color:var(--gray-400);margin-bottom:3px;">${getCurrencySymbol()}/unit</div>
           <div style="font-size:12px;font-weight:700;color:var(--gray-600);padding:6px 0;">
-            ${getCurrencySymbol()}${cpUnit.toFixed(4)}</div>
+            ${getCurrencySymbol()}${round2(cpUnit)}</div>
         </div>`}
         <div style="flex:0 0 80px;text-align:right;">
           <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
