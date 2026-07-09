@@ -389,6 +389,10 @@ function applyLicenseTier() {
     if (typeof updateOpsNavGroup          === 'function') updateOpsNavGroup();
   }
 
+  // Caflat 2.0 launcher — visible only on GOD tier while 2.0 is in active development
+  const miseNav = document.getElementById('navMise');
+  if (miseNav) miseNav.style.display = isGodTier() ? '' : 'none';
+
   // Hide cloud upsell if already on CLOUD+
   const upsellBanner = document.getElementById('cloudSyncUpsellBanner');
   if (upsellBanner) upsellBanner.style.display = isCloud ? 'none' : 'block';

@@ -361,5 +361,44 @@ const ENGINE = (() => {
     return { ok: true };
   }
 
-  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale, saveSupplierClient, createSupplyOrder, advanceSupply };
+  /* ── Settings (categories, payment methods, business info) ───
+     addCategory/saveSettings/savePaymentMethod mirror settings.js's DOM-bound
+     versions with plain-data equivalents. toggleCategoryMode, renameCategory,
+     deleteCategory, deletePaymentMethod are already DOM-independent — views
+     call those real functions directly, no wrapper needed. */
+  function addCategory(name, mode) {
+    const value = (name || '').trim();
+    if (!value) return { ok: false, error: 'Category name is required' };
+    const cats = (typeof getCategories === 'function' ? getCategories() : APP_STATE.categories || []).slice();
+    if (cats.some(c => c.name.toLowerCase() === value.toLowerCase())) return { ok: false, error: 'Category already exists' };
+    cats.push({ id: generateId(), name: value, inventoryMode: mode || 'direct' });
+    updateState('categories', () => cats);
+    return { ok: true };
+  }
+
+  function saveSettings(data) {
+    updateState('settings', current => ({
+      ...current,
+      brandName: data.brandName || current.brandName,
+      currency: (typeof CURRENCY_REGISTRY !== 'undefined' && CURRENCY_REGISTRY[data.currency]) ? data.currency : (current.currency || 'PHP'),
+      taxRate: Number(data.taxRate || 0),
+      receiptFooter: data.receiptFooter || '',
+      lowStockThreshold: Number(data.lowStockThreshold ?? current.lowStockThreshold ?? 5),
+    }));
+    return { ok: true };
+  }
+
+  function savePaymentMethod(data, editIndex) {
+    if (!data.name) return { ok: false, error: 'Method name is required' };
+    const method = { name: data.name, type: data.type || 'cash' };
+    if (method.type === 'bank') { method.bankName = data.bankName || ''; method.accountName = data.accountName || ''; method.accountNumber = data.accountNumber || ''; }
+    updateState('settings', current => {
+      const methods = [...(current.paymentMethods || [])];
+      if (editIndex != null && editIndex !== '') methods[Number(editIndex)] = method; else methods.push(method);
+      return { ...current, paymentMethods: methods };
+    });
+    return { ok: true };
+  }
+
+  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale, saveSupplierClient, createSupplyOrder, advanceSupply, addCategory, saveSettings, savePaymentMethod };
 })();
