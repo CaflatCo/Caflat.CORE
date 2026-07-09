@@ -13,6 +13,7 @@ const ICON = {
   recipes:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17H6z"/><path d="M15 2v3h3M9 11h6M9 14.5h6M9 18h4"/></svg>',
   shoppinglist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h13l-1.5 9h-11z"/><path d="M6 7L4.5 3H2M9 11v3M14 11v3"/><circle cx="8" cy="20.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="16" cy="20.5" r="1.3" fill="currentColor" stroke="none"/></svg>',
   costlab:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6.5L4 18a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9.5V2"/><path d="M8 2h8M7 15h10"/></svg>',
+  coffeecart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="15" height="8" rx="1.5"/><circle cx="7" cy="20.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="20.5" r="1.3" fill="currentColor" stroke="none"/><path d="M18 12h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2M7 10V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"/></svg>',
   treasury: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M7 6V4M17 6V4"/></svg>',
   supply:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-5 9 5-9 5-9-5z"/><path d="M3 9v6l9 5 9-5V9M12 14v5"/></svg>',
   settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>',
@@ -40,6 +41,7 @@ const NAV = [
   { id: 'recipes', label: 'Recipes' },
   { id: 'shoppinglist', label: 'Shopping List' },
   { id: 'costlab', label: 'Cost Lab' },
+  { id: 'coffeecart', label: 'Coffee Cart' },
   { id: 'settings', label: 'Settings' },
 ];
 
