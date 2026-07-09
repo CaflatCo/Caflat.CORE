@@ -89,7 +89,7 @@ VIEWS.command = function (root) {
               <div class="lrow" style="padding:10px 0">
                 <span class="pico lg" style="color:var(--warn)">${UI_ICON.box}</span>
                 <div class="grow"><div class="name">${escapeHtml(a.name)}</div>
-                  <div class="sub">${a.kind === 'ingredient' ? 'Ingredient' : 'Product'} · ${a.stock}${a.unit ? ' ' + escapeHtml(a.unit) : ''} left</div></div>
+                  <div class="sub">${a.kind === 'ingredient' ? 'Ingredient' : 'Product'} · ${round2(a.stock)}${a.unit ? ' ' + escapeHtml(a.unit) : ''} left</div></div>
                 <span class="chip ${a.stock <= 0 ? 'crit' : 'warn'}"><span class="dot"></span>${a.stock <= 0 ? 'Out' : 'Low'}</span>
               </div>`).join('') : `<p class="muted" style="font-size:var(--t-sm);padding:var(--s3) 0">Everything's well stocked.</p>`}
           </div>

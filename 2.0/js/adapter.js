@@ -207,5 +207,81 @@ const ADAPT = (() => {
 
   const hourLabel = h => (h === 0 ? '12a' : h === 12 ? '12p' : h > 12 ? (h - 12) + 'p' : h + 'a');
 
-  return { command, foresight, coverage, hourLabel, money, sym };
+  /* ── REPORTS (real sales history, any date range) ─────────── */
+  function reports(days = 30) {
+    const all = sales();
+    const now = new Date();
+    const since = days === 'all' ? null : (() => { const d = new Date(now); d.setDate(d.getDate() - (Number(days) - 1)); d.setHours(0, 0, 0, 0); return d; })();
+    const inRange = s => !since || saleTime(s) >= since;
+
+    const ranged = all.filter(inRange);
+    const done = ranged.filter(isDone);
+    const voided = ranged.filter(s => String(s.status || '').toUpperCase() === 'VOIDED');
+    const refunded = ranged.filter(s => String(s.status || '').toUpperCase() === 'REFUNDED');
+
+    const revenue = done.reduce((a, s) => a + saleTotal(s), 0);
+    const orders = done.length;
+    const avgTicket = orders ? revenue / orders : 0;
+    const voidRefundRate = ranged.length ? ((voided.length + refunded.length) / ranged.length) * 100 : 0;
+
+    // daily revenue series across the range (capped at 60 points for very wide ranges)
+    const dayCount = since ? Math.min(60, Math.ceil((now - since) / 86400000) + 1) : Math.min(60, coverage().days || 1);
+    const series = [];
+    for (let d = dayCount - 1; d >= 0; d--) {
+      const day = new Date(now); day.setDate(now.getDate() - d);
+      const k = dayKey(day);
+      const dayDone = done.filter(s => dayKey(saleTime(s)) === k);
+      series.push({ key: k, label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        revenue: Math.round(dayDone.reduce((a, s) => a + saleTotal(s), 0)), orders: dayDone.length });
+    }
+
+    // category mix (by revenue)
+    const mixMap = {};
+    done.forEach(s => (s.items || []).forEach(it => {
+      const p = productById(it.productId);
+      const cat = catOf(p);
+      mixMap[cat] = (mixMap[cat] || 0) + Number(it.total ?? (Number(it.price || 0) * Number(it.quantity || it.qty || 0)));
+    }));
+    const mixTotal = Object.values(mixMap).reduce((a, b) => a + b, 0) || 1;
+    const mix = Object.entries(mixMap).map(([cat, v]) => ({ cat, value: Math.round(v), pct: v / mixTotal }))
+      .sort((a, b) => b.value - a.value);
+
+    // top products (by revenue)
+    const prodMap = {};
+    done.forEach(s => (s.items || []).forEach(it => {
+      const pid = String(it.productId); const name = it.name || productById(pid)?.name || 'Unknown';
+      const qty = Number(it.quantity || it.qty || 0);
+      const rev = Number(it.total ?? (Number(it.price || 0) * qty));
+      const e = prodMap[pid] || (prodMap[pid] = { id: pid, name, qty: 0, revenue: 0 });
+      e.qty += qty; e.revenue += rev;
+    }));
+    const topProducts = Object.values(prodMap).sort((a, b) => b.revenue - a.revenue).slice(0, 10);
+
+    // payment method breakdown
+    const pmMap = {};
+    done.forEach(s => {
+      const m = String(s.payment?.method || s.paymentMethod || 'cash').toUpperCase();
+      pmMap[m] = (pmMap[m] || 0) + saleTotal(s);
+    });
+    const paymentMix = Object.entries(pmMap).map(([method, value]) => ({ method, value: Math.round(value) }))
+      .sort((a, b) => b.value - a.value);
+
+    // channel breakdown (POS vs SUPPLY etc.)
+    const chMap = {};
+    done.forEach(s => {
+      const c = String(s.channel || 'POS').toUpperCase();
+      const e = chMap[c] || (chMap[c] = { channel: c, revenue: 0, orders: 0 });
+      e.revenue += saleTotal(s); e.orders += 1;
+    });
+    const channelMix = Object.values(chMap).map(c => ({ ...c, revenue: Math.round(c.revenue) }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    return {
+      days, revenue, orders, avgTicket, voidCount: voided.length, refundCount: refunded.length,
+      voidRefundRate, series, mix, topProducts, paymentMix, channelMix, money, sym: sym(),
+      coverage: coverage(),
+    };
+  }
+
+  return { command, foresight, reports, coverage, hourLabel, money, sym };
 })();
