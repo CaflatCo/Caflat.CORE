@@ -615,6 +615,11 @@ function bindDelegatedActions() {
       case 'add-client':             openClientModal(); break;
       case 'edit-client':            openClientModal(actionEl.dataset.id || ''); break;
       case 'delete-client':          deleteSupplierClient(actionEl.dataset.id || ''); break;
+      case 'client-portal':          if(typeof openClientPortalModal==='function') openClientPortalModal(actionEl.dataset.id || ''); break;
+      case 'portal-save':            if(typeof saveClientPortalConfig==='function') saveClientPortalConfig(); break;
+      case 'portal-share':           if(typeof shareClientPortal==='function') shareClientPortal(); break;
+      case 'portal-revoke':          if(typeof revokeClientPortal==='function') revokeClientPortal(); break;
+      case 'portal-copy-link':       if(typeof copyPortalLink==='function') copyPortalLink(); break;
       case 'save-client':            saveSupplierClient(); break;
       case 'delete-category':       deleteCategory(actionEl.dataset.id || actionEl.dataset.category || ''); break;
       case 'toggle-category-mode':   toggleCategoryMode(actionEl.dataset.id || ''); break;

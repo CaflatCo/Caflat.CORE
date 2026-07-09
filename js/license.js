@@ -808,3 +808,6 @@ window._deactivateLicense         = _deactivateLicense;
 window.updateSyncStatus           = updateSyncStatus;
 window.triggerLicenseRevalidation = triggerLicenseRevalidation;
 window.getTenantId                = getTenantId;
+window._sbFetch                   = _sbFetch;
+window.CAFLAT_SB_URL_PUBLIC       = CAFLAT_SB_URL;
+window.CAFLAT_SB_ANON_PUBLIC      = CAFLAT_SB_ANON;
