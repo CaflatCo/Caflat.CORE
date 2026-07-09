@@ -513,5 +513,37 @@ const ENGINE = (() => {
     return { ok: true, id };
   }
 
-  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale, saveSupplierClient, createSupplyOrder, advanceSupply, addCategory, saveSettings, savePaymentMethod, saveRecipe, saveShoppingList, deleteRecipe, saveCostLabOverrides, clearCostLabOverrides, saveCostLabSettings, saveEvent };
+  /* ── Origin lots (green coffee purchases) — mirrors js/origin.js's
+     saveOriginLot(), data-driven. Photo/OCR upload is out of scope here. */
+  function saveOriginLot(data, editId) {
+    if (!data.productName) return { ok: false, error: 'Product name is required' };
+    if (!(Number(data.qtyPurchased) > 0)) return { ok: false, error: 'Quantity purchased is required' };
+    const lots = Array.isArray(APP_STATE.originLots) ? APP_STATE.originLots : [];
+    const existing = editId ? lots.find(l => l.id === editId) : null;
+    const now = new Date().toISOString();
+    const qtyPurchased = Number(data.qtyPurchased);
+    const lot = {
+      id: existing?.id || (typeof generateId === 'function' ? generateId() : String(Date.now())),
+      lotNumber: existing?.lotNumber || data.lotNumber || (typeof generateLotNumber === 'function' ? generateLotNumber() : `LOT-${Date.now()}`),
+      category: data.category || 'Coffee', productName: data.productName,
+      origin: data.origin || '', farmer: data.farmer || '',
+      purchaseDate: data.purchaseDate || '', harvestDate: data.harvestDate || '',
+      qtyPurchased, qtyRemaining: existing ? Number(existing.qtyRemaining) : qtyPurchased,
+      unit: data.unit || 'kg', purchaseCost: Number(data.purchaseCost || 0),
+      processingMethod: data.processingMethod || '', status: data.status || 'Active', notes: data.notes || '',
+      photos: existing?.photos || [],
+      createdAt: existing?.createdAt || now, updatedAt: now,
+    };
+    if (existing) { lots[lots.findIndex(l => l.id === editId)] = lot; } else { lots.push(lot); }
+    updateState('originLots', () => lots);
+    return { ok: true, id: lot.id, lotNumber: lot.lotNumber };
+  }
+
+  function deleteOriginLot(id) {
+    const lots = (Array.isArray(APP_STATE.originLots) ? APP_STATE.originLots : []).filter(l => l.id !== id);
+    updateState('originLots', () => lots);
+    return { ok: true };
+  }
+
+  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale, saveSupplierClient, createSupplyOrder, advanceSupply, addCategory, saveSettings, savePaymentMethod, saveRecipe, saveShoppingList, deleteRecipe, saveCostLabOverrides, clearCostLabOverrides, saveCostLabSettings, saveEvent, saveOriginLot, deleteOriginLot };
 })();
