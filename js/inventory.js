@@ -314,7 +314,7 @@ function renderInventoryMovementLog(limit) {
     const qtyLabel = isPos ? `+${qty.toFixed(2)}` : qty.toFixed(2);
     const qtyColor = isPos ? 'color:#15803d;' : isNeg ? 'color:var(--danger);' : 'color:var(--gray-400);';
     const typeLabel = MOVEMENT_TYPE_LABELS[m.type] || m.type || '—';
-    const itemName  = (m.ingredientName || m.productName || m.description || '—').replace(/</g,'&lt;');
+    const itemName  = escapeHtml(m.ingredientName || m.productName || m.description || '—');
 
     let badgeBg, badgeColor;
     if (m.type === 'restock') {

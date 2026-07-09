@@ -183,7 +183,7 @@ function renderCategoryOptions() {
 }
 
 /* ── Settings ── */
-function saveSettings() {
+async function saveSettings() {
   const brandName     = sanitizeText(getElementValue('settingsBrandName'));
   const currency      = CURRENCY_REGISTRY[getElementValue('settingsCurrency')] ? getElementValue('settingsCurrency') : 'PHP';
   const taxRate       = safeNumber(getElementValue('settingsTaxRate'));
@@ -195,6 +195,7 @@ function saveSettings() {
     showNotification('Void PIN must be exactly 6 digits', 'error');
     return;
   }
+  const voidPinHash = voidPin ? await hashSecret(voidPin) : null;
 
   const supplierModeEnabled    = document.getElementById('settingsSupplierMode')?.checked    === true;
   const productionModeEnabled  = document.getElementById('settingsProductionMode')?.checked  === true;
@@ -205,23 +206,26 @@ function saveSettings() {
   const shoppingListEnabled    = document.getElementById('settingsShoppingList')?.checked === true;
   const treasuryModeEnabled    = document.getElementById('settingsTreasuryMode')?.checked  === true;
 
-  updateState('settings', current => ({
-    ...current,
-    brandName: brandName || current.brandName,
-    currency,
-    taxRate,
-    receiptFooter,
-    receiptBaseUrl,
-    supplierModeEnabled,
-    productionModeEnabled,
-    coffeeCartModeEnabled,
-    productLabModeEnabled,
-    recipeCatalogEnabled,
-    shoppingListEnabled,
-    originModeEnabled,
-    treasuryModeEnabled,
-    ...(voidPin ? { voidPin } : {})
-  }));
+  updateState('settings', current => {
+    const next = {
+      ...current,
+      brandName: brandName || current.brandName,
+      currency,
+      taxRate,
+      receiptFooter,
+      receiptBaseUrl,
+      supplierModeEnabled,
+      productionModeEnabled,
+      coffeeCartModeEnabled,
+      productLabModeEnabled,
+      recipeCatalogEnabled,
+      shoppingListEnabled,
+      originModeEnabled,
+      treasuryModeEnabled,
+    };
+    if (voidPinHash) { next.voidPinHash = voidPinHash; delete next.voidPin; }
+    return next;
+  });
   persistState();
 
   renderBranding();
@@ -804,7 +808,7 @@ function openVoidPinPopup() {
   if (typeof openModal === 'function') openModal('voidPinModal');
 }
 
-function saveVoidPinFromPopup() {
+async function saveVoidPinFromPopup() {
   const pin = String(getElementValue('voidPinInput') || '').trim();
   if (!pin) {
     // No change entered — just close
@@ -815,8 +819,13 @@ function saveVoidPinFromPopup() {
     showNotification('PIN must be exactly 6 digits', 'error');
     return;
   }
+  const voidPinHash = await hashSecret(pin);
   setElementValue('settingsVoidPin', pin);
-  updateState('settings', current => ({ ...current, voidPin: pin }));
+  updateState('settings', current => {
+    const next = { ...current, voidPinHash };
+    delete next.voidPin;
+    return next;
+  });
   if (typeof closeModal === 'function') closeModal('voidPinModal');
   showNotification('Void PIN updated', 'success');
 }

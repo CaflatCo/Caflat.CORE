@@ -11,13 +11,70 @@ const AUTH_STORAGE_KEY  = 'caflat_auth';
 const AUTH_CREDS_KEY    = 'caflat_credentials';
 const AUTH_RECOVERY_KEY = 'caflat_recovery';
 
-/* ── SHA-256 helper ── */
+/* ── SHA-256 helper (kept only to verify legacy-format stored hashes) ── */
 async function _sha256(str) {
   const buf  = new TextEncoder().encode(str);
   const hash = await crypto.subtle.digest('SHA-256', buf);
   return Array.from(new Uint8Array(hash))
     .map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+/* ═══════════════════════════════════════════════════════
+   SECRET HASHING — salted PBKDF2-SHA256
+   Login passwords and the void PIN used to be a single
+   unsalted SHA-256 round, which is fast to brute-force
+   offline if the stored hash is ever read (e.g. devtools
+   access on a shared terminal). New/changed secrets use this
+   scheme instead; verifySecret() still accepts the old bare-
+   hash string format so existing installs keep working, and
+   opportunistically upgrades to this scheme the moment a
+   legacy secret is next verified successfully (the plaintext
+   is only ever available right at that moment).
+═══════════════════════════════════════════════════════ */
+const PBKDF2_ITERATIONS = 210000; // OWASP-recommended floor for PBKDF2-SHA256 (2023)
+
+function _randomSaltHex(bytes = 16) {
+  const arr = crypto.getRandomValues(new Uint8Array(bytes));
+  return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function _deriveHash(secret, saltHex, iterations = PBKDF2_ITERATIONS) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(secret), 'PBKDF2', false, ['deriveBits']);
+  const saltBytes = new Uint8Array(saltHex.match(/.{2}/g).map(h => parseInt(h, 16)));
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: saltBytes, iterations, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  return Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Hash a new secret — always uses the strong scheme.
+async function hashSecret(secret) {
+  const salt = _randomSaltHex();
+  const hash = await _deriveHash(secret, salt);
+  return { salt, hash, iterations: PBKDF2_ITERATIONS, scheme: 'pbkdf2' };
+}
+
+// Verify a secret against a stored record. Accepts either the new
+// { scheme:'pbkdf2', salt, hash, iterations } shape or a legacy bare
+// hex-string SHA-256 hash.
+async function verifySecret(secret, stored) {
+  if (!stored) return false;
+  if (typeof stored === 'string') {
+    const legacyHash = await _sha256(secret);
+    return legacyHash === stored;
+  }
+  if (stored.scheme === 'pbkdf2' && stored.salt && stored.hash) {
+    const computed = await _deriveHash(secret, stored.salt, stored.iterations || PBKDF2_ITERATIONS);
+    return computed === stored.hash;
+  }
+  return false;
+}
+
+// True only for the legacy bare-string format — used to decide whether
+// to opportunistically re-hash after a successful verify.
+function _isLegacySecret(stored) { return typeof stored === 'string'; }
 
 /* ── Recovery code generator (12 alphanumeric chars) ── */
 function _generateRecoveryCode() {
@@ -172,6 +229,41 @@ function applyAuth(role) {
   if (typeof renderBranding === 'function') renderBranding();
   // Apply role access after DOM is ready
   requestAnimationFrame(() => applyRoleAccess(role));
+  _startIdleWatch();
+}
+
+/* ═══════════════════════════════════════════════════════
+   IDLE AUTO-LOGOUT
+   Counter terminals get left unattended mid-shift; auto-sign-out after
+   a stretch of no interaction so a walked-away admin session can't be
+   picked up by whoever's next at the register.
+═══════════════════════════════════════════════════════ */
+const IDLE_LOGOUT_MS = 15 * 60 * 1000; // 15 minutes
+let _idleTimer = null;
+let _idleWatchStarted = false;
+
+function _resetIdleTimer() {
+  clearTimeout(_idleTimer);
+  _idleTimer = setTimeout(() => {
+    if (getAuthSession()) {
+      showNotification('Signed out after inactivity', 'info');
+      logout();
+    }
+  }, IDLE_LOGOUT_MS);
+}
+
+function _startIdleWatch() {
+  if (!_idleWatchStarted) {
+    _idleWatchStarted = true;
+    ['mousedown', 'keydown', 'touchstart', 'wheel'].forEach(evt =>
+      document.addEventListener(evt, _resetIdleTimer, { passive: true })
+    );
+  }
+  _resetIdleTimer();
+}
+
+function _stopIdleWatch() {
+  clearTimeout(_idleTimer);
 }
 
 /* ── Login error helpers ── */
@@ -270,13 +362,13 @@ async function completeSetup() {
   if (staffPass !== staffConfirm) return showErr('Staff passwords do not match.');
   if (adminPass === staffPass) return showErr('Admin and staff passwords must be different.');
 
-  const adminHash = await _sha256(adminPass);
-  const staffHash = await _sha256(staffPass);
+  const adminHash = await hashSecret(adminPass);
+  const staffHash = await hashSecret(staffPass);
   const recoveryCode = _generateRecoveryCode();
-  const recoveryHash = await _sha256(recoveryCode);
+  const recoveryHash = await hashSecret(recoveryCode);
 
   saveCredentials({ adminUsername: adminUser, adminHash, staffUsername: staffUser, staffHash });
-  localStorage.setItem(AUTH_RECOVERY_KEY, recoveryHash);
+  localStorage.setItem(AUTH_RECOVERY_KEY, JSON.stringify(recoveryHash));
 
   showRecoveryCode(recoveryCode);
 }
@@ -346,10 +438,40 @@ function showLoginScreen() {
 /* ═══════════════════════════════════════════════════════
    LOGIN
 ═══════════════════════════════════════════════════════ */
+/* ── Brute-force throttling ──
+   Lives inside login() itself (not just the UI layer) so it still
+   applies even if login() is invoked directly, e.g. from the console. */
+const LOGIN_LOCKOUT_KEY   = 'caflat_login_lockout';
+const LOGIN_FREE_ATTEMPTS = 4;                // no delay for the first few — typos happen
+const LOGIN_MAX_LOCK_MS   = 10 * 60 * 1000;   // cap at 10 minutes
+
+function _getLoginLockout() {
+  try { return JSON.parse(localStorage.getItem(LOGIN_LOCKOUT_KEY)) || { count: 0, lockedUntil: 0 }; }
+  catch { return { count: 0, lockedUntil: 0 }; }
+}
+function _recordFailedLogin() {
+  const state = _getLoginLockout();
+  state.count += 1;
+  if (state.count > LOGIN_FREE_ATTEMPTS) {
+    const overBy = state.count - LOGIN_FREE_ATTEMPTS;
+    state.lockedUntil = Date.now() + Math.min(LOGIN_MAX_LOCK_MS, 1000 * Math.pow(2, overBy));
+  }
+  localStorage.setItem(LOGIN_LOCKOUT_KEY, JSON.stringify(state));
+}
+function _resetLoginLockout() { localStorage.removeItem(LOGIN_LOCKOUT_KEY); }
+function _loginLockRemainingMs() { return Math.max(0, (_getLoginLockout().lockedUntil || 0) - Date.now()); }
+
 async function login() {
   const usernameInput = document.getElementById('loginUsername');
   const passwordInput = document.getElementById('loginPassword');
   if (!usernameInput || !passwordInput) return;
+
+  const remainingMs = _loginLockRemainingMs();
+  if (remainingMs > 0) {
+    const secs = Math.ceil(remainingMs / 1000);
+    _showLoginError(`Too many failed attempts. Try again in ${secs >= 60 ? Math.ceil(secs / 60) + ' min' : secs + 's'}.`);
+    return;
+  }
 
   const username = usernameInput.value.trim().toLowerCase();
   const password = passwordInput.value;
@@ -364,26 +486,35 @@ async function login() {
   // No credentials set yet — shouldn't happen but guard anyway
   if (!creds) { showSetupScreen(); return; }
 
-  const inputHash = await _sha256(password);
-
   // Match against stored usernames; fall back to legacy hardcoded names for existing installs
   const adminUser = creds.adminUsername || 'admin';
   const staffUser = creds.staffUsername || 'staff';
 
   let role = null;
-  if (username === adminUser && inputHash === creds.adminHash) {
-    role = 'ADMIN';
-  } else if (username === staffUser && inputHash === creds.staffHash) {
-    role = 'STAFF';
-  } else if (!creds.adminUsername && username === 'administrator' && inputHash === creds.adminHash) {
-    role = 'ADMIN';
-  } else if (!creds.staffUsername && username === 'cashier' && inputHash === creds.staffHash) {
-    role = 'STAFF';
+  let matchedField = null;
+  if (username === adminUser && await verifySecret(password, creds.adminHash)) {
+    role = 'ADMIN'; matchedField = 'adminHash';
+  } else if (username === staffUser && await verifySecret(password, creds.staffHash)) {
+    role = 'STAFF'; matchedField = 'staffHash';
+  } else if (!creds.adminUsername && username === 'administrator' && await verifySecret(password, creds.adminHash)) {
+    role = 'ADMIN'; matchedField = 'adminHash';
+  } else if (!creds.staffUsername && username === 'cashier' && await verifySecret(password, creds.staffHash)) {
+    role = 'STAFF'; matchedField = 'staffHash';
   }
 
   if (!role) {
+    _recordFailedLogin();
     _showLoginError('Incorrect username or password.');
     return;
+  }
+
+  _resetLoginLockout();
+
+  // Opportunistic upgrade: the matched credential was still the legacy
+  // unsalted format — re-hash it now while we have the plaintext.
+  if (matchedField && _isLegacySecret(creds[matchedField])) {
+    creds[matchedField] = await hashSecret(password);
+    saveCredentials(creds);
   }
 
   saveAuthSession(username, role);
@@ -445,10 +576,13 @@ async function verifyRecoveryCode() {
     return;
   }
 
-  const inputHash = await _sha256(inp.value.toUpperCase()); // hash includes dashes
-  const storedHash = localStorage.getItem(AUTH_RECOVERY_KEY);
+  const raw = localStorage.getItem(AUTH_RECOVERY_KEY);
+  let storedHash = null;
+  try { storedHash = raw ? JSON.parse(raw) : null; } catch { storedHash = raw; } // legacy: bare hex string, not JSON
 
-  if (!storedHash || inputHash !== storedHash) {
+  const valid = await verifySecret(inp.value.toUpperCase(), storedHash); // hash includes dashes
+
+  if (!valid) {
     if (errEl) { errEl.textContent = 'Recovery code is incorrect.'; errEl.style.display = 'block'; }
     return;
   }
@@ -506,13 +640,16 @@ async function saveResetPasswords() {
   if (staffPass !== staffConfirm) return showErr('Staff passwords do not match.');
   if (adminPass === staffPass) return showErr('Admin and staff passwords must be different.');
 
-  const adminHash = await _sha256(adminPass);
-  const staffHash = await _sha256(staffPass);
+  const adminHash = await hashSecret(adminPass);
+  const staffHash = await hashSecret(staffPass);
   const newRecovery = _generateRecoveryCode();
-  const recoveryHash = await _sha256(newRecovery);
+  const recoveryHash = await hashSecret(newRecovery);
 
-  saveCredentials({ adminHash, staffHash });
-  localStorage.setItem(AUTH_RECOVERY_KEY, recoveryHash);
+  // Preserve any custom usernames — saveCredentials() overwrites the whole
+  // record, so dropping them here would silently reset them to admin/staff.
+  const existing = getStoredCredentials() || {};
+  saveCredentials({ adminUsername: existing.adminUsername, adminHash, staffUsername: existing.staffUsername, staffHash });
+  localStorage.setItem(AUTH_RECOVERY_KEY, JSON.stringify(recoveryHash));
 
   showRecoveryCode(newRecovery);
 }
@@ -593,8 +730,7 @@ async function saveChangedPassword() {
   const creds = getStoredCredentials();
   if (!creds) return showErr('No credentials found. Please set up again.');
 
-  const currentHash = await _sha256(currentPass);
-  if (currentHash !== creds.adminHash) {
+  if (!(await verifySecret(currentPass, creds.adminHash))) {
     return showErr('Current admin password is incorrect.');
   }
 
@@ -606,29 +742,25 @@ async function saveChangedPassword() {
   if (newStaffUser && newStaffUser.length < 3) return showErr('Staff username must be at least 3 characters.');
   if (finalAdminUser === finalStaffUser) return showErr('Admin and staff usernames must be different.');
 
-  // Determine final password hashes
-  let newAdminHash = creds.adminHash;
-  let newStaffHash = creds.staffHash;
-
   if (newAdmin) {
     if (newAdmin.length < 6) return showErr('New admin password must be at least 6 characters.');
     if (newAdmin !== newAdminConfirm) return showErr('New admin passwords do not match.');
-    newAdminHash = await _sha256(newAdmin);
   }
-
   if (newStaff) {
     if (newStaff.length < 4) return showErr('New staff password must be at least 4 characters.');
     if (newStaff !== newStaffConfirm) return showErr('New staff passwords do not match.');
-    newStaffHash = await _sha256(newStaff);
   }
-
   if (!newAdminUser && !newAdmin && !newStaffUser && !newStaff) {
     return showErr('Enter at least one field to change.');
   }
-
-  if (newAdminHash === newStaffHash) {
+  // Only checkable when both are being changed together — a salted hash
+  // can't be compared for equality against an unchanged counterpart.
+  if (newAdmin && newStaff && newAdmin === newStaff) {
     return showErr('Admin and staff passwords must be different.');
   }
+
+  const newAdminHash = newAdmin ? await hashSecret(newAdmin) : creds.adminHash;
+  const newStaffHash = newStaff ? await hashSecret(newStaff) : creds.staffHash;
 
   saveCredentials({ adminUsername: finalAdminUser, adminHash: newAdminHash, staffUsername: finalStaffUser, staffHash: newStaffHash });
   document.getElementById('changePasswordModal')?.remove();
@@ -639,6 +771,7 @@ async function saveChangedPassword() {
    LOGOUT
 ═══════════════════════════════════════════════════════ */
 function logout() {
+  _stopIdleWatch();
   clearAuthSession();
   showNotification('Logged out successfully', 'info');
   location.reload();
@@ -852,3 +985,5 @@ window.submitGateCode          = submitGateCode;
 window.openChangePasswordModal = openChangePasswordModal;
 window.showForgotPassword      = showForgotPassword;
 window.showGatePanel           = showGatePanel;
+window.hashSecret              = hashSecret;
+window.verifySecret            = verifySecret;
