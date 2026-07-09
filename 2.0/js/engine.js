@@ -400,5 +400,53 @@ const ENGINE = (() => {
     return { ok: true };
   }
 
-  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale, saveSupplierClient, createSupplyOrder, advanceSupply, addCategory, saveSettings, savePaymentMethod };
+  /* ── Recipe Catalog (standalone reference book — no stock ties) ──
+     Mirrors js/recipecatalog.js's saveRecipeForm(), data-driven. */
+  function saveRecipe(data, editId) {
+    if (!data.name) return { ok: false, error: 'Recipe name is required' };
+    const catalog = typeof getRecipeCatalog === 'function' ? getRecipeCatalog() : (APP_STATE.recipeCatalog || []);
+    const id = editId || (typeof generateId === 'function' ? generateId() : String(Date.now()));
+    const existing = catalog.find(r => r.id === id);
+    const now = new Date().toISOString();
+    const recipe = {
+      id, name: data.name, category: data.category || '', yieldAmt: data.yieldAmt || '', notes: data.notes || '',
+      showSteps: data.showSteps !== false, tags: [],
+      ingredients: (data.ingredients || []).filter(i => i.name),
+      steps: (data.steps || []).filter(s => (s.text || s)),
+      createdAt: existing?.createdAt || now, updatedAt: now,
+    };
+    if (existing) Object.assign(existing, recipe); else catalog.push(recipe);
+    updateState('recipeCatalog', () => catalog);
+    return { ok: true, id };
+  }
+
+  /* ── Shopping List (real reorder shortfalls, saved to APP_STATE.shoppingLists) ──
+     Mirrors js/shoppinglist.js's saveShoppingList(), data-driven. */
+  function saveShoppingList(items, mode = 'lowstock') {
+    if (!items || !items.length) return { ok: false, error: 'List is empty' };
+    const total = items.reduce((s, i) => s + Number(i.totalCost || 0), 0);
+    const dateStr = new Date().toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+    const modeLabel = { production: 'Production', lowstock: 'Low Stock', free: 'Custom' }[mode] || 'Custom';
+    const newList = {
+      id: typeof generateId === 'function' ? generateId() : String(Date.now()),
+      name: `${modeLabel} — ${dateStr}`, mode, items: [...items], total, savedAt: new Date().toISOString(),
+    };
+    let lists = typeof _getShoppingLists === 'function' ? _getShoppingLists() : (APP_STATE.shoppingLists || []);
+    lists = Array.isArray(lists) ? lists : [];
+    lists.push(newList);
+    if (lists.length > 5) lists = lists.slice(lists.length - 5);
+    updateState('shoppingLists', () => lists);
+    return { ok: true, id: newList.id };
+  }
+
+  // Not calling the classic deleteRecipe() directly — it internally calls
+  // closeRecipeDetail(), which reaches for classic-only DOM ids that don't
+  // exist in 2.0 and throws. Mirrors its actual state mutation only.
+  function deleteRecipe(id) {
+    const catalog = (typeof getRecipeCatalog === 'function' ? getRecipeCatalog() : (APP_STATE.recipeCatalog || [])).filter(r => r.id !== id);
+    updateState('recipeCatalog', () => catalog);
+    return { ok: true };
+  }
+
+  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale, saveSupplierClient, createSupplyOrder, advanceSupply, addCategory, saveSettings, savePaymentMethod, saveRecipe, saveShoppingList, deleteRecipe };
 })();
