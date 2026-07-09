@@ -307,5 +307,59 @@ const ENGINE = (() => {
     return { ok: true, sale };
   }
 
-  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale };
+  /* ── Supply (B2B clients + orders) ────────────────────────────
+     saveSupplierClient mirrors supply.js's own (DOM-bound) version.
+     createSupplyOrder mirrors saveSupplyOrder()'s core logic, minus
+     the DOM line-item collection — takes structured items instead.
+     Status transitions reuse the real setSupplyStatus()/cancelSupplyOrder()
+     directly — same stock reserve/deduct/restore, same sales-record
+     creation on PAID, same audit trail. */
+  function saveSupplierClient(data) {
+    if (!data.name) return { ok: false, error: 'Client name is required' };
+    const clients = (typeof getSupplierClients === 'function' ? getSupplierClients() : APP_STATE.supplierClients || []).slice();
+    if (data.id) {
+      const idx = clients.findIndex(c => String(c.id) === String(data.id));
+      if (idx >= 0) clients[idx] = { ...clients[idx], name: data.name, contact: data.contact || '', email: data.email || '', address: data.address || '' };
+    } else {
+      clients.push({ id: generateId(), name: data.name, contact: data.contact || '', email: data.email || '', address: data.address || '', createdAt: new Date().toISOString() });
+    }
+    updateState('supplierClients', () => clients);
+    return { ok: true };
+  }
+
+  function createSupplyOrder({ clientId, orderDate, notes = '', items } = {}) {
+    if (!clientId) return { ok: false, error: 'Select a client' };
+    if (!orderDate) return { ok: false, error: 'Order date is required' };
+    if (!Array.isArray(items) || !items.length) return { ok: false, error: 'Add at least one product line' };
+    const client = (APP_STATE.supplierClients || []).find(c => String(c.id) === String(clientId));
+    const lines = items.map(it => {
+      const product = (APP_STATE.products || []).find(p => String(p.id) === String(it.productId));
+      const qty = Number(it.qty || 0), unitPrice = Number(it.unitPrice || 0);
+      return { productId: it.productId, productName: product?.name || '', description: product?.name || '', qty, unitPrice, total: qty * unitPrice, multiplier: 1 };
+    }).filter(l => l.productId && l.qty > 0);
+    if (!lines.length) return { ok: false, error: 'Add at least one product line' };
+
+    const subtotal = lines.reduce((s, l) => s + l.total, 0);
+    const orders = (typeof getSupplyOrders === 'function' ? getSupplyOrders() : APP_STATE.supplyOrders || []);
+    const timestamp = new Date().toISOString();
+    const order = {
+      id: generateId(), invoiceNumber: typeof generateInvoiceNumber === 'function' ? generateInvoiceNumber() : ('INV-' + Date.now()),
+      clientId, clientName: client?.name || '', orderDate, notes, items: lines,
+      subtotal, discount: 0, discountType: 'percent', grandTotal: subtotal,
+      status: 'DRAFTED', reservedStock: false, stockDeducted: false,
+      statusHistory: [{ status: 'DRAFTED', changedAt: timestamp, note: 'Order created' }],
+      createdAt: timestamp, updatedAt: timestamp,
+    };
+    orders.push(order);
+    updateState('supplyOrders', () => orders);
+    return { ok: true, order };
+  }
+
+  async function advanceSupply(orderId, newStatus, paymentInfo) {
+    if (typeof setSupplyStatus !== 'function') return { ok: false };
+    await setSupplyStatus(orderId, newStatus, paymentInfo);
+    return { ok: true };
+  }
+
+  return { charge, prep, createJob, advance, transfer, saveIngredient, saveProduct, saveTreasuryAccount, saveTreasuryTransaction, voidSale, refundSale, saveSupplierClient, createSupplyOrder, advanceSupply };
 })();
