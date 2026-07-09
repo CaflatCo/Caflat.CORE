@@ -55,10 +55,15 @@ async function _createSupplySalesRecord(order, paymentInfo) {
       clientId: order.clientId   || ''
     },
     payment: {
-      method:          paymentMethod,
+      method:          paymentInfo?.splitAmount > 0 ? `${paymentMethod} + ${paymentInfo.splitMethod}` : paymentMethod,
       tendered:        total,
       change:          0,
-      referenceNumber: paymentReference || receiptNumber
+      referenceNumber: paymentReference || receiptNumber,
+      ...(paymentInfo?.splitAmount > 0 ? {
+        splitMethod:    paymentInfo.splitMethod,
+        splitAmount:    paymentInfo.splitAmount,
+        splitReference: paymentInfo.splitReference || ''
+      } : {})
     },
     totals: { subtotal, discount, tax, total },
     items,
@@ -905,6 +910,59 @@ function openSupplyCheckoutModal(orderId) {
           <input id="supplyCheckoutReference" type="text" placeholder="Check #, wire ref…" />
         </div>
       </div>
+
+      <!-- Split payment toggle -->
+      <div style="margin-bottom:16px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;width:fit-content;">
+          <div id="supplySplitToggleTrack"
+            onclick="toggleSupplySplitPayment()"
+            style="width:36px;height:20px;border-radius:999px;background:var(--gray-200);
+              position:relative;cursor:pointer;transition:background var(--transition);flex-shrink:0;">
+            <div id="supplySplitToggleThumb"
+              style="width:16px;height:16px;border-radius:50%;background:#fff;
+                position:absolute;top:2px;left:2px;
+                box-shadow:0 1px 3px rgba(0,0,0,.2);
+                transition:transform var(--transition);"></div>
+          </div>
+          <span style="font-size:11px;font-weight:800;color:var(--gray-600);letter-spacing:.3px;">
+            Split Payment
+          </span>
+        </label>
+      </div>
+
+      <!-- Split payment second method (hidden by default) -->
+      <div id="supplySplitPaymentSection" style="display:none;background:var(--gray-50);
+        border:1.5px solid var(--border);border-radius:var(--radius-lg);
+        padding:14px 16px;margin-bottom:16px;">
+        <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;
+          text-transform:uppercase;color:var(--gray-500);margin-bottom:10px;">
+          Second Payment
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Method</label>
+            <select id="supplySplitPaymentMethod" onchange="renderSupplySplitPaymentFields()">
+              <option value="cash">Cash</option>
+              <option value="invoice">Invoice / On Account</option>
+              ${methodOptions}
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Amount (<span data-curr-sym>₱</span>)</label>
+            <input id="supplySplitPaymentAmount" type="number" min="0" step="0.01"
+              placeholder="0.00" oninput="updateSupplySplitAmounts()" />
+          </div>
+        </div>
+        <div class="form-group" id="supplySplitReferenceWrap" style="display:none;margin-top:12px;margin-bottom:0;">
+          <label>Reference Number</label>
+          <input id="supplySplitPaymentReference" type="text" placeholder="Reference ID" />
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--gray-500);font-weight:700;">
+          Remaining on first method:
+          <span id="supplySplitFirstAmount" style="color:var(--black);font-weight:900;">₱0.00</span>
+        </div>
+      </div>
+
       <div id="supplyCheckoutQrSection" style="display:none;text-align:center;margin-bottom:16px;">
         <div class="payment-badge" id="supplyCheckoutQrBadge">QR PAYMENT</div>
         <div style="display:flex;justify-content:center;">
@@ -930,6 +988,7 @@ function openSupplyCheckoutModal(orderId) {
 
   openModal('supplyCheckoutModal');
   _toggleSupplyCheckoutQR();
+  _resetSupplySplitPayment();
 }
 
 /* Shows the selected payment method's QR code, mirroring togglePaymentFields()
@@ -956,11 +1015,95 @@ function _toggleSupplyCheckoutQR() {
   if (fallback) fallback.style.display = 'none';
 }
 
+/* ═══════════════════════════════════════════════════════
+   SUPPLY CHECKOUT — SPLIT PAYMENT
+   Mirrors the POS checkout's split-payment mechanism in sales.js
+   (_splitActive/toggleSplitPayment/getSplitPaymentData), namespaced
+   to the Supply checkout modal so the two don't share state.
+═══════════════════════════════════════════════════════ */
+let _supplySplitActive = false;
+
+function _resetSupplySplitPayment() {
+  _supplySplitActive = false;
+  const track   = document.getElementById('supplySplitToggleTrack');
+  const thumb   = document.getElementById('supplySplitToggleThumb');
+  const section = document.getElementById('supplySplitPaymentSection');
+  if (track)   { track.style.background = 'var(--gray-200)'; }
+  if (thumb)   { thumb.style.transform = 'translateX(0)'; }
+  if (section) { section.style.display = 'none'; }
+  const amtEl = document.getElementById('supplySplitPaymentAmount');
+  const refEl = document.getElementById('supplySplitPaymentReference');
+  if (amtEl) amtEl.value = '';
+  if (refEl) refEl.value = '';
+}
+
+function toggleSupplySplitPayment() {
+  _supplySplitActive = !_supplySplitActive;
+  const track   = document.getElementById('supplySplitToggleTrack');
+  const thumb   = document.getElementById('supplySplitToggleThumb');
+  const section = document.getElementById('supplySplitPaymentSection');
+
+  if (_supplySplitActive) {
+    if (track)   { track.style.background = 'var(--black)'; }
+    if (thumb)   { thumb.style.transform = 'translateX(16px)'; }
+    if (section) { section.style.display = 'block'; }
+    renderSupplySplitPaymentFields();
+    updateSupplySplitAmounts();
+  } else {
+    _resetSupplySplitPayment();
+  }
+}
+
+function renderSupplySplitPaymentFields() {
+  const method    = document.getElementById('supplySplitPaymentMethod')?.value || '';
+  const refWrap   = document.getElementById('supplySplitReferenceWrap');
+  const isCashLike = method === 'cash' || method === 'invoice' || method === '';
+  if (refWrap) refWrap.style.display = isCashLike ? 'none' : 'block';
+}
+
+function updateSupplySplitAmounts() {
+  if (!_supplySplitActive) return;
+  const total    = Number(document.getElementById('supplyCheckoutTotal')?.value?.replace(/[^0-9.]/g, '') || 0);
+  const splitEl  = document.getElementById('supplySplitPaymentAmount');
+  const firstEl  = document.getElementById('supplySplitFirstAmount');
+  const splitAmt = parseMoney(splitEl?.value || '0');
+  const firstAmt = Math.max(0, total - splitAmt);
+  if (firstEl) firstEl.textContent = formatCurrency(firstAmt);
+}
+
+function isSupplySplitActive() { return _supplySplitActive; }
+
+function getSupplySplitPaymentData() {
+  if (!_supplySplitActive) return null;
+  const method    = document.getElementById('supplySplitPaymentMethod')?.value || 'cash';
+  const amount    = parseMoney(document.getElementById('supplySplitPaymentAmount')?.value || '0');
+  const reference = document.getElementById('supplySplitPaymentReference')?.value?.trim() || '';
+  return { method, amount, reference };
+}
+
 function confirmSupplyCheckout(orderId) {
   const method    = document.getElementById('supplyCheckoutMethod')?.value || 'invoice';
   const reference = document.getElementById('supplyCheckoutReference')?.value?.trim() || '';
+
+  const paymentInfo = { method, reference };
+
+  if (isSupplySplitActive()) {
+    const order = getSupplyOrders().find(o => String(o.id) === String(orderId));
+    const total = Number(order?.grandTotal || 0);
+    const split = getSupplySplitPaymentData();
+    if (!split || split.amount <= 0) {
+      showNotification('Enter the split payment amount', 'error'); return;
+    }
+    if (split.amount >= total) {
+      showNotification('Split amount must be less than the total', 'error'); return;
+    }
+    paymentInfo.splitMethod    = split.method;
+    paymentInfo.splitAmount    = split.amount;
+    paymentInfo.splitReference = split.reference || '';
+  }
+
   closeModal('supplyCheckoutModal');
-  setSupplyStatus(orderId, 'PAID', { method, reference });
+  setSupplyStatus(orderId, 'PAID', paymentInfo);
 }
 
 function cancelSupplyOrder(orderId) {
@@ -1403,6 +1546,13 @@ window.applySupplierModeToggle  = applySupplierModeToggle;
 window.applySupplierCartButton  = applySupplierCartButton;
 window.openSupplierOrderPrompt  = openSupplierOrderPrompt;
 window.confirmSupplierOrder     = confirmSupplierOrder;
+window.toggleSupplySplitPayment       = toggleSupplySplitPayment;
+window.renderSupplySplitPaymentFields = renderSupplySplitPaymentFields;
+window.updateSupplySplitAmounts       = updateSupplySplitAmounts;
+window.isSupplySplitActive            = isSupplySplitActive;
+window.getSupplySplitPaymentData      = getSupplySplitPaymentData;
+window.confirmSupplyCheckout          = confirmSupplyCheckout;
+window.openSupplyCheckoutModal        = openSupplyCheckoutModal;
 
 window.openSupplyOrderView = openSupplyOrderView;
 

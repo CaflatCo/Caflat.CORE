@@ -16,11 +16,52 @@ function pushAuditEntry(entry) {
   updateState('auditLog', () => log);
 }
 
-/* ── PIN validation ── */
-function validateVoidPin(enteredPin) {
-  const storedPin = String(APP_STATE.settings?.voidPin || '000000');
-  return String(enteredPin).trim() === storedPin;
+/* ── PIN validation ──
+   Prefers the hashed settings.voidPinHash; falls back to legacy plaintext
+   settings.voidPin (defaulting to '000000') for installs that haven't saved
+   a PIN through the new hashing path yet. On a successful legacy match, the
+   PIN is opportunistically re-hashed and the plaintext copy is cleared. */
+async function validateVoidPin(enteredPin) {
+  const pin = String(enteredPin).trim();
+  const stored = APP_STATE.settings?.voidPinHash;
+
+  if (stored) {
+    return verifySecret(pin, stored);
+  }
+
+  const legacyPin = String(APP_STATE.settings?.voidPin || '000000');
+  const match = pin === legacyPin;
+  if (match) {
+    const voidPinHash = await hashSecret(pin);
+    updateState('settings', current => {
+      const next = { ...current, voidPinHash };
+      delete next.voidPin;
+      return next;
+    });
+  }
+  return match;
 }
+
+/* ── PIN attempt lockout ── (mirrors the login lockout in js/auth.js) */
+const VOID_PIN_LOCKOUT_KEY   = 'caflat_voidpin_lockout';
+const VOID_PIN_FREE_ATTEMPTS = 4;
+const VOID_PIN_MAX_LOCK_MS   = 10 * 60 * 1000;
+
+function _getVoidPinLockout() {
+  try { return JSON.parse(localStorage.getItem(VOID_PIN_LOCKOUT_KEY)) || { count: 0, lockedUntil: 0 }; }
+  catch { return { count: 0, lockedUntil: 0 }; }
+}
+function _recordFailedVoidPin() {
+  const state = _getVoidPinLockout();
+  state.count += 1;
+  if (state.count > VOID_PIN_FREE_ATTEMPTS) {
+    const overBy = state.count - VOID_PIN_FREE_ATTEMPTS;
+    state.lockedUntil = Date.now() + Math.min(VOID_PIN_MAX_LOCK_MS, 1000 * Math.pow(2, overBy));
+  }
+  localStorage.setItem(VOID_PIN_LOCKOUT_KEY, JSON.stringify(state));
+}
+function _resetVoidPinLockout() { localStorage.removeItem(VOID_PIN_LOCKOUT_KEY); }
+function _voidPinLockRemainingMs() { return Math.max(0, (_getVoidPinLockout().lockedUntil || 0) - Date.now()); }
 
 /* ── Open void modal ── */
 function openVoidModal(saleId) {
@@ -77,7 +118,7 @@ function renderPinDots(value) {
 }
 
 /* ── Confirm void ── */
-function confirmVoid() {
+async function confirmVoid() {
   const el = id => document.getElementById(id);
 
   const saleId = el('voidSaleId')?.value;
@@ -97,8 +138,16 @@ function confirmVoid() {
     return;
   }
 
+  const remainingMs = _voidPinLockRemainingMs();
+  if (remainingMs > 0) {
+    const secs = Math.ceil(remainingMs / 1000);
+    showNotification(`Too many failed PIN attempts. Try again in ${secs >= 60 ? Math.ceil(secs / 60) + ' min' : secs + 's'}.`, 'error');
+    return;
+  }
+
   // PIN check
-  if (!validateVoidPin(pin)) {
+  if (!(await validateVoidPin(pin))) {
+    _recordFailedVoidPin();
     pushAuditEntry({
       action: 'VOID_PIN_FAILED',
       saleId,
@@ -112,6 +161,8 @@ function confirmVoid() {
     el('voidPin')?.focus();
     return;
   }
+
+  _resetVoidPinLockout();
 
   // Execute void
   executeVoid(saleId, reason);
