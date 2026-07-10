@@ -205,8 +205,10 @@
       return svg(
         GROUND +
         cup() +
-        '<path d="M13.5 27 C13 18 18 12.4 24 12.4 C30 12.4 35 18 34.5 27 Z" fill="#6a4429"/>' +
-        '<path d="M34.5 27 C35 19.6 31.6 14.8 27 13 C33 14 36.4 20 35.4 27 Z" fill="#4a2f1a" opacity=".5"/>' +
+        /* dome baked golden-brown, same dough as the classic */
+        '<path d="M13.5 27 C13 18 18 12.4 24 12.4 C30 12.4 35 18 34.5 27 Z" fill="#e0a758"/>' +
+        '<path d="M34.5 27 C35 19.6 31.6 14.8 27 13 C33 14 36.4 20 35.4 27 Z" fill="#bd7f34" opacity=".5"/>' +
+        '<path d="M15.5 20 C17.6 15.6 21.4 13.4 25 13.6 C20.8 13.8 17.4 16.6 15.9 21 Z" fill="#f3d094" opacity=".8"/>' +
         /* green pistachio-kunafa pooled on the dome */
         '<path d="M15.5 22 C17.5 17 20.6 14 24 14 C27.4 14 30.5 17 32.5 22 ' +
           'C28 25.6 20 25.6 15.5 22 Z" fill="#8cc63f"/>' +
