@@ -117,6 +117,7 @@ DECLARE
   v_cat      jsonb;
   v_qty      numeric;
   v_price    numeric;
+  v_mult     numeric;
   v_items    jsonb := '[]'::jsonb;
   v_subtotal numeric := 0;
   v_count    int := 0;
@@ -155,6 +156,12 @@ BEGIN
       LIMIT 1;
     IF v_cat IS NULL THEN
       RAISE EXCEPTION 'Unknown product in order';
+    END IF;
+
+    -- Enforce sold-in-multiples when the cafe configured one for this product
+    v_mult := GREATEST(COALESCE((v_cat->>'multiple')::numeric, 1), 1);
+    IF v_mult > 1 AND (v_qty::numeric % v_mult) <> 0 THEN
+      RAISE EXCEPTION '% is sold in multiples of %', v_cat->>'name', v_mult::int;
     END IF;
 
     v_price := ROUND((v_cat->>'price')::numeric, 2);
