@@ -337,125 +337,112 @@ function openClientPortalModal(clientId) {
     document.body.appendChild(m);
   }
 
-  const rows = products.map(p => {
+  const cards = products.map(p => {
     const included = !cfg.allowedProductIds || cfg.allowedProductIds.includes(String(p.id));
     const custom   = cfg.pricing.custom[p.id];
     const multiple = cfg.multiples[p.id];
     return `
-      <tr data-portal-product="${p.id}">
-        <td style="text-align:center;padding:8px 6px;">
+      <div class="portal-card" data-portal-product="${p.id}" style="border:1.5px solid var(--border);
+        border-radius:var(--radius-md);padding:12px 14px;margin-bottom:8px;background:var(--white);
+        transition:opacity .15s;">
+        <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
           <input type="checkbox" class="portal-include" data-product-id="${p.id}"
-            ${included ? 'checked' : ''} onchange="updatePortalPricePreviews()" />
-        </td>
-        <td style="font-weight:700;font-size:12px;padding:8px;overflow-wrap:break-word;">${escapeHtml(p.name)}</td>
-        <td style="font-size:12px;color:var(--gray-400);white-space:nowrap;padding:8px;">${formatCurrency(Number(p.price || 0))}</td>
-        <td style="padding:6px 8px 6px 0;">
-          <input type="number" min="0" step="0.01" class="portal-custom" data-product-id="${p.id}"
-            value="${custom !== undefined && custom !== null && custom !== '' ? custom : ''}"
-            placeholder="${escapeHtml(sym)} —" oninput="updatePortalPricePreviews()"
-            style="width:100%;padding:7px 8px;font-size:12px;border:1.5px solid var(--border);
-              border-radius:8px;font-family:inherit;box-sizing:border-box;" />
-        </td>
-        <td style="padding:6px 8px 6px 0;">
-          <input type="number" min="2" step="1" class="portal-multiple" data-product-id="${p.id}"
-            value="${multiple && Number(multiple) >= 2 ? Number(multiple) : ''}"
-            placeholder="×" title="Only sold in multiples of this quantity (e.g. 12 = by the dozen)"
-            oninput="updatePortalPricePreviews()"
-            style="width:100%;padding:7px 8px;font-size:12px;border:1.5px solid var(--border);
-              border-radius:8px;font-family:inherit;box-sizing:border-box;" />
-        </td>
-        <td class="portal-preview" style="font-weight:900;font-size:12px;white-space:nowrap;padding:8px;"></td>
-      </tr>`;
+            ${included ? 'checked' : ''} onchange="updatePortalPricePreviews()"
+            style="width:20px;height:20px;flex-shrink:0;" />
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:800;font-size:14px;">${escapeHtml(p.name)}</div>
+            <div style="font-size:11.5px;color:var(--gray-400);margin-top:1px;">Retail ${formatCurrency(Number(p.price || 0))}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);">They Pay</div>
+            <div class="portal-preview" style="font-weight:900;font-size:16px;white-space:nowrap;"></div>
+          </div>
+        </label>
+        <div class="portal-card-detail" style="display:flex;gap:10px;margin-top:10px;padding-top:10px;
+          border-top:1px dashed var(--gray-200);">
+          <div style="flex:1;">
+            <label style="display:block;font-size:9.5px;font-weight:800;letter-spacing:.5px;
+              text-transform:uppercase;color:var(--gray-500);margin-bottom:4px;">Custom Price <span style="text-transform:none;font-weight:600;opacity:.7;">(optional)</span></label>
+            <input type="number" min="0" step="0.01" class="portal-custom" data-product-id="${p.id}"
+              value="${custom !== undefined && custom !== null && custom !== '' ? custom : ''}"
+              placeholder="${escapeHtml(sym)} —" oninput="updatePortalPricePreviews()"
+              style="width:100%;padding:9px 10px;font-size:13px;border:1.5px solid var(--border);
+                border-radius:8px;font-family:inherit;box-sizing:border-box;" />
+          </div>
+          <div style="flex:1;">
+            <label style="display:block;font-size:9.5px;font-weight:800;letter-spacing:.5px;
+              text-transform:uppercase;color:var(--gray-500);margin-bottom:4px;">Sold In Packs Of <span style="text-transform:none;font-weight:600;opacity:.7;">(optional)</span></label>
+            <input type="number" min="2" step="1" class="portal-multiple" data-product-id="${p.id}"
+              value="${multiple && Number(multiple) >= 2 ? Number(multiple) : ''}"
+              placeholder="e.g. 12" title="Only sold in multiples of this quantity (e.g. 12 = by the dozen)"
+              oninput="updatePortalPricePreviews()"
+              style="width:100%;padding:9px 10px;font-size:13px;border:1.5px solid var(--border);
+                border-radius:8px;font-family:inherit;box-sizing:border-box;" />
+          </div>
+        </div>
+      </div>`;
   }).join('');
 
   const hasLink = cfg.token && !cfg.revoked;
+  const modeBtn = (mode, label) => `
+    <button type="button" class="portal-mode-btn" data-mode="${mode}"
+      onclick="setPortalPricingMode('${mode}')"
+      style="padding:9px 16px;border-radius:99px;border:1.5px solid var(--border);
+        background:var(--white);color:var(--black);font-size:12.5px;font-weight:800;
+        font-family:inherit;cursor:pointer;white-space:nowrap;">${label}</button>`;
 
   m.innerHTML = `
-    <div class="modal" style="max-width:min(880px, 94vw);">
+    <div class="modal" style="max-width:min(680px, 94vw);">
       <h3 style="margin-bottom:2px;">Order Form — ${escapeHtml(client.name)}</h3>
-      <div style="font-size:11px;color:var(--gray-400);margin-bottom:16px;">
+      <div style="font-size:12px;color:var(--gray-400);margin-bottom:18px;">
         Set this client's prices, pick their products, then share their private order link.
       </div>
 
-      <div style="background:var(--gray-50);border:1.5px solid var(--border);
-        border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:14px;">
-        <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
-          color:var(--gray-500);margin-bottom:8px;">General Pricing</div>
-        <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;">
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer;">
-            <input type="radio" name="portalPricingMode" value="retail"
-              ${cfg.pricing.mode === 'retail' ? 'checked' : ''} onchange="updatePortalPricePreviews()" />
-            Standard retail
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer;">
-            <input type="radio" name="portalPricingMode" value="percent"
-              ${cfg.pricing.mode === 'percent' ? 'checked' : ''} onchange="updatePortalPricePreviews()" />
-            Percent off
-            <input type="number" step="0.1" id="portalPercentOff" value="${cfg.pricing.percentOff || ''}"
-              placeholder="10" oninput="updatePortalPricePreviews()"
-              style="width:64px;padding:5px 7px;font-size:12px;border:1.5px solid var(--border);
-                border-radius:8px;font-family:inherit;" /> %
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer;">
-            <input type="radio" name="portalPricingMode" value="amount"
-              ${cfg.pricing.mode === 'amount' ? 'checked' : ''} onchange="updatePortalPricePreviews()" />
-            Amount off
-            <input type="number" step="0.01" id="portalAmountOff" value="${cfg.pricing.amountOff || ''}"
-              placeholder="15" oninput="updatePortalPricePreviews()"
-              style="width:74px;padding:5px 7px;font-size:12px;border:1.5px solid var(--border);
-                border-radius:8px;font-family:inherit;" /> ${escapeHtml(sym)}
-          </label>
-        </div>
-        <div style="font-size:10px;color:var(--gray-400);margin-top:6px;">
-          A custom price on a product always overrides the general adjustment.
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+        color:var(--gray-500);margin-bottom:10px;">1 · General Pricing</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        ${modeBtn('retail', 'Standard retail')}
+        ${modeBtn('percent', 'Percent off')}
+        ${modeBtn('amount', 'Amount off')}
+      </div>
+      <div id="portalPercentWrap" style="display:none;align-items:center;gap:8px;margin-bottom:12px;">
+        <input type="number" step="0.1" id="portalPercentOff" value="${cfg.pricing.percentOff || ''}"
+          placeholder="10" oninput="updatePortalPricePreviews()"
+          style="width:90px;padding:9px 10px;font-size:14px;font-weight:800;border:1.5px solid var(--border);
+            border-radius:8px;font-family:inherit;" />
+        <span style="font-size:13px;font-weight:700;color:var(--gray-500);">% off every product's retail price</span>
+      </div>
+      <div id="portalAmountWrap" style="display:none;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:14px;font-weight:800;">${escapeHtml(sym)}</span>
+        <input type="number" step="0.01" id="portalAmountOff" value="${cfg.pricing.amountOff || ''}"
+          placeholder="15" oninput="updatePortalPricePreviews()"
+          style="width:90px;padding:9px 10px;font-size:14px;font-weight:800;border:1.5px solid var(--border);
+            border-radius:8px;font-family:inherit;" />
+        <span style="font-size:13px;font-weight:700;color:var(--gray-500);">off every product's retail price</span>
+      </div>
+      <div style="font-size:11px;color:var(--gray-400);margin-bottom:18px;">
+        A custom price set on a product below always overrides this.
+      </div>
+
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+          color:var(--gray-500);">2 · Products <span id="portalIncludedCount" style="color:var(--gray-400);font-weight:600;letter-spacing:0;text-transform:none;"></span></div>
+        <div style="display:flex;gap:12px;">
+          <button type="button" onclick="togglePortalIncludeAll(true)" style="background:none;border:none;
+            padding:0;font-size:11.5px;font-weight:800;color:var(--black);cursor:pointer;
+            font-family:inherit;text-decoration:underline;">Select all</button>
+          <button type="button" onclick="togglePortalIncludeAll(false)" style="background:none;border:none;
+            padding:0;font-size:11.5px;font-weight:800;color:var(--gray-500);cursor:pointer;
+            font-family:inherit;text-decoration:underline;">Select none</button>
         </div>
       </div>
 
-      <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
-        overflow:hidden;margin-bottom:14px;">
-        <div style="max-height:min(46vh, 420px);overflow-y:auto;">
-          <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-            <colgroup>
-              <col style="width:42px;">
-              <col>
-              <col style="width:88px;">
-              <col style="width:116px;">
-              <col style="width:96px;">
-              <col style="width:104px;">
-            </colgroup>
-            <thead>
-              <tr style="position:sticky;top:0;background:var(--white);box-shadow:0 1px 0 var(--border);z-index:1;">
-                <th style="padding:10px 8px;text-align:center;vertical-align:top;">
-                  <input type="checkbox" id="portalIncludeAll" checked
-                    onchange="togglePortalIncludeAll(this.checked)" title="Include all" />
-                </th>
-                <th style="padding:10px 8px;text-align:left;vertical-align:top;">
-                  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">Product</div>
-                  <div style="font-size:9.5px;font-weight:600;color:var(--gray-400);text-transform:none;letter-spacing:0;margin-top:2px;">tick = they can order it</div>
-                </th>
-                <th style="padding:10px 8px;text-align:left;vertical-align:top;">
-                  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">Retail</div>
-                  <div style="font-size:9.5px;font-weight:600;color:var(--gray-400);text-transform:none;letter-spacing:0;margin-top:2px;">your normal price</div>
-                </th>
-                <th style="padding:10px 8px;text-align:left;vertical-align:top;">
-                  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">Custom Price</div>
-                  <div style="font-size:9.5px;font-weight:600;color:var(--gray-400);text-transform:none;letter-spacing:0;margin-top:2px;">special price, optional</div>
-                </th>
-                <th style="padding:10px 8px;text-align:left;vertical-align:top;">
-                  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">Sold In</div>
-                  <div style="font-size:9.5px;font-weight:600;color:var(--gray-400);text-transform:none;letter-spacing:0;margin-top:2px;">packs of, e.g. 12</div>
-                </th>
-                <th style="padding:10px 8px;text-align:left;vertical-align:top;">
-                  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">They Pay</div>
-                  <div style="font-size:9.5px;font-weight:600;color:var(--gray-400);text-transform:none;letter-spacing:0;margin-top:2px;">price on their form</div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>${rows || `<tr><td colspan="6" class="empty-state">No products yet</td></tr>`}</tbody>
-          </table>
-        </div>
+      <div style="max-height:min(48vh, 440px);overflow-y:auto;margin-bottom:18px;padding-right:2px;">
+        ${cards || `<div class="empty-state">No products yet</div>`}
       </div>
 
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+        color:var(--gray-500);margin-bottom:10px;">3 · Share Link</div>
       <div id="portalShareSection" style="display:${hasLink ? 'block' : 'none'};background:var(--gray-50);
         border:1.5px solid var(--border);border-radius:var(--radius-lg);
         padding:12px 14px;margin-bottom:14px;">
@@ -490,8 +477,25 @@ function openClientPortalModal(clientId) {
     </div>`;
 
   openModal('clientPortalModal');
-  updatePortalPricePreviews();
+  setPortalPricingMode(cfg.pricing.mode);
   if (hasLink) _renderPortalQR(cfg.token);
+}
+
+function setPortalPricingMode(mode) {
+  const modal = document.getElementById('clientPortalModal');
+  if (!modal) return;
+  modal.dataset.pricingMode = mode;
+  modal.querySelectorAll('.portal-mode-btn').forEach(btn => {
+    const active = btn.dataset.mode === mode;
+    btn.style.background    = active ? 'var(--black)' : 'var(--white)';
+    btn.style.color         = active ? '#fff' : 'var(--black)';
+    btn.style.borderColor   = active ? 'var(--black)' : 'var(--border)';
+  });
+  const percentWrap = document.getElementById('portalPercentWrap');
+  const amountWrap  = document.getElementById('portalAmountWrap');
+  if (percentWrap) percentWrap.style.display = mode === 'percent' ? 'flex' : 'none';
+  if (amountWrap)  amountWrap.style.display  = mode === 'amount'  ? 'flex' : 'none';
+  updatePortalPricePreviews();
 }
 
 function togglePortalIncludeAll(checked) {
@@ -504,7 +508,7 @@ function _readPortalModalConfig() {
   const modal = document.getElementById('clientPortalModal');
   if (!modal) return null;
 
-  const mode = modal.querySelector('input[name="portalPricingMode"]:checked')?.value || 'retail';
+  const mode = modal.dataset.pricingMode || 'retail';
   const percentOff = Number(document.getElementById('portalPercentOff')?.value || 0);
   const amountOff  = Number(document.getElementById('portalAmountOff')?.value  || 0);
 
@@ -533,33 +537,39 @@ function updatePortalPricePreviews() {
   if (!modal) return;
   const cfg = _readPortalModalConfig();
   const products = Array.isArray(APP_STATE.products) ? APP_STATE.products : [];
+  let includedCount = 0;
 
-  modal.querySelectorAll('tr[data-portal-product]').forEach(tr => {
-    const product = products.find(p => String(p.id) === String(tr.dataset.portalProduct));
-    const cell     = tr.querySelector('.portal-preview');
-    const included = tr.querySelector('.portal-include')?.checked;
+  modal.querySelectorAll('.portal-card[data-portal-product]').forEach(card => {
+    const product  = products.find(p => String(p.id) === String(card.dataset.portalProduct));
+    const cell     = card.querySelector('.portal-preview');
+    const detail   = card.querySelector('.portal-card-detail');
+    const included = card.querySelector('.portal-include')?.checked;
     if (!product || !cell) return;
+
     if (!included) {
       cell.innerHTML = `<span style="color:var(--gray-300);">not offered</span>`;
-      tr.style.opacity = '.45';
+      card.style.opacity = '.5';
+      if (detail) detail.style.display = 'none';
       return;
     }
-    tr.style.opacity = '1';
+    includedCount++;
+    card.style.opacity = '1';
+    if (detail) detail.style.display = 'flex';
+
     const price  = resolvePortalPrice(cfg, product);
     const retail = round2(Number(product.price || 0));
     const diff   = price !== retail
-      ? `<span style="font-size:10px;color:${price < retail ? '#15803d' : 'var(--danger)'};margin-left:4px;">
-           ${price < retail ? '▾' : '▴'}</span>`
+      ? `<div style="font-size:10px;color:${price < retail ? '#15803d' : 'var(--danger)'};font-weight:700;">
+           ${price < retail ? '▾ ' : '▴ '}vs ${formatCurrency(retail)}</div>`
       : '';
-    const multRaw = Math.floor(Number(tr.querySelector('.portal-multiple')?.value || 0));
+    const multRaw = Math.floor(Number(card.querySelector('.portal-multiple')?.value || 0));
     const multTag = multRaw >= 2
-      ? `<span style="font-size:10px;color:var(--gray-400);margin-left:4px;">×${multRaw}</span>` : '';
+      ? `<div style="font-size:10px;color:var(--gray-400);font-weight:700;">packs of ${multRaw}</div>` : '';
     cell.innerHTML = `${formatCurrency(price)}${diff}${multTag}`;
   });
 
-  const all = modal.querySelectorAll('.portal-include');
-  const allBox = document.getElementById('portalIncludeAll');
-  if (allBox) allBox.checked = [...all].every(cb => cb.checked);
+  const countEl = document.getElementById('portalIncludedCount');
+  if (countEl) countEl.textContent = `(${includedCount} of ${products.length} offered)`;
 }
 
 function saveClientPortalConfig(silent = false) {
@@ -2251,6 +2261,7 @@ window.initPortalInboxPolling         = initPortalInboxPolling;
 window.updatePortalInboxBadge         = updatePortalInboxBadge;
 window.updatePortalPricePreviews      = updatePortalPricePreviews;
 window.togglePortalIncludeAll         = togglePortalIncludeAll;
+window.setPortalPricingMode           = setPortalPricingMode;
 window.saveClientPortalConfig         = saveClientPortalConfig;
 window.shareClientPortal              = shareClientPortal;
 window.revokeClientPortal             = revokeClientPortal;
