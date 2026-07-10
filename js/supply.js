@@ -343,35 +343,35 @@ function openClientPortalModal(clientId) {
     const multiple = cfg.multiples[p.id];
     return `
       <tr data-portal-product="${p.id}">
-        <td style="text-align:center;">
+        <td style="text-align:center;padding:8px 6px;">
           <input type="checkbox" class="portal-include" data-product-id="${p.id}"
             ${included ? 'checked' : ''} onchange="updatePortalPricePreviews()" />
         </td>
-        <td style="font-weight:700;font-size:12px;">${escapeHtml(p.name)}</td>
-        <td style="font-size:12px;color:var(--gray-400);white-space:nowrap;">${formatCurrency(Number(p.price || 0))}</td>
-        <td>
+        <td style="font-weight:700;font-size:12px;padding:8px;overflow-wrap:break-word;">${escapeHtml(p.name)}</td>
+        <td style="font-size:12px;color:var(--gray-400);white-space:nowrap;padding:8px;">${formatCurrency(Number(p.price || 0))}</td>
+        <td style="padding:6px 8px 6px 0;">
           <input type="number" min="0" step="0.01" class="portal-custom" data-product-id="${p.id}"
             value="${custom !== undefined && custom !== null && custom !== '' ? custom : ''}"
-            placeholder="—" oninput="updatePortalPricePreviews()"
-            style="width:90px;padding:6px 8px;font-size:12px;border:1.5px solid var(--border);
-              border-radius:8px;font-family:inherit;" />
+            placeholder="${escapeHtml(sym)} —" oninput="updatePortalPricePreviews()"
+            style="width:100%;padding:7px 8px;font-size:12px;border:1.5px solid var(--border);
+              border-radius:8px;font-family:inherit;box-sizing:border-box;" />
         </td>
-        <td>
+        <td style="padding:6px 8px 6px 0;">
           <input type="number" min="2" step="1" class="portal-multiple" data-product-id="${p.id}"
             value="${multiple && Number(multiple) >= 2 ? Number(multiple) : ''}"
-            placeholder="—" title="Only sold in multiples of this quantity (e.g. 12 = by the dozen)"
+            placeholder="×" title="Only sold in multiples of this quantity (e.g. 12 = by the dozen)"
             oninput="updatePortalPricePreviews()"
-            style="width:58px;padding:6px 8px;font-size:12px;border:1.5px solid var(--border);
-              border-radius:8px;font-family:inherit;" />
+            style="width:100%;padding:7px 8px;font-size:12px;border:1.5px solid var(--border);
+              border-radius:8px;font-family:inherit;box-sizing:border-box;" />
         </td>
-        <td class="portal-preview" style="font-weight:900;font-size:12px;white-space:nowrap;"></td>
+        <td class="portal-preview" style="font-weight:900;font-size:12px;white-space:nowrap;padding:8px;"></td>
       </tr>`;
   }).join('');
 
   const hasLink = cfg.token && !cfg.revoked;
 
   m.innerHTML = `
-    <div class="modal" style="max-width:640px;">
+    <div class="modal" style="max-width:min(880px, 94vw);">
       <h3 style="margin-bottom:2px;">Order Form — ${escapeHtml(client.name)}</h3>
       <div style="font-size:11px;color:var(--gray-400);margin-bottom:16px;">
         Set this client's prices, pick their products, then share their private order link.
@@ -413,25 +413,42 @@ function openClientPortalModal(clientId) {
 
       <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
         overflow:hidden;margin-bottom:14px;">
-        <div style="max-height:260px;overflow-y:auto;">
-          <table style="width:100%;border-collapse:collapse;">
+        <div style="max-height:min(46vh, 420px);overflow-y:auto;">
+          <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+            <colgroup>
+              <col style="width:42px;">
+              <col>
+              <col style="width:88px;">
+              <col style="width:116px;">
+              <col style="width:96px;">
+              <col style="width:104px;">
+            </colgroup>
             <thead>
-              <tr style="position:sticky;top:0;background:var(--white);box-shadow:0 1px 0 var(--border);">
-                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
-                  color:var(--gray-500);text-align:center;">
+              <tr style="position:sticky;top:0;background:var(--white);box-shadow:0 1px 0 var(--border);z-index:1;">
+                <th style="padding:10px 8px;text-align:center;vertical-align:top;">
                   <input type="checkbox" id="portalIncludeAll" checked
                     onchange="togglePortalIncludeAll(this.checked)" title="Include all" />
                 </th>
-                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
-                  color:var(--gray-500);text-align:left;">Product</th>
-                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
-                  color:var(--gray-500);text-align:left;">Retail</th>
-                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
-                  color:var(--gray-500);text-align:left;">Custom Price</th>
-                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
-                  color:var(--gray-500);text-align:left;" title="Only sold in multiples of…">Sold In</th>
-                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
-                  color:var(--gray-500);text-align:left;">They Pay</th>
+                <th style="padding:10px 8px;text-align:left;vertical-align:top;">
+                  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">Product</div>
+                  <div style="font-size:9.5px;font-weight:600;color:var(--gray-400);text-transform:none;letter-spacing:0;margin-top:2px;">tick = they can order it</div>
+                </th>
+                <th style="padding:10px 8px;text-align:left;vertical-align:top;">
+                  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">Retail</div>
+                  <div style="font-size:9.5px;font-weight:600;color:var(--gray-400);text-transform:none;letter-spacing:0;margin-top:2px;">your normal price</div>
+                </th>
+                <th style="padding:10px 8px;text-align:left;vertical-align:top;">
+                  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">Custom Price</div>
+                  <div style="font-size:9.5px;font-weight:600;color:var(--gray-400);text-transform:none;letter-spacing:0;margin-top:2px;">special price, optional</div>
+                </th>
+                <th style="padding:10px 8px;text-align:left;vertical-align:top;">
+                  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">Sold In</div>
+                  <div style="font-size:9.5px;font-weight:600;color:var(--gray-400);text-transform:none;letter-spacing:0;margin-top:2px;">packs of, e.g. 12</div>
+                </th>
+                <th style="padding:10px 8px;text-align:left;vertical-align:top;">
+                  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gray-600);">They Pay</div>
+                  <div style="font-size:9.5px;font-weight:600;color:var(--gray-400);text-transform:none;letter-spacing:0;margin-top:2px;">price on their form</div>
+                </th>
               </tr>
             </thead>
             <tbody>${rows || `<tr><td colspan="6" class="empty-state">No products yet</td></tr>`}</tbody>
@@ -838,6 +855,11 @@ function _convertPortalOrder(row) {
   if (row.requested_date)    noteParts.push(`Requested delivery: ${row.requested_date}`);
   if (row.payment_method)    noteParts.push(`Client will pay by: ${row.payment_method}`
     + (row.payment_reference ? ` (ref ${row.payment_reference})` : ''));
+  if (row.payment_split === 'half') {
+    const half = round2(subtotal / 2);
+    noteParts.push(`50% DOWNPAYMENT: ${formatCurrency(half)} sent, balance ${formatCurrency(subtotal - half)} on delivery`);
+  }
+  if (row.payment_proof)     noteParts.push('Payment screenshot attached — open the order to view it');
   if (row.notes)             noteParts.push(`Client notes: ${row.notes}`);
   if (missing.length)        noteParts.push(`⚠ No longer in your products: ${missing.join(', ')}`);
 
@@ -861,6 +883,8 @@ function _convertPortalOrder(row) {
     portalOrderId:          row.id,
     clientPaymentMethod:    row.payment_method    || '',
     clientPaymentReference: row.payment_reference || '',
+    clientPaymentSplit:     row.payment_split === 'half' ? 'half' : 'full',
+    clientPaymentProof:     row.payment_proof     || '',
     requestedDate:          row.requested_date    || '',
     createdAt: timestamp,
     updatedAt: timestamp
@@ -2337,6 +2361,29 @@ function openSupplyOrderView(orderId) {
 
     <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">Status Timeline</div>
     <div style="margin-bottom:20px;">${statusRows}</div>
+
+    ${order.clientPaymentMethod ? `
+    <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">Client Payment</div>
+    <div style="background:var(--gray-50);border:1.5px solid var(--border);border-radius:var(--radius-lg);
+      padding:12px 14px;margin-bottom:20px;">
+      <div style="font-size:13px;font-weight:800;">
+        ${escapeHtml(order.clientPaymentMethod)}
+        ${order.clientPaymentReference ? `<span style="font-weight:600;color:var(--gray-400);"> · ref ${escapeHtml(order.clientPaymentReference)}</span>` : ''}
+      </div>
+      ${order.clientPaymentSplit === 'half' ? `
+      <div style="font-size:12px;font-weight:700;margin-top:4px;">
+        <span style="color:#15803d;">50% downpayment: ${formatCurrency(round2((order.grandTotal||0)/2))}</span>
+        <span style="color:var(--gray-400);"> · balance ${formatCurrency((order.grandTotal||0) - round2((order.grandTotal||0)/2))} on delivery</span>
+      </div>` : order.clientPaymentSplit === 'full' ? `
+      <div style="font-size:12px;font-weight:700;color:#15803d;margin-top:4px;">Paid in full</div>` : ''}
+      ${order.clientPaymentProof ? `
+      <div style="margin-top:10px;">
+        <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:6px;">Payment Screenshot</div>
+        <img src="${escapeHtml(order.clientPaymentProof)}" alt="Payment proof"
+          style="max-width:min(320px,100%);max-height:380px;border:1.5px solid var(--border);
+            border-radius:10px;display:block;" />
+      </div>` : ''}
+    </div>` : ''}
 
     ${order.notes ? `
     <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:8px;">Notes</div>
