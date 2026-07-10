@@ -47,11 +47,18 @@ CREATE TABLE IF NOT EXISTS public.portal_orders (
   requested_date    date,
   payment_method    text        NOT NULL DEFAULT '',
   payment_reference text        NOT NULL DEFAULT '',
+  payment_split     text        NOT NULL DEFAULT 'full',   -- full | half (50% downpayment)
+  payment_proof     text        NOT NULL DEFAULT '',       -- data-URL screenshot of the transfer
   subtotal          numeric     NOT NULL DEFAULT 0,
   status            text        NOT NULL DEFAULT 'pending',  -- pending | imported
   created_at        timestamptz NOT NULL DEFAULT now(),
   imported_at       timestamptz
 );
+
+-- Upgrades for installs that ran an earlier version of this file
+ALTER TABLE public.portal_orders
+  ADD COLUMN IF NOT EXISTS payment_split text NOT NULL DEFAULT 'full',
+  ADD COLUMN IF NOT EXISTS payment_proof text NOT NULL DEFAULT '';
 
 CREATE INDEX IF NOT EXISTS portal_orders_inbox
   ON public.portal_orders (tenant_id, status, created_at);
@@ -101,13 +108,18 @@ $$;
 -- ── RPC: submit an order (public, for order.html) ──
 -- Client sends only {productId, qty} lines. Every line is re-priced
 -- from the published catalog so a tampered page cannot alter prices.
+-- Drop the previous signature so re-running doesn't leave an overload behind.
+DROP FUNCTION IF EXISTS public.submit_portal_order(text, jsonb, text, date, text, text);
+
 CREATE OR REPLACE FUNCTION public.submit_portal_order(
   p_token             text,
   p_items             jsonb,               -- [{ productId, qty }]
   p_notes             text    DEFAULT '',
   p_requested_date    date    DEFAULT NULL,
   p_payment_method    text    DEFAULT '',
-  p_payment_reference text    DEFAULT ''
+  p_payment_reference text    DEFAULT '',
+  p_payment_split     text    DEFAULT 'full',   -- full | half
+  p_payment_proof     text    DEFAULT ''        -- data-URL image
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -159,6 +171,20 @@ BEGIN
     RAISE EXCEPTION 'Unknown payment method';
   END IF;
 
+  IF p_payment_split NOT IN ('full', 'half') THEN
+    RAISE EXCEPTION 'Invalid settlement option';
+  END IF;
+
+  -- Proof screenshot: must be an inline image and reasonably sized (~1.5 MB)
+  IF COALESCE(p_payment_proof, '') <> '' THEN
+    IF p_payment_proof !~ '^data:image/' THEN
+      RAISE EXCEPTION 'Payment proof must be an image';
+    END IF;
+    IF length(p_payment_proof) > 2000000 THEN
+      RAISE EXCEPTION 'Payment screenshot is too large — please attach a smaller image';
+    END IF;
+  END IF;
+
   FOR v_line IN SELECT * FROM jsonb_array_elements(p_items) LOOP
     v_qty := LEAST(GREATEST(COALESCE((v_line->>'qty')::numeric, 0), 0), 9999);
     CONTINUE WHEN v_qty <= 0;
@@ -195,12 +221,13 @@ BEGIN
 
   INSERT INTO public.portal_orders
     (token, tenant_id, client_id, client_name, items, notes, requested_date,
-     payment_method, payment_reference, subtotal)
+     payment_method, payment_reference, payment_split, payment_proof, subtotal)
   VALUES
     (v_portal.token, v_portal.tenant_id, v_portal.client_id, v_portal.client_name,
      v_items, LEFT(COALESCE(p_notes, ''), 2000), p_requested_date,
      LEFT(COALESCE(p_payment_method, ''), 120),
-     LEFT(COALESCE(p_payment_reference, ''), 200), v_subtotal)
+     LEFT(COALESCE(p_payment_reference, ''), 200),
+     p_payment_split, COALESCE(p_payment_proof, ''), v_subtotal)
   RETURNING id INTO v_id;
 
   RETURN jsonb_build_object(
@@ -213,4 +240,4 @@ $$;
 
 -- Only these two entry points are exposed to the public form
 GRANT EXECUTE ON FUNCTION public.get_order_portal(text) TO anon;
-GRANT EXECUTE ON FUNCTION public.submit_portal_order(text, jsonb, text, date, text, text) TO anon;
+GRANT EXECUTE ON FUNCTION public.submit_portal_order(text, jsonb, text, date, text, text, text, text) TO anon;
