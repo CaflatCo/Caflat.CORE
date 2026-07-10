@@ -229,41 +229,6 @@ function applyAuth(role) {
   if (typeof renderBranding === 'function') renderBranding();
   // Apply role access after DOM is ready
   requestAnimationFrame(() => applyRoleAccess(role));
-  _startIdleWatch();
-}
-
-/* ═══════════════════════════════════════════════════════
-   IDLE AUTO-LOGOUT
-   Counter terminals get left unattended mid-shift; auto-sign-out after
-   a stretch of no interaction so a walked-away admin session can't be
-   picked up by whoever's next at the register.
-═══════════════════════════════════════════════════════ */
-const IDLE_LOGOUT_MS = 15 * 60 * 1000; // 15 minutes
-let _idleTimer = null;
-let _idleWatchStarted = false;
-
-function _resetIdleTimer() {
-  clearTimeout(_idleTimer);
-  _idleTimer = setTimeout(() => {
-    if (getAuthSession()) {
-      showNotification('Signed out after inactivity', 'info');
-      logout();
-    }
-  }, IDLE_LOGOUT_MS);
-}
-
-function _startIdleWatch() {
-  if (!_idleWatchStarted) {
-    _idleWatchStarted = true;
-    ['mousedown', 'keydown', 'touchstart', 'wheel'].forEach(evt =>
-      document.addEventListener(evt, _resetIdleTimer, { passive: true })
-    );
-  }
-  _resetIdleTimer();
-}
-
-function _stopIdleWatch() {
-  clearTimeout(_idleTimer);
 }
 
 /* ── Login error helpers ── */
@@ -771,7 +736,6 @@ async function saveChangedPassword() {
    LOGOUT
 ═══════════════════════════════════════════════════════ */
 function logout() {
-  _stopIdleWatch();
   clearAuthSession();
   showNotification('Logged out successfully', 'info');
   location.reload();

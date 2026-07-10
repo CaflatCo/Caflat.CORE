@@ -241,3 +241,9 @@ $$;
 -- Only these two entry points are exposed to the public form
 GRANT EXECUTE ON FUNCTION public.get_order_portal(text) TO anon;
 GRANT EXECUTE ON FUNCTION public.submit_portal_order(text, jsonb, text, date, text, text, text, text) TO anon;
+
+-- Force PostgREST to pick up the (re)created functions immediately —
+-- without this, "Could not find the function ... in the schema cache"
+-- can persist for a while after a DDL change even though the function
+-- exists and is correctly granted.
+NOTIFY pgrst, 'reload schema';
