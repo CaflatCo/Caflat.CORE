@@ -56,6 +56,9 @@ CREATE TABLE IF NOT EXISTS public.portal_orders (
 CREATE INDEX IF NOT EXISTS portal_orders_inbox
   ON public.portal_orders (tenant_id, status, created_at);
 
+CREATE INDEX IF NOT EXISTS portal_orders_token_created
+  ON public.portal_orders (token, created_at);
+
 ALTER TABLE public.order_portals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.portal_orders ENABLE ROW LEVEL SECURITY;
 
@@ -128,6 +131,16 @@ BEGIN
     WHERE token = p_token AND NOT revoked;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Order link is no longer active';
+  END IF;
+
+  -- Rate limits per link: a leaked/forwarded link can't flood the inbox.
+  IF (SELECT count(*) FROM public.portal_orders
+      WHERE token = p_token AND created_at > now() - interval '10 minutes') >= 3 THEN
+    RAISE EXCEPTION 'Please wait a few minutes before sending another order';
+  END IF;
+  IF (SELECT count(*) FROM public.portal_orders
+      WHERE token = p_token AND created_at > now() - interval '24 hours') >= 10 THEN
+    RAISE EXCEPTION 'Daily order limit reached — contact your supplier directly';
   END IF;
 
   IF p_items IS NULL OR jsonb_typeof(p_items) <> 'array'
