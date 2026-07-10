@@ -195,6 +195,7 @@ input, textarea { font-family: inherit; }
 .bar-bump { animation: barbump .32s var(--spring); }
 @keyframes barbump { 40% { transform: scale(1.02); } }
 .bar-main { display: flex; align-items: center; gap: 14px; }
+.bar-icon { width: 18px; height: 18px; flex-shrink: 0; color: rgba(255,255,255,.6); }
 .bar-count { font-size: 11px; font-weight: 800; color: rgba(255,255,255,.65);
   text-transform: uppercase; letter-spacing: 1.2px; }
 .bar-total { font-size: 21px; font-weight: 900; letter-spacing: -.01em; line-height: 1.15; }
@@ -206,9 +207,10 @@ input, textarea { font-family: inherit; }
    active bar so an unusable "Review order" doesn't compete for attention */
 .bar-inner.empty { padding: 13px 20px; }
 .bar-inner.empty .bar-main { display: none; }
-.bar-empty-label { display: none; font-size: 12.5px; font-weight: 700;
-  color: rgba(255,255,255,.55); text-align: center; }
-.bar-inner.empty .bar-empty-label { display: block; }
+.bar-empty-label { display: none; align-items: center; justify-content: center; gap: 8px;
+  font-size: 12.5px; font-weight: 700; color: rgba(255,255,255,.55); }
+.bar-inner.empty .bar-empty-label { display: flex; }
+.bar-empty-label .bar-icon { color: rgba(255,255,255,.4); }
 
 /* ── Review bottom sheet ── */
 #sheetBackdrop { position: fixed; inset: 0; background: rgba(10,10,10,.45); z-index: 50;
@@ -442,8 +444,20 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
      becomes the active cart bar once something's added -->
 <div id="summaryBar">
   <div class="bar-inner empty">
-    <div class="bar-empty-label" id="barEmptyLabel">Your cart is empty</div>
+    <div class="bar-empty-label" id="barEmptyLabel">
+      <svg class="bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 8h12l-1 12.5a2 2 0 0 1-2 1.5H9a2 2 0 0 1-2-1.5L6 8Z"/>
+        <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
+      </svg>
+      <span>Your cart is empty</span>
+    </div>
     <div class="bar-main">
+      <svg class="bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 8h12l-1 12.5a2 2 0 0 1-2 1.5H9a2 2 0 0 1-2-1.5L6 8Z"/>
+        <path d="M9 8V6a3 3 0 0 1 6 0v2"/>
+      </svg>
       <div>
         <div class="bar-count" id="barCount"></div>
         <div class="bar-total" id="barTotal"></div>
