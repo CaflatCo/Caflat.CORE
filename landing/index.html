@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/style.css?v=20260702b">
+  <link rel="stylesheet" href="./css/style.css?v=20260710a">
 </head>
 <body>
 
@@ -65,15 +65,8 @@
 <!-- ─── Hero ─────────────────────────────────────────────────── -->
 <section class="hero grain">
   <div class="hero-grid" aria-hidden="true"></div>
-  <div class="hero-warm-glow" aria-hidden="true"></div>
 
-  <!-- Café photo — espresso machine, right side, fades into dark bg -->
-  <div class="hero-photo-right" aria-hidden="true"></div>
-
-  <!-- Crema undercurrent — a huge, blurred, slowly-swirling coffee surface -->
-  <div class="hero-crema" aria-hidden="true"></div>
-
-  <!-- Steam rising off the espresso machine -->
+  <!-- Steam rising off the halo's upper rim -->
   <div class="hero-steam" aria-hidden="true">
     <svg class="steam-wisp steam-wisp-1" viewBox="0 0 60 220" fill="none">
       <path d="M30 210 C14 178 46 150 30 118 C16 90 44 62 30 30" stroke="currentColor" stroke-width="10" stroke-linecap="round"/>
@@ -87,16 +80,28 @@
   </div>
 
   <div class="container hero-content reveal">
+    <!-- Eclipse halo — glowing ring hovering behind the headline -->
+    <div class="hero-halo" aria-hidden="true">
+      <div class="halo-bloom"></div>
+      <div class="halo-corona"></div>
+      <div class="halo-glint"></div>
+      <div class="halo-disc"></div>
+      <div class="halo-rim"></div>
+    </div>
+
+    <div class="hero-eyebrow">The operations platform for specialty cafés</div>
+
     <h1 class="hero-title">
       <span class="ht-w" style="--wi:0">The</span>
-      <span class="ht-w" style="--wi:1">operating</span>
-      <span class="ht-w" style="--wi:2">system</span><br>
+      <span class="ht-w" style="--wi:1">quiet</span>
+      <span class="ht-w" style="--wi:2">power</span><br>
       <span class="ht-w" style="--wi:3">behind</span>
       <span class="ht-w" style="--wi:4"><span class="hero-warm">every great café.</span></span>
     </h1>
 
     <p class="hero-body">
-      One platform for your entire operation, keeping every part of the business connected.
+      POS, inventory, production, and B2B supply — one calm, offline-first
+      system that never blinks during the morning rush.
     </p>
 
     <div class="hero-actions">
@@ -944,7 +949,7 @@
   </div>
 </div>
 
-<script src="./js/main.js?v=20260702b"></script>
+<script src="./js/main.js?v=20260710a"></script>
 <script>
 (function () {
   var fan = document.querySelector('.hero-card-fan');
