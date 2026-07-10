@@ -184,6 +184,16 @@ input, textarea { font-family: inherit; }
 .f-input:focus, .f-area:focus { border-color: var(--black); }
 .f-area { resize: none; min-height: 74px; line-height: 1.5; }
 
+/* Safari/iOS renders type="date" with its own internal box model that
+   ignores the width/padding/font rules above — pin it down explicitly so
+   it matches the height and left edge of the notes field right below it. */
+input.f-input[type="date"] {
+  -webkit-appearance: none; appearance: none;
+  min-height: 48px; box-sizing: border-box; display: block; width: 100%;
+  font-family: inherit;
+}
+input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+
 /* Payment chips */
 .pay-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .pay-chip { padding: 11px 18px; border-radius: 99px; border: 1.5px solid var(--gray-200);
@@ -249,6 +259,44 @@ input, textarea { font-family: inherit; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 .done-card h1 { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
 .done-card > p { font-size: 14px; color: var(--gray-500); line-height: 1.65; }
+
+.invoice-toggle { margin-top: 18px; font-size: 12.5px; font-weight: 800; color: var(--black);
+  text-decoration: underline; }
+
+#invoiceWrap { width: 100%; max-width: 420px; margin: 18px auto 0; animation: rise .4s var(--ease) both; }
+.invoice-card { background: var(--white); border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+  padding: 22px 22px 18px; text-align: left; box-shadow: var(--shadow); }
+.inv-head { display: flex; justify-content: space-between; align-items: flex-start;
+  padding-bottom: 14px; border-bottom: 2px solid var(--black); margin-bottom: 14px; }
+.inv-brand { font-size: 17px; font-weight: 900; }
+.inv-tag { font-size: 9.5px; font-weight: 900; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--accent); margin-top: 3px; }
+.inv-meta { text-align: right; font-size: 11.5px; color: var(--gray-500); line-height: 1.6; }
+.inv-meta b { color: var(--black); }
+.inv-row { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0;
+  font-size: 12.5px; }
+.inv-row .k { color: var(--gray-400); }
+.inv-line { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0;
+  font-size: 12.5px; border-bottom: 1px solid var(--gray-100); }
+.inv-line .nm { font-weight: 700; flex: 1; }
+.inv-line .q { color: var(--gray-400); white-space: nowrap; }
+.inv-line .amt { font-weight: 800; white-space: nowrap; }
+.inv-total { display: flex; justify-content: space-between; padding: 10px 0 2px;
+  margin-top: 6px; border-top: 1.5px solid var(--black); font-size: 15px; font-weight: 900; }
+.inv-settle { margin-top: 10px; padding: 10px 12px; background: var(--gray-50);
+  border-radius: var(--radius-sm); font-size: 12px; font-weight: 700; }
+.inv-note { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--gray-200);
+  font-size: 10.5px; color: var(--gray-400); line-height: 1.6; }
+.invoice-print-btn { display: block; width: 100%; margin-top: 12px; padding: 13px;
+  background: var(--white); border: 1.5px solid var(--gray-200); border-radius: 12px;
+  font-size: 13.5px; font-weight: 800; color: var(--black); transition: border-color .2s; }
+.invoice-print-btn:active { border-color: var(--black); }
+
+@media print {
+  body * { visibility: hidden; }
+  #invoiceCard, #invoiceCard * { visibility: visible; }
+  #invoiceCard { position: absolute; top: 0; left: 0; width: 100%; box-shadow: none; border: none; }
+}
 .ref-chip { display: inline-block; margin: 18px 0 4px; padding: 10px 20px;
   background: var(--white); border: 1.5px solid var(--gray-200); border-radius: 99px;
   font-size: 15px; font-weight: 500; letter-spacing: .12em; }
@@ -394,6 +442,12 @@ input, textarea { font-family: inherit; }
     <div class="ref-chip mono" id="doneRef"></div>
     <p style="font-size:12px;color:var(--gray-400);margin-top:6px;">Keep this reference for your records.</p>
     <div class="done-pay" id="donePay" style="display:none;"></div>
+    <button type="button" class="invoice-toggle" id="invoiceToggle" style="display:none;">View invoice</button>
+  </div>
+
+  <div id="invoiceWrap" style="display:none;">
+    <div class="invoice-card" id="invoiceCard"></div>
+    <button type="button" class="invoice-print-btn" id="invoicePrintBtn">Print / Save as PDF</button>
   </div>
 </div>
 
@@ -641,10 +695,60 @@ input, textarea { font-family: inherit; }
   function closeSheet() {
     $('sheetBackdrop').classList.remove('show');
     $('sheet').classList.remove('show');
+    $('sheet').style.transition = '';
+    $('sheet').style.transform = '';
     document.body.style.overflow = '';
   }
   $('reviewBtn').addEventListener('click', openSheet);
   $('sheetBackdrop').addEventListener('click', closeSheet);
+
+  /* ── Swipe down to dismiss ──
+     Drag-to-close only takes over once the sheet's own content is
+     scrolled to the top and the finger is moving downward — otherwise
+     a drag inside the sheet just scrolls its contents like normal. */
+  (function () {
+    var sheet    = $('sheet');
+    var scroller = document.querySelector('.sheet-scroll');
+    var dragging = false, closing = false, startY = 0, dy = 0;
+
+    function down(e) {
+      if (!sheet.classList.contains('show')) return;
+      dragging = true;
+      closing  = false;
+      startY   = (e.touches ? e.touches[0] : e).clientY;
+      dy = 0;
+    }
+    function move(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0] : e).clientY;
+      var delta = y - startY;
+      if (!closing) {
+        if (delta <= 0 || scroller.scrollTop > 0) return;   // scrolling up/within content — ignore
+        closing = true;
+        sheet.style.transition = 'none';
+      }
+      dy = delta;
+      if (e.cancelable) e.preventDefault();
+      sheet.style.transform = 'translateY(' + dy + 'px)';
+    }
+    function up() {
+      if (!dragging) return;
+      dragging = false;
+      if (!closing) return;
+      closing = false;
+      sheet.style.transition = '';
+      if (dy > 110) { closeSheet(); return; }
+      sheet.style.transform = '';
+    }
+
+    sheet.addEventListener('touchstart', down, { passive: true });
+    sheet.addEventListener('touchmove',  move, { passive: false });
+    sheet.addEventListener('touchend',   up);
+    sheet.addEventListener('touchcancel', up);
+    sheet.addEventListener('mousedown', down);
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  })();
 
   /* ── Payment methods ── */
   function payMethods() {
@@ -868,10 +972,69 @@ input, textarea { font-family: inherit; }
         '<div style="font-size:14px;font-weight:800;">' + esc(chosenPay) + '</div>';
       pay.style.display = 'block';
     }
+
+    // A settled order (QR/bank, full or 50%) gets an immediate provisional
+    // invoice the client can view/print/save — no wait for the cafe to act.
+    if (paysNow()) {
+      $('invoiceCard').innerHTML = buildInvoiceHtml(result, m);
+      $('invoiceToggle').style.display = 'inline-block';
+      $('invoiceToggle').textContent = 'View invoice';
+      $('invoiceWrap').style.display = 'none';
+    }
+
     $('summaryBar').classList.remove('show');
     show('success');
     window.scrollTo(0, 0);
   }
+
+  function buildInvoiceHtml(result, m) {
+    var now = new Date();
+    var lines = Object.keys(qtys).map(function (pid) {
+      var p = findProduct(pid);
+      return '<div class="inv-line">' +
+        '<span class="nm">' + esc(p.name) + '</span>' +
+        '<span class="q">×' + qtys[pid] + ' @ ' + money(p.price) + '</span>' +
+        '<span class="amt">' + money(p.price * qtys[pid]) + '</span>' +
+      '</div>';
+    }).join('');
+
+    var payNow  = payNowAmount();
+    var total   = currentTotal();
+    var settleHtml = chosenSplit === 'half'
+      ? '<div class="inv-settle">50% downpayment paid now: <b>' + money(payNow) + '</b>' +
+          '<div style="color:var(--gray-400);font-weight:600;margin-top:2px;">Balance due on delivery: ' +
+          money(total - payNow) + '</div></div>'
+      : '<div class="inv-settle">Paid in full: <b>' + money(payNow) + '</b></div>';
+
+    return (
+      '<div class="inv-head">' +
+        '<div>' +
+          '<div class="inv-brand">' + esc(portal.brand_name || 'Order Invoice') + '</div>' +
+          '<div class="inv-tag">Provisional Invoice</div>' +
+        '</div>' +
+        '<div class="inv-meta">' +
+          '<div><b>' + esc(result.reference) + '</b></div>' +
+          '<div>' + now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="inv-row"><span class="k">Billed to</span><span>' + esc(portal.client_name || '') + '</span></div>' +
+      '<div class="inv-row"><span class="k">Payment method</span><span>' +
+        esc(m.type === 'bank' ? (m.bankName || 'Bank transfer') : m.name) + '</span></div>' +
+      (chosenPay && $('payRef').value ? '<div class="inv-row"><span class="k">Reference</span><span>' + esc($('payRef').value) + '</span></div>' : '') +
+      '<div style="margin-top:10px;">' + lines + '</div>' +
+      '<div class="inv-total"><span>Total</span><span>' + money(total) + '</span></div>' +
+      settleHtml +
+      '<div class="inv-note">This is a provisional invoice for your records, generated automatically at checkout. ' +
+        esc(portal.brand_name || 'Your supplier') + ' will confirm the official invoice when your order is processed.</div>'
+    );
+  }
+
+  $('invoiceToggle').addEventListener('click', function () {
+    var open = $('invoiceWrap').style.display !== 'none';
+    $('invoiceWrap').style.display = open ? 'none' : 'block';
+    this.textContent = open ? 'View invoice' : 'Hide invoice';
+  });
+  $('invoicePrintBtn').addEventListener('click', function () { window.print(); });
 
   load();
 })();
