@@ -125,6 +125,54 @@ const statsObserver = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('[data-target]').forEach(el => statsObserver.observe(el));
 
+/* ─── Hero halo: pointer parallax + scroll dim ──────────────────
+   Writes only CSS custom properties; CSS keeps ownership of
+   compositing (translate/scale animations are untouched). */
+(() => {
+  const halo = document.querySelector('.hero-halo');
+  const hero = document.querySelector('.hero');
+  if (!halo || !hero) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Scroll: soft dim + upward drift while the hero leaves the viewport */
+  if (!reduce) {
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        if (y < window.innerHeight) {
+          halo.style.setProperty('--sy', (y * -0.12).toFixed(1) + 'px');
+          halo.style.setProperty('--halo-o', Math.max(0, 1 - y / 640).toFixed(3));
+        }
+        ticking = false;
+      });
+    }, { passive: true });
+  }
+
+  /* Pointer parallax — desktop fine-pointer only, eased via rAF lerp;
+     steam drifts the opposite way for cheap depth */
+  if (reduce || !window.matchMedia('(pointer: fine) and (min-width: 721px)').matches) return;
+  const steam = document.querySelector('.hero-steam');
+  let tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
+  const tick = () => {
+    cx += (tx - cx) * 0.06;
+    cy += (ty - cy) * 0.06;
+    halo.style.setProperty('--px', cx.toFixed(2) + 'px');
+    halo.style.setProperty('--py', cy.toFixed(2) + 'px');
+    if (steam) steam.style.translate = (cx * -0.5) + 'px ' + (cy * -0.5) + 'px';
+    raf = (Math.abs(tx - cx) > .05 || Math.abs(ty - cy) > .05)
+      ? requestAnimationFrame(tick) : null;
+  };
+  hero.addEventListener('pointermove', e => {
+    const r = hero.getBoundingClientRect();
+    tx = ((e.clientX - r.left) / r.width  - .5) * 14;
+    ty = ((e.clientY - r.top)  / r.height - .5) * 10;
+    if (!raf) raf = requestAnimationFrame(tick);
+  });
+})();
+
 /* ─── Request Access form ───────────────────────────────────── */
 const SUPABASE_URL    = 'https://tkrsebalgonimmozbgqc.supabase.co';
 const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcnNlYmFsZ29uaW1tb3piZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxNDgzNjUsImV4cCI6MjA2NTcyNDM2NX0.s5Jb0VEp1FPR10lVqBBODf93OIFczHGJXnpODWWCbf8';
