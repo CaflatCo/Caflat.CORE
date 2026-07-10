@@ -340,7 +340,7 @@ nav.scrolled {
   align-items: center;
   padding: 160px 0 120px;
   transition: padding-top .38s cubic-bezier(.22,.61,.36,1);
-  background: var(--dark);
+  background: radial-gradient(ellipse 70% 60% at 50% 22%, var(--dark-2) 0%, var(--dark) 72%);
   overflow: hidden;
   text-align: center;
   position: relative;
@@ -350,8 +350,8 @@ nav.scrolled {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,.014) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.014) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse 80% 70% at 50% 8%, black 25%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 8%, black 25%, transparent 100%);
@@ -398,7 +398,7 @@ nav.scrolled {
   position: absolute;
   inset: -34%;
   background: radial-gradient(circle,
-    rgba(200,163,117,.20) 0%, rgba(200,163,117,.07) 38%, transparent 66%);
+    rgba(200,163,117,.28) 0%, rgba(200,163,117,.12) 38%, transparent 66%);
   animation: glow-breathe 11s ease-in-out infinite;
 }
 
@@ -434,7 +434,7 @@ nav.scrolled {
   position: absolute;
   inset: 1.4%;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 40%, #12100d 0%, #0a0a0b 60%, #08080a 100%);
+  background: radial-gradient(circle at 50% 40%, #181511 0%, #0d0c0d 60%, #08080a 100%);
   overflow: hidden;
 }
 .halo-disc::before {
@@ -647,17 +647,11 @@ nav.scrolled {
   z-index: 2;
   max-width: 900px;
   margin: 0 auto;
-}
-
-.hero-eyebrow {
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .34em;
-  text-transform: uppercase;
-  color: rgba(200,163,117,.75);
-  margin-bottom: 26px;
-  opacity: 0;
-  animation: ht-word-in .95s cubic-bezier(.22,.61,.36,1) .12s both;
+  /* Compensates for the removed eyebrow line — .hero-halo is absolutely
+     positioned and measures its own top from this box's padding edge, so
+     this padding shifts only the in-flow headline back down, preserving
+     the tuned halo/headline overlap without touching --halo-lift. */
+  padding-top: 40px;
 }
 
 .hero-title {
@@ -683,7 +677,7 @@ nav.scrolled {
 
 .hero-body {
   font-size: clamp(1rem, 2vw, 1.18rem);
-  color: var(--text-dim);
+  color: rgba(244,242,238,.66);
   max-width: 500px;
   margin: 0 auto 24px;
   line-height: 1.8;
@@ -2031,7 +2025,6 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .fan-act-dot.green { animation: none; }
   .hero-steam { display: none; }
   .ht-w { animation: none; opacity: 1; filter: none; translate: none; }
-  .hero-eyebrow { animation: none; opacity: 1; }
 }
 
 /* ─── Responsive ─────────────────────────────────────────────── */
