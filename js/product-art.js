@@ -284,7 +284,7 @@
     var has = function (w) { return n.indexOf(w) !== -1; };
 
     /* specific before generic so overlaps resolve correctly */
-    if (has('scoopable') && has('dubai')) return 'scoopable-dubai';
+    if (has('scoopable') && (has('dubai') || has('pistachio') || has('kunafa') || has('knafeh') || has('crunch'))) return 'scoopable-dubai';
     if (has('scoopable')) return 'scoopable-classic';
     if (has('pistachio crunch') || (has('dubai') && has('crunch'))) return 'dubai-pistachio-crunch';
     if (has('biscoff') || has('lotus')) return 'biscoff-chewy';
