@@ -274,6 +274,8 @@ function _getPortalConfig(client) {
     },
     // null = all products; array = chosen subset
     allowedProductIds: Array.isArray(p.allowedProductIds) ? [...p.allowedProductIds] : null,
+    // productId → order-in-multiples-of (e.g. 12 = sold by the dozen)
+    multiples: { ...(p.multiples || {}) },
     token:       p.token       || '',
     publishedAt: p.publishedAt || '',
     revoked:     p.revoked === true
@@ -338,6 +340,7 @@ function openClientPortalModal(clientId) {
   const rows = products.map(p => {
     const included = !cfg.allowedProductIds || cfg.allowedProductIds.includes(String(p.id));
     const custom   = cfg.pricing.custom[p.id];
+    const multiple = cfg.multiples[p.id];
     return `
       <tr data-portal-product="${p.id}">
         <td style="text-align:center;">
@@ -351,6 +354,14 @@ function openClientPortalModal(clientId) {
             value="${custom !== undefined && custom !== null && custom !== '' ? custom : ''}"
             placeholder="—" oninput="updatePortalPricePreviews()"
             style="width:90px;padding:6px 8px;font-size:12px;border:1.5px solid var(--border);
+              border-radius:8px;font-family:inherit;" />
+        </td>
+        <td>
+          <input type="number" min="2" step="1" class="portal-multiple" data-product-id="${p.id}"
+            value="${multiple && Number(multiple) >= 2 ? Number(multiple) : ''}"
+            placeholder="—" title="Only sold in multiples of this quantity (e.g. 12 = by the dozen)"
+            oninput="updatePortalPricePreviews()"
+            style="width:58px;padding:6px 8px;font-size:12px;border:1.5px solid var(--border);
               border-radius:8px;font-family:inherit;" />
         </td>
         <td class="portal-preview" style="font-weight:900;font-size:12px;white-space:nowrap;"></td>
@@ -418,10 +429,12 @@ function openClientPortalModal(clientId) {
                 <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
                   color:var(--gray-500);text-align:left;">Custom Price</th>
                 <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
+                  color:var(--gray-500);text-align:left;" title="Only sold in multiples of…">Sold In</th>
+                <th style="padding:8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;
                   color:var(--gray-500);text-align:left;">They Pay</th>
               </tr>
             </thead>
-            <tbody>${rows || `<tr><td colspan="5" class="empty-state">No products yet</td></tr>`}</tbody>
+            <tbody>${rows || `<tr><td colspan="6" class="empty-state">No products yet</td></tr>`}</tbody>
           </table>
         </div>
       </div>
@@ -484,12 +497,18 @@ function _readPortalModalConfig() {
     if (v !== '' && Number.isFinite(Number(v))) custom[inp.dataset.productId] = Number(v);
   });
 
+  const multiples = {};
+  modal.querySelectorAll('.portal-multiple').forEach(inp => {
+    const v = Math.floor(Number(String(inp.value).trim()));
+    if (Number.isFinite(v) && v >= 2) multiples[inp.dataset.productId] = v;
+  });
+
   const allowed = [];
   modal.querySelectorAll('.portal-include').forEach(cb => {
     if (cb.checked) allowed.push(String(cb.dataset.productId));
   });
 
-  return { pricing: { mode, percentOff, amountOff, custom }, allowedProductIds: allowed };
+  return { pricing: { mode, percentOff, amountOff, custom }, allowedProductIds: allowed, multiples };
 }
 
 function updatePortalPricePreviews() {
@@ -515,7 +534,10 @@ function updatePortalPricePreviews() {
       ? `<span style="font-size:10px;color:${price < retail ? '#15803d' : 'var(--danger)'};margin-left:4px;">
            ${price < retail ? '▾' : '▴'}</span>`
       : '';
-    cell.innerHTML = `${formatCurrency(price)}${diff}`;
+    const multRaw = Math.floor(Number(tr.querySelector('.portal-multiple')?.value || 0));
+    const multTag = multRaw >= 2
+      ? `<span style="font-size:10px;color:var(--gray-400);margin-left:4px;">×${multRaw}</span>` : '';
+    cell.innerHTML = `${formatCurrency(price)}${diff}${multTag}`;
   });
 
   const all = modal.querySelectorAll('.portal-include');
@@ -535,7 +557,8 @@ function saveClientPortalConfig(silent = false) {
   const prev = _getPortalConfig(clients[idx]);
   clients[idx] = {
     ...clients[idx],
-    portal: { ...prev, pricing: read.pricing, allowedProductIds: read.allowedProductIds }
+    portal: { ...prev, pricing: read.pricing, allowedProductIds: read.allowedProductIds,
+      multiples: read.multiples }
   };
   updateState('supplierClients', () => clients);
   if (!silent) showNotification('Client pricing saved', 'success');
@@ -584,7 +607,8 @@ async function _publishClientPortal(client) {
     productId: String(p.id),
     name:      p.name,
     category:  p.category || '',
-    price:     resolvePortalPrice(cfg, p)
+    price:     resolvePortalPrice(cfg, p),
+    multiple:  Number(cfg.multiples[p.id]) >= 2 ? Math.floor(Number(cfg.multiples[p.id])) : 1
   }));
 
   // Payment methods the client can choose from — the supply checkout's

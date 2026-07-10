@@ -20,7 +20,7 @@
   --gray-400: #9b978f;
   --gray-500: #6f6b64;
   --gray-600: #4a4741;
-  --gold: #c8a96e;
+  --accent: #15803d;
   --danger: #dc2626;
   --ok: #15803d;
   --radius: 16px;
@@ -76,11 +76,11 @@ input, textarea { font-family: inherit; }
 
 .hero { padding: 34px 4px 26px; animation: rise .55s var(--ease) both; }
 .eyebrow { font-size: 10px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 10px; }
+  color: var(--accent); margin-bottom: 10px; }
 .brand { font-size: clamp(26px, 7vw, 34px); font-weight: 900; letter-spacing: -.02em;
   line-height: 1.1; margin-bottom: 8px; }
 .prepared { font-size: 13.5px; color: var(--gray-500); font-weight: 600; }
-.prepared b { color: var(--black); font-weight: 800; border-bottom: 2px solid var(--gold);
+.prepared b { color: var(--black); font-weight: 800; border-bottom: 2px solid var(--accent);
   padding-bottom: 1px; }
 
 .cat-label { font-size: 10.5px; font-weight: 900; letter-spacing: 2.4px; text-transform: uppercase;
@@ -99,7 +99,7 @@ input, textarea { font-family: inherit; }
 .card-name { font-size: 15px; font-weight: 800; line-height: 1.25; overflow-wrap: break-word; }
 .card-price { font-size: 13.5px; color: var(--gray-500); font-weight: 700; margin-top: 3px; }
 .card.picked .card-price { color: var(--black); }
-.card-line-total { font-size: 11px; font-weight: 800; color: var(--gold); margin-top: 2px;
+.card-line-total { font-size: 11px; font-weight: 800; color: var(--accent); margin-top: 2px;
   opacity: 0; transform: translateY(-3px); transition: all .25s var(--ease); }
 .card.picked .card-line-total { opacity: 1; transform: none; }
 
@@ -112,9 +112,14 @@ input, textarea { font-family: inherit; }
 .step-minus { border: 1.5px solid var(--gray-200); color: var(--gray-500); background: var(--white); }
 .step-minus[disabled] { opacity: .3; pointer-events: none; }
 .step-plus { background: var(--black); color: #fff; }
-.qty-input { width: 46px; height: 42px; text-align: center; font-size: 16px; font-weight: 900;
-  border: none; background: transparent; color: var(--black); outline: none; }
-.qty-input:focus { color: var(--gold); }
+.qty-input { width: 50px; height: 42px; text-align: center; font-size: 16px; font-weight: 900;
+  border: none; background: transparent; color: var(--black); outline: none;
+  box-shadow: inset 0 -2px 0 var(--gray-200); border-radius: 2px;
+  transition: box-shadow .2s var(--ease); }
+.qty-input:focus { color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
+.mult-tag { display: inline-block; margin-left: 7px; padding: 2px 8px; border-radius: 99px;
+  background: var(--gray-100); color: var(--gray-500); font-size: 10px; font-weight: 900;
+  letter-spacing: .4px; vertical-align: 2px; white-space: nowrap; }
 .qty-pop { animation: pop .28s var(--spring); }
 @keyframes pop { 40% { transform: scale(1.35); } }
 
@@ -193,12 +198,12 @@ input, textarea { font-family: inherit; }
 .pay-qr-img { width: min(240px, 70vw); border: 1.5px solid var(--gray-200); border-radius: 14px;
   padding: 10px; background: #fff; animation: rise .4s var(--ease) both; }
 .pay-qr-cap { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--gold); margin-top: 10px; }
+  color: var(--accent); margin-top: 10px; }
 .bank-box { border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
   padding: 14px 16px; text-align: left; animation: rise .4s var(--ease) both; }
 .bank-name { font-size: 13px; font-weight: 800; color: var(--gray-500); }
 .bank-acct { font-size: 18px; font-weight: 500; margin-top: 4px; letter-spacing: .06em; }
-.bank-copy { font-size: 11px; font-weight: 800; color: var(--gold); margin-top: 6px;
+.bank-copy { font-size: 11px; font-weight: 800; color: var(--accent); margin-top: 6px;
   text-transform: uppercase; letter-spacing: 1px; }
 
 .submit-btn {
@@ -217,9 +222,9 @@ input, textarea { font-family: inherit; }
 #success.active { display: flex; }
 .done-card { max-width: 400px; width: 100%; animation: rise .6s var(--ease) both; }
 .check-ring { width: 92px; height: 92px; margin: 0 auto 22px; }
-.check-ring circle { fill: none; stroke: var(--gold); stroke-width: 2.5;
+.check-ring circle { fill: none; stroke: var(--accent); stroke-width: 2.5;
   stroke-dasharray: 285; stroke-dashoffset: 285; animation: draw 1s var(--ease) .1s forwards; }
-.check-ring path { fill: none; stroke: var(--black); stroke-width: 6; stroke-linecap: round;
+.check-ring path { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round;
   stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60;
   animation: draw .55s var(--ease) .7s forwards; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
@@ -446,16 +451,20 @@ input, textarea { font-family: inherit; }
       html += '<div class="cat-label">' + esc(cat) + '</div>';
       byCat[cat].forEach(function (p) {
         var delay = Math.min(idx, 12) * 45;
+        var unit  = unitOf(p);
         html +=
           '<div class="card" data-pid="' + esc(p.productId) + '" style="animation-delay:' + delay + 'ms;">' +
             '<div class="card-info">' +
               '<div class="card-name">' + esc(p.name) + '</div>' +
-              '<div class="card-price">' + money(p.price) + '</div>' +
+              '<div class="card-price">' + money(p.price) +
+                (unit > 1 ? '<span class="mult-tag">sold in ' + unit + 's</span>' : '') +
+              '</div>' +
               '<div class="card-line-total" data-line></div>' +
             '</div>' +
             '<div class="stepper">' +
               '<button class="step-btn step-minus" data-minus aria-label="Less" disabled>−</button>' +
-              '<input class="qty-input" data-qty type="text" inputmode="decimal" value="0" aria-label="Quantity">' +
+              '<input class="qty-input" data-qty type="text" inputmode="decimal" value="0" ' +
+                'aria-label="Quantity — tap to type an amount" title="Tap to type an amount">' +
               '<button class="step-btn step-plus" data-plus aria-label="More">+</button>' +
             '</div>' +
           '</div>';
@@ -467,9 +476,10 @@ input, textarea { font-family: inherit; }
     $('catalog').addEventListener('click', function (e) {
       var card = e.target.closest('.card');
       if (!card) return;
-      var pid = card.getAttribute('data-pid');
-      if (e.target.closest('[data-plus]'))  setQty(pid, (qtys[pid] || 0) + 1, card);
-      if (e.target.closest('[data-minus]')) setQty(pid, (qtys[pid] || 0) - 1, card);
+      var pid  = card.getAttribute('data-pid');
+      var unit = unitOf(findProduct(pid));
+      if (e.target.closest('[data-plus]'))  setQty(pid, (qtys[pid] || 0) + unit, card);
+      if (e.target.closest('[data-minus]')) setQty(pid, (qtys[pid] || 0) - unit, card);
     });
     $('catalog').addEventListener('change', function (e) {
       if (!e.target.hasAttribute('data-qty')) return;
@@ -477,6 +487,15 @@ input, textarea { font-family: inherit; }
       var v = parseFloat(String(e.target.value).replace(/[^0-9.]/g, ''));
       setQty(card.getAttribute('data-pid'), isFinite(v) ? v : 0, card);
     });
+    // Typing a number directly is first-class: tap the qty → whole value selected
+    $('catalog').addEventListener('focusin', function (e) {
+      if (e.target.hasAttribute('data-qty')) e.target.select();
+    });
+  }
+
+  function unitOf(p) {
+    var m = p && Number(p.multiple);
+    return (isFinite(m) && m >= 2) ? Math.floor(m) : 1;
   }
 
   function findProduct(pid) {
@@ -487,10 +506,17 @@ input, textarea { font-family: inherit; }
   }
 
   function setQty(pid, q, card) {
-    q = Math.max(0, Math.min(9999, Math.round(q * 100) / 100));
+    var product = findProduct(pid);
+    var unit = unitOf(product);
+
+    q = Math.max(0, Math.round(q * 100) / 100);
+    if (unit > 1 && q > 0) {
+      // Snap typed amounts to the nearest pack size (never below one pack)
+      q = Math.max(unit, Math.round(q / unit) * unit);
+    }
+    q = Math.min(q, unit > 1 ? Math.floor(9999 / unit) * unit : 9999);
     if (q > 0) qtys[pid] = q; else delete qtys[pid];
 
-    var product = findProduct(pid);
     var input = card.querySelector('[data-qty]');
     var minus = card.querySelector('[data-minus]');
     var line  = card.querySelector('[data-line]');
