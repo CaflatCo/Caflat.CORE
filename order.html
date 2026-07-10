@@ -93,7 +93,7 @@ input, textarea { font-family: inherit; }
   from { transform: translate(0, 0) scale(1); }
   to   { transform: translate(22px, 14px) scale(1.15); }
 }
-.hero > * { position: relative; }
+.hero > *:not(.hero-blob) { position: relative; }
 .eyebrow { font-size: 10px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase;
   color: rgba(255,255,255,.55); margin-bottom: 10px; }
 .brand { font-size: clamp(26px, 7vw, 34px); font-weight: 900; letter-spacing: -.02em;
