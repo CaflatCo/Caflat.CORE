@@ -140,17 +140,19 @@ input, textarea { font-family: inherit; }
 .card-name { font-size: 15px; font-weight: 800; line-height: 1.25; overflow-wrap: break-word; }
 .card-price { font-size: 13.5px; color: var(--gray-500); font-weight: 700; margin-top: 3px; }
 .card.picked .card-price { color: var(--black); }
+.mult-row { margin-top: 5px; }
 .card-line-total { font-size: 11px; font-weight: 800; color: var(--accent); margin-top: 2px;
   opacity: 0; transform: translateY(-3px); transition: all .25s var(--ease); }
 .card.picked .card-line-total { opacity: 1; transform: none; }
 
 /* Powered-by badge (quiet growth loop → landing page) */
 .powered { display: flex; align-items: center; justify-content: center; gap: 6px;
-  width: fit-content; margin: 30px auto 0; padding: 8px 16px; border-radius: 99px;
-  background: var(--gray-100); color: var(--gray-500); font-size: 11px; font-weight: 700;
-  text-decoration: none; transition: background .2s, color .2s; }
-.powered b { font-weight: 900; color: var(--gray-600); }
-.powered:active { background: var(--gray-200); }
+  width: fit-content; margin: 34px auto 0; padding: 11px 22px; border-radius: 99px;
+  background: var(--black); color: rgba(255,255,255,.82); font-size: 12.5px; font-weight: 800;
+  text-decoration: none; letter-spacing: .1px; transition: transform .15s var(--ease), box-shadow .2s var(--ease);
+  box-shadow: 0 6px 18px -6px rgba(10,10,10,.35); }
+.powered b { font-weight: 900; color: #fff; }
+.powered:active { transform: scale(.96); box-shadow: 0 3px 10px -4px rgba(10,10,10,.3); }
 
 /* Stepper */
 .stepper { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
@@ -166,9 +168,9 @@ input, textarea { font-family: inherit; }
   box-shadow: inset 0 -2px 0 var(--gray-200); border-radius: 2px;
   transition: box-shadow .2s var(--ease); }
 .qty-input:focus { color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
-.mult-tag { display: inline-block; margin-left: 7px; padding: 2px 8px; border-radius: 99px;
+.mult-tag { display: inline-block; padding: 3px 10px; border-radius: 99px;
   background: var(--gray-100); color: var(--gray-500); font-size: 10px; font-weight: 900;
-  letter-spacing: .4px; vertical-align: 2px; white-space: nowrap; }
+  letter-spacing: .4px; white-space: nowrap; }
 .qty-pop { animation: pop .28s var(--spring); }
 @keyframes pop { 40% { transform: scale(1.35); } }
 
@@ -176,10 +178,8 @@ input, textarea { font-family: inherit; }
 #summaryBar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  transform: translateY(110%); transition: transform .4s var(--spring);
-  pointer-events: none;
+  animation: rise .5s var(--ease) both;
 }
-#summaryBar.show { transform: none; pointer-events: auto; }
 .bar-inner {
   max-width: 560px; margin: 0 auto; background: #101014; color: #fff;
   border-radius: 18px; padding: 14px 16px 14px 20px; display: flex; align-items: center;
@@ -196,10 +196,12 @@ input, textarea { font-family: inherit; }
 .bar-count { font-size: 11px; font-weight: 800; color: rgba(255,255,255,.65);
   text-transform: uppercase; letter-spacing: 1.2px; }
 .bar-total { font-size: 21px; font-weight: 900; letter-spacing: -.01em; line-height: 1.15; }
+.bar-inner.empty .bar-total { font-size: 14px; font-weight: 700; color: rgba(255,255,255,.55); }
 .bar-review { margin-left: auto; background: #fff; color: var(--black); font-size: 14px;
   font-weight: 900; padding: 12px 22px; border-radius: 12px;
-  transition: transform .15s var(--ease); }
+  transition: transform .15s var(--ease), opacity .2s var(--ease); }
 .bar-review:active { transform: scale(.95); }
+.bar-review:disabled { opacity: .35; pointer-events: none; }
 
 /* ── Review bottom sheet ── */
 #sheetBackdrop { position: fixed; inset: 0; background: rgba(10,10,10,.45); z-index: 50;
@@ -429,14 +431,14 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   </a>
 </div>
 
-<!-- Sticky summary -->
+<!-- Sticky summary — always visible so the cart reads as a live section -->
 <div id="summaryBar">
-  <div class="bar-inner">
+  <div class="bar-inner empty">
     <div>
-      <div class="bar-count" id="barCount">0 items</div>
-      <div class="bar-total" id="barTotal"></div>
+      <div class="bar-count" id="barCount">Your cart</div>
+      <div class="bar-total" id="barTotal">Add items to get started</div>
     </div>
-    <button class="bar-review" id="reviewBtn">Review order</button>
+    <button class="bar-review" id="reviewBtn" disabled>Review order</button>
   </div>
 </div>
 
@@ -667,9 +669,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
               (art || esc(initials(p.name))) + '</div>' +
             '<div class="card-info">' +
               '<div class="card-name">' + esc(p.name) + '</div>' +
-              '<div class="card-price">' + money(p.price) +
-                (unit > 1 ? '<span class="mult-tag">sold in ' + unit + 's</span>' : '') +
-              '</div>' +
+              '<div class="card-price">' + money(p.price) + '</div>' +
+              (unit > 1 ? '<div class="mult-row"><span class="mult-tag">sold in ' + unit + 's</span></div>' : '') +
               '<div class="card-line-total" data-line></div>' +
             '</div>' +
             '<div class="stepper">' +
@@ -765,16 +766,25 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   function updateBar() {
     var count = Object.keys(qtys).length;
     var total = currentTotal();
-    var wasShown = $('summaryBar').classList.contains('show');
-    $('summaryBar').classList.toggle('show', count > 0);
-    $('barCount').textContent = count === 1 ? '1 item' : count + ' items';
-    animateTotal($('barTotal'), lastTotal, total);
+    var inner = document.querySelector('.bar-inner');
+    var hadItems = !inner.classList.contains('empty') && !!inner.dataset.hadItems;
+    inner.classList.toggle('empty', count === 0);
+    $('reviewBtn').disabled = count === 0;
+    if (count === 0) {
+      $('barCount').textContent = 'Your cart';
+      $('barTotal').textContent = 'Add items to get started';
+    } else {
+      $('barCount').textContent = count === 1 ? '1 item' : count + ' items';
+      animateTotal($('barTotal'), lastTotal, total);
+    }
     lastTotal = total;
-    if (count > 0 && wasShown) {
-      var inner = document.querySelector('.bar-inner');
-      inner.classList.remove('bar-bump');
-      void inner.offsetWidth;
-      inner.classList.add('bar-bump');
+    if (count > 0) {
+      inner.dataset.hadItems = '1';
+      if (hadItems) {
+        inner.classList.remove('bar-bump');
+        void inner.offsetWidth;
+        inner.classList.add('bar-bump');
+      }
     }
   }
 
@@ -1099,7 +1109,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       $('invoiceWrap').style.display = 'none';
     }
 
-    $('summaryBar').classList.remove('show');
+    $('summaryBar').style.display = 'none';
     show('success');
     window.scrollTo(0, 0);
     burstConfetti();

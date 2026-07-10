@@ -276,6 +276,14 @@ function _getPortalConfig(client) {
     allowedProductIds: Array.isArray(p.allowedProductIds) ? [...p.allowedProductIds] : null,
     // productId → order-in-multiples-of (e.g. 12 = sold by the dozen)
     multiples: { ...(p.multiples || {}) },
+    // Built-in payment methods this client's form offers (QR/bank methods
+    // from Settings are always offered — these two are the only ones a
+    // cafe might want to switch off for a given client, e.g. cash-only
+    // clients who shouldn't see "Invoice / On Account").
+    builtinMethods: {
+      cash:    p.builtinMethods?.cash    !== false,
+      invoice: p.builtinMethods?.invoice !== false
+    },
     token:       p.token       || '',
     publishedAt: p.publishedAt || '',
     revoked:     p.revoked === true
@@ -442,7 +450,23 @@ function openClientPortalModal(clientId) {
       </div>
 
       <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
-        color:var(--gray-500);margin-bottom:10px;">3 · Share Link</div>
+        color:var(--gray-500);margin-bottom:10px;">3 · Payment Methods</div>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:18px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;">
+          <input type="checkbox" id="portalAcceptCash" ${cfg.builtinMethods.cash ? 'checked' : ''}
+            style="width:18px;height:18px;" /> Accept Cash
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;">
+          <input type="checkbox" id="portalAcceptInvoice" ${cfg.builtinMethods.invoice ? 'checked' : ''}
+            style="width:18px;height:18px;" /> Accept Invoice / On Account
+        </label>
+      </div>
+      <div style="font-size:11px;color:var(--gray-400);margin-top:-10px;margin-bottom:18px;">
+        Any QR/bank methods configured in Settings are always offered too. Uncheck both only if this client must pay another way you've set up in Settings.
+      </div>
+
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+        color:var(--gray-500);margin-bottom:10px;">4 · Share Link</div>
       <div id="portalShareSection" style="display:${hasLink ? 'block' : 'none'};background:var(--gray-50);
         border:1.5px solid var(--border);border-radius:var(--radius-lg);
         padding:12px 14px;margin-bottom:14px;">
@@ -529,7 +553,12 @@ function _readPortalModalConfig() {
     if (cb.checked) allowed.push(String(cb.dataset.productId));
   });
 
-  return { pricing: { mode, percentOff, amountOff, custom }, allowedProductIds: allowed, multiples };
+  const builtinMethods = {
+    cash:    document.getElementById('portalAcceptCash')?.checked    !== false,
+    invoice: document.getElementById('portalAcceptInvoice')?.checked !== false
+  };
+
+  return { pricing: { mode, percentOff, amountOff, custom }, allowedProductIds: allowed, multiples, builtinMethods };
 }
 
 function updatePortalPricePreviews() {
@@ -585,7 +614,7 @@ function saveClientPortalConfig(silent = false) {
   clients[idx] = {
     ...clients[idx],
     portal: { ...prev, pricing: read.pricing, allowedProductIds: read.allowedProductIds,
-      multiples: read.multiples }
+      multiples: read.multiples, builtinMethods: read.builtinMethods }
   };
   updateState('supplierClients', () => clients);
   if (!silent) showNotification('Client pricing saved', 'success');
@@ -649,10 +678,15 @@ async function _publishClientPortal(client) {
     accountNumber: pm.type === 'bank' ? (pm.accountNumber || '') : ''
   }));
   const paymentMethods = [
-    { name: 'Cash', type: 'cash' },
-    { name: 'Invoice / On Account', type: 'invoice' },
+    ...(cfg.builtinMethods.cash    ? [{ name: 'Cash', type: 'cash' }] : []),
+    ...(cfg.builtinMethods.invoice ? [{ name: 'Invoice / On Account', type: 'invoice' }] : []),
     ...configured.filter(pm => pm.name && pm.name.toLowerCase() !== 'cash')
   ];
+
+  if (!paymentMethods.length) {
+    showNotification('Turn on at least one payment method for this client', 'error');
+    return null;
+  }
 
   // Reuse the live token; rotate if never shared or previously revoked
   const token = (cfg.token && !cfg.revoked) ? cfg.token : _newPortalToken();
