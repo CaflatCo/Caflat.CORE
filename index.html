@@ -1939,7 +1939,6 @@
             </div>
           </div>
 
-          <!-- List view -->
           <div id="recipeCatalogListView">
             <div class="filter-bar">
               <input id="recipeSearch" type="text" placeholder="Search recipes…"
@@ -1957,74 +1956,85 @@
             </div>
             <div id="recipeCatalogList"></div>
           </div>
-
-          <!-- Detail view -->
-          <div id="recipeDetailView" style="display:none;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-              <h3 id="recipeDetailTitle" style="font-size:19px;font-weight:800;border:none;padding:0;margin:0;"></h3>
-              <button class="btn btn-secondary" type="button" onclick="closeRecipeDetail();">← Back to List</button>
-            </div>
-            <div id="recipeDetailContent"></div>
-          </div>
-
-          <!-- Form view (add/edit) -->
-          <div id="recipeFormView" style="display:none;">
-            <input type="hidden" id="rcFormId" />
-            <div class="form-group">
-              <label>Recipe Name <span class="required-star">*</span></label>
-              <input id="rcFormName" type="text" placeholder="e.g. Brown Butter Cookie Dough" />
-            </div>
-            <div class="grid-2">
-              <div class="form-group">
-                <label>Category</label>
-                <select id="rcFormCategory">
-                  <option value="Cookies">Cookies</option>
-                  <option value="Filling">Filling</option>
-                  <option value="Coating">Coating</option>
-                  <option value="Dough">Dough</option>
-                  <option value="Sauce">Sauce</option>
-                  <option value="Drink">Drink</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Yield</label>
-                <input id="rcFormYield" type="text" placeholder="e.g. 24 cookies" />
-              </div>
-            </div>
-
-            <div class="section-title">Ingredients</div>
-            <div id="rcIngredientRows"></div>
-            <button class="btn btn-secondary" type="button" style="margin-bottom:16px;"
-              onclick="_rcEditIngredients.push({name:'',qty:'',unit:''});_renderRCIngredients();">+ Add Ingredient</button>
-
-            <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
-              <div class="section-title" style="margin:0;">Steps</div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="rcFormShowSteps" checked
-                  onchange="_renderRCSteps();" />
-                <div class="toggle-track"></div><div class="toggle-knob"></div>
-              </label>
-            </div>
-            <div id="rcStepsSection">
-              <div id="rcStepRows"></div>
-              <button class="btn btn-secondary" type="button" style="margin-top:8px;"
-                onclick="_rcEditSteps.push({text:''});_renderRCSteps();">+ Add Step</button>
-            </div>
-
-            <div class="form-group" style="margin-top:16px;">
-              <label>Notes</label>
-              <textarea id="rcFormNotes" rows="3"></textarea>
-            </div>
-
-            <div class="modal-actions" style="border-top:none;padding-top:0;">
-              <button class="btn btn-secondary" type="button" onclick="closeRecipeForm();">Cancel</button>
-              <button class="btn" type="button" onclick="saveRecipeForm();">Save Recipe</button>
-            </div>
-          </div>
-
         </div>
       </section>
+
+      <!-- ═══ RECIPE DETAIL MODAL ═══ -->
+      <div class="modal-overlay" id="recipeDetailModal">
+        <div class="modal">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+            margin-bottom:18px;padding-bottom:14px;border-bottom:1.5px solid var(--black);">
+            <h3 id="recipeDetailTitle" style="margin:0;padding:0;border:none;font-size:17px;
+              letter-spacing:0;text-transform:none;line-height:1.3;"></h3>
+            <button class="btn btn-secondary btn-sm" type="button" onclick="closeRecipeDetail();"
+              aria-label="Close" style="flex-shrink:0;">✕</button>
+          </div>
+          <div id="recipeDetailContent"></div>
+          <div class="modal-actions">
+            <button class="btn btn-danger" type="button" onclick="deleteCurrentRecipe();">Delete</button>
+            <button class="btn" type="button" onclick="editCurrentRecipe();">Edit Recipe</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ RECIPE FORM MODAL (add / edit) ═══ -->
+      <div class="modal-overlay" id="recipeFormModal">
+        <div class="modal">
+          <h3 id="recipeFormTitle">New Recipe</h3>
+          <input type="hidden" id="rcFormId" />
+          <div class="form-group">
+            <label>Recipe Name <span class="required-star">*</span></label>
+            <input id="rcFormName" type="text" placeholder="e.g. Brown Butter Cookie Dough" />
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Category</label>
+              <select id="rcFormCategory">
+                <option value="Cookies">Cookies</option>
+                <option value="Filling">Filling</option>
+                <option value="Coating">Coating</option>
+                <option value="Dough">Dough</option>
+                <option value="Sauce">Sauce</option>
+                <option value="Drink">Drink</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Yield</label>
+              <input id="rcFormYield" type="text" placeholder="e.g. 24 cookies" />
+            </div>
+          </div>
+
+          <div class="section-title">Ingredients</div>
+          <div id="rcIngredientRows"></div>
+          <button class="btn btn-secondary" type="button" style="margin-bottom:16px;"
+            onclick="_rcEditIngredients.push({name:'',qty:'',unit:''});_renderRCIngredients();">+ Add Ingredient</button>
+
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+            <div class="section-title" style="margin:0;">Steps</div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="rcFormShowSteps" checked
+                onchange="_renderRCSteps();" />
+              <div class="toggle-track"></div><div class="toggle-knob"></div>
+            </label>
+          </div>
+          <div id="rcStepsSection">
+            <div id="rcStepRows"></div>
+            <button class="btn btn-secondary" type="button" style="margin-top:8px;"
+              onclick="_rcEditSteps.push({text:''});_renderRCSteps();">+ Add Step</button>
+          </div>
+
+          <div class="form-group" style="margin-top:16px;">
+            <label>Notes</label>
+            <textarea id="rcFormNotes" rows="3"></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button class="btn btn-secondary" type="button" onclick="closeRecipeForm();">Cancel</button>
+            <button class="btn" type="button" onclick="saveRecipeForm();">Save Recipe</button>
+          </div>
+        </div>
+      </div>
 
       <!-- ═══ COST LAB VIEW ═══ -->
       <section class="view" id="view-costlab">
