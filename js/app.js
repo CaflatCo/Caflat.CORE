@@ -225,13 +225,11 @@ function switchPage(target) {
     if (typeof renderRecipeCatalog === 'function') renderRecipeCatalog();
     const openRecipesBtn = document.getElementById('openRecipesBtn');
     if (openRecipesBtn) openRecipesBtn.textContent = '← Back to Products';
-    // Show list view by default
-    const listView = document.getElementById('recipeCatalogListView');
-    const detailView = document.getElementById('recipeDetailView');
-    const formView = document.getElementById('recipeFormView');
-    if (listView)  listView.style.display  = 'block';
-    if (detailView) detailView.style.display = 'none';
-    if (formView)  formView.style.display  = 'none';
+    // Detail/form are modals now — make sure neither is left open on entry
+    if (typeof closeModal === 'function') {
+      closeModal('recipeDetailModal');
+      closeModal('recipeFormModal');
+    }
   }
   if (cleanTarget === 'products') {
     const openRecipesBtn = document.getElementById('openRecipesBtn');

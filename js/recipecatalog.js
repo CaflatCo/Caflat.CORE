@@ -1,40 +1,69 @@
 /* ═══════════════════════════════════════════════════════
    RECIPECATALOG.JS — Recipe Catalog
-   Standalone reference. No system connections.
+   Standalone reference cookbook. No system connections
+   (ingredients are free text, not linked to inventory).
    Fields: name, category, yield, tags, ingredients,
    steps (optional per recipe), notes.
    Included in backup. Survives reset.
+
+   UI: an always-visible category-grouped card grid
+   (#recipeCatalogList). Viewing and add/edit happen in
+   modal overlays (#recipeDetailModal / #recipeFormModal),
+   consistent with the Products / Ingredients CRUD.
 ═══════════════════════════════════════════════════════ */
 
 const RC_CATEGORIES = ['Cookies', 'Filling', 'Coating', 'Dough', 'Sauce', 'Drink', 'Other'];
 // Tags removed per user request
+
+const _RC_EDIT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+const _RC_TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
 
 function getRecipeCatalog() {
   return Array.isArray(APP_STATE.recipeCatalog) ? APP_STATE.recipeCatalog : [];
 }
 
 function getRecipeById(id) {
-  return getRecipeCatalog().find(r => r.id === id) || null;
+  return getRecipeCatalog().find(r => String(r.id) === String(id)) || null;
 }
 
 /* ════════════════════════════════════════════════════════
-   CATALOG VIEW — list of all recipes
+   CATALOG VIEW — category-grouped card grid
 ════════════════════════════════════════════════════════ */
+
+function _rcCardHtml(r) {
+  const ingCount  = (r.ingredients || []).length;
+  const stepCount = (r.steps || []).length;
+  const meta = [];
+  if (r.yieldAmt) meta.push(escapeHtml(r.yieldAmt));
+  meta.push(`${ingCount} ingredient${ingCount !== 1 ? 's' : ''}`);
+  if (r.showSteps && stepCount > 0) meta.push(`${stepCount} step${stepCount !== 1 ? 's' : ''}`);
+
+  const id = escapeHtml(r.id);
+  return `
+    <div class="rc-card" data-action="open-recipe-detail" data-id="${id}">
+      ${r.category ? `<span class="rc-chip">${escapeHtml(r.category)}</span>` : ''}
+      <div class="rc-card-title">${escapeHtml(r.name)}</div>
+      <div class="rc-card-meta">${meta.join(' · ')}</div>
+      <div class="rc-card-actions">
+        <button type="button" class="rc-icon-btn rc-edit" data-action="edit-recipe" data-id="${id}">${_RC_EDIT_ICON} Edit</button>
+        <button type="button" class="rc-icon-btn rc-delete" data-action="delete-recipe" data-id="${id}">${_RC_TRASH_ICON} Delete</button>
+      </div>
+    </div>`;
+}
 
 function renderRecipeCatalog() {
   const container = document.getElementById('recipeCatalogList');
   if (!container) return;
 
-  const search   = document.getElementById('recipeSearch')?.value?.toLowerCase() || '';
-  const catFilter= document.getElementById('recipeCatFilter')?.value || 'All';
-  let   recipes  = getRecipeCatalog();
+  const search    = document.getElementById('recipeSearch')?.value?.toLowerCase() || '';
+  const catFilter = document.getElementById('recipeCatFilter')?.value || 'All';
+  let   recipes   = getRecipeCatalog();
 
-  if (search)           recipes = recipes.filter(r => r.name.toLowerCase().includes(search));
+  if (search)              recipes = recipes.filter(r => (r.name || '').toLowerCase().includes(search));
   if (catFilter !== 'All') recipes = recipes.filter(r => r.category === catFilter);
-  recipes = recipes.slice().sort((a, b) => a.name.localeCompare(b.name));
 
   if (!recipes.length) {
-    container.innerHTML = `<div class="empty-state" style="padding:32px 0;">
+    container.innerHTML = `<div class="empty-state">
       ${getRecipeCatalog().length === 0
         ? 'No recipes yet — tap + New Recipe to add your first'
         : 'No recipes match your search'}
@@ -42,115 +71,109 @@ function renderRecipeCatalog() {
     return;
   }
 
-  container.innerHTML = recipes.map(r => {
-    const tags = '';
-    const ingCount  = (r.ingredients || []).length;
-    const stepCount = (r.steps || []).length;
+  // Group by category. Known categories keep RC_CATEGORIES order; any
+  // other/blank category is bucketed under "Uncategorized" and sorted last.
+  const byCat = {};
+  recipes.forEach(r => {
+    const key = RC_CATEGORIES.includes(r.category) ? r.category : (r.category || 'Uncategorized');
+    (byCat[key] = byCat[key] || []).push(r);
+  });
 
+  const known   = RC_CATEGORIES.filter(c => byCat[c]);
+  const extra   = Object.keys(byCat)
+    .filter(c => !RC_CATEGORIES.includes(c) && c !== 'Uncategorized')
+    .sort((a, b) => a.localeCompare(b));
+  const ordered = known.concat(extra, byCat['Uncategorized'] ? ['Uncategorized'] : []);
+
+  container.innerHTML = ordered.map(cat => {
+    const list = byCat[cat].slice().sort((a, b) => a.name.localeCompare(b.name));
     return `
-      <div style="border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;
-        margin-bottom:10px;background:var(--white);cursor:pointer;"
-        onclick="openRecipeDetail('${r.id}')">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
-          <div style="flex:1;">
-            <div style="font-size:14px;font-weight:900;">${escapeHtml(r.name)}</div>
-            <div style="font-size:11px;color:var(--gray-400);margin-top:3px;">
-              ${escapeHtml(r.category || '—')}
-              ${r.yieldAmt ? ` · ${escapeHtml(r.yieldAmt)}` : ''}
-              · ${ingCount} ingredient${ingCount !== 1 ? 's' : ''}
-              ${r.showSteps && stepCount > 0 ? ` · ${stepCount} step${stepCount !== 1 ? 's' : ''}` : ''}
-            </div>
-
-          </div>
-          <div style="font-size:18px;color:var(--gray-200);">›</div>
-        </div>
+      <div class="rc-cat-group">
+        <div class="rc-cat-head">${escapeHtml(cat)}<span class="rc-cat-count">${list.length}</span></div>
+        <div class="rc-grid">${list.map(_rcCardHtml).join('')}</div>
       </div>`;
   }).join('');
 }
 
 /* ════════════════════════════════════════════════════════
-   RECIPE DETAIL VIEW
+   RECIPE DETAIL — modal overlay
 ════════════════════════════════════════════════════════ */
+
+let _rcDetailId = '';
 
 function openRecipeDetail(recipeId) {
   const recipe = getRecipeById(recipeId);
   if (!recipe) return;
+  _rcDetailId = String(recipe.id);
 
-  const container = document.getElementById('recipeDetailContent');
-  const titleEl   = document.getElementById('recipeDetailTitle');
+  const titleEl = document.getElementById('recipeDetailTitle');
   if (titleEl) titleEl.textContent = recipe.name;
 
+  const container = document.getElementById('recipeDetailContent');
   if (container) {
-    const tags = '';
+    const pills = [];
+    if (recipe.category)  pills.push(`<span class="rc-meta-pill">${escapeHtml(recipe.category)}</span>`);
+    if (recipe.yieldAmt)  pills.push(`<span class="rc-meta-pill">Yield: ${escapeHtml(recipe.yieldAmt)}</span>`);
+    if (recipe.updatedAt) pills.push(`<span class="rc-meta-pill">Updated ${new Date(recipe.updatedAt).toLocaleDateString()}</span>`);
+
+    const ings  = recipe.ingredients || [];
+    const steps = recipe.steps || [];
+    const hasSteps = recipe.showSteps && steps.length > 0;
 
     container.innerHTML = `
-      <!-- Meta -->
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;
-        font-size:12px;color:var(--gray-500);">
-        ${recipe.category ? `<span><strong>Category:</strong> ${escapeHtml(recipe.category)}</span>` : ''}
-        ${recipe.yieldAmt ? `<span><strong>Yield:</strong> ${escapeHtml(recipe.yieldAmt)}</span>` : ''}
-        ${recipe.updatedAt ? `<span>Updated ${new Date(recipe.updatedAt).toLocaleDateString()}</span>` : ''}
-      </div>
+      ${pills.length ? `<div class="rc-detail-meta">${pills.join('')}</div>` : ''}
 
-
-      <!-- Ingredients -->
-      ${(recipe.ingredients || []).length > 0 ? `
-      <div style="margin-bottom:20px;">
-        <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
-          color:var(--gray-400);margin-bottom:8px;">Ingredients</div>
-        <div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;">
-          ${(recipe.ingredients || []).map((ing, i) => `
-            <div style="display:flex;justify-content:space-between;align-items:center;
-              padding:9px 12px;${i > 0 ? 'border-top:1px solid var(--border);' : ''}">
-              <span style="font-size:12px;font-weight:700;">${escapeHtml(ing.name)}</span>
-              <span style="font-size:12px;color:var(--gray-500);">
-                ${escapeHtml(ing.qty || '')} ${escapeHtml(ing.unit || '')}
-                ${ing.note ? `<span style="color:var(--gray-400);"> — ${escapeHtml(ing.note)}</span>` : ''}
-              </span>
+      ${ings.length ? `
+      <div class="rc-block">
+        <div class="rc-block-label">Ingredients</div>
+        <div class="rc-ing-list">
+          ${ings.map(ing => `
+            <div class="rc-ing-row">
+              <span class="rc-ing-name">${escapeHtml(ing.name)}</span>
+              <span class="rc-ing-amt">${escapeHtml(ing.qty || '')} ${escapeHtml(ing.unit || '')}${
+                ing.note ? ` — ${escapeHtml(ing.note)}` : ''}</span>
             </div>`).join('')}
         </div>
       </div>` : ''}
 
-      <!-- Steps -->
-      ${recipe.showSteps && (recipe.steps || []).length > 0 ? `
-      <div style="margin-bottom:20px;">
-        <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
-          color:var(--gray-400);margin-bottom:8px;">Steps</div>
-        ${(recipe.steps || []).map((step, i) => `
-          <div style="display:flex;gap:12px;padding:10px 0;
-            border-bottom:1px solid var(--border);">
-            <div style="width:22px;height:22px;border-radius:50%;background:var(--black);
-              color:white;font-size:10px;font-weight:900;display:flex;align-items:center;
-              justify-content:center;flex-shrink:0;margin-top:1px;">${i + 1}</div>
-            <div style="font-size:12px;line-height:1.5;">${escapeHtml(step.text || step)}</div>
+      ${hasSteps ? `
+      <div class="rc-block">
+        <div class="rc-block-label">Steps</div>
+        ${steps.map((step, i) => `
+          <div class="rc-step-row">
+            <div class="rc-step-num">${i + 1}</div>
+            <div class="rc-step-text">${escapeHtml(step.text || step)}</div>
           </div>`).join('')}
       </div>` : ''}
 
-      <!-- Notes -->
       ${recipe.notes ? `
-      <div style="background:var(--gray-50);border-radius:10px;padding:12px 14px;">
-        <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
-          color:var(--gray-400);margin-bottom:6px;">Notes</div>
-        <div style="font-size:12px;line-height:1.6;white-space:pre-wrap;">
-          ${escapeHtml(recipe.notes)}</div>
-      </div>` : ''}`;
+      <div class="rc-block">
+        <div class="rc-block-label">Notes</div>
+        <div class="rc-notes">${escapeHtml(recipe.notes)}</div>
+      </div>` : ''}
+
+      ${(!ings.length && !hasSteps && !recipe.notes)
+        ? `<div class="rc-empty-hint">No details yet — tap Edit Recipe to add ingredients, steps, or notes.</div>`
+        : ''}`;
   }
 
-  // Switch to detail view
-  document.getElementById('recipeCatalogListView').style.display = 'none';
-  document.getElementById('recipeDetailView').style.display      = 'block';
-  // Store current recipe id for edit/delete buttons
-  const idInput = document.getElementById('rcCurrentRecipeId');
-  if (idInput) idInput.value = recipeId;
+  openModal('recipeDetailModal');
 }
 
 function closeRecipeDetail() {
-  document.getElementById('recipeCatalogListView').style.display = 'block';
-  document.getElementById('recipeDetailView').style.display      = 'none';
+  closeModal('recipeDetailModal');
+}
+
+function editCurrentRecipe() {
+  if (_rcDetailId) openRecipeForm(_rcDetailId);
+}
+
+function deleteCurrentRecipe() {
+  if (_rcDetailId) deleteRecipe(_rcDetailId);
 }
 
 /* ════════════════════════════════════════════════════════
-   RECIPE FORM — add / edit
+   RECIPE FORM — add / edit (modal overlay)
 ════════════════════════════════════════════════════════ */
 
 let _rcEditIngredients = [];
@@ -159,15 +182,15 @@ let _rcEditSteps       = [];
 function openRecipeForm(recipeId = null) {
   const recipe = recipeId ? getRecipeById(recipeId) : null;
 
+  const titleEl = document.getElementById('recipeFormTitle');
+  if (titleEl) titleEl.textContent = recipe ? 'Edit Recipe' : 'New Recipe';
+
   setElementValue('rcFormId',       recipe?.id       || '');
   setElementValue('rcFormName',     recipe?.name     || '');
   setElementValue('rcFormCategory', recipe?.category || '');
   setElementValue('rcFormYield',    recipe?.yieldAmt || '');
   setElementValue('rcFormNotes',    recipe?.notes    || '');
 
-  // Tags removed
-
-  // Steps toggle
   const stepsToggle = document.getElementById('rcFormShowSteps');
   if (stepsToggle) stepsToggle.checked = recipe?.showSteps !== false;
 
@@ -177,9 +200,8 @@ function openRecipeForm(recipeId = null) {
   _renderRCIngredients();
   _renderRCSteps();
 
-  document.getElementById('recipeCatalogListView').style.display = 'none';
-  document.getElementById('recipeDetailView').style.display      = 'none';
-  document.getElementById('recipeFormView').style.display        = 'block';
+  closeModal('recipeDetailModal');
+  openModal('recipeFormModal');
 }
 
 function _renderRCIngredients() {
@@ -187,8 +209,7 @@ function _renderRCIngredients() {
   if (!container) return;
 
   if (!_rcEditIngredients.length) {
-    container.innerHTML = `<div style="font-size:12px;color:var(--gray-400);padding:8px 0;">
-      No ingredients yet</div>`;
+    container.innerHTML = `<div class="rc-empty-hint">No ingredients yet</div>`;
     return;
   }
 
@@ -203,7 +224,7 @@ function _renderRCIngredients() {
         style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-md);
           font-size:12px;font-family:var(--font-main);"
         oninput="_rcEditIngredients[${i}].qty=this.value;" />
-      <input type="text" value="${escapeHtml(ing.unit || '')}" placeholder="Unit/note"
+      <input type="text" value="${escapeHtml(ing.unit || '')}" placeholder="Unit"
         style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-md);
           font-size:12px;font-family:var(--font-main);"
         oninput="_rcEditIngredients[${i}].unit=this.value;" />
@@ -222,8 +243,7 @@ function _renderRCSteps() {
   if (wrapper) wrapper.style.display = showSteps ? 'block' : 'none';
 
   if (!_rcEditSteps.length) {
-    container.innerHTML = `<div style="font-size:12px;color:var(--gray-400);padding:4px 0;">
-      No steps yet</div>`;
+    container.innerHTML = `<div class="rc-empty-hint">No steps yet</div>`;
     return;
   }
 
@@ -254,7 +274,7 @@ function saveRecipeForm() {
   if (!name) { showNotification('Recipe name required', 'error'); return; }
 
   const catalog  = getRecipeCatalog();
-  const existing = catalog.find(r => r.id === id);
+  const existing = catalog.find(r => String(r.id) === String(id));
   const now      = new Date().toISOString();
 
   const recipe = {
@@ -269,22 +289,22 @@ function saveRecipeForm() {
   else catalog.push(recipe);
 
   updateState('recipeCatalog', () => catalog);
-  closeRecipeForm();
+  closeModal('recipeFormModal');
   renderRecipeCatalog();
   showNotification(`Recipe "${name}" saved`, 'success');
 }
 
 function closeRecipeForm() {
-  document.getElementById('recipeFormView').style.display        = 'none';
-  document.getElementById('recipeCatalogListView').style.display = 'block';
+  closeModal('recipeFormModal');
 }
 
 function deleteRecipe(recipeId) {
   const recipe = getRecipeById(recipeId);
   if (!recipe) return;
   if (!confirm(`Delete "${recipe.name}"?`)) return;
-  updateState('recipeCatalog', () => getRecipeCatalog().filter(r => r.id !== recipeId));
-  closeRecipeDetail();
+  updateState('recipeCatalog', () => getRecipeCatalog().filter(r => String(r.id) !== String(recipeId)));
+  closeModal('recipeFormModal');
+  closeModal('recipeDetailModal');
   renderRecipeCatalog();
   showNotification('Recipe deleted', 'success');
 }
@@ -299,6 +319,8 @@ window.getRecipeById             = getRecipeById;
 window.renderRecipeCatalog       = renderRecipeCatalog;
 window.openRecipeDetail          = openRecipeDetail;
 window.closeRecipeDetail         = closeRecipeDetail;
+window.editCurrentRecipe         = editCurrentRecipe;
+window.deleteCurrentRecipe       = deleteCurrentRecipe;
 window.openRecipeForm            = openRecipeForm;
 window._renderRCIngredients      = _renderRCIngredients;
 window._renderRCSteps            = _renderRCSteps;

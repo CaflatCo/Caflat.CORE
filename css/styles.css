@@ -766,6 +766,7 @@ main {
 #view-production .panel-header { border-top: 3px solid #1e293b; padding-top: 14px; }
 #view-coffeecart .panel-header { border-top: 3px solid #92400e; padding-top: 14px; }
 #view-supply .panel-header { border-top: 3px solid #1e3a5f; padding-top: 14px; }
+#view-recipes .panel-header { border-top: 3px solid #9a3412; padding-top: 14px; }
 #view-settings .panel-header { border-top: 3px solid #6b7280; padding-top: 14px; }
 
 /* ═══ BUTTONS ═══ */
@@ -1699,6 +1700,184 @@ tbody tr:hover td { background: var(--gray-50); }
   letter-spacing: 1px;
 }
 
+/* ═══ RECIPE CATALOG ═══ */
+.rc-cat-group { margin-bottom: 26px; }
+.rc-cat-group:last-child { margin-bottom: 0; }
+.rc-cat-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin-bottom: 12px;
+}
+.rc-cat-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+.rc-cat-count {
+  background: var(--gray-100);
+  color: var(--gray-500);
+  border-radius: var(--radius-full);
+  padding: 2px 9px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.rc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+}
+.rc-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 15px;
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.rc-card:hover {
+  border-color: var(--black);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  transform: translateY(-2px);
+}
+.rc-card-title {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+.rc-chip {
+  align-self: flex-start;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border-radius: var(--radius-full);
+  padding: 3px 9px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  margin-bottom: 9px;
+}
+.rc-card-meta {
+  font-size: 11px;
+  color: var(--gray-400);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.rc-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+.rc-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--gray-600);
+  font-family: var(--font-main);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.rc-icon-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+.rc-icon-btn.rc-edit:hover   { background: var(--black);  border-color: var(--black);  color: var(--white); }
+.rc-icon-btn.rc-delete:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+/* Detail modal body */
+.rc-detail-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.rc-meta-pill {
+  background: var(--gray-50);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-600);
+}
+.rc-block { margin-bottom: 20px; }
+.rc-block:last-child { margin-bottom: 0; }
+.rc-block-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  margin-bottom: 8px;
+}
+.rc-ing-list {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.rc-ing-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 13px;
+}
+.rc-ing-row + .rc-ing-row { border-top: 1px solid var(--border-subtle); }
+.rc-ing-name { font-size: 12px; font-weight: 700; }
+.rc-ing-amt  { font-size: 12px; color: var(--gray-500); font-weight: 600; text-align: right; }
+.rc-step-row {
+  display: flex;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.rc-step-row:last-child { border-bottom: none; }
+.rc-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--black);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.rc-step-text { font-size: 12px; line-height: 1.5; }
+.rc-notes {
+  background: var(--gray-50);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.rc-empty-hint { font-size: 12px; color: var(--gray-400); padding: 6px 0; }
+@media (max-width: 640px) { .rc-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 420px) { .rc-grid { grid-template-columns: 1fr; } }
+
 /* ═══ CHECKOUT MODAL TWEAKS ═══ */
 .payment-badge {
   display: inline-flex;
@@ -2549,6 +2728,12 @@ html[data-theme="dark"] .variant-option:hover .variant-option-price { color: rgb
 html[data-theme="dark"] .recipe-row { background: var(--gray-200); border-color: var(--border); }
 html[data-theme="dark"] .recipe-row select,
 html[data-theme="dark"] .recipe-row input { background: var(--white); border-color: var(--border); color: var(--gray-900); }
+
+/* Recipe Catalog — dark theme (‑‑black isn't remapped in dark mode) */
+html[data-theme="dark"] .rc-card { color: var(--gray-900); }
+html[data-theme="dark"] .rc-card:hover { border-color: var(--gray-400); }
+html[data-theme="dark"] .rc-icon-btn.rc-edit:hover { background: var(--gray-800); border-color: var(--gray-800); color: var(--gray-50); }
+html[data-theme="dark"] .rc-step-num { background: var(--gray-800); color: var(--gray-50); }
 
 /* Event picker */
 html[data-theme="dark"] .event-picker-option { background: var(--gray-200); border-color: var(--border); color: var(--gray-900); }
