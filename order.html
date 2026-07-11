@@ -325,6 +325,25 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   white-space: nowrap; }
 .seg button.sel { background: var(--white); color: var(--black); box-shadow: var(--shadow); }
 
+/* Split-across-two-methods toggle */
+.split-toggle { display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-top: 12px; padding: 11px 14px; border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm); background: var(--white); cursor: pointer; }
+.split-toggle span { font-size: 13px; font-weight: 800; color: var(--gray-600); }
+.split-switch { width: 38px; height: 22px; flex-shrink: 0; border-radius: 99px;
+  background: var(--gray-200); position: relative; transition: background .2s var(--ease); }
+.split-switch::before { content: ''; position: absolute; top: 2px; left: 2px;
+  width: 18px; height: 18px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s var(--spring); }
+.split-toggle.on .split-switch { background: var(--accent); }
+.split-toggle.on .split-switch::before { transform: translateX(16px); }
+#secondPayWrap { margin-top: 10px; padding: 12px 14px; background: var(--gray-50);
+  border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); }
+#secondPayWrap select.f-input { margin-bottom: 10px; }
+.split-remainder { font-size: 12px; font-weight: 700; color: var(--gray-500);
+  margin-top: 2px; }
+.split-remainder b { color: var(--black); font-weight: 900; }
+
 /* Pay summary mini-card: Total / Pay now / Balance */
 .pay-mini { margin-top: 12px; padding: 12px 16px; background: var(--gray-50);
   border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
@@ -554,6 +573,22 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       <div class="sec-head"><span class="sec-num">2</span> Payment</div>
       <div class="pay-rows" id="payChips"></div>
 
+      <div class="split-toggle" id="secondPayToggle">
+        <span>Pay with two methods</span>
+        <div class="split-switch"></div>
+      </div>
+      <div id="secondPayWrap" style="display:none;">
+        <div class="f-label">Second payment method</div>
+        <select class="f-input" id="secondPayMethod"></select>
+        <input class="f-input" id="secondPayAmount" type="number" min="0" step="0.01"
+          placeholder="Amount paid via this method">
+        <div class="split-remainder" id="splitRemainder"></div>
+        <div id="secondPayRefWrap" style="display:none;margin-top:10px;">
+          <div class="f-label">Second payment reference <span style="opacity:.5;">(optional)</span></div>
+          <input class="f-input" id="secondPayRef" type="text" placeholder="e.g. GCash ref no." maxlength="200">
+        </div>
+      </div>
+
       <div id="settleWrap" style="display:none;">
         <div class="f-label">How will you settle?</div>
         <div class="seg" id="settleChips">
@@ -649,7 +684,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   var portal  = null;
   var qtys    = {};        // productId → qty
   var chosenPay = '';
-  var chosenSplit = 'full';   // full | half
+  var chosenSplit = 'full';   // full | half (50% downpayment timing — mutually exclusive w/ split-by-method)
+  var secondPayActive = false;   // paying via two methods for the full order total
   var proofData = '';         // data-URL of the payment screenshot
   var lastTotal = 0;
   var submitting = false;
@@ -1130,6 +1166,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     if (!methods.length) {
       $('payChips').innerHTML = '<span style="font-size:13px;color:var(--gray-400);font-weight:600;">' +
         'Settle payment directly with your supplier.</span>';
+      $('secondPayToggle').style.display = 'none';
       return;
     }
     if (!chosenPay) chosenPay = methods[0].name;
@@ -1140,6 +1177,9 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
         '<span>' + esc(m.name) + '</span>' + CHECK_SVG +
       '</button>';
     }).join('');
+    // Splitting needs a second, different method to pick from.
+    $('secondPayToggle').style.display = methods.length >= 2 ? 'flex' : 'none';
+    if (methods.length < 2 && secondPayActive) toggleSecondPay(false);
     renderPayDetail();
   }
 
@@ -1156,11 +1196,26 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     return m;
   }
 
+  function secondChosenMethod() {
+    var name = $('secondPayMethod').value;
+    var m = null;
+    payMethods().forEach(function (x) { if (x.name === name) m = x; });
+    return m;
+  }
+
   // Paying happens NOW only for QR / bank methods — those need settlement
   // choice + a proof screenshot. Cash & invoice settle later, so neither applies.
   function paysNow() {
     var m = chosenMethod();
     return !!(m && (m.type === 'qr' || m.type === 'bank'));
+  }
+
+  // A screenshot is needed if either half of a split needs one.
+  function proofRequired() {
+    if (paysNow()) return true;
+    if (!secondPayActive) return false;
+    var m2 = secondChosenMethod();
+    return !!(m2 && (m2.type === 'qr' || m2.type === 'bank'));
   }
 
   function payNowAmount() {
@@ -1179,6 +1234,54 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     $('payNowNote').textContent = half ? money(currentTotal() - payNowAmount()) : '';
     updateSubmitLabel();
   }
+
+  /* ── Split payment (two methods for the full total) ──
+     Mutually exclusive with the 50%-downpayment settle option: turning
+     this on always means "pay the full total now, across two methods." */
+  function populateSecondPayMethods() {
+    var methods = payMethods().filter(function (m) { return m.name !== chosenPay; });
+    var sel = $('secondPayMethod');
+    var prev = sel.value;
+    sel.innerHTML = methods.map(function (m) {
+      return '<option value="' + esc(m.name) + '">' + esc(m.name) + '</option>';
+    }).join('');
+    if (methods.some(function (m) { return m.name === prev; })) sel.value = prev;
+    updateSecondPayRefVisibility();
+  }
+
+  function updateSecondPayRefVisibility() {
+    var m2 = secondChosenMethod();
+    $('secondPayRefWrap').style.display = (m2 && (m2.type === 'qr' || m2.type === 'bank')) ? 'block' : 'none';
+  }
+
+  function updateSplitRemainder() {
+    if (!secondPayActive) { $('splitRemainder').innerHTML = ''; return; }
+    var total = currentTotal();
+    var amt2  = Math.max(0, Number($('secondPayAmount').value) || 0);
+    var amt1  = Math.max(0, total - amt2);
+    var m2 = secondChosenMethod();
+    $('splitRemainder').innerHTML = money(amt1) + ' via <b>' + esc(chosenPay || 'first method') + '</b> · ' +
+      money(amt2) + ' via <b>' + esc(m2 ? m2.name : 'second method') + '</b>';
+  }
+
+  function toggleSecondPay(force) {
+    secondPayActive = (typeof force === 'boolean') ? force : !secondPayActive;
+    $('secondPayToggle').classList.toggle('on', secondPayActive);
+    $('secondPayWrap').style.display = secondPayActive ? 'block' : 'none';
+    if (secondPayActive) {
+      chosenSplit = 'full';
+      populateSecondPayMethods();
+    }
+    renderPayDetail();
+    updateSplitRemainder();
+  }
+  $('secondPayToggle').addEventListener('click', function () { toggleSecondPay(); });
+  $('secondPayMethod').addEventListener('change', function () {
+    updateSecondPayRefVisibility();
+    $('proofWrap').style.display = proofRequired() ? 'block' : 'none';
+    updateSplitRemainder();
+  });
+  $('secondPayAmount').addEventListener('input', updateSplitRemainder);
 
   function renderPayDetail() {
     var m = chosenMethod();
@@ -1207,10 +1310,12 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       refWrap.style.display = 'none';
     }
 
+    populateSecondPayMethods();
+
     var now = paysNow();
-    $('settleWrap').style.display = now ? 'block' : 'none';
-    $('proofWrap').style.display  = now ? 'block' : 'none';
-    if (now) updatePayNow(); else updateSubmitLabel();
+    $('settleWrap').style.display = (now && !secondPayActive) ? 'block' : 'none';
+    $('proofWrap').style.display  = proofRequired() ? 'block' : 'none';
+    if (now && !secondPayActive) updatePayNow(); else updateSubmitLabel();
   }
 
   $('settleChips').addEventListener('click', function (e) {
@@ -1274,8 +1379,27 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     });
     if (!items.length) { closeSheet(); return; }
 
+    var secondAmt = secondPayActive ? (Number($('secondPayAmount').value) || 0) : 0;
+    var secondMethodObj = secondPayActive ? secondChosenMethod() : null;
+
+    if (secondPayActive) {
+      if (!secondMethodObj) {
+        $('submitErr').textContent = 'Choose the second payment method.';
+        $('submitErr').style.display = 'block';
+        $('secondPayWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      if (secondAmt <= 0 || secondAmt >= currentTotal()) {
+        $('submitErr').textContent = 'Enter how much will be paid via the second method — it must be less than the order total.';
+        $('submitErr').style.display = 'block';
+        $('secondPayAmount').style.borderColor = 'var(--danger)';
+        $('secondPayWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+    }
+
     // QR / bank payments must attach the transaction screenshot
-    if (paysNow() && !proofData) {
+    if (proofRequired() && !proofData) {
       $('submitErr').textContent = 'Attach your payment screenshot to place the order.';
       $('submitErr').style.display = 'block';
       $('proofBox').style.borderColor = 'var(--danger)';
@@ -1290,16 +1414,23 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     setCtaSending(true);
     $('submitErr').style.display = 'none';
 
-    rpc('submit_portal_order', {
+    var payload = {
       p_token:             token,
       p_items:             items,
       p_notes:             $('orderNotes').value || '',
       p_requested_date:    $('reqDate').value || null,
       p_payment_method:    chosenPay || '',
       p_payment_reference: $('payRef').value || '',
-      p_payment_split:     paysNow() ? chosenSplit : 'full',
-      p_payment_proof:     paysNow() ? proofData : ''
-    }).then(function (res) {
+      p_payment_split:     (paysNow() && !secondPayActive) ? chosenSplit : 'full',
+      p_payment_proof:     proofRequired() ? proofData : ''
+    };
+    if (secondPayActive && secondMethodObj) {
+      payload.p_payment_method_2    = secondMethodObj.name;
+      payload.p_payment_amount_2    = secondAmt;
+      payload.p_payment_reference_2 = $('secondPayRef').value || '';
+    }
+
+    rpc('submit_portal_order', payload).then(function (res) {
       if (!res.ok || !res.data || !res.data.reference) {
         var msg = (res.data && res.data.message) ? res.data.message
           : "Couldn't send your order. Check your connection and try again.";
@@ -1337,7 +1468,14 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     var m = chosenMethod();
     var pay = $('donePay');
     var settleLine = '';
-    if (paysNow()) {
+    if (secondPayActive) {
+      var m2done = secondChosenMethod();
+      var amt2done = Number($('secondPayAmount').value) || 0;
+      var amt1done = Math.max(0, currentTotal() - amt2done);
+      settleLine = '<div style="font-size:13.5px;font-weight:800;">Paid in full, split across two methods:' +
+        '<div style="color:var(--accent);margin-top:3px;">' + money(amt1done) + ' via ' + esc(chosenPay) + '</div>' +
+        '<div style="color:var(--accent);">' + money(amt2done) + ' via ' + esc(m2done ? m2done.name : '') + '</div></div>';
+    } else if (paysNow()) {
       settleLine = chosenSplit === 'half'
         ? '<div style="font-size:13.5px;font-weight:800;">50% downpayment sent: ' +
             '<span style="color:var(--accent);">' + money(payNowAmount()) + '</span>' +
@@ -1346,7 +1484,10 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
         : '<div style="font-size:13.5px;font-weight:800;">Paid in full: ' +
             '<span style="color:var(--accent);">' + money(payNowAmount()) + '</span></div>';
     }
-    if (m && paysNow()) {
+    if (secondPayActive) {
+      pay.innerHTML = '<div class="f-label">Payment — split</div>' + settleLine;
+      pay.style.display = 'block';
+    } else if (m && paysNow()) {
       pay.innerHTML = '<div class="f-label">Payment — ' +
         esc(m.type === 'bank' ? (m.bankName || 'Bank transfer') : m.name) + '</div>' + settleLine;
       pay.style.display = 'block';
@@ -1356,9 +1497,10 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       pay.style.display = 'block';
     }
 
-    // A settled order (QR/bank, full or 50%) gets an immediate provisional
-    // invoice the client can view/print/save — no wait for the cafe to act.
-    if (paysNow()) {
+    // A settled order (QR/bank, full or 50%, or any split payment) gets an
+    // immediate provisional invoice the client can view/print/save — no
+    // wait for the cafe to act.
+    if (paysNow() || secondPayActive) {
       $('invoiceCard').innerHTML = buildInvoiceHtml(result, m);
       $('invoiceToggle').style.display = 'inline-block';
       $('invoiceToggle').textContent = 'View invoice';
@@ -1404,11 +1546,30 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
     var payNow  = payNowAmount();
     var total   = currentTotal();
-    var settleHtml = chosenSplit === 'half'
-      ? '<div class="inv-settle">50% downpayment paid now: <b>' + money(payNow) + '</b>' +
-          '<div style="color:var(--gray-400);font-weight:600;margin-top:2px;">Balance due on delivery: ' +
-          money(total - payNow) + '</div></div>'
-      : '<div class="inv-settle">Paid in full: <b>' + money(payNow) + '</b></div>';
+    var settleHtml, methodHtml, refHtml;
+    if (secondPayActive) {
+      var m2inv   = secondChosenMethod();
+      var amt2inv = Number($('secondPayAmount').value) || 0;
+      var amt1inv = Math.max(0, total - amt2inv);
+      settleHtml = '<div class="inv-settle">Paid in full, split across two methods:' +
+        '<div style="margin-top:2px;">' + money(amt1inv) + ' via ' + esc(chosenPay) + '</div>' +
+        '<div>' + money(amt2inv) + ' via ' + esc(m2inv ? m2inv.name : '') + '</div></div>';
+      methodHtml = esc(m.type === 'bank' ? (m.bankName || 'Bank transfer') : m.name) +
+        ' + ' + esc(m2inv ? m2inv.name : '');
+      var refs = [];
+      if ($('payRef').value) refs.push(esc($('payRef').value));
+      if ($('secondPayRef').value) refs.push(esc($('secondPayRef').value));
+      refHtml = refs.length ? '<div class="inv-row"><span class="k">Reference</span><span>' + refs.join(', ') + '</span></div>' : '';
+    } else {
+      settleHtml = chosenSplit === 'half'
+        ? '<div class="inv-settle">50% downpayment paid now: <b>' + money(payNow) + '</b>' +
+            '<div style="color:var(--gray-400);font-weight:600;margin-top:2px;">Balance due on delivery: ' +
+            money(total - payNow) + '</div></div>'
+        : '<div class="inv-settle">Paid in full: <b>' + money(payNow) + '</b></div>';
+      methodHtml = esc(m.type === 'bank' ? (m.bankName || 'Bank transfer') : m.name);
+      refHtml = (chosenPay && $('payRef').value)
+        ? '<div class="inv-row"><span class="k">Reference</span><span>' + esc($('payRef').value) + '</span></div>' : '';
+    }
 
     return (
       '<div class="inv-head">' +
@@ -1422,9 +1583,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
         '</div>' +
       '</div>' +
       '<div class="inv-row"><span class="k">Billed to</span><span>' + esc(portal.client_name || '') + '</span></div>' +
-      '<div class="inv-row"><span class="k">Payment method</span><span>' +
-        esc(m.type === 'bank' ? (m.bankName || 'Bank transfer') : m.name) + '</span></div>' +
-      (chosenPay && $('payRef').value ? '<div class="inv-row"><span class="k">Reference</span><span>' + esc($('payRef').value) + '</span></div>' : '') +
+      '<div class="inv-row"><span class="k">Payment method</span><span>' + methodHtml + '</span></div>' +
+      refHtml +
       '<div style="margin-top:10px;">' + lines + '</div>' +
       '<div class="inv-total"><span>Total</span><span>' + money(total) + '</span></div>' +
       settleHtml +
