@@ -600,13 +600,31 @@ nav.scrolled {
 
 /* ─── Marquee ticker strip ────────────────────────────────────── */
 .marquee-strip {
-  background: var(--dark-card);
-  border-top: 1px solid var(--dark-border);
-  border-bottom: 1px solid var(--dark-border);
-  padding: 18px 0;
+  background:
+    radial-gradient(1200px 140px at 15% 0%, rgba(200,163,117,.09), transparent 70%),
+    var(--dark-card);
+  border-top: 1px solid var(--dark-border-hi);
+  border-bottom: 1px solid var(--dark-border-hi);
+  padding: 30px 0 34px;
   overflow: hidden;
   white-space: nowrap;
   position: relative;
+  /* Edge fade so items dissolve in/out instead of hard-clipping mid-word */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+}
+
+.marquee-kicker-row {
+  white-space: normal;
+  margin-bottom: 16px;
+}
+
+.marquee-kicker {
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--coffee);
 }
 
 .marquee-track {
@@ -620,21 +638,25 @@ nav.scrolled {
 .marquee-strip:hover .marquee-track { animation-play-state: paused; }
 
 .marquee-item {
-  font-size: .78rem;
-  font-weight: 700;
-  letter-spacing: .12em;
-  text-transform: uppercase;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: .01em;
   color: var(--text-dim);
-  padding: 0 28px;
+  padding: 0 26px;
   transition: color .2s;
 }
 
-.marquee-strip:hover .marquee-item { color: var(--text-white); }
+.marquee-item:hover { color: var(--text-white); }
 
 .marquee-dot {
-  color: rgba(255,255,255,.28);
-  font-size: .7rem;
+  color: var(--coffee);
+  opacity: .55;
+  font-size: .9rem;
   flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .marquee-item { font-size: .92rem; padding: 0 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
