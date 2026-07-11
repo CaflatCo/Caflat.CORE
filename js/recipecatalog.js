@@ -217,16 +217,16 @@ function _renderRCIngredients() {
     <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;
       margin-bottom:6px;align-items:center;">
       <input type="text" value="${escapeHtml(ing.name || '')}" placeholder="Ingredient"
-        style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-md);
-          font-size:12px;font-family:var(--font-main);"
+        style="width:100%;min-width:0;box-sizing:border-box;padding:6px 10px;border:1px solid var(--border);
+          border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
         oninput="_rcEditIngredients[${i}].name=this.value;" />
       <input type="text" value="${escapeHtml(ing.qty || '')}" placeholder="Qty"
-        style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-md);
-          font-size:12px;font-family:var(--font-main);"
+        style="width:100%;min-width:0;box-sizing:border-box;padding:6px 10px;border:1px solid var(--border);
+          border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
         oninput="_rcEditIngredients[${i}].qty=this.value;" />
       <input type="text" value="${escapeHtml(ing.unit || '')}" placeholder="Unit"
-        style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-md);
-          font-size:12px;font-family:var(--font-main);"
+        style="width:100%;min-width:0;box-sizing:border-box;padding:6px 10px;border:1px solid var(--border);
+          border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);"
         oninput="_rcEditIngredients[${i}].unit=this.value;" />
       <button type="button" style="background:none;border:none;cursor:pointer;
         color:var(--gray-400);font-size:14px;padding:4px;"
@@ -253,7 +253,7 @@ function _renderRCSteps() {
         font-size:10px;font-weight:900;display:flex;align-items:center;
         justify-content:center;flex-shrink:0;margin-top:5px;">${i + 1}</div>
       <textarea rows="2"
-        style="flex:1;padding:6px 10px;border:1px solid var(--border);
+        style="flex:1;min-width:0;box-sizing:border-box;padding:6px 10px;border:1px solid var(--border);
           border-radius:var(--radius-md);font-size:12px;font-family:var(--font-main);resize:vertical;"
         oninput="_rcEditSteps[${i}].text=this.value;">${escapeHtml(step.text || step)}</textarea>
       <button type="button" style="background:none;border:none;cursor:pointer;
