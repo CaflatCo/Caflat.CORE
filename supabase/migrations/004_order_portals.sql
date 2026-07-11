@@ -158,6 +158,11 @@ BEGIN
     RAISE EXCEPTION 'Order link is no longer active';
   END IF;
 
+  -- Serialize concurrent submissions for this token so the rate-limit
+  -- check-then-insert below can't be raced by parallel requests. Held
+  -- for the transaction; released automatically on commit/rollback.
+  PERFORM pg_advisory_xact_lock(hashtext(p_token));
+
   -- Rate limits per link: a leaked/forwarded link can't flood the inbox.
   IF (SELECT count(*) FROM public.portal_orders
       WHERE token = p_token AND created_at > now() - interval '10 minutes') >= 3 THEN
