@@ -23,7 +23,10 @@ CREATE TABLE IF NOT EXISTS public.order_portals (
   brand_name       text        NOT NULL DEFAULT '',
   currency         text        NOT NULL DEFAULT 'PHP',
   currency_symbol  text        NOT NULL DEFAULT '₱',
-  -- [{ productId, name, category, price }]
+  -- [{ productId, name, category, price, multiple, priceTiers? }]
+  -- priceTiers (optional, added in 005): [{ minQty, price }] — quantity
+  -- price breaks, present only when this client has no negotiated
+  -- custom/percent/amount override for that product.
   catalog          jsonb       NOT NULL DEFAULT '[]'::jsonb,
   -- [{ name, type: cash|qr|bank|invoice, qrImage?, bankName?, accountNumber? }]
   payment_methods  jsonb       NOT NULL DEFAULT '[]'::jsonb,

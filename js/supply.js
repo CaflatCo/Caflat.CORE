@@ -270,7 +270,14 @@ function _getPortalConfig(client) {
       mode:       p.pricing?.mode || 'retail',       // retail | percent | amount
       percentOff: Number(p.pricing?.percentOff || 0),
       amountOff:  Number(p.pricing?.amountOff  || 0),
-      custom:     { ...(p.pricing?.custom || {}) }    // productId → price
+      custom:     { ...(p.pricing?.custom || {}) },   // productId → flat price
+      // productId → [{minQty, price}] — this client's own volume-pricing
+      // breaks for that product (each client can have a different schedule,
+      // or none at all).
+      tiers: Object.fromEntries(
+        Object.entries(p.pricing?.tiers || {})
+          .map(([productId, tiers]) => [productId, Array.isArray(tiers) ? tiers.map(t => ({ ...t })) : []])
+      )
     },
     // null = all products; array = chosen subset
     allowedProductIds: Array.isArray(p.allowedProductIds) ? [...p.allowedProductIds] : null,
@@ -305,6 +312,36 @@ function resolvePortalPrice(portalCfg, product) {
     return Math.max(0, round2(retail - Number(portalCfg.pricing.amountOff || 0)));
   }
   return round2(retail);
+}
+
+// True when this client has a flat custom-price override set for this
+// specific product — a flat override always wins outright, so volume
+// pricing for that same product/client is never applied on top of it.
+function _hasCustomOverride(portalCfg, product) {
+  const customRaw = portalCfg?.pricing?.custom?.[product.id];
+  return customRaw !== undefined && customRaw !== null && customRaw !== ''
+    && Number.isFinite(Number(customRaw));
+}
+
+// Highest-threshold-met wins; falls back to basePrice when qty is below
+// every tier (or there are no tiers at all — the opt-in default).
+function resolveTieredPrice(basePrice, tiers, qty) {
+  if (!Array.isArray(tiers) || !tiers.length) return basePrice;
+  const hit = [...tiers].sort((a, b) => a.minQty - b.minQty)
+    .filter(t => qty >= t.minQty).pop();
+  return hit ? hit.price : basePrice;
+}
+
+// The actual price a client pays for a product at a given order quantity:
+// a flat custom override always wins outright (no tiers); otherwise this
+// client's own volume-pricing tiers for that product apply on top of
+// whatever their general pricing mode (retail/percent/amount off) resolves
+// to below every threshold.
+function resolveClientProductPrice(portalCfg, product, qty) {
+  const base = resolvePortalPrice(portalCfg, product);
+  if (_hasCustomOverride(portalCfg, product)) return base;
+  const tiers = portalCfg?.pricing?.tiers?.[product.id] || [];
+  return resolveTieredPrice(base, tiers, qty);
 }
 
 function _newPortalToken() {
@@ -349,6 +386,7 @@ function openClientPortalModal(clientId) {
     const included = !cfg.allowedProductIds || cfg.allowedProductIds.includes(String(p.id));
     const custom   = cfg.pricing.custom[p.id];
     const multiple = cfg.multiples[p.id];
+    const tiers    = cfg.pricing.tiers?.[p.id] || [];
     return `
       <div class="portal-card" data-portal-product="${p.id}" style="border:1.5px solid var(--border);
         border-radius:var(--radius-md);padding:12px 14px;margin-bottom:8px;background:var(--white);
@@ -387,6 +425,15 @@ function openClientPortalModal(clientId) {
               style="width:100%;padding:9px 10px;font-size:13px;border:1.5px solid var(--border);
                 border-radius:8px;font-family:inherit;box-sizing:border-box;" />
           </div>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--gray-200);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <label style="font-size:9.5px;font-weight:800;letter-spacing:.5px;
+              text-transform:uppercase;color:var(--gray-500);">Volume Pricing <span style="text-transform:none;font-weight:600;opacity:.7;">(optional, this client only)</span></label>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="addPortalTierRow('${p.id}')"
+              style="padding:4px 10px;font-size:11px;">+ Add break</button>
+          </div>
+          <div class="portal-tier-rows" data-product-id="${p.id}">${tiers.map(t => portalTierRowHtml(p.id, t)).join('')}</div>
         </div>
       </div>`;
   }).join('');
@@ -528,6 +575,30 @@ function togglePortalIncludeAll(checked) {
   updatePortalPricePreviews();
 }
 
+function portalTierRowHtml(productId, tier) {
+  return `
+    <div class="portal-tier-row" data-product-id="${productId}" style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
+      <input type="number" class="portal-tier-minqty" min="1" step="1" placeholder="Qty ≥"
+        value="${tier?.minQty || ''}" oninput="updatePortalPricePreviews()"
+        style="width:70px;padding:6px 8px;font-size:12px;border:1.5px solid var(--border);
+          border-radius:6px;font-family:inherit;box-sizing:border-box;" />
+      <span style="font-size:11px;color:var(--gray-400);">→</span>
+      <input type="number" class="portal-tier-price" min="0" step="0.01" placeholder="Price"
+        value="${tier?.price ?? ''}" oninput="updatePortalPricePreviews()"
+        style="width:80px;padding:6px 8px;font-size:12px;border:1.5px solid var(--border);
+          border-radius:6px;font-family:inherit;box-sizing:border-box;" />
+      <button type="button" onclick="this.parentElement.remove(); updatePortalPricePreviews();"
+        style="background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:14px;padding:2px 4px;">✕</button>
+    </div>`;
+}
+
+function addPortalTierRow(productId) {
+  const container = document.querySelector(
+    `#clientPortalModal .portal-tier-rows[data-product-id="${CSS.escape(String(productId))}"]`);
+  if (!container) return;
+  container.insertAdjacentHTML('beforeend', portalTierRowHtml(productId, null));
+}
+
 function _readPortalModalConfig() {
   const modal = document.getElementById('clientPortalModal');
   if (!modal) return null;
@@ -548,6 +619,19 @@ function _readPortalModalConfig() {
     if (Number.isFinite(v) && v >= 2) multiples[inp.dataset.productId] = v;
   });
 
+  const tiers = {};
+  modal.querySelectorAll('.portal-tier-row').forEach(row => {
+    const productId = row.dataset.productId;
+    const minQty = Number(row.querySelector('.portal-tier-minqty')?.value || 0);
+    const priceRaw = row.querySelector('.portal-tier-price')?.value;
+    if (!productId || !minQty || priceRaw === '' || priceRaw === null || priceRaw === undefined) return;
+    const price = Number(priceRaw);
+    if (!Number.isFinite(price)) return;
+    if (!tiers[productId]) tiers[productId] = [];
+    tiers[productId].push({ minQty, price });
+  });
+  Object.keys(tiers).forEach(productId => tiers[productId].sort((a, b) => a.minQty - b.minQty));
+
   const allowed = [];
   modal.querySelectorAll('.portal-include').forEach(cb => {
     if (cb.checked) allowed.push(String(cb.dataset.productId));
@@ -558,7 +642,25 @@ function _readPortalModalConfig() {
     invoice: document.getElementById('portalAcceptInvoice')?.checked !== false
   };
 
-  return { pricing: { mode, percentOff, amountOff, custom }, allowedProductIds: allowed, multiples, builtinMethods };
+  return { pricing: { mode, percentOff, amountOff, custom, tiers }, allowedProductIds: allowed, multiples, builtinMethods };
+}
+
+// Returns an error message if any product's volume-pricing rows are
+// invalid (non-positive qty, negative price, or a duplicate threshold),
+// else null. Checked before persisting — the live preview reader above
+// doesn't block on this so typing mid-edit never shows an error.
+function _validatePortalTiers(tiersByProduct) {
+  for (const productId of Object.keys(tiersByProduct)) {
+    const tiers = tiersByProduct[productId];
+    if (tiers.some(t => t.minQty <= 0 || t.price < 0)) {
+      return 'Volume pricing: quantity must be positive and price cannot be negative';
+    }
+    const seen = new Set(tiers.map(t => t.minQty));
+    if (seen.size !== tiers.length) {
+      return 'Volume pricing: each quantity threshold must be unique per product';
+    }
+  }
+  return null;
 }
 
 function updatePortalPricePreviews() {
@@ -605,6 +707,9 @@ function saveClientPortalConfig(silent = false) {
   const clientId = _portalModalClientId;
   const read = _readPortalModalConfig();
   if (!clientId || !read) return null;
+
+  const tierError = _validatePortalTiers(read.pricing.tiers);
+  if (tierError) { showNotification(tierError, 'error'); return null; }
 
   const clients = getSupplierClients();
   const idx = clients.findIndex(c => String(c.id) === String(clientId));
@@ -659,13 +764,20 @@ async function _publishClientPortal(client) {
     return null;
   }
 
-  const catalog = products.map(p => ({
-    productId: String(p.id),
-    name:      p.name,
-    category:  p.category || '',
-    price:     resolvePortalPrice(cfg, p),
-    multiple:  Number(cfg.multiples[p.id]) >= 2 ? Math.floor(Number(cfg.multiples[p.id])) : 1
-  }));
+  const catalog = products.map(p => {
+    const tiers = cfg.pricing.tiers?.[p.id] || [];
+    return {
+      productId: String(p.id),
+      name:      p.name,
+      category:  p.category || '',
+      price:     resolvePortalPrice(cfg, p),
+      multiple:  Number(cfg.multiples[p.id]) >= 2 ? Math.floor(Number(cfg.multiples[p.id])) : 1,
+      // This client's own volume-pricing tiers for this product — omitted
+      // when they have a flat custom-price override instead (that always
+      // wins outright, see resolveClientProductPrice).
+      ...(!_hasCustomOverride(cfg, p) && tiers.length ? { priceTiers: tiers } : {})
+    };
+  });
 
   // Payment methods the client can choose from — the supply checkout's
   // built-ins plus everything configured in Settings (QR images included
@@ -1003,6 +1115,11 @@ function addSupplyLineItemRow(item = null) {
   const row = document.createElement('div');
   row.className = 'supply-line-row';
   row.dataset.productId = item?.productId || '';
+  // A loaded/saved line item's price was set deliberately (by staff or a
+  // prior save) and must never be silently recomputed on reopen; a brand
+  // new blank row starts in "auto" mode until the staff types into the
+  // price field directly.
+  row.dataset.priceAuto = item ? 'false' : 'true';
 
   row.innerHTML = `
     <select class="supply-item-product" style="flex:2;padding:7px 10px;
@@ -1038,11 +1155,23 @@ function addSupplyLineItemRow(item = null) {
       priceInput.value = retailPrice;
     }
     row.dataset.productId = productSelect.value;
+    // Switching products re-arms tier auto-pricing — the old price belonged
+    // to a different product's tier list.
+    row.dataset.priceAuto = 'true';
+    recomputeTierPrice(row);
     updateSupplyLineTotal(row);
   });
 
-  row.querySelector('.supply-item-qty')?.addEventListener('input',   () => updateSupplyLineTotal(row));
-  row.querySelector('.supply-item-price')?.addEventListener('input', () => updateSupplyLineTotal(row));
+  row.querySelector('.supply-item-qty')?.addEventListener('input', () => {
+    recomputeTierPrice(row);
+    updateSupplyLineTotal(row);
+  });
+  row.querySelector('.supply-item-price')?.addEventListener('input', () => {
+    // The staff typed directly into the price field — stop auto-recomputing
+    // it from qty/tiers from now on for this row.
+    row.dataset.priceAuto = 'false';
+    updateSupplyLineTotal(row);
+  });
 
   row.querySelector('.supply-remove-line').addEventListener('click', () => {
     row.remove();
@@ -1050,6 +1179,32 @@ function addSupplyLineItemRow(item = null) {
   });
 
   container.appendChild(row);
+}
+
+// Recomputes a line's unit price from the selected order client's
+// volume-pricing tiers for that product (configured per client, per
+// product, in the Client Portal pricing modal) as qty changes — but only
+// while the price is still in "auto" mode (i.e. the staff hasn't manually
+// typed a price for this row/product pick).
+function recomputeTierPrice(row) {
+  if (row.dataset.priceAuto !== 'true') return;
+  const productSelect = row.querySelector('.supply-item-product');
+  const priceInput    = row.querySelector('.supply-item-price');
+  const qtyInput      = row.querySelector('.supply-item-qty');
+  const productId     = productSelect?.value;
+  const product = (Array.isArray(APP_STATE.products) ? APP_STATE.products : [])
+    .find(p => String(p.id) === String(productId));
+  if (!product) return;
+
+  const qty = Number(qtyInput?.value || 0);
+  const clientId = document.getElementById('supplyClientSelect')?.value || '';
+  const client = clientId
+    ? getSupplierClients().find(c => String(c.id) === String(clientId))
+    : null;
+
+  priceInput.value = client
+    ? resolveClientProductPrice(_getPortalConfig(client), product, qty)
+    : Number(product.price || 0);
 }
 
 function updateSupplyLineTotal(row) {
@@ -1119,6 +1274,21 @@ function openSupplyOrderModal(orderId = null) {
     setElementValue('supplyOrderDate',     today);
     setElementValue('supplyInvoiceNumber', generateInvoiceNumber());
   }
+
+  // Volume pricing is configured per-client (Client Portal pricing), so
+  // switching the order's client changes which tiers apply — recompute
+  // every still-auto-priced line when that happens.
+  const clientSelect = document.getElementById('supplyClientSelect');
+  if (clientSelect && !clientSelect.dataset.tierRecomputeBound) {
+    clientSelect.dataset.tierRecomputeBound = 'true';
+    clientSelect.addEventListener('change', () => {
+      document.querySelectorAll('#supplyLineItems .supply-line-row').forEach(row => {
+        recomputeTierPrice(row);
+        updateSupplyLineTotal(row);
+      });
+    });
+  }
+
   openModal('supplyOrderModal');
 }
 
