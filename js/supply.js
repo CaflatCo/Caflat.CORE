@@ -233,7 +233,7 @@ function renderClientsList() {
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
           </svg>
-          Ordering System
+          Order Portal
         </button>
         <button class="btn btn-sm btn-secondary" data-action="edit-client" data-id="${c.id}">Edit</button>
         <button class="btn btn-sm btn-secondary" data-action="delete-client" data-id="${c.id}">Delete</button>
@@ -328,7 +328,7 @@ function openClientPortalModal(clientId) {
   if (!client) return;
 
   if (typeof getTenantId !== 'function' || !getTenantId()) {
-    showNotification('Activate your license first — the ordering system link needs your cloud workspace', 'error');
+    showNotification('Activate your license first — the order portal link needs your cloud workspace', 'error');
     return;
   }
 
@@ -401,7 +401,7 @@ function openClientPortalModal(clientId) {
 
   m.innerHTML = `
     <div class="modal" style="max-width:min(680px, 94vw);">
-      <h3 style="margin-bottom:2px;">Ordering System — ${escapeHtml(client.name)}</h3>
+      <h3 style="margin-bottom:2px;">Order Portal — ${escapeHtml(client.name)}</h3>
       <div style="font-size:12px;color:var(--gray-400);margin-bottom:18px;">
         Set this client's prices, pick their products, then share their private order link.
       </div>
@@ -637,7 +637,7 @@ async function shareClientPortal() {
     if (linkInput) linkInput.value = _portalLink(token);
     if (section)   section.style.display = 'block';
     _renderPortalQR(token);
-    showNotification('Ordering system published — link is ready to share', 'success');
+    showNotification('Order portal published — link is ready to share', 'success');
   } finally {
     if (btn) { btn.textContent = 'Update & Re-share Link'; btn.disabled = false; }
   }
@@ -646,7 +646,7 @@ async function shareClientPortal() {
 async function _publishClientPortal(client) {
   const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
   if (!tenantId) {
-    showNotification('Activate your license to share ordering systems', 'error');
+    showNotification('Activate your license to share order portals', 'error');
     return null;
   }
 
@@ -716,7 +716,7 @@ async function _publishClientPortal(client) {
 
   if (!res.ok) {
     console.error('Portal publish failed', res.status, res.data);
-    showNotification('Could not publish the ordering system — check your connection', 'error');
+    showNotification('Could not publish the order portal — check your connection', 'error');
     return null;
   }
 
@@ -737,7 +737,7 @@ async function _publishClientPortal(client) {
   }
 
   _auditSupplyEvent('SUPPLY_PORTAL_PUBLISHED', { id: client.id, clientName: client.name },
-    'SUCCESS', `Ordering system published for ${client.name}`);
+    'SUCCESS', `Order portal published for ${client.name}`);
   return token;
 }
 
@@ -895,7 +895,7 @@ function _convertPortalOrder(row) {
   const subtotal  = round2(items.reduce((s, i) => s + i.total, 0));
   const timestamp = new Date().toISOString();
 
-  const noteParts = ['Received via client ordering system'];
+  const noteParts = ['Received via client order portal'];
   if (row.requested_date)    noteParts.push(`Requested delivery: ${row.requested_date}`);
   if (row.payment_method)    noteParts.push(`Client will pay by: ${row.payment_method}`
     + (row.payment_reference ? ` (ref ${row.payment_reference})` : ''));
@@ -929,7 +929,7 @@ function _convertPortalOrder(row) {
     reservedStock: false,
     stockDeducted: false,
     statusHistory: [{ status: 'DRAFTED', changedAt: timestamp,
-      note: 'Submitted by client through their ordering system' }],
+      note: 'Submitted by client through their order portal' }],
     portalOrderId:          row.id,
     clientPaymentMethod:    row.payment_method    || '',
     clientPaymentReference: row.payment_reference || '',

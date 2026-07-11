@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Ordering System</title>
+<title>Order Portal</title>
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
@@ -504,7 +504,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       </svg>
     </div>
     <h1 id="errTitle">This link isn't active</h1>
-    <p id="errBody">The ordering system you're looking for isn't available. Ask your supplier for a fresh link.</p>
+    <p id="errBody">The order portal you're looking for isn't available. Ask your supplier for a fresh link.</p>
     <button class="retry-btn" id="retryBtn" style="display:none;">Try again</button>
   </div>
 </div>
@@ -515,7 +515,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     <div class="hero-blob b1"></div>
     <div class="hero-blob b2"></div>
     <div class="hero-blob b3"></div>
-    <div class="eyebrow">Ordering System</div>
+    <div class="eyebrow">Order Portal</div>
     <div class="brand" id="brandName"></div>
     <div class="prepared">Prices prepared for <b id="clientName"></b></div>
   </div>
@@ -756,7 +756,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   function load() {
     if (!token) {
       fail("This link isn't active",
-        "The ordering system you're looking for isn't available. Ask your supplier for a fresh link.", false);
+        "The order portal you're looking for isn't available. Ask your supplier for a fresh link.", false);
       return;
     }
     show('loading');
@@ -781,8 +781,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
   /* ── Render catalog ── */
   function render() {
-    document.title = (portal.brand_name || 'Ordering System') + ' — Ordering System';
-    $('brandName').textContent  = portal.brand_name || 'Ordering System';
+    document.title = (portal.brand_name || 'Order Portal') + ' — Order Portal';
+    $('brandName').textContent  = portal.brand_name || 'Order Portal';
     $('clientName').textContent = portal.client_name || 'you';
 
     var byCat = {};
