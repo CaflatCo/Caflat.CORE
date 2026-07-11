@@ -153,8 +153,11 @@ input, textarea { font-family: inherit; }
 .powered b { font-weight: 900; color: #fff; }
 .powered:active { transform: scale(.96); box-shadow: 0 3px 10px -4px rgba(10,10,10,.3); }
 
-/* Stepper */
-.stepper { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+/* Stepper — .stepper-col wraps the control + the pack-size caption
+   underneath, so "×12" reads as an explanation of the stepper's
+   increment rather than a note on the price. */
+.stepper-col { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.stepper { display: flex; align-items: center; gap: 2px; }
 .step-btn { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
   font-size: 20px; font-weight: 800; user-select: none;
   transition: transform .12s var(--spring), background .15s, opacity .15s; }
@@ -167,9 +170,8 @@ input, textarea { font-family: inherit; }
   box-shadow: inset 0 -2px 0 var(--gray-200); border-radius: 2px;
   transition: box-shadow .2s var(--ease); }
 .qty-input:focus { color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
-.mult-tag { display: inline-block; padding: 3px 10px; border-radius: 99px;
-  background: var(--gray-100); color: var(--gray-500); font-size: 10px; font-weight: 900;
-  letter-spacing: .4px; white-space: nowrap; vertical-align: 1px; margin-left: 6px; }
+.mult-tag { font-size: 10px; font-weight: 800; color: var(--gray-400);
+  letter-spacing: .3px; margin-top: 4px; white-space: nowrap; }
 .qty-pop { animation: pop .28s var(--spring); }
 @keyframes pop { 40% { transform: scale(1.35); } }
 
@@ -270,6 +272,13 @@ input, textarea { font-family: inherit; }
 .cart-step button::before { content: ''; position: absolute; inset: -7px; }
 .cart-step button:active { transform: scale(.82); }
 .cart-q { min-width: 26px; text-align: center; font-size: 13.5px; font-weight: 900; }
+.cart-right .mult-tag { display: block; margin-top: 4px; }
+.cart-delete-btn { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center; color: var(--gray-300); position: relative;
+  transition: color .15s, background .15s; }
+.cart-delete-btn::before { content: ''; position: absolute; inset: -6px; }
+.cart-delete-btn svg { width: 18px; height: 18px; }
+.cart-delete-btn:active { color: var(--danger); background: var(--gray-50); }
 .review-total { display: flex; justify-content: space-between; align-items: center;
   padding: 14px 0 0; font-weight: 900; }
 .review-total .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
@@ -396,6 +405,25 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .cta-amt:empty { display: none; }
 .submit-err { font-size: 13px; font-weight: 700; color: var(--danger); text-align: center;
   margin: 0 0 10px; display: none; }
+
+/* ── Remove-item confirm ── */
+.confirm-overlay { position: fixed; inset: 0; z-index: 60; display: none;
+  align-items: center; justify-content: center; padding: 20px;
+  background: rgba(10,10,10,.45); }
+.confirm-overlay.show { display: flex; animation: fadeIn .18s var(--ease) both; }
+@keyframes fadeIn { from { opacity: 0; } }
+.confirm-card { width: 100%; max-width: 320px; background: var(--white);
+  border-radius: var(--radius); padding: 22px; text-align: center;
+  box-shadow: var(--shadow); animation: confirmPop .22s var(--spring) both; }
+@keyframes confirmPop { from { transform: scale(.92); opacity: 0; } }
+.confirm-title { font-size: 16px; font-weight: 900; margin-bottom: 6px; }
+.confirm-body { font-size: 13.5px; color: var(--gray-500); line-height: 1.5; margin-bottom: 18px; }
+.confirm-actions { display: flex; gap: 10px; }
+.confirm-actions button { flex: 1; padding: 12px; border-radius: 12px;
+  font-size: 13.5px; font-weight: 800; transition: transform .15s var(--ease); }
+.confirm-actions button:active { transform: scale(.96); }
+.confirm-cancel { background: var(--gray-100); color: var(--black); }
+.confirm-ok { background: var(--danger); color: #fff; }
 
 /* ── Success ── */
 #success { min-height: 100dvh; display: none; flex-direction: column; align-items: center;
@@ -645,6 +673,19 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   </div>
 </div>
 
+<!-- Remove-item confirm — small centered card, not a full sheet, since
+     it's a quick yes/no rather than another whole screen of content. -->
+<div id="confirmOverlay" class="confirm-overlay">
+  <div class="confirm-card">
+    <div class="confirm-title" id="confirmTitle"></div>
+    <div class="confirm-body" id="confirmBody"></div>
+    <div class="confirm-actions">
+      <button type="button" class="confirm-cancel" id="confirmCancelBtn">Cancel</button>
+      <button type="button" class="confirm-ok" id="confirmOkBtn">Remove</button>
+    </div>
+  </div>
+</div>
+
 <!-- Success -->
 <div id="success" class="screen">
   <div class="done-card">
@@ -808,15 +849,17 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
               (art || esc(initials(p.name))) + '</div>' +
             '<div class="card-info">' +
               '<div class="card-name">' + esc(p.name) + '</div>' +
-              '<div class="card-price" data-price>' + money(priceFor(p, qtys[p.productId] || 0)) +
-                (unit > 1 ? '<span class="mult-tag">sold in ' + unit + 's</span>' : '') + '</div>' +
+              '<div class="card-price" data-price>' + money(priceFor(p, qtys[p.productId] || 0)) + '</div>' +
               '<div class="card-line-total" data-line></div>' +
             '</div>' +
-            '<div class="stepper">' +
-              '<button class="step-btn step-minus" data-minus aria-label="Less" disabled>−</button>' +
-              '<input class="qty-input" data-qty type="text" inputmode="decimal" value="0" ' +
-                'aria-label="Quantity — tap to type an amount" title="Tap to type an amount">' +
-              '<button class="step-btn step-plus" data-plus aria-label="More">+</button>' +
+            '<div class="stepper-col">' +
+              '<div class="stepper">' +
+                '<button class="step-btn step-minus" data-minus aria-label="Less" disabled>−</button>' +
+                '<input class="qty-input" data-qty type="text" inputmode="decimal" value="0" ' +
+                  'aria-label="Quantity — tap to type an amount" title="Tap to type an amount">' +
+                '<button class="step-btn step-plus" data-plus aria-label="More">+</button>' +
+              '</div>' +
+              (unit > 1 ? '<div class="mult-tag">×' + unit + '</div>' : '') +
             '</div>' +
           '</div>';
         idx++;
@@ -907,10 +950,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     if (product) {
       var unitPrice = priceFor(product, q);
       if (line) line.textContent = q > 0 ? money(unitPrice * q) : '';
-      if (priceEl) {
-        priceEl.innerHTML = money(unitPrice) +
-          (unit > 1 ? '<span class="mult-tag">sold in ' + unit + 's</span>' : '');
-      }
+      if (priceEl) priceEl.textContent = money(unitPrice);
     }
     updateBar();
   }
@@ -994,8 +1034,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
         (art || esc(initials(p.name))) + '</div>' +
       '<div class="cart-info">' +
         '<div class="cart-name">' + esc(p.name) + '</div>' +
-        '<div class="cart-unit" data-unit>' + money(unitPrice) + ' each' +
-          (unit > 1 ? ' · sold in ' + unit + 's' : '') + '</div>' +
+        '<div class="cart-unit" data-unit>' + money(unitPrice) + ' each</div>' +
       '</div>' +
       '<div class="cart-right">' +
         '<div class="cart-amt" data-amt-el>' + money(amt) + '</div>' +
@@ -1004,7 +1043,15 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
           '<span class="cart-q" data-cq>' + qtys[pid] + '</span>' +
           '<button type="button" data-cplus aria-label="More">+</button>' +
         '</div>' +
+        (unit > 1 ? '<div class="mult-tag">×' + unit + '</div>' : '') +
       '</div>' +
+      '<button type="button" class="cart-delete-btn" data-cart-delete aria-label="Remove ' + esc(p.name) + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+          'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M6 8h12l-1 12.5a2 2 0 0 1-2 1.5H9a2 2 0 0 1-2-1.5L6 8Z"/>' +
+          '<path d="M9 8V6a3 3 0 0 1 6 0v2"/>' +
+        '</svg>' +
+      '</button>' +
     '</div>';
   }
 
@@ -1037,10 +1084,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
         animateTotal(amtEl, prev, next);
         row.dataset.amt = next;
         var unitEl = row.querySelector('[data-unit]');
-        if (unitEl && p) {
-          var unit = unitOf(p);
-          unitEl.textContent = money(unitPrice) + ' each' + (unit > 1 ? ' · sold in ' + unit + 's' : '');
-        }
+        if (unitEl) unitEl.textContent = money(unitPrice) + ' each';
       }
     } else if (row) {
       if (reduce) { row.remove(); }
@@ -1106,9 +1150,38 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     var row = e.target.closest('.cart-row');
     if (!row) return;
     var pid  = row.getAttribute('data-pid');
+
+    if (e.target.closest('[data-cart-delete]')) {
+      var product = findProduct(pid);
+      askConfirm('Remove item?', 'Remove ' + (product ? product.name : 'this item') + ' from your order?')
+        .then(function (ok) { if (ok) setCartQty(pid, 0); });
+      return;
+    }
+
     var unit = unitOf(findProduct(pid));
     if (e.target.closest('[data-cplus]'))  setCartQty(pid, (qtys[pid] || 0) + unit);
     if (e.target.closest('[data-cminus]')) setCartQty(pid, (qtys[pid] || 0) - unit);
+  });
+
+  /* ── Generic confirm card ── returns a Promise<boolean>. */
+  var _confirmResolve = null;
+  function askConfirm(title, body, okLabel) {
+    $('confirmTitle').textContent = title;
+    $('confirmBody').textContent = body;
+    $('confirmOkBtn').textContent = okLabel || 'Remove';
+    $('confirmOverlay').classList.add('show');
+    return new Promise(function (resolve) { _confirmResolve = resolve; });
+  }
+  function closeConfirm(result) {
+    $('confirmOverlay').classList.remove('show');
+    var resolve = _confirmResolve;
+    _confirmResolve = null;
+    if (resolve) resolve(result);
+  }
+  $('confirmCancelBtn').addEventListener('click', function () { closeConfirm(false); });
+  $('confirmOkBtn').addEventListener('click', function () { closeConfirm(true); });
+  $('confirmOverlay').addEventListener('click', function (e) {
+    if (e.target === $('confirmOverlay')) closeConfirm(false);
   });
 
   /* ── Swipe down to dismiss ──
