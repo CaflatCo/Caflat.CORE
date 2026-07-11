@@ -140,7 +140,6 @@ input, textarea { font-family: inherit; }
 .card-name { font-size: 15px; font-weight: 800; line-height: 1.25; overflow-wrap: break-word; }
 .card-price { font-size: 13.5px; color: var(--gray-500); font-weight: 700; margin-top: 3px; }
 .card.picked .card-price { color: var(--black); }
-.mult-row { margin-top: 5px; }
 .card-line-total { font-size: 11px; font-weight: 800; color: var(--accent); margin-top: 2px;
   opacity: 0; transform: translateY(-3px); transition: all .25s var(--ease); }
 .card.picked .card-line-total { opacity: 1; transform: none; }
@@ -170,7 +169,7 @@ input, textarea { font-family: inherit; }
 .qty-input:focus { color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
 .mult-tag { display: inline-block; padding: 3px 10px; border-radius: 99px;
   background: var(--gray-100); color: var(--gray-500); font-size: 10px; font-weight: 900;
-  letter-spacing: .4px; white-space: nowrap; }
+  letter-spacing: .4px; white-space: nowrap; vertical-align: 1px; margin-left: 6px; }
 .qty-pop { animation: pop .28s var(--spring); }
 @keyframes pop { 40% { transform: scale(1.35); } }
 
@@ -809,8 +808,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
               (art || esc(initials(p.name))) + '</div>' +
             '<div class="card-info">' +
               '<div class="card-name">' + esc(p.name) + '</div>' +
-              '<div class="card-price" data-price>' + money(priceFor(p, qtys[p.productId] || 0)) + '</div>' +
-              (unit > 1 ? '<div class="mult-row"><span class="mult-tag">sold in ' + unit + 's</span></div>' : '') +
+              '<div class="card-price" data-price>' + money(priceFor(p, qtys[p.productId] || 0)) +
+                (unit > 1 ? '<span class="mult-tag">sold in ' + unit + 's</span>' : '') + '</div>' +
               '<div class="card-line-total" data-line></div>' +
             '</div>' +
             '<div class="stepper">' +
@@ -908,7 +907,10 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     if (product) {
       var unitPrice = priceFor(product, q);
       if (line) line.textContent = q > 0 ? money(unitPrice * q) : '';
-      if (priceEl) priceEl.textContent = money(unitPrice);
+      if (priceEl) {
+        priceEl.innerHTML = money(unitPrice) +
+          (unit > 1 ? '<span class="mult-tag">sold in ' + unit + 's</span>' : '');
+      }
     }
     updateBar();
   }
