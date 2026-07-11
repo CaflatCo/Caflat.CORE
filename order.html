@@ -833,12 +833,17 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       if (e.target.closest('[data-plus]'))  setQty(pid, (qtys[pid] || 0) + unit, card);
       if (e.target.closest('[data-minus]')) setQty(pid, (qtys[pid] || 0) - unit, card);
     });
-    $('catalog').addEventListener('change', function (e) {
+    // 'input' recomputes live on every keystroke (price/cart shouldn't wait
+    // for blur); 'change' catches the same on blur/Enter as a fallback for
+    // browsers/inputs that don't fire 'input' reliably (e.g. some IME flows).
+    function onQtyTyped(e) {
       if (!e.target.hasAttribute('data-qty')) return;
       var card = e.target.closest('.card');
       var v = parseFloat(String(e.target.value).replace(/[^0-9.]/g, ''));
       setQty(card.getAttribute('data-pid'), isFinite(v) ? v : 0, card);
-    });
+    }
+    $('catalog').addEventListener('input', onQtyTyped);
+    $('catalog').addEventListener('change', onQtyTyped);
     // Typing a number directly is first-class: tap the qty → whole value selected
     $('catalog').addEventListener('focusin', function (e) {
       if (e.target.hasAttribute('data-qty')) e.target.select();

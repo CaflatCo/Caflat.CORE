@@ -726,6 +726,17 @@ function saveClientPortalConfig(silent = false) {
   return clients[idx];
 }
 
+// Plain "Save" only persists the pricing config app-side — if this
+// client's order link is already published, the live page would keep
+// showing stale prices until someone separately clicks "Update &
+// Re-share Link". Silently re-publish here too so Save always means
+// "this is what the client sees now" whenever a link already exists.
+async function saveAndSyncClientPortal() {
+  const client = saveClientPortalConfig();
+  if (!client || !client.portal?.token || client.portal?.revoked) return;
+  await _publishClientPortal(client);
+}
+
 async function shareClientPortal() {
   const client = saveClientPortalConfig(true);
   if (!client) return;
