@@ -903,6 +903,12 @@ function _convertPortalOrder(row) {
     const half = round2(subtotal / 2);
     noteParts.push(`50% DOWNPAYMENT: ${formatCurrency(half)} sent, balance ${formatCurrency(subtotal - half)} on delivery`);
   }
+  if (row.payment_method_2) {
+    const amt2 = Number(row.payment_amount_2 || 0);
+    const amt1 = Math.max(0, subtotal - amt2);
+    noteParts.push(`SPLIT PAYMENT: ${formatCurrency(amt1)} via ${row.payment_method} + ${formatCurrency(amt2)} via ${row.payment_method_2}`
+      + (row.payment_reference_2 ? ` (ref ${row.payment_reference_2})` : ''));
+  }
   if (row.payment_proof)     noteParts.push('Payment screenshot attached — open the order to view it');
   if (row.notes)             noteParts.push(`Client notes: ${row.notes}`);
   if (missing.length)        noteParts.push(`⚠ No longer in your products: ${missing.join(', ')}`);
@@ -929,6 +935,9 @@ function _convertPortalOrder(row) {
     clientPaymentReference: row.payment_reference || '',
     clientPaymentSplit:     row.payment_split === 'half' ? 'half' : 'full',
     clientPaymentProof:     row.payment_proof     || '',
+    clientPaymentMethod2:    row.payment_method_2    || '',
+    clientPaymentAmount2:    Number(row.payment_amount_2 || 0),
+    clientPaymentReference2: row.payment_reference_2 || '',
     requestedDate:          row.requested_date    || '',
     createdAt: timestamp,
     updatedAt: timestamp
@@ -2421,6 +2430,14 @@ function openSupplyOrderView(orderId) {
         <span style="color:var(--gray-400);"> · balance ${formatCurrency((order.grandTotal||0) - round2((order.grandTotal||0)/2))} on delivery</span>
       </div>` : order.clientPaymentSplit === 'full' ? `
       <div style="font-size:12px;font-weight:700;color:#15803d;margin-top:4px;">Paid in full</div>` : ''}
+      ${order.clientPaymentMethod2 ? `
+      <div style="font-size:12px;font-weight:700;margin-top:4px;">
+        <span style="color:var(--gray-400);">Split payment: </span>
+        <span style="color:#15803d;">${formatCurrency(Math.max(0, (order.grandTotal||0) - order.clientPaymentAmount2))} via ${escapeHtml(order.clientPaymentMethod)}</span>
+        <span style="color:var(--gray-400);"> + </span>
+        <span style="color:#15803d;">${formatCurrency(order.clientPaymentAmount2)} via ${escapeHtml(order.clientPaymentMethod2)}</span>
+        ${order.clientPaymentReference2 ? `<span style="color:var(--gray-400);"> (ref ${escapeHtml(order.clientPaymentReference2)})</span>` : ''}
+      </div>` : ''}
       ${order.clientPaymentProof ? `
       <div style="margin-top:10px;">
         <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);margin-bottom:6px;">Payment Screenshot</div>
