@@ -574,18 +574,16 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       <div class="pay-rows" id="payChips"></div>
 
       <div class="split-toggle" id="secondPayToggle">
-        <span>Pay with two methods</span>
+        <span>Split payment</span>
         <div class="split-switch"></div>
       </div>
       <div id="secondPayWrap" style="display:none;">
-        <div class="f-label">Second payment method</div>
         <select class="f-input" id="secondPayMethod"></select>
         <input class="f-input" id="secondPayAmount" type="number" min="0" step="0.01"
-          placeholder="Amount paid via this method">
+          placeholder="Amount">
         <div class="split-remainder" id="splitRemainder"></div>
         <div id="secondPayRefWrap" style="display:none;margin-top:10px;">
-          <div class="f-label">Second payment reference <span style="opacity:.5;">(optional)</span></div>
-          <input class="f-input" id="secondPayRef" type="text" placeholder="e.g. GCash ref no." maxlength="200">
+          <input class="f-input" id="secondPayRef" type="text" placeholder="Reference no. (optional)" maxlength="200">
         </div>
       </div>
 
