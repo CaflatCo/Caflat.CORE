@@ -227,23 +227,58 @@ input, textarea { font-family: inherit; }
 #sheet.show { transform: none; }
 .sheet-handle { width: 40px; height: 4px; border-radius: 99px; background: var(--gray-200);
   margin: 12px auto 4px; flex-shrink: 0; }
-.sheet-scroll { overflow-y: auto; padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
+.sheet-scroll { overflow-y: auto; min-height: 0; padding: 8px 20px 20px;
   max-width: 560px; margin: 0 auto; width: 100%; }
-.sheet-title { font-size: 19px; font-weight: 900; margin: 8px 0 14px; }
+.sheet-title { font-size: 19px; font-weight: 900; margin: 8px 0 2px; }
 
-.review-line { display: flex; align-items: baseline; gap: 10px; padding: 9px 0;
-  border-bottom: 1px dashed var(--gray-200); font-size: 14px; }
-.review-line .nm { font-weight: 700; flex: 1; min-width: 0; }
-.review-line .q { color: var(--gray-400); font-weight: 700; white-space: nowrap; }
-.review-line .amt { font-weight: 900; white-space: nowrap; }
+/* Numbered sections — echoes the catalog's .cat-label language */
+.sec { margin-top: 24px; }
+.sec:first-of-type { margin-top: 12px; }
+.sec-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  font-size: 11px; font-weight: 900; letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--gray-500); }
+.sec-num { width: 20px; height: 20px; flex-shrink: 0; border-radius: 99px;
+  display: grid; place-items: center; background: var(--black); color: #fff;
+  font-size: 10.5px; font-weight: 900; letter-spacing: 0; }
+.sec-count { font-weight: 700; letter-spacing: 0; text-transform: none;
+  color: var(--gray-400); }
+.sec-head::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
+
+/* Editable cart rows */
+.cart-row { display: flex; align-items: center; gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid var(--gray-100); overflow: hidden; box-sizing: border-box;
+  transition: opacity .28s var(--ease), transform .28s var(--ease),
+              height .28s var(--ease), padding .28s var(--ease); }
+.cart-row.out { opacity: 0; transform: translateX(-14px); }
+.cart-thumb { width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--cat-t, var(--gray-100)); color: var(--cat, var(--gray-500));
+  font-size: 13px; font-weight: 900; }
+.cart-thumb.has-art { padding: 3px;
+  background: linear-gradient(160deg, #fff 0%, var(--cat-t, var(--gray-50)) 100%);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.05); }
+.cart-thumb .p-art { width: 100%; height: 100%; display: block; }
+.cart-info { flex: 1; min-width: 0; }
+.cart-name { font-size: 14px; font-weight: 800; line-height: 1.3; overflow-wrap: break-word; }
+.cart-unit { font-size: 11.5px; color: var(--gray-400); font-weight: 700; margin-top: 2px; }
+.cart-right { flex-shrink: 0; text-align: right; }
+.cart-amt { font-size: 14px; font-weight: 900; white-space: nowrap; }
+.cart-step { display: inline-flex; align-items: center; margin-top: 6px;
+  border: 1.5px solid var(--gray-200); border-radius: 99px; background: var(--white); }
+.cart-step button { width: 34px; height: 30px; display: grid; place-items: center;
+  font-size: 17px; font-weight: 800; color: var(--gray-500); position: relative;
+  transition: transform .12s var(--spring); }
+.cart-step button::before { content: ''; position: absolute; inset: -7px; }
+.cart-step button:active { transform: scale(.82); }
+.cart-q { min-width: 26px; text-align: center; font-size: 13.5px; font-weight: 900; }
 .review-total { display: flex; justify-content: space-between; align-items: center;
-  padding: 14px 0 4px; font-weight: 900; }
+  padding: 14px 0 0; font-weight: 900; }
 .review-total .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
   color: var(--gray-500); }
 .review-total .val { font-size: 24px; letter-spacing: -.01em; }
 
-.f-label { font-size: 11px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase;
-  color: var(--gray-500); margin: 18px 0 8px; }
+.f-label { font-size: 10.5px; font-weight: 900; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--gray-400); margin: 16px 0 7px; }
 .f-input, .f-area {
   width: 100%; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
   padding: 12px 14px; font-size: 15px; font-weight: 600; background: var(--white);
@@ -262,21 +297,43 @@ input.f-input[type="date"] {
 }
 input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
-/* Payment chips */
-.pay-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.pay-chip { padding: 11px 18px; border-radius: 99px; border: 1.5px solid var(--gray-200);
-  background: var(--white); font-size: 13.5px; font-weight: 800; color: var(--gray-600);
-  transition: all .2s var(--ease); }
-.pay-chip:active { transform: scale(.95); }
-.pay-chip.sel { background: var(--black); color: #fff; border-color: var(--black); }
+/* Payment method rows — selectable cards with a type glyph + check */
+.pay-rows { display: grid; gap: 8px; }
+.pay-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 11px 14px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+  background: var(--white); font-size: 14px; font-weight: 800; color: var(--gray-600);
+  transition: border-color .2s var(--ease), background .2s var(--ease),
+              box-shadow .2s var(--ease); }
+.pay-row:active { transform: scale(.99); }
+.pay-row .p-ic { width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px;
+  display: grid; place-items: center; background: var(--gray-50); color: var(--gray-500);
+  transition: background .2s, color .2s; }
+.pay-row .p-ic svg { width: 18px; height: 18px; }
+.pay-row .p-check { margin-left: auto; width: 20px; height: 20px; flex-shrink: 0;
+  color: var(--accent); opacity: 0; transform: scale(.5);
+  transition: opacity .2s var(--ease), transform .25s var(--spring); }
+.pay-row.sel { border-color: var(--accent); background: #f2f9f4; color: var(--black);
+  box-shadow: inset 0 0 0 1px var(--accent); }
+.pay-row.sel .p-ic { background: #dcefe2; color: var(--accent); }
+.pay-row.sel .p-check { opacity: 1; transform: none; }
 
-.pay-now { display: flex; align-items: baseline; gap: 10px; margin-top: 12px;
-  padding: 12px 16px; background: var(--gray-50); border: 1.5px solid var(--gray-200);
-  border-radius: var(--radius-sm); flex-wrap: wrap; }
-.pay-now-lbl { font-size: 10.5px; font-weight: 900; letter-spacing: 1.6px;
-  text-transform: uppercase; color: var(--gray-500); }
-.pay-now-amt { font-size: 21px; font-weight: 900; letter-spacing: -.01em; color: var(--accent); }
-.pay-now-note { font-size: 11.5px; font-weight: 700; color: var(--gray-400); }
+/* Settlement segmented control */
+.seg { display: flex; gap: 0; padding: 4px; background: var(--gray-100);
+  border-radius: 99px; }
+.seg button { flex: 1; padding: 9px 8px; border-radius: 99px; font-size: 12.5px;
+  font-weight: 800; color: var(--gray-500); transition: all .2s var(--ease);
+  white-space: nowrap; }
+.seg button.sel { background: var(--white); color: var(--black); box-shadow: var(--shadow); }
+
+/* Pay summary mini-card: Total / Pay now / Balance */
+.pay-mini { margin-top: 12px; padding: 12px 16px; background: var(--gray-50);
+  border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+  display: grid; gap: 7px; }
+.pay-mini .row { display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 12.5px; font-weight: 700; color: var(--gray-500); }
+.pay-mini .row .v { font-weight: 900; color: var(--black); }
+.pay-mini .row.now { font-size: 13px; }
+.pay-mini .row.now .v { font-size: 19px; color: var(--accent); letter-spacing: -.01em; }
 
 .proof-box { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
   padding: 18px 14px; border: 2px dashed var(--gray-300); border-radius: var(--radius-sm);
@@ -303,15 +360,24 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .bank-copy { font-size: 11px; font-weight: 800; color: var(--accent); margin-top: 6px;
   text-transform: uppercase; letter-spacing: 1px; }
 
+/* Sticky footer CTA — always visible; label carries the commitment amount */
+.sheet-footer { flex-shrink: 0; border-top: 1px solid var(--gray-100);
+  background: var(--white);
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); }
+.sheet-footer > * { max-width: 560px; margin-left: auto; margin-right: auto; }
 .submit-btn {
-  width: 100%; margin-top: 22px; padding: 17px; background: var(--black); color: #fff;
+  width: 100%; display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: var(--black); color: #fff;
   border-radius: 14px; font-size: 16px; font-weight: 900; letter-spacing: .02em;
   transition: transform .15s var(--ease), opacity .2s; position: relative;
 }
 .submit-btn:active { transform: scale(.98); }
 .submit-btn[disabled] { opacity: .55; pointer-events: none; }
+.cta-amt { margin-left: 10px; padding-left: 12px;
+  border-left: 1px solid rgba(255,255,255,.28); font-weight: 900; }
+.cta-amt:empty { display: none; }
 .submit-err { font-size: 13px; font-weight: 700; color: var(--danger); text-align: center;
-  margin-top: 10px; display: none; }
+  margin: 0 0 10px; display: none; }
 
 /* ── Success ── */
 #success { min-height: 100dvh; display: none; align-items: center; justify-content: center;
@@ -473,62 +539,77 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   <div class="sheet-handle"></div>
   <div class="sheet-scroll">
     <div class="sheet-title">Your order</div>
-    <div id="reviewLines"></div>
-    <div class="review-total">
-      <span class="lbl">Total</span>
-      <span class="val" id="reviewTotal"></span>
-    </div>
 
-    <div class="f-label">Payment method</div>
-    <div class="pay-chips" id="payChips"></div>
-
-    <div id="settleWrap" style="display:none;">
-      <div class="f-label">How will you settle?</div>
-      <div class="pay-chips" id="settleChips">
-        <button type="button" class="pay-chip sel" data-split="full">Full payment</button>
-        <button type="button" class="pay-chip" data-split="half">50% downpayment</button>
+    <section class="sec">
+      <div class="sec-head"><span class="sec-num">1</span> Items
+        <span class="sec-count" id="secItemCount"></span></div>
+      <div id="reviewLines"></div>
+      <div class="review-total">
+        <span class="lbl">Total</span>
+        <span class="val" id="reviewTotal"></span>
       </div>
-      <div class="pay-now">
-        <span class="pay-now-lbl">Pay now</span>
-        <span class="pay-now-amt" id="payNowAmt"></span>
-        <span class="pay-now-note" id="payNowNote"></span>
+    </section>
+
+    <section class="sec">
+      <div class="sec-head"><span class="sec-num">2</span> Payment</div>
+      <div class="pay-rows" id="payChips"></div>
+
+      <div id="settleWrap" style="display:none;">
+        <div class="f-label">How will you settle?</div>
+        <div class="seg" id="settleChips">
+          <button type="button" class="sel" data-split="full">Full payment</button>
+          <button type="button" data-split="half">50% downpayment</button>
+        </div>
+        <div class="pay-mini">
+          <div class="row"><span>Total</span><span class="v" id="payMiniTotal"></span></div>
+          <div class="row now"><span>Pay now</span><span class="v" id="payNowAmt"></span></div>
+          <div class="row" id="payBalanceRow" style="display:none;">
+            <span>Balance on delivery</span><span class="v" id="payNowNote"></span></div>
+        </div>
       </div>
-    </div>
 
-    <div class="pay-detail" id="payDetail"><div class="pay-detail-inner" id="payDetailInner"></div></div>
+      <div class="pay-detail" id="payDetail"><div class="pay-detail-inner" id="payDetailInner"></div></div>
 
-    <div id="proofWrap" style="display:none;">
-      <div class="f-label">Proof of payment <span style="color:var(--danger);">(required)</span></div>
-      <input type="file" id="proofFile" accept="image/*" style="display:none;">
-      <button type="button" class="proof-box" id="proofBox">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;">
-          <rect x="3" y="3" width="18" height="18" rx="3"/>
-          <circle cx="8.5" cy="8.5" r="1.5"/>
-          <path d="M21 15l-5-5L5 21"/>
-        </svg>
-        <span>Attach your transaction screenshot</span>
-      </button>
-      <div class="proof-preview" id="proofPreview" style="display:none;">
-        <img id="proofImg" alt="Payment screenshot">
-        <button type="button" class="proof-remove" id="proofRemove">Remove &amp; re-attach</button>
+      <div id="proofWrap" style="display:none;">
+        <div class="f-label">Proof of payment <span style="color:var(--danger);">(required)</span></div>
+        <input type="file" id="proofFile" accept="image/*" style="display:none;">
+        <button type="button" class="proof-box" id="proofBox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          <span>Attach your transaction screenshot</span>
+        </button>
+        <div class="proof-preview" id="proofPreview" style="display:none;">
+          <img id="proofImg" alt="Payment screenshot">
+          <button type="button" class="proof-remove" id="proofRemove">Remove &amp; re-attach</button>
+        </div>
       </div>
-    </div>
 
-    <div id="payRefWrap" style="display:none;">
-      <div class="f-label">Payment reference <span style="opacity:.5;">(optional)</span></div>
-      <input class="f-input" id="payRef" type="text" placeholder="e.g. GCash ref no." maxlength="200">
-    </div>
+      <div id="payRefWrap" style="display:none;">
+        <div class="f-label">Payment reference <span style="opacity:.5;">(optional)</span></div>
+        <input class="f-input" id="payRef" type="text" placeholder="e.g. GCash ref no." maxlength="200">
+      </div>
+    </section>
 
-    <div class="f-label">Requested delivery date <span style="opacity:.5;">(optional)</span></div>
-    <input class="f-input" id="reqDate" type="date">
+    <section class="sec">
+      <div class="sec-head"><span class="sec-num">3</span> Delivery &amp; notes</div>
+      <div class="f-label">Requested delivery date <span style="opacity:.5;">(optional)</span></div>
+      <input class="f-input" id="reqDate" type="date">
 
-    <div class="f-label">Notes for your supplier <span style="opacity:.5;">(optional)</span></div>
-    <textarea class="f-area" id="orderNotes" maxlength="2000"
-      placeholder="Delivery instructions, packaging requests…"></textarea>
+      <div class="f-label">Notes for your supplier <span style="opacity:.5;">(optional)</span></div>
+      <textarea class="f-area" id="orderNotes" maxlength="2000"
+        placeholder="Delivery instructions, packaging requests…"></textarea>
+    </section>
+  </div>
 
-    <button class="submit-btn" id="submitBtn">Place order</button>
+  <div class="sheet-footer">
     <div class="submit-err" id="submitErr"></div>
+    <button class="submit-btn" id="submitBtn">
+      <span class="cta-txt">Place order</span><span class="cta-amt" id="ctaAmt"></span>
+    </button>
   </div>
 </div>
 
@@ -824,18 +905,123 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   }
 
   /* ── Review sheet ── */
+
+  /* Look up a catalog card by pid with a loop (not an attribute selector)
+     so arbitrary productIds can't break CSS escaping. */
+  function catalogCardFor(pid) {
+    var cards = document.querySelectorAll('#catalog .card');
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].getAttribute('data-pid') === String(pid)) return cards[i];
+    }
+    return null;
+  }
+
+  /* All cart edits route through setQty so the catalog card, picked state,
+     and summary bar stay in sync for free; then refresh the sheet's row. */
+  function setCartQty(pid, q) {
+    var card = catalogCardFor(pid);
+    if (card) setQty(pid, q, card);
+    refreshSheetLine(pid);
+  }
+
+  function cartRowHtml(pid) {
+    var p = findProduct(pid);
+    if (!p) return '';
+    var unit = unitOf(p);
+    var col  = catColor(p.category || 'Products');
+    var art  = (window.getProductArt && window.getProductArt(p.name)) || '';
+    var amt  = p.price * qtys[pid];
+    return '<div class="cart-row" data-pid="' + esc(pid) + '" data-amt="' + amt + '"' +
+        ' style="--cat:' + col.c + ';--cat-t:' + col.t + ';">' +
+      '<div class="cart-thumb' + (art ? ' has-art' : '') + '">' +
+        (art || esc(initials(p.name))) + '</div>' +
+      '<div class="cart-info">' +
+        '<div class="cart-name">' + esc(p.name) + '</div>' +
+        '<div class="cart-unit">' + money(p.price) + ' each' +
+          (unit > 1 ? ' · sold in ' + unit + 's' : '') + '</div>' +
+      '</div>' +
+      '<div class="cart-right">' +
+        '<div class="cart-amt" data-amt-el>' + money(amt) + '</div>' +
+        '<div class="cart-step">' +
+          '<button type="button" data-cminus aria-label="Less">−</button>' +
+          '<span class="cart-q" data-cq>' + qtys[pid] + '</span>' +
+          '<button type="button" data-cplus aria-label="More">+</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderCartLines() {
+    $('reviewLines').innerHTML = Object.keys(qtys).map(cartRowHtml).join('');
+  }
+
+  /* Update (or animate out) one sheet row after a qty change. */
+  function refreshSheetLine(pid) {
+    var rows = $('reviewLines').querySelectorAll('.cart-row');
+    var row = null;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].getAttribute('data-pid') === String(pid)) { row = rows[i]; break; }
+    }
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (qtys[pid]) {
+      if (!row) { renderCartLines(); }
+      else {
+        var p = findProduct(pid);
+        var q = row.querySelector('[data-cq]');
+        q.textContent = qtys[pid];
+        q.classList.remove('qty-pop');
+        void q.offsetWidth;
+        q.classList.add('qty-pop');
+        var amtEl = row.querySelector('[data-amt-el]');
+        var prev  = Number(row.dataset.amt || 0);
+        var next  = p ? p.price * qtys[pid] : 0;
+        animateTotal(amtEl, prev, next);
+        row.dataset.amt = next;
+      }
+    } else if (row) {
+      if (reduce) { row.remove(); }
+      else {
+        row.style.height = row.offsetHeight + 'px';
+        void row.offsetWidth;
+        row.classList.add('out');
+        row.style.height = '0';
+        row.style.paddingTop = '0';
+        row.style.paddingBottom = '0';
+        setTimeout(function () { row.remove(); }, 320);
+      }
+      if (!Object.keys(qtys).length) {
+        setTimeout(closeSheet, reduce ? 0 : 340);
+      }
+    }
+    updateSheetTotals();
+  }
+
+  function updateSheetTotals() {
+    var total = currentTotal();
+    var el = $('reviewTotal');
+    animateTotal(el, Number(el.dataset.prev || 0), total);
+    el.dataset.prev = total;
+    var n = Object.keys(qtys).length;
+    $('secItemCount').textContent = n ? '· ' + n + (n === 1 ? ' item' : ' items') : '';
+    if (paysNow()) updatePayNow();
+    updateSubmitLabel();
+  }
+
+  /* The CTA always shows the amount being committed to. */
+  function updateSubmitLabel() {
+    $('ctaAmt').textContent = money(paysNow() ? payNowAmount() : currentTotal());
+  }
+
   function openSheet() {
-    var lines = Object.keys(qtys).map(function (pid) {
-      var p = findProduct(pid);
-      return '<div class="review-line">' +
-        '<span class="nm">' + esc(p.name) + '</span>' +
-        '<span class="q">×' + qtys[pid] + '</span>' +
-        '<span class="amt">' + money(p.price * qtys[pid]) + '</span>' +
-      '</div>';
-    }).join('');
-    $('reviewLines').innerHTML = lines;
-    $('reviewTotal').textContent = money(currentTotal());
+    renderCartLines();
+    var el = $('reviewTotal');
+    el.textContent = money(currentTotal());
+    el.dataset.prev = currentTotal();
+    var n = Object.keys(qtys).length;
+    $('secItemCount').textContent = n ? '· ' + n + (n === 1 ? ' item' : ' items') : '';
     renderPayChips();
+    updateSubmitLabel();
     $('sheetBackdrop').classList.add('show');
     $('sheet').classList.add('show');
     document.body.style.overflow = 'hidden';
@@ -849,6 +1035,18 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   }
   $('reviewBtn').addEventListener('click', openSheet);
   $('sheetBackdrop').addEventListener('click', closeSheet);
+
+  /* Cart row steppers — step by the product's pack size, like the catalog.
+     Inert while an order is sending (success screen reads qtys live). */
+  $('reviewLines').addEventListener('click', function (e) {
+    if (submitting) return;
+    var row = e.target.closest('.cart-row');
+    if (!row) return;
+    var pid  = row.getAttribute('data-pid');
+    var unit = unitOf(findProduct(pid));
+    if (e.target.closest('[data-cplus]'))  setCartQty(pid, (qtys[pid] || 0) + unit);
+    if (e.target.closest('[data-cminus]')) setCartQty(pid, (qtys[pid] || 0) - unit);
+  });
 
   /* ── Swipe down to dismiss ──
      Drag-to-close only takes over once the sheet's own content is
@@ -903,6 +1101,30 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     return Array.isArray(portal.payment_methods) ? portal.payment_methods : [];
   }
 
+  /* Hand-drawn stroke glyph per payment type (trusted constants). */
+  function payIcon(type) {
+    var S = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round">';
+    var E = '</svg>';
+    if (type === 'cash')    return S + '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/>' +
+      '<circle cx="12" cy="12" r="2.6"/><path d="M6 12h.01M18 12h.01"/>' + E;
+    if (type === 'invoice') return S + '<path d="M6 3h12v18l-2-1.4L14 21l-2-1.4L10 21l-2-1.4L6 21Z"/>' +
+      '<path d="M9.5 8.5h5M9.5 12h5"/>' + E;
+    if (type === 'qr')      return S + '<rect x="4" y="4" width="6" height="6" rx="1.2"/>' +
+      '<rect x="14" y="4" width="6" height="6" rx="1.2"/><rect x="4" y="14" width="6" height="6" rx="1.2"/>' +
+      '<path d="M14 14h2.5M20 14v2.5M14 20h3M20 20h.01M17 17h.01"/>' + E;
+    if (type === 'bank')    return S + '<path d="M3 9.5 12 4l9 5.5"/>' +
+      '<path d="M5 10v7M9.7 10v7M14.3 10v7M19 10v7"/><path d="M3.5 19.5h17"/>' + E;
+    /* wallet fallback */
+    return S + '<path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h11.5v2.5"/>' +
+      '<rect x="3.5" y="7.5" width="17" height="11" rx="2.5"/>' +
+      '<path d="M16.5 13h.01"/>' + E;
+  }
+  var CHECK_SVG = '<svg class="p-check" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+    '<circle cx="12" cy="12" r="10" fill="currentColor"/>' +
+    '<path d="M8 12.4 11 15.4 16.5 9.4" stroke="#fff" stroke-width="2.2" ' +
+    'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
   function renderPayChips() {
     var methods = payMethods();
     if (!methods.length) {
@@ -912,8 +1134,11 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     }
     if (!chosenPay) chosenPay = methods[0].name;
     $('payChips').innerHTML = methods.map(function (m) {
-      return '<button type="button" class="pay-chip' + (m.name === chosenPay ? ' sel' : '') + '"' +
-        ' data-pay="' + esc(m.name) + '">' + esc(m.name) + '</button>';
+      return '<button type="button" class="pay-row' + (m.name === chosenPay ? ' sel' : '') + '"' +
+        ' data-pay="' + esc(m.name) + '">' +
+        '<span class="p-ic">' + payIcon(m.type) + '</span>' +
+        '<span>' + esc(m.name) + '</span>' + CHECK_SVG +
+      '</button>';
     }).join('');
     renderPayDetail();
   }
@@ -947,10 +1172,12 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     $('settleChips').querySelectorAll('[data-split]').forEach(function (c) {
       c.classList.toggle('sel', c.getAttribute('data-split') === chosenSplit);
     });
-    $('payNowAmt').textContent  = money(payNowAmount());
-    $('payNowNote').textContent = chosenSplit === 'half'
-      ? '· remaining ' + money(currentTotal() - payNowAmount()) + ' on delivery'
-      : '';
+    $('payMiniTotal').textContent = money(currentTotal());
+    $('payNowAmt').textContent    = money(payNowAmount());
+    var half = chosenSplit === 'half';
+    $('payBalanceRow').style.display = half ? 'flex' : 'none';
+    $('payNowNote').textContent = half ? money(currentTotal() - payNowAmount()) : '';
+    updateSubmitLabel();
   }
 
   function renderPayDetail() {
@@ -983,7 +1210,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     var now = paysNow();
     $('settleWrap').style.display = now ? 'block' : 'none';
     $('proofWrap').style.display  = now ? 'block' : 'none';
-    if (now) updatePayNow();
+    if (now) updatePayNow(); else updateSubmitLabel();
   }
 
   $('settleChips').addEventListener('click', function (e) {
@@ -1060,7 +1287,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     submitting = true;
     var btn = $('submitBtn');
     btn.disabled = true;
-    btn.textContent = 'Sending…';
+    setCtaSending(true);
     $('submitErr').style.display = 'none';
 
     rpc('submit_portal_order', {
@@ -1080,7 +1307,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
         $('submitErr').style.display = 'block';
         submitting = false;
         btn.disabled = false;
-        btn.textContent = 'Place order';
+        setCtaSending(false);
         return;
       }
       closeSheet();
@@ -1090,9 +1317,17 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       $('submitErr').style.display = 'block';
       submitting = false;
       btn.disabled = false;
-      btn.textContent = 'Place order';
+      setCtaSending(false);
     });
   });
+
+  /* Swap the two-span CTA for a plain "Sending…" label and back. */
+  function setCtaSending(sending) {
+    $('submitBtn').innerHTML = sending
+      ? '<span class="cta-txt">Sending…</span>'
+      : '<span class="cta-txt">Place order</span><span class="cta-amt" id="ctaAmt"></span>';
+    if (!sending) updateSubmitLabel();
+  }
 
   function showSuccess(result) {
     $('doneSub').textContent = 'Your order has been sent to ' +
