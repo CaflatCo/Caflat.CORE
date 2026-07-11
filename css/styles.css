@@ -1367,6 +1367,20 @@ tbody tr:hover td { background: var(--gray-50); }
   transition: border-color var(--transition);
 }
 
+/* Selects otherwise fall back to the browser/OS-native control (most visible
+   on Safari, which renders its own rounder dropdown affordance that doesn't
+   match the search input beside it) — flatten to one custom chevron, same
+   fix already applied to .form-group select. */
+.filter-bar select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='4,6 8,10 12,6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+}
+
 .filter-bar input:focus,
 .filter-bar select:focus {
   outline: none;
