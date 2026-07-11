@@ -314,15 +314,6 @@ function resolvePortalPrice(portalCfg, product) {
   return round2(retail);
 }
 
-// True when this client has a flat custom-price override set for this
-// specific product — a flat override always wins outright, so volume
-// pricing for that same product/client is never applied on top of it.
-function _hasCustomOverride(portalCfg, product) {
-  const customRaw = portalCfg?.pricing?.custom?.[product.id];
-  return customRaw !== undefined && customRaw !== null && customRaw !== ''
-    && Number.isFinite(Number(customRaw));
-}
-
 // Highest-threshold-met wins; falls back to basePrice when qty is below
 // every tier (or there are no tiers at all — the opt-in default).
 function resolveTieredPrice(basePrice, tiers, qty) {
@@ -333,13 +324,11 @@ function resolveTieredPrice(basePrice, tiers, qty) {
 }
 
 // The actual price a client pays for a product at a given order quantity:
-// a flat custom override always wins outright (no tiers); otherwise this
-// client's own volume-pricing tiers for that product apply on top of
-// whatever their general pricing mode (retail/percent/amount off) resolves
-// to below every threshold.
+// this client's own volume-pricing tiers for that product always take
+// over once qty meets a threshold — a custom price (or retail/percent/
+// amount-off mode) is just the price below the lowest threshold.
 function resolveClientProductPrice(portalCfg, product, qty) {
   const base = resolvePortalPrice(portalCfg, product);
-  if (_hasCustomOverride(portalCfg, product)) return base;
   const tiers = portalCfg?.pricing?.tiers?.[product.id] || [];
   return resolveTieredPrice(base, tiers, qty);
 }
@@ -783,10 +772,10 @@ async function _publishClientPortal(client) {
       category:  p.category || '',
       price:     resolvePortalPrice(cfg, p),
       multiple:  Number(cfg.multiples[p.id]) >= 2 ? Math.floor(Number(cfg.multiples[p.id])) : 1,
-      // This client's own volume-pricing tiers for this product — omitted
-      // when they have a flat custom-price override instead (that always
-      // wins outright, see resolveClientProductPrice).
-      ...(!_hasCustomOverride(cfg, p) && tiers.length ? { priceTiers: tiers } : {})
+      // This client's own volume-pricing tiers for this product, if any —
+      // these always take over once qty meets a threshold, regardless of
+      // any custom price/mode (see resolveClientProductPrice).
+      ...(tiers.length ? { priceTiers: tiers } : {})
     };
   });
 
