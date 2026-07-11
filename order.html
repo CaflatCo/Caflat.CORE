@@ -809,7 +809,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
               (art || esc(initials(p.name))) + '</div>' +
             '<div class="card-info">' +
               '<div class="card-name">' + esc(p.name) + '</div>' +
-              '<div class="card-price">' + money(p.price) + '</div>' +
+              '<div class="card-price" data-price>' + money(priceFor(p, qtys[p.productId] || 0)) + '</div>' +
               (unit > 1 ? '<div class="mult-row"><span class="mult-tag">sold in ' + unit + 's</span></div>' : '') +
               '<div class="card-line-total" data-line></div>' +
             '</div>' +
@@ -850,6 +850,18 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     return (isFinite(m) && m >= 2) ? Math.floor(m) : 1;
   }
 
+  // Effective unit price for a given quantity — resolves the highest
+  // volume-pricing tier that qty meets, else the product's flat price.
+  // Mirrors resolveTieredPrice() in js/products.js; duplicated here because
+  // this page is fully self-contained and doesn't load any app JS files.
+  function priceFor(p, qty) {
+    if (!p || !Array.isArray(p.priceTiers) || !p.priceTiers.length) return Number(p ? p.price : 0);
+    var eligible = p.priceTiers.filter(function (t) { return qty >= Number(t.minQty); });
+    if (!eligible.length) return Number(p.price);
+    eligible.sort(function (a, b) { return Number(b.minQty) - Number(a.minQty); });
+    return Number(eligible[0].price);
+  }
+
   function findProduct(pid) {
     for (var i = 0; i < portal.catalog.length; i++) {
       if (String(portal.catalog[i].productId) === String(pid)) return portal.catalog[i];
@@ -872,6 +884,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     var input = card.querySelector('[data-qty]');
     var minus = card.querySelector('[data-minus]');
     var line  = card.querySelector('[data-line]');
+    var priceEl = card.querySelector('[data-price]');
 
     input.value = q;
     input.classList.remove('qty-pop');
@@ -887,8 +900,10 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
     minus.disabled = q <= 0;
     card.classList.toggle('picked', q > 0);
-    if (line && product) {
-      line.textContent = q > 0 ? money(product.price * q) : '';
+    if (product) {
+      var unitPrice = priceFor(product, q);
+      if (line) line.textContent = q > 0 ? money(unitPrice * q) : '';
+      if (priceEl) priceEl.textContent = money(unitPrice);
     }
     updateBar();
   }
@@ -898,7 +913,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     var t = 0;
     Object.keys(qtys).forEach(function (pid) {
       var p = findProduct(pid);
-      if (p) t += Number(p.price) * qtys[pid];
+      if (p) t += priceFor(p, qtys[pid]) * qtys[pid];
     });
     return Math.round(t * 100) / 100;
   }
@@ -964,14 +979,15 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     var unit = unitOf(p);
     var col  = catColor(p.category || 'Products');
     var art  = (window.getProductArt && window.getProductArt(p.name)) || '';
-    var amt  = p.price * qtys[pid];
+    var unitPrice = priceFor(p, qtys[pid]);
+    var amt  = unitPrice * qtys[pid];
     return '<div class="cart-row" data-pid="' + esc(pid) + '" data-amt="' + amt + '"' +
         ' style="--cat:' + col.c + ';--cat-t:' + col.t + ';">' +
       '<div class="cart-thumb' + (art ? ' has-art' : '') + '">' +
         (art || esc(initials(p.name))) + '</div>' +
       '<div class="cart-info">' +
         '<div class="cart-name">' + esc(p.name) + '</div>' +
-        '<div class="cart-unit">' + money(p.price) + ' each' +
+        '<div class="cart-unit" data-unit>' + money(unitPrice) + ' each' +
           (unit > 1 ? ' · sold in ' + unit + 's' : '') + '</div>' +
       '</div>' +
       '<div class="cart-right">' +
@@ -1009,9 +1025,15 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
         q.classList.add('qty-pop');
         var amtEl = row.querySelector('[data-amt-el]');
         var prev  = Number(row.dataset.amt || 0);
-        var next  = p ? p.price * qtys[pid] : 0;
+        var unitPrice = p ? priceFor(p, qtys[pid]) : 0;
+        var next  = unitPrice * qtys[pid];
         animateTotal(amtEl, prev, next);
         row.dataset.amt = next;
+        var unitEl = row.querySelector('[data-unit]');
+        if (unitEl && p) {
+          var unit = unitOf(p);
+          unitEl.textContent = money(unitPrice) + ' each' + (unit > 1 ? ' · sold in ' + unit + 's' : '');
+        }
       }
     } else if (row) {
       if (reduce) { row.remove(); }
@@ -1535,10 +1557,11 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     var now = new Date();
     var lines = Object.keys(qtys).map(function (pid) {
       var p = findProduct(pid);
+      var unitPrice = priceFor(p, qtys[pid]);
       return '<div class="inv-line">' +
         '<span class="nm">' + esc(p.name) + '</span>' +
-        '<span class="q">×' + qtys[pid] + ' @ ' + money(p.price) + '</span>' +
-        '<span class="amt">' + money(p.price * qtys[pid]) + '</span>' +
+        '<span class="q">×' + qtys[pid] + ' @ ' + money(unitPrice) + '</span>' +
+        '<span class="amt">' + money(unitPrice * qtys[pid]) + '</span>' +
       '</div>';
     }).join('');
 
