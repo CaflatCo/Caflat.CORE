@@ -235,6 +235,9 @@ function renderClientsList() {
           </svg>
           Order Portal
         </button>
+        ${c.portal?.termsMode === 'consignment'
+          ? `<button class="btn btn-sm btn-secondary" data-action="consignment-ledger" data-id="${c.id}">Ledger</button>`
+          : ''}
         <button class="btn btn-sm btn-secondary" data-action="edit-client" data-id="${c.id}">Edit</button>
         <button class="btn btn-sm btn-secondary" data-action="delete-client" data-id="${c.id}">Delete</button>
       </div>
@@ -977,6 +980,13 @@ function _renderPortalQR(token) {
 /* ── Portal inbox — pull client-submitted orders into Supply ── */
 let _portalInboxTimer   = null;
 let _portalInboxRunning = false;
+/* Consignment sell-through reports awaiting reconciliation — a live mirror
+   of pending portal_reports rows, not persisted to APP_STATE (re-fetchable
+   anytime; unlike portal orders, reports need a manual Accept, not
+   auto-import, so they stay in this list until reconciled). */
+let _pendingReports     = [];
+let _reportInboxTimer   = null;
+let _reportInboxRunning = false;
 
 function initPortalInboxPolling() {
   checkPortalInbox();
@@ -1138,7 +1148,8 @@ function updatePortalInboxBadge() {
   const nav = document.getElementById('navSupply');
   if (!nav) return;
   const count = getSupplyOrders()
-    .filter(o => o.portalOrderId && o.status === 'DRAFTED').length;
+    .filter(o => o.portalOrderId && o.status === 'DRAFTED').length
+    + _pendingReports.length;
 
   let badge = document.getElementById('portalInboxBadge');
   if (!count) { badge?.remove(); return; }
@@ -1154,6 +1165,275 @@ function updatePortalInboxBadge() {
     nav.appendChild(badge);
   }
   badge.textContent = count > 9 ? '9+' : String(count);
+}
+
+/* ═══════════════════════════════════════════════════════
+   CONSIGNMENT RECONCILIATION
+   Pending client sell-through reports (portal_reports, see migration 006)
+   surface here for the cafe to review and Accept. Accepting a report:
+     · creates a supply "order" record containing only the SOLD units
+       (status INVOICED, or PAID immediately if the client paid in-portal),
+       reusing _createSupplySalesRecord exactly as a normal PAID order does
+     · leaves damaged/expired units as an informational write-off — no
+       stock action needed, since submit_sell_through already set the
+       client's consignment_stock.on_hand to their reported remaining count
+     · marks the portal_reports row reconciled server-side
+   The reconciliation record never touches the cafe's own product stock —
+   that stock already left the building at the original DELIVERED event
+   (see _adjustConsignmentStock in the DELIVERED transition), so this
+   record is stockDeducted:false to prevent a later cancel/void from
+   incorrectly restoring stock the cafe never held.
+═══════════════════════════════════════════════════════ */
+function initReportInboxPolling() {
+  checkReportInbox();
+  if (_reportInboxTimer) return;
+  _reportInboxTimer = setInterval(checkReportInbox, 60 * 1000);
+}
+
+async function checkReportInbox() {
+  if (_reportInboxRunning) return;
+  if (APP_STATE.settings?.supplierModeEnabled !== true) return;
+  const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
+  if (!tenantId || typeof _sbFetch !== 'function') return;
+
+  _reportInboxRunning = true;
+  try {
+    const res = await _sbFetch(
+      'portal_reports?status=eq.pending&order=created_at.asc&limit=50&select=*',
+      { headers: { 'x-tenant-id': tenantId } }
+    );
+    if (!res.ok || !Array.isArray(res.data)) return;
+
+    const previousIds = new Set(_pendingReports.map(r => r.id));
+    const newCount = res.data.filter(r => !previousIds.has(r.id)).length;
+    _pendingReports = res.data;
+
+    renderReportInbox();
+    updatePortalInboxBadge();
+
+    if (newCount > 0) {
+      showNotification(
+        newCount === 1
+          ? 'New consignment sell-through report received — review it in Supply'
+          : `${newCount} new consignment sell-through reports received — review them in Supply`,
+        'success');
+    }
+  } catch (e) {
+    console.error('Report inbox check failed', e);
+  } finally {
+    _reportInboxRunning = false;
+  }
+}
+
+function renderReportInbox() {
+  const container = document.getElementById('reportInboxList');
+  const section    = document.getElementById('reportInboxSection');
+  if (!container || !section) return;
+
+  if (!_pendingReports.length) { section.style.display = 'none'; container.innerHTML = ''; return; }
+  section.style.display = 'block';
+
+  container.innerHTML = _pendingReports.map(r => {
+    const items       = Array.isArray(r.items) ? r.items : [];
+    const soldLines    = items.filter(it => Number(it.sold    || 0) > 0);
+    const damagedLines = items.filter(it => Number(it.damaged || 0) > 0);
+
+    const lineHtml = soldLines.length
+      ? soldLines.map(it => `
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;">
+            <span>${escapeHtml(it.name || it.productId)} × ${it.sold}</span>
+            <span style="font-weight:800;">${formatCurrency(it.total || 0)}</span>
+          </div>`).join('')
+      : `<div style="font-size:12.5px;color:var(--gray-400);">Nothing sold this period</div>`;
+
+    const damagedHtml = damagedLines.length
+      ? `<div style="font-size:11px;color:var(--danger);margin-top:6px;">Written off: ${
+          escapeHtml(damagedLines.map(it => `${it.damaged} × ${it.name || it.productId}`).join(', '))}</div>`
+      : '';
+
+    const settleLabel = r.settlement === 'pay_now'
+      ? `Paid via ${escapeHtml(r.payment_method || '—')}` : 'To be invoiced';
+
+    return `
+      <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;
+        margin-bottom:10px;background:var(--white);">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+          <div style="font-weight:800;font-size:13.5px;">${escapeHtml(r.client_name || 'B2B Client')}</div>
+          <div style="font-size:10.5px;color:var(--gray-400);">
+            ${r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</div>
+        </div>
+        ${lineHtml}
+        ${damagedHtml}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;
+          padding-top:8px;border-top:1px dashed var(--gray-200);">
+          <div>
+            <div style="font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+              color:var(--gray-400);">${settleLabel}</div>
+            <div style="font-size:16px;font-weight:900;">${formatCurrency(r.subtotal || 0)}</div>
+          </div>
+          <button class="btn btn-sm" data-action="accept-portal-report" data-id="${r.id}">Accept</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function acceptPortalReport(reportId) {
+  const report = _pendingReports.find(r => String(r.id) === String(reportId));
+  if (!report) return;
+  const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
+  if (!tenantId) { showNotification('Activate your license first', 'error'); return; }
+
+  const products = Array.isArray(APP_STATE.products) ? APP_STATE.products : [];
+  const rawItems = Array.isArray(report.items) ? report.items : [];
+
+  const soldItems = rawItems.filter(it => Number(it.sold || 0) > 0).map(it => {
+    const product = products.find(p => String(p.id) === String(it.productId));
+    const qty       = Number(it.sold || 0);
+    const unitPrice = Number(it.unitPrice || 0);
+    return {
+      productId:   String(it.productId || ''),
+      productName: it.name || product?.name || 'Unknown product',
+      description: '',
+      qty, unitPrice,
+      total:       Number(it.total || round2(qty * unitPrice)),
+      multiplier:  1
+    };
+  });
+  const damagedSummary = rawItems
+    .filter(it => Number(it.damaged || 0) > 0)
+    .map(it => `${it.damaged} × ${it.name || it.productId}`)
+    .join(', ');
+
+  const timestamp = new Date().toISOString();
+  const orders = getSupplyOrders();
+
+  if (soldItems.length) {
+    const subtotal = round2(soldItems.reduce((s, i) => s + i.total, 0));
+    const newOrder = {
+      id: generateId(),
+      invoiceNumber: typeof generateInvoiceNumber === 'function' ? generateInvoiceNumber() : `INV-${Date.now()}`,
+      clientId:   String(report.client_id || ''),
+      clientName: report.client_name || 'B2B Client',
+      orderDate:  timestamp.slice(0, 10),
+      notes: ['Consignment sell-through reconciliation',
+        damagedSummary ? `Written off (damaged/expired): ${damagedSummary}` : '',
+        report.notes ? `Client notes: ${report.notes}` : ''].filter(Boolean).join(' · '),
+      items: soldItems,
+      subtotal, discount: 0, discountType: 'percent', grandTotal: subtotal,
+      status: 'INVOICED',
+      terms: 'consignment',
+      // The physical stock this represents already left the cafe at the
+      // original DELIVERED event — this record must never re-touch it.
+      reservedStock: false,
+      stockDeducted: false,
+      statusHistory: [{ status: 'INVOICED', changedAt: timestamp,
+        note: 'Reconciled from client sell-through report' }],
+      consignmentReportId: report.id,
+      createdAt: timestamp, updatedAt: timestamp
+    };
+    orders.push(newOrder);
+
+    if (report.settlement === 'pay_now') {
+      await _createSupplySalesRecord(newOrder, {
+        method:    report.payment_method || 'Cash',
+        reference: report.payment_reference || ''
+      });
+      newOrder.status = 'PAID';
+      newOrder.statusHistory.push({ status: 'PAID', changedAt: timestamp,
+        note: 'Client paid in-portal when reporting' });
+    }
+
+    updateState('supplyOrders', () => orders);
+    _auditSupplyEvent('SUPPLY_CONSIGNMENT_RECONCILED', newOrder, 'SUCCESS',
+      `Reconciled ${soldItems.length} product(s) sold · ${formatCurrency(subtotal)}`);
+  }
+
+  await _sbFetch(`portal_reports?id=eq.${encodeURIComponent(report.id)}`, {
+    method: 'PATCH',
+    headers: { 'x-tenant-id': tenantId, 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ status: 'reconciled', reconciled_at: new Date().toISOString() })
+  });
+
+  _pendingReports = _pendingReports.filter(r => String(r.id) !== String(reportId));
+  renderReportInbox();
+  updatePortalInboxBadge();
+  renderSupplyTable();
+  renderSupplyKPIs();
+  showNotification(
+    soldItems.length ? 'Report reconciled — sale recorded' : 'Report reconciled — nothing was sold',
+    'success');
+}
+
+/* ── Per-client consignment ledger: current on-hand + reconciled history ── */
+async function openConsignmentLedger(clientId) {
+  const client = getSupplierClients().find(c => String(c.id) === String(clientId));
+  if (!client) return;
+  const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
+  if (!tenantId) { showNotification('Activate your license first', 'error'); return; }
+
+  let m = document.getElementById('consignmentLedgerModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'consignmentLedgerModal';
+    m.className = 'modal-overlay';
+    document.body.appendChild(m);
+  }
+  m.innerHTML = `
+    <div class="modal" style="max-width:min(560px, 94vw);">
+      <h3 style="margin-bottom:2px;">Consignment Ledger — ${escapeHtml(client.name)}</h3>
+      <div style="font-size:12px;color:var(--gray-400);margin-bottom:18px;">
+        Current stock on hand and recent reconciled sell-through.
+      </div>
+      <div class="section-title" style="margin-top:0;">On Hand</div>
+      <div id="ledgerOnHand" style="margin-bottom:20px;">Loading…</div>
+      <div class="section-title" style="margin-top:0;">Recent Reports</div>
+      <div id="ledgerHistory">Loading…</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" onclick="closeModal('consignmentLedgerModal')">Close</button>
+      </div>
+    </div>`;
+  openModal('consignmentLedgerModal');
+
+  const [stockRes, historyRes] = await Promise.all([
+    _sbFetch(`consignment_stock?tenant_id=eq.${encodeURIComponent(tenantId)}` +
+      `&client_id=eq.${encodeURIComponent(clientId)}&order=product_name.asc`,
+      { headers: { 'x-tenant-id': tenantId } }),
+    _sbFetch(`portal_reports?tenant_id=eq.${encodeURIComponent(tenantId)}` +
+      `&client_id=eq.${encodeURIComponent(clientId)}&status=eq.reconciled` +
+      `&order=reconciled_at.desc&limit=15`,
+      { headers: { 'x-tenant-id': tenantId } })
+  ]);
+
+  const stock = (stockRes.ok && Array.isArray(stockRes.data)) ? stockRes.data : [];
+  const onHandEl = document.getElementById('ledgerOnHand');
+  if (onHandEl) {
+    onHandEl.innerHTML = stock.length
+      ? stock.map(s => `
+          <div style="display:flex;justify-content:space-between;padding:6px 0;
+            border-bottom:1px solid var(--gray-100);font-size:13px;">
+            <span>${escapeHtml(s.product_name)}</span>
+            <span style="font-weight:800;">${Number(s.on_hand)} × ${formatCurrency(s.unit_price)}</span>
+          </div>`).join('')
+      : `<div class="empty-state">No stock currently on hand</div>`;
+  }
+
+  const history = (historyRes.ok && Array.isArray(historyRes.data)) ? historyRes.data : [];
+  const historyEl = document.getElementById('ledgerHistory');
+  if (historyEl) {
+    historyEl.innerHTML = history.length
+      ? history.map(r => {
+          const items = Array.isArray(r.items) ? r.items : [];
+          const sold  = items.reduce((s, i) => s + Number(i.sold || 0), 0);
+          const dateStr = new Date(r.reconciled_at || r.created_at).toLocaleDateString();
+          return `
+            <div style="display:flex;justify-content:space-between;padding:6px 0;
+              border-bottom:1px solid var(--gray-100);font-size:12.5px;">
+              <span>${escapeHtml(dateStr)} · ${sold} sold</span>
+              <span style="font-weight:800;">${formatCurrency(r.subtotal || 0)}</span>
+            </div>`;
+        }).join('')
+      : `<div class="empty-state">No reconciled reports yet</div>`;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2614,6 +2894,7 @@ function renderSupplyView() {
   renderClientDropdowns();
   renderClientsList();
   initPortalInboxPolling();
+  initReportInboxPolling();
   updatePortalInboxBadge();
 
   const filterClients = document.getElementById('supplyClientFilter');
@@ -2648,6 +2929,9 @@ window.renderSupplyView         = renderSupplyView;
 window.exportSupplyCSV          = exportSupplyCSV;
 window.applySupplierModeToggle  = applySupplierModeToggle;
 window.applySupplierCartButton  = applySupplierCartButton;
+window.initReportInboxPolling   = initReportInboxPolling;
+window.acceptPortalReport       = acceptPortalReport;
+window.openConsignmentLedger    = openConsignmentLedger;
 window.openSupplierOrderPrompt  = openSupplierOrderPrompt;
 window.confirmSupplierOrder     = confirmSupplierOrder;
 window.openClientPortalModal          = openClientPortalModal;
