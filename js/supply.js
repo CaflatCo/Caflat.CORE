@@ -306,6 +306,14 @@ function _getPortalConfig(client) {
     settlementModes: {
       payNow:       p.settlementModes?.payNow === true,
       invoiceAfter: p.settlementModes?.invoiceAfter !== false
+    },
+    // A short-notice delivery request (within thresholdHrs) adds percent%
+    // to the order total. Applies to both sale-mode checkout and
+    // consignment restock requests, wherever a delivery date is picked.
+    rushFee: {
+      enabled:      p.rushFee?.enabled !== false,
+      thresholdHrs: Number(p.rushFee?.thresholdHrs || 24),
+      percent:      Number(p.rushFee?.percent || 5)
     }
   };
 }
@@ -481,6 +489,24 @@ function openClientPortalModal(clientId) {
         Consignment: this client holds stock and only owes for what they report as sold. Damaged/expired units are written off, not billed.
       </div>
 
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;margin-bottom:8px;">
+        <input type="checkbox" id="portalRushEnabled" ${cfg.rushFee.enabled ? 'checked' : ''}
+          onchange="updatePortalRushVisibility()" style="width:18px;height:18px;" />
+        Charge a rush fee for short-notice delivery requests
+      </label>
+      <div id="portalRushWrap" style="display:${cfg.rushFee.enabled ? 'flex' : 'none'};align-items:center;
+        gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+        <span style="font-size:13px;font-weight:700;color:var(--gray-500);">Within</span>
+        <input type="number" step="1" min="0" id="portalRushHours" value="${cfg.rushFee.thresholdHrs}"
+          style="width:70px;padding:9px 10px;font-size:14px;font-weight:800;border:1.5px solid var(--border);
+            border-radius:8px;font-family:inherit;" />
+        <span style="font-size:13px;font-weight:700;color:var(--gray-500);">hours of the requested delivery date, add</span>
+        <input type="number" step="0.5" min="0" id="portalRushPercent" value="${cfg.rushFee.percent}"
+          style="width:70px;padding:9px 10px;font-size:14px;font-weight:800;border:1.5px solid var(--border);
+            border-radius:8px;font-family:inherit;" />
+        <span style="font-size:13px;font-weight:700;color:var(--gray-500);">% to the order total.</span>
+      </div>
+
       <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
         color:var(--gray-500);margin-bottom:10px;">2 · General Pricing</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
@@ -595,6 +621,12 @@ function setPortalTermsMode(mode) {
   if (wrap) wrap.style.display = mode === 'consignment' ? 'flex' : 'none';
 }
 
+function updatePortalRushVisibility() {
+  const wrap = document.getElementById('portalRushWrap');
+  const enabled = document.getElementById('portalRushEnabled')?.checked === true;
+  if (wrap) wrap.style.display = enabled ? 'flex' : 'none';
+}
+
 function setPortalPricingMode(mode) {
   const modal = document.getElementById('clientPortalModal');
   if (!modal) return;
@@ -690,9 +722,14 @@ function _readPortalModalConfig() {
     payNow:       document.getElementById('portalSettlePayNow')?.checked === true,
     invoiceAfter: document.getElementById('portalSettleInvoice')?.checked !== false
   };
+  const rushFee = {
+    enabled:      document.getElementById('portalRushEnabled')?.checked !== false,
+    thresholdHrs: Number(document.getElementById('portalRushHours')?.value || 24),
+    percent:      Number(document.getElementById('portalRushPercent')?.value || 5)
+  };
 
   return { pricing: { mode, percentOff, amountOff, custom, tiers }, allowedProductIds: allowed,
-    multiples, builtinMethods, termsMode, settlementModes };
+    multiples, builtinMethods, termsMode, settlementModes, rushFee };
 }
 
 // Returns an error message if any product's volume-pricing rows are
@@ -770,7 +807,7 @@ function saveClientPortalConfig(silent = false) {
     ...clients[idx],
     portal: { ...prev, pricing: read.pricing, allowedProductIds: read.allowedProductIds,
       multiples: read.multiples, builtinMethods: read.builtinMethods,
-      termsMode: read.termsMode, settlementModes: read.settlementModes }
+      termsMode: read.termsMode, settlementModes: read.settlementModes, rushFee: read.rushFee }
   };
   updateState('supplierClients', () => clients);
   if (!silent) showNotification('Client pricing saved', 'success');
@@ -877,6 +914,7 @@ async function _publishClientPortal(client) {
     payment_methods:  paymentMethods,
     terms_mode:       cfg.termsMode,
     settlement_modes: cfg.settlementModes,
+    rush_fee:         cfg.rushFee,
     revoked:          false,
     updated_at:       new Date().toISOString()
   };

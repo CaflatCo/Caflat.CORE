@@ -482,6 +482,11 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .review-meta-text { font-size: 13px; font-weight: 800; color: var(--black); line-height: 1.35; }
 .review-meta-text .sub { display: block; font-size: 10px; font-weight: 800; color: var(--gray-400);
   text-transform: uppercase; letter-spacing: .5px; margin-bottom: 1px; }
+/* Rush-fee notice — informational, not an error, so amber rather than red. */
+.rush-notice { display: flex; align-items: flex-start; gap: 9px; background: #fffbeb;
+  border: 1px solid #fde68a; border-radius: 12px; padding: 10px 13px; margin: 10px 0 4px;
+  font-size: 12.5px; font-weight: 700; color: #92400e; line-height: 1.4; }
+.rush-notice svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; color: #b45309; }
 .review-items { border-top: 1px solid var(--gray-200); }
 .review-item-row { display: flex; justify-content: space-between; align-items: center; gap: 12px;
   padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
@@ -740,6 +745,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       <div class="sec-head"><span class="sec-num">3</span> Delivery &amp; notes</div>
       <div class="f-label">Requested delivery date <span style="opacity:.5;">(optional)</span></div>
       <input class="f-input" id="reqDate" type="date">
+      <div class="rush-notice" id="reqDateRushNotice" style="display:none;"></div>
 
       <div class="f-label">Notes for your supplier <span style="opacity:.5;">(optional)</span></div>
       <textarea class="f-area" id="orderNotes" maxlength="2000"
@@ -880,6 +886,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     <div class="f-label" style="margin:16px 4px 8px;">Preferred delivery date
       <span style="color:var(--danger);">(required)</span></div>
     <input class="f-input" id="restockDate" type="date">
+    <div class="rush-notice" id="restockRushNotice" style="display:none;"></div>
     <div class="f-label">Notes <span style="opacity:.5;">(optional)</span></div>
     <textarea class="f-area" id="restockNotes" maxlength="2000"
       placeholder="Anything your supplier should know…"></textarea>
@@ -982,6 +989,26 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     var d = new Date(isoDate + 'T00:00:00');
     if (isNaN(d.getTime())) return isoDate;
     return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  /* A picked delivery date within the portal's configured threshold incurs
+     a rush fee. This is a client-side ESTIMATE for the notice/total display
+     only — the server always recomputes and charges the authoritative
+     amount on submit. Measured against the date's UTC midnight (matching
+     how the server casts a date-only value to timestamptz) so the two
+     never disagree across timezones. */
+  function rushFeeInfo(dateStr) {
+    var cfg = portal && portal.rush_fee;
+    if (!cfg || cfg.enabled === false || !dateStr) return null;
+    var hrsUntil = (new Date(dateStr + 'T00:00:00Z').getTime() - Date.now()) / 3600000;
+    var threshold = Number(cfg.thresholdHrs || 24);
+    if (hrsUntil > threshold) return null;
+    return { percent: Number(cfg.percent || 5), thresholdHrs: threshold };
+  }
+  function rushFeeAmount(subtotal, dateStr) {
+    var info = rushFeeInfo(dateStr);
+    if (!info) return 0;
+    return Math.round(subtotal * info.percent) / 100;
   }
 
   function rpc(fn, args) {
@@ -1202,13 +1229,20 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   }
 
   /* ── Summary bar ── */
-  function currentTotal() {
+  function productSubtotal() {
     var t = 0;
     Object.keys(qtys).forEach(function (pid) {
       var p = findProduct(pid);
       if (p) t += priceFor(p, qtys[pid]) * qtys[pid];
     });
     return Math.round(t * 100) / 100;
+  }
+  // Every consumer of the order total (bar, sheet, submit CTA, pay-now math,
+  // split-payment bounds) wants the fee-inclusive number, so this folds it
+  // in once here rather than threading it through each call site.
+  function currentTotal() {
+    var sub = productSubtotal();
+    return Math.round((sub + rushFeeAmount(sub, $('reqDate').value)) * 100) / 100;
   }
 
   function updateBar() {
@@ -1389,6 +1423,22 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   $('reviewBtn').addEventListener('click', openSheet);
   $('sheetBackdrop').addEventListener('click', closeSheet);
 
+  function renderRushNotice(noticeEl, dateStr) {
+    var info = rushFeeInfo(dateStr);
+    if (!info) { noticeEl.style.display = 'none'; return; }
+    noticeEl.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+        'stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>' +
+      '<span>Delivery within ' + info.thresholdHrs + 'h of the requested date incurs a ' +
+        info.percent + '% rush fee, added to your total below.</span>';
+    noticeEl.style.display = 'flex';
+  }
+  $('reqDate').addEventListener('change', function () {
+    renderRushNotice($('reqDateRushNotice'), $('reqDate').value);
+    updateBar();
+    if ($('sheet').classList.contains('show')) updateSheetTotals();
+  });
+
   /* Cart row steppers — step by the product's pack size, like the catalog.
      Inert while an order is sending (success screen reads qtys live). */
   $('reviewLines').addEventListener('click', function (e) {
@@ -1446,7 +1496,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     }
     html += '<div class="review-items">' + rows.map(function (r) {
       return '<div class="review-item-row">' +
-        '<span class="review-item-name">' + esc(r.name) + '<span class="qty">× ' + r.qty + '</span></span>' +
+        '<span class="review-item-name">' + esc(r.name) +
+          (r.qty ? '<span class="qty">× ' + r.qty + '</span>' : '') + '</span>' +
         '<span class="review-item-amt">' + money(r.amount) + '</span>' +
       '</div>';
     }).join('') + '</div>';
@@ -1845,7 +1896,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   function showSuccess(result) {
     $('doneTitle').textContent = 'Order sent';
     $('doneSub').textContent = 'Your order has been sent to ' +
-      (portal.brand_name || 'your supplier') + '. They’ll confirm it shortly.';
+      (portal.brand_name || 'your supplier') + '. They’ll confirm it shortly.' +
+      (result.rush_fee > 0 ? ' Includes a ' + money(result.rush_fee) + ' rush-delivery fee.' : '');
     $('doneRef').textContent = 'REF ' + result.reference;
 
     var m = chosenMethod();
@@ -2534,7 +2586,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       var p = findProduct(pid);
       if (p) t += priceFor(p, restockQtys[pid]) * restockQtys[pid];
     });
-    return Math.round(t * 100) / 100;
+    t = Math.round(t * 100) / 100;
+    return Math.round((t + rushFeeAmount(t, $('restockDate').value)) * 100) / 100;
   }
   function updateRestockBar() {
     var count = Object.keys(restockQtys).reduce(function (s, pid) { return s + restockQtys[pid]; }, 0);
@@ -2580,6 +2633,12 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       var price = p ? priceFor(p, qty) : 0;
       return { name: p ? p.name : pid, qty: qty, amount: price * qty };
     });
+    var rushInfo = rushFeeInfo(deliveryDate);
+    if (rushInfo) {
+      var itemsSubtotal = rows.reduce(function (s, r) { return s + r.amount; }, 0);
+      rows.push({ name: 'Rush fee (+' + rushInfo.percent + '%)', qty: null,
+        amount: rushFeeAmount(Math.round(itemsSubtotal * 100) / 100, deliveryDate) });
+    }
     var reviewBody = buildReviewHtml(rows, { label: 'Total', value: restockTotal() },
       { label: 'Preferred delivery date', value: formatDateFriendly(deliveryDate) });
 
@@ -2628,7 +2687,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   function showRestockSuccess(result) {
     $('doneTitle').textContent = 'Restock requested';
     $('doneSub').textContent = 'Your restock request has been sent to ' +
-      (portal.brand_name || 'your supplier') + '. They will confirm delivery timing.';
+      (portal.brand_name || 'your supplier') + '. They will confirm delivery timing.' +
+      (result.rush_fee > 0 ? ' Includes a ' + money(result.rush_fee) + ' rush-delivery fee.' : '');
     $('doneRef').textContent = 'REF ' + result.reference;
     $('donePay').style.display = 'none';
     $('invoiceToggle').style.display = 'none';
@@ -2639,6 +2699,10 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   }
 
   $('restockDate').min = new Date().toISOString().slice(0, 10);
+  $('restockDate').addEventListener('change', function () {
+    renderRushNotice($('restockRushNotice'), $('restockDate').value);
+    updateRestockBar();
+  });
 
   load();
 })();
