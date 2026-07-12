@@ -310,7 +310,12 @@ function deleteRecipe(recipeId) {
 }
 
 function applyRecipeCatalogToggle() {
-  // navRecipes is always visible in the sidebar; nothing to toggle
+  const enabled = APP_STATE.settings?.recipeCatalogEnabled === true;
+  const navBtn  = document.getElementById('navRecipes');
+  if (navBtn) navBtn.style.display = enabled ? '' : 'none';
+  if (!enabled && APP_STATE.ui?.currentView === 'recipes') {
+    if (typeof switchPage === 'function') switchPage('pos');
+  }
 }
 
 /* ── Exports ── */
