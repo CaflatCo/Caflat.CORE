@@ -81,7 +81,11 @@ input, textarea { font-family: inherit; }
    doesn't, so a flat #form-sized 140px would leave a large dead gap under
    it. See #tabReport/#tabRestock below for the bar-clearing padding. */
 #consign { max-width: 560px; margin: 0 auto; padding: 12px 16px 24px; }
-#tabReport, #tabRestock { padding-bottom: 120px; }
+/* #reportBar/#restockBar render at ~92px tall — 100px clears them with a
+   small buffer. The .powered badge below still adds its own margin-top, so
+   switchConsignTab() shrinks that separately (see .powered.snug) rather
+   than padding this out further and double-reserving the same clearance. */
+#tabReport, #tabRestock { padding-bottom: 100px; }
 
 /* Hero: dark panel with soft drifting color blobs */
 .hero {
@@ -159,6 +163,12 @@ input, textarea { font-family: inherit; }
   background: var(--black); color: rgba(255,255,255,.82); font-size: 12.5px; font-weight: 800;
   text-decoration: none; letter-spacing: .1px; transition: transform .15s var(--ease), box-shadow .2s var(--ease);
   box-shadow: 0 6px 18px -6px rgba(10,10,10,.35); }
+/* On the consignment Report Sales / Restock tabs, #tabReport/#tabRestock's
+   own padding-bottom already reserves clearance for their sticky bar — the
+   badge's usual 34px top margin would stack on top of that reservation and
+   read as an oversized gap, so switchConsignTab() adds this class to trim
+   it down to plain breathing room instead. */
+.powered.snug { margin-top: 14px; }
 .powered b { font-weight: 900; color: #fff; }
 .powered:active { transform: scale(.96); box-shadow: 0 3px 10px -4px rgba(10,10,10,.3); }
 
@@ -755,9 +765,9 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   </div>
 
   <div class="seg" id="consignTabs" style="margin:16px 4px 4px;">
-    <button type="button" class="sel" data-tab="onhand">On Hand</button>
+    <button type="button" class="sel" data-tab="restock">Restock</button>
+    <button type="button" data-tab="onhand">On Hand</button>
     <button type="button" data-tab="report">Report Sales</button>
-    <button type="button" data-tab="restock">Restock</button>
   </div>
 
   <div id="tabOnHand" class="consign-tab">
@@ -2048,6 +2058,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     $('tabReport').style.display  = tab === 'report'  ? 'block' : 'none';
     $('tabRestock').style.display = tab === 'restock' ? 'block' : 'none';
     $('reportBar').style.display  = (tab === 'report' && onHand.length) ? 'block' : 'none';
+    $('consign').querySelector('.powered').classList.toggle('snug', tab === 'report' || tab === 'restock');
     updateRestockBar();
   }
   $('consignTabs').addEventListener('click', function (e) {
