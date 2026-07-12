@@ -2026,6 +2026,38 @@ function confirmSupplyCheckout(orderId) {
   setSupplyStatus(orderId, 'PAID', paymentInfo);
 }
 
+/* Push a supply order's line items into a new (pre-filled) production job for
+   review. Opens the standard production job modal; the job is only created when
+   the user hits Save. Gated behind Production Mode. */
+function pushSupplyOrderToProduction(orderId) {
+  if (!APP_STATE.settings?.productionModeEnabled) return;
+  const order = getSupplyOrders().find(o => String(o.id) === String(orderId));
+  if (!order) return;
+  if (!Array.isArray(order.items) || !order.items.length) {
+    showNotification('This order has no items to produce', 'error');
+    return;
+  }
+  if (typeof openProductionJobFromSupplyOrder !== 'function') {
+    showNotification('Production module unavailable', 'error');
+    return;
+  }
+  openProductionJobFromSupplyOrder(order);
+}
+
+/* Jump to the production job an order was already pushed to. */
+function viewSupplyOrderProductionJob(orderId) {
+  const order = getSupplyOrders().find(o => String(o.id) === String(orderId));
+  if (!order || !order.productionJobId) return;
+  const job = typeof getProductionJobById === 'function'
+    ? getProductionJobById(order.productionJobId) : null;
+  if (!job) {
+    showNotification('That production job was deleted', 'warning');
+    return;
+  }
+  if (typeof switchPage === 'function') switchPage('production');
+  if (typeof openProductionJobModal === 'function') openProductionJobModal(order.productionJobId);
+}
+
 function cancelSupplyOrder(orderId) {
   if (!confirm('Cancel this supply order?')) return;
   const orders = getSupplyOrders();
@@ -2137,6 +2169,19 @@ function renderSupplyTable() {
       .map(i => `${escapeHtml(i.productName||i.description||'')} ×${i.qty}`)
       .join(', ');
 
+    // Push to Production — only when Production Mode is enabled. Once pushed and
+    // the job saved, the order remembers its job (order.productionJobId) and the
+    // item flips to "View Production Job". Job existence is checked here so a
+    // deleted job cleanly falls back to "Push".
+    let prodMenuItem = '';
+    if (APP_STATE.settings?.productionModeEnabled) {
+      const prodJob = order.productionJobId && typeof getProductionJobById === 'function'
+        ? getProductionJobById(order.productionJobId) : null;
+      prodMenuItem = prodJob
+        ? `<button type="button" data-action="view-production-job" data-id="${order.id}">View Production Job</button>`
+        : `<button type="button" data-action="push-to-production" data-id="${order.id}">Push to Production</button>`;
+    }
+
     tbody.innerHTML += `
       <tr>
         <td style="font-family:var(--font-mono);font-size:12px;font-weight:700;white-space:nowrap;">
@@ -2168,6 +2213,7 @@ function renderSupplyTable() {
                 <div class="row-menu-dropdown">
                   <button type="button" data-action="edit-supply-order"
                     data-id="${order.id}">Edit</button>
+                  ${prodMenuItem}
                   ${canAdvance
                     ? `<button type="button" data-action="cancel-supply-order"
                         data-id="${order.id}">Cancel</button>` : ''}

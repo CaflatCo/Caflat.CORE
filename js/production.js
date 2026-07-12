@@ -154,6 +154,49 @@ function openProductionJobModal(jobId = null) {
   openModal('productionJobModal');
 }
 
+/* Pre-fill a new production job from a Supply client order and open the modal
+   for review. The user reviews/tweaks and hits Save, which runs the normal
+   saveProductionJob() path (including ingredient deduction). sourceSupplyOrderId
+   lets saveProductionJob() stamp the originating order so its 3-dot menu can
+   flip to "View Production Job". */
+function openProductionJobFromSupplyOrder(order) {
+  if (!order) return;
+  const products = APP_STATE.products || [];
+  const lines = [];
+  const missing = [];
+  (order.items || []).forEach(item => {
+    const product = products.find(p => String(p.id) === String(item.productId));
+    if (!product) { missing.push(item.productName || item.description || 'a product'); return; }
+    lines.push({
+      id: generateId(), productId: product.id, productName: product.name,
+      targetQty: Number(item.qty) || 0, batchSize: Number(product.batchYield || 1),
+      status: 'PLANNED', actualYield: null, wasteLog: [], efficiency: null
+    });
+  });
+
+  if (!lines.length) {
+    showNotification('None of this order’s products are in your catalog anymore', 'error');
+    return;
+  }
+  if (missing.length) {
+    showNotification('Skipped (not in catalog): ' + missing.join(', '), 'warning');
+  }
+
+  _editingJob = _blankJob();
+  Object.assign(_editingJob, {
+    name: 'Order ' + (order.invoiceNumber || '') + ' — ' + (order.clientName || ''),
+    fundingType: 'CLIENT',
+    clientName: order.clientName || '',
+    scheduledDate: String(order.requestedDate || order.orderDate || new Date().toISOString()).slice(0, 10),
+    totalValue: Number(order.grandTotal) || 0,
+    notes: 'From supply order ' + (order.invoiceNumber || order.id),
+    sourceSupplyOrderId: order.id,
+    products: lines
+  });
+  _renderJobModal();
+  openModal('productionJobModal');
+}
+
 function _blankJob() {
   return {
     id: generateId(),
@@ -432,6 +475,20 @@ function saveProductionJob() {
   });
 
   updateState('productionJobs',()=>jobs);
+
+  // If this job was pushed from a Supply order, stamp the order with the job id
+  // so its 3-dot menu flips to "View Production Job" (prevents double-push).
+  if (_editingJob.sourceSupplyOrderId) {
+    const soId = _editingJob.sourceSupplyOrderId, jobId = _editingJob.id;
+    updateState('supplyOrders', () => {
+      const orders = APP_STATE.supplyOrders || [];
+      const o = orders.find(x => String(x.id) === String(soId));
+      if (o) { o.productionJobId = jobId; o.updatedAt = new Date().toISOString(); }
+      return orders;
+    });
+    if (typeof renderSupplyTable === 'function') renderSupplyTable();
+  }
+
   closeModal('productionJobModal');
   _editingJob = null;
   renderProductionBoard();
@@ -1093,6 +1150,7 @@ window.deleteLaborPerson           = deleteLaborPerson;
 window.renderLaborRoster           = renderLaborRoster;
 window.getProductionJobs           = getProductionJobs;
 window.openProductionJobModal      = openProductionJobModal;
+window.openProductionJobFromSupplyOrder = openProductionJobFromSupplyOrder;
 window.saveProductionJob           = saveProductionJob;
 window.deleteProductionJob         = deleteProductionJob;
 window.openProductLineStatusModal  = openProductLineStatusModal;
