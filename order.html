@@ -221,6 +221,14 @@ input, textarea { font-family: inherit; }
    sibling) rather than a nudge, so this field gets its own lighter pop. */
 .rep-field input.qty-pop { animation: fieldpop .28s var(--spring); }
 @keyframes fieldpop { 40% { transform: scale(1.08); } }
+/* Shelf-life hard gate — replaces the Left/Damaged inputs until the
+   product's countdown (see reportGateMs/formatCountdown) reaches zero. */
+.rep-row.rep-gated { opacity: .68; }
+.rep-gate { display: flex; flex-direction: column; align-items: center; gap: 2px; flex-shrink: 0;
+  padding: 6px 12px; border-radius: 10px; background: var(--gray-50); border: 1.5px solid var(--gray-200); }
+.rep-gate-label { font-size: 9px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase;
+  color: var(--gray-400); }
+.rep-gate-countdown { font-size: 13px; font-weight: 900; color: var(--gray-500); white-space: nowrap; }
 #reportBar, #restockBar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
   animation: rise .5s var(--ease) both; }
@@ -2075,7 +2083,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       onHand = res.data.on_hand.map(function (p) {
         return {
           productId: p.productId, name: p.name || '', category: p.category || '',
-          onHand: Number(p.onHand || 0), unitPrice: Number(p.unitPrice || 0)
+          onHand: Number(p.onHand || 0), unitPrice: Number(p.unitPrice || 0),
+          reportableAt: p.reportableAt || null
         };
       });
       $('summaryBar').style.display = 'none'; // sale-only sticky bar must not linger
@@ -2163,7 +2172,26 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     return v;
   }
   function repSold(p) {
+    if (reportGateMs(p) > 0) return 0;
     return Math.max(0, p.onHand - repClampedRemaining(p) - repClampedDamaged(p));
+  }
+
+  /* Milliseconds until p becomes reportable, or 0 if it already is (no
+     shelf life configured, or the shelf life has elapsed). */
+  function reportGateMs(p) {
+    if (!p.reportableAt) return 0;
+    var ms = new Date(p.reportableAt).getTime() - Date.now();
+    return ms > 0 ? ms : 0;
+  }
+
+  function formatCountdown(ms) {
+    var totalMin = Math.max(1, Math.ceil(ms / 60000));
+    var days = Math.floor(totalMin / 1440);
+    var hours = Math.floor((totalMin % 1440) / 60);
+    var mins = totalMin % 60;
+    if (days > 0) return days + 'd ' + hours + 'h';
+    if (hours > 0) return hours + 'h ' + mins + 'm';
+    return mins + 'm';
   }
 
   /* Shared by the Report Sales tab (#reportList) and the report-mode review
@@ -2174,16 +2202,18 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     var art = (window.getProductArt && window.getProductArt(p.name)) || '';
     var col = catColor(p.category || 'Products');
     var vars = '--cat:' + col.c + ';--cat-t:' + col.t + ';';
-    var remaining = repRemaining[p.productId];
-    var damaged   = repDamaged[p.productId];
-    return (
-      '<div class="card rep-row" data-pid="' + esc(p.productId) + '" style="' + vars + '">' +
-        '<div class="medallion' + (art ? ' has-art' : '') + '">' + (art || esc(initials(p.name))) + '</div>' +
-        '<div class="card-info">' +
-          '<div class="card-name">' + esc(p.name) + '</div>' +
-          '<div class="card-price">' + p.onHand + ' on hand · ' + money(p.unitPrice) + ' each</div>' +
-          '<div class="card-line-total" data-due></div>' +
-        '</div>' +
+    var gateMs = reportGateMs(p);
+    var fieldsHtml;
+    if (gateMs > 0) {
+      fieldsHtml =
+        '<div class="rep-gate">' +
+          '<div class="rep-gate-label">Reportable in</div>' +
+          '<div class="rep-gate-countdown" data-countdown>' + esc(formatCountdown(gateMs)) + '</div>' +
+        '</div>';
+    } else {
+      var remaining = repRemaining[p.productId];
+      var damaged   = repDamaged[p.productId];
+      fieldsHtml =
         '<div class="rep-fields">' +
           '<div class="rep-field"><label>Left</label>' +
             '<input type="text" inputmode="numeric" data-remaining ' +
@@ -2191,7 +2221,19 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
           '<div class="rep-field"><label>Damaged</label>' +
             '<input type="text" inputmode="numeric" data-damaged ' +
               'value="' + (damaged !== undefined ? esc(damaged) : '') + '" placeholder="0"></div>' +
+        '</div>';
+    }
+    return (
+      '<div class="card rep-row' + (gateMs > 0 ? ' rep-gated' : '') + '" data-pid="' + esc(p.productId) + '"' +
+          (gateMs > 0 ? ' data-reportable-at="' + esc(p.reportableAt) + '"' : '') +
+          ' style="' + vars + '">' +
+        '<div class="medallion' + (art ? ' has-art' : '') + '">' + (art || esc(initials(p.name))) + '</div>' +
+        '<div class="card-info">' +
+          '<div class="card-name">' + esc(p.name) + '</div>' +
+          '<div class="card-price">' + p.onHand + ' on hand · ' + money(p.unitPrice) + ' each</div>' +
+          '<div class="card-line-total" data-due></div>' +
         '</div>' +
+        fieldsHtml +
       '</div>'
     );
   }
@@ -2303,6 +2345,38 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     $('reportBar').style.display  = (tab === 'report' && onHand.length) ? 'block' : 'none';
     $('consign').querySelector('.powered').classList.toggle('snug', tab === 'report' || tab === 'restock');
     updateRestockBar();
+    if (tab === 'report') startReportGateTicker(); else stopReportGateTicker();
+  }
+
+  /* Ticks the countdown text on gated Report Sales rows (tab + sheet, both
+     rendered from the same reportRowHtml) while the Report tab is active;
+     re-renders once a row's gate actually expires so it swaps back to
+     editable Left/Damaged inputs. */
+  var reportGateTimer = null;
+  function startReportGateTicker() {
+    stopReportGateTicker();
+    var stillGated = onHand.some(function (p) { return reportGateMs(p) > 0; });
+    if (!stillGated) return;
+    reportGateTimer = setInterval(tickReportGates, 30000);
+  }
+  function stopReportGateTicker() {
+    if (reportGateTimer) { clearInterval(reportGateTimer); reportGateTimer = null; }
+  }
+  function tickReportGates() {
+    var anyExpired = false;
+    document.querySelectorAll('[data-countdown]').forEach(function (el) {
+      var row = el.closest('.rep-row');
+      var iso = row && row.getAttribute('data-reportable-at');
+      if (!iso) return;
+      var remaining = new Date(iso).getTime() - Date.now();
+      if (remaining <= 0) { anyExpired = true; return; }
+      el.textContent = formatCountdown(remaining);
+    });
+    if (anyExpired) {
+      renderReportList();
+      if (cSheetMode === 'report') renderXSheetLines('report');
+      startReportGateTicker();
+    }
   }
   $('consignTabs').addEventListener('click', function (e) {
     var btn = e.target.closest('[data-tab]');

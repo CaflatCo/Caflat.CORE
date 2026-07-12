@@ -1952,10 +1952,13 @@ function _deductSupplyStock(order) {
    _publishClientPortal, not the public token RPCs).
      delta = +1  → DELIVERED: stock now leaves the cafe (already handled by
                    _deductSupplyStock) AND becomes stock the client holds —
-                   on_hand increases, unit_price refreshes to this order's price.
+                   on_hand increases, unit_price refreshes to this order's price,
+                   and the shelf-life countdown (see migration 009) resets to
+                   this product's configured shelf_life_days from now.
      delta = -1  → a delivery is reversed (status moved back, cancelled, or
                    the order is deleted) — on_hand decreases by the same
-                   qty, floored at 0, unit_price left untouched. */
+                   qty, floored at 0, unit_price/shelf-life fields carried
+                   forward unchanged (a reversal never resets the countdown). */
 async function _adjustConsignmentStock(order, delta) {
   const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
   if (!tenantId) {
@@ -1973,7 +1976,7 @@ async function _adjustConsignmentStock(order, delta) {
     const existing = await _sbFetch(
       `consignment_stock?tenant_id=eq.${encodeURIComponent(tenantId)}` +
       `&client_id=eq.${encodeURIComponent(clientId)}` +
-      `&product_id=eq.${encodeURIComponent(productId)}&select=on_hand,product_name,category,unit_price`,
+      `&product_id=eq.${encodeURIComponent(productId)}&select=on_hand,product_name,category,unit_price,shelf_life_days,last_delivered_at`,
       { headers: { 'x-tenant-id': tenantId } }
     );
     const row = (existing.ok && Array.isArray(existing.data)) ? existing.data[0] : null;
@@ -1993,6 +1996,8 @@ async function _adjustConsignmentStock(order, delta) {
         category:     row?.category || product?.category || '',
         on_hand:      Math.max(0, priorOnHand + delta * qty),
         unit_price:   delta > 0 ? Number(item.unitPrice || 0) : Number(row?.unit_price || item.unitPrice || 0),
+        shelf_life_days:   delta > 0 ? Number(product?.shelfLifeDays || 0) : Number(row?.shelf_life_days || 0),
+        last_delivered_at: delta > 0 ? new Date().toISOString() : (row?.last_delivered_at || null),
         updated_at:   new Date().toISOString()
       })
     });
