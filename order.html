@@ -115,7 +115,10 @@ input, textarea { font-family: inherit; }
 .prepared b { display: inline-block; color: #fff; font-weight: 800;
   background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18);
   padding: 3px 12px; border-radius: 99px; margin-left: 2px; }
-.hero-hist-btn { position: absolute; top: 20px; right: 20px; width: 36px; height: 36px;
+/* Higher specificity than ".hero > *:not(.hero-blob) { position: relative }"
+   above — otherwise that generic rule wins and the button falls into normal
+   document flow instead of pinning to the corner. */
+.hero > .hero-hist-btn { position: absolute; top: 20px; right: 20px; width: 36px; height: 36px;
   border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.12);
   border: 1px solid rgba(255,255,255,.18); color: #fff; transition: transform .15s var(--ease),
   background .15s var(--ease); }
@@ -213,6 +216,11 @@ input, textarea { font-family: inherit; }
   border: 1.5px solid var(--gray-200); border-radius: 10px; background: var(--white); color: var(--black);
   outline: none; transition: border-color .2s; }
 .rep-field input:focus { border-color: var(--black); }
+/* .qty-pop's scale(1.35) is tuned for stepper card bumps — on a small
+   56×38px typed field it reads as a glitch (the box visually overtakes its
+   sibling) rather than a nudge, so this field gets its own lighter pop. */
+.rep-field input.qty-pop { animation: fieldpop .28s var(--spring); }
+@keyframes fieldpop { 40% { transform: scale(1.08); } }
 #reportBar, #restockBar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
   animation: rise .5s var(--ease) both; }
@@ -951,6 +959,9 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   var reportSubmitting = false;
   var restockQtys = {};       // productId → qty requested (separate cart from the sell-through report)
   var restockSubmitting = false;
+  var restockLastTotal = 0;
+  var reportLastDue = 0;
+  var onHandLastTotal = 0;
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -2051,7 +2062,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     });
     $('onHandList').innerHTML = html || ('<div style="padding:20px 4px;color:var(--gray-400);' +
       'font-size:13px;">You have no consignment stock on hand right now.</div>');
-    $('onHandTotalValue').textContent = money(totalValue);
+    animateTotal($('onHandTotalValue'), onHandLastTotal, totalValue);
+    onHandLastTotal = totalValue;
   }
 
   /* "Left" defaults to the full on-hand qty (nothing sold) until the client
@@ -2129,8 +2141,16 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       row.classList.toggle('picked', sold > 0);
     });
     $('repSoldUnits').textContent = totalSold + (totalSold === 1 ? ' unit' : ' units');
-    $('repDueAmt').textContent = money(totalDue);
-    $('rbTotal').textContent   = money(totalDue);
+    animateTotal($('repDueAmt'), reportLastDue, totalDue);
+    animateTotal($('rbTotal'), reportLastDue, totalDue);
+    if (totalDue !== reportLastDue) {
+      [$('repDueCard'), document.querySelector('#reportBar .bar-inner')].forEach(function (el) {
+        el.classList.remove('bar-bump');
+        void el.offsetWidth;
+        el.classList.add('bar-bump');
+      });
+    }
+    reportLastDue = totalDue;
     return totalDue;
   }
 
@@ -2141,6 +2161,9 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     if (e.target.hasAttribute('data-remaining'))      repRemaining[pid] = e.target.value;
     else if (e.target.hasAttribute('data-damaged'))   repDamaged[pid]   = e.target.value;
     else return;
+    e.target.classList.remove('qty-pop');
+    void e.target.offsetWidth;
+    e.target.classList.add('qty-pop');
     updateReportTotals();
   });
 
@@ -2515,8 +2538,22 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   }
   function updateRestockBar() {
     var count = Object.keys(restockQtys).reduce(function (s, pid) { return s + restockQtys[pid]; }, 0);
+    var total = restockTotal();
+    var inner = document.querySelector('#restockBar .bar-inner');
+    var hadItems = !!inner.dataset.hadItems;
     $('rkCount').textContent = count + (count === 1 ? ' item requested' : ' items requested');
-    $('rkTotal').textContent = money(restockTotal());
+    animateTotal($('rkTotal'), restockLastTotal, total);
+    restockLastTotal = total;
+    if (count > 0) {
+      inner.dataset.hadItems = '1';
+      if (hadItems) {
+        inner.classList.remove('bar-bump');
+        void inner.offsetWidth;
+        inner.classList.add('bar-bump');
+      }
+    } else {
+      delete inner.dataset.hadItems;
+    }
     var restockTabActive = document.querySelector('#consignTabs [data-tab="restock"]').classList.contains('sel');
     $('restockBar').style.display = (restockTabActive && count > 0) ? 'block' : 'none';
   }
