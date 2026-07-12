@@ -115,6 +115,12 @@ input, textarea { font-family: inherit; }
 .prepared b { display: inline-block; color: #fff; font-weight: 800;
   background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18);
   padding: 3px 12px; border-radius: 99px; margin-left: 2px; }
+.hero-hist-btn { position: absolute; top: 20px; right: 20px; width: 36px; height: 36px;
+  border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.18); color: #fff; transition: transform .15s var(--ease),
+  background .15s var(--ease); }
+.hero-hist-btn svg { width: 17px; height: 17px; }
+.hero-hist-btn:active { transform: scale(.9); background: rgba(255,255,255,.2); }
 
 /* Category chip — tinted per category via --cat / --cat-t custom props */
 .cat-label { margin: 26px 4px 12px; display: flex; align-items: center; gap: 10px; }
@@ -605,6 +611,11 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     <div class="hero-blob b1"></div>
     <div class="hero-blob b2"></div>
     <div class="hero-blob b3"></div>
+    <button type="button" class="hero-hist-btn" id="historyBtnForm" aria-label="Order history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/>
+        <path d="M3 4v5h5"/><path d="M12 7v5l3 3"/></svg>
+    </button>
     <div class="eyebrow">Order Portal</div>
     <div class="brand" id="brandName"></div>
     <div class="prepared">Prices prepared for <b id="clientName"></b></div>
@@ -782,6 +793,11 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     <div class="hero-blob b1"></div>
     <div class="hero-blob b2"></div>
     <div class="hero-blob b3"></div>
+    <button type="button" class="hero-hist-btn" id="historyBtnConsign" aria-label="Order history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/>
+        <path d="M3 4v5h5"/><path d="M12 7v5l3 3"/></svg>
+    </button>
     <div class="eyebrow">Consignment Account</div>
     <div class="brand" id="cBrandName"></div>
     <div class="prepared">Account for <b id="cClientName"></b></div>
@@ -864,6 +880,21 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   <a class="powered" href="https://caflatcore.com?ref=orderform" target="_blank" rel="noopener">
     Powered by <b>Caflat.CORE</b>
   </a>
+</div>
+
+<!-- History — every past record for this token (purchases for sale-mode
+     clients; restock requests + sell-through reports for consignment),
+     each expandable to its full itemized breakdown. One shared screen for
+     both terms modes, reached via the clock icon in either hero. -->
+<div id="history" class="screen">
+  <div class="hist-head">
+    <button type="button" class="hist-back" id="historyBackBtn" aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+        stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="hist-title">History</div>
+  </div>
+  <div id="historyList"></div>
 </div>
 
 <div id="restockBar">
