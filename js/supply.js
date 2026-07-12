@@ -293,7 +293,17 @@ function _getPortalConfig(client) {
     },
     token:       p.token       || '',
     publishedAt: p.publishedAt || '',
-    revoked:     p.revoked === true
+    revoked:     p.revoked === true,
+    // sale = today's buy-and-pay portal. consignment = the client holds
+    // stock and only owes for what they report as sold (see order.html's
+    // consignment tabs and submit_sell_through).
+    termsMode: p.termsMode === 'consignment' ? 'consignment' : 'sale',
+    // Which settlement paths a consignment client may use when reporting
+    // sell-through. Meaningless for termsMode 'sale'.
+    settlementModes: {
+      payNow:       p.settlementModes?.payNow === true,
+      invoiceAfter: p.settlementModes?.invoiceAfter !== false
+    }
   };
 }
 
@@ -434,6 +444,12 @@ function openClientPortalModal(clientId) {
       style="padding:9px 16px;border-radius:99px;border:1.5px solid var(--border);
         background:var(--white);color:var(--black);font-size:12.5px;font-weight:800;
         font-family:inherit;cursor:pointer;white-space:nowrap;">${label}</button>`;
+  const termsBtn = (mode, label) => `
+    <button type="button" class="portal-terms-btn" data-terms="${mode}"
+      onclick="setPortalTermsMode('${mode}')"
+      style="padding:9px 16px;border-radius:99px;border:1.5px solid var(--border);
+        background:var(--white);color:var(--black);font-size:12.5px;font-weight:800;
+        font-family:inherit;cursor:pointer;white-space:nowrap;">${label}</button>`;
 
   m.innerHTML = `
     <div class="modal" style="max-width:min(680px, 94vw);">
@@ -443,7 +459,27 @@ function openClientPortalModal(clientId) {
       </div>
 
       <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
-        color:var(--gray-500);margin-bottom:10px;">1 · General Pricing</div>
+        color:var(--gray-500);margin-bottom:10px;">1 · Terms</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        ${termsBtn('sale', 'Standard Sale')}
+        ${termsBtn('consignment', 'Consignment')}
+      </div>
+      <div id="portalSettlementWrap" style="display:none;flex-wrap:wrap;gap:16px;margin-bottom:12px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;">
+          <input type="checkbox" id="portalSettlePayNow" ${cfg.settlementModes.payNow ? 'checked' : ''}
+            style="width:18px;height:18px;" /> Client can pay in-portal when reporting sales
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;">
+          <input type="checkbox" id="portalSettleInvoice" ${cfg.settlementModes.invoiceAfter ? 'checked' : ''}
+            style="width:18px;height:18px;" /> Bill after you reconcile their report
+        </label>
+      </div>
+      <div id="portalTermsHint" style="font-size:11px;color:var(--gray-400);margin-bottom:18px;">
+        Consignment: this client holds stock and only owes for what they report as sold. Damaged/expired units are written off, not billed.
+      </div>
+
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+        color:var(--gray-500);margin-bottom:10px;">2 · General Pricing</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
         ${modeBtn('retail', 'Standard retail')}
         ${modeBtn('percent', 'Percent off')}
@@ -470,7 +506,7 @@ function openClientPortalModal(clientId) {
 
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">
         <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
-          color:var(--gray-500);">2 · Products <span id="portalIncludedCount" style="color:var(--gray-400);font-weight:600;letter-spacing:0;text-transform:none;"></span></div>
+          color:var(--gray-500);">3 · Products <span id="portalIncludedCount" style="color:var(--gray-400);font-weight:600;letter-spacing:0;text-transform:none;"></span></div>
         <div style="display:flex;gap:12px;">
           <button type="button" onclick="togglePortalIncludeAll(true)" style="background:none;border:none;
             padding:0;font-size:11.5px;font-weight:800;color:var(--black);cursor:pointer;
@@ -486,7 +522,7 @@ function openClientPortalModal(clientId) {
       </div>
 
       <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
-        color:var(--gray-500);margin-bottom:10px;">3 · Payment Methods</div>
+        color:var(--gray-500);margin-bottom:10px;">4 · Payment Methods</div>
       <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:18px;">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;">
           <input type="checkbox" id="portalAcceptCash" ${cfg.builtinMethods.cash ? 'checked' : ''}
@@ -502,7 +538,7 @@ function openClientPortalModal(clientId) {
       </div>
 
       <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
-        color:var(--gray-500);margin-bottom:10px;">4 · Share Link</div>
+        color:var(--gray-500);margin-bottom:10px;">5 · Share Link</div>
       <div id="portalShareSection" style="display:${hasLink ? 'block' : 'none'};background:var(--gray-50);
         border:1.5px solid var(--border);border-radius:var(--radius-lg);
         padding:12px 14px;margin-bottom:14px;">
@@ -538,7 +574,22 @@ function openClientPortalModal(clientId) {
 
   openModal('clientPortalModal');
   setPortalPricingMode(cfg.pricing.mode);
+  setPortalTermsMode(cfg.termsMode);
   if (hasLink) _renderPortalQR(cfg.token);
+}
+
+function setPortalTermsMode(mode) {
+  const modal = document.getElementById('clientPortalModal');
+  if (!modal) return;
+  modal.dataset.termsMode = mode;
+  modal.querySelectorAll('.portal-terms-btn').forEach(btn => {
+    const active = btn.dataset.terms === mode;
+    btn.style.background  = active ? 'var(--black)' : 'var(--white)';
+    btn.style.color       = active ? '#fff' : 'var(--black)';
+    btn.style.borderColor = active ? 'var(--black)' : 'var(--border)';
+  });
+  const wrap = document.getElementById('portalSettlementWrap');
+  if (wrap) wrap.style.display = mode === 'consignment' ? 'flex' : 'none';
 }
 
 function setPortalPricingMode(mode) {
@@ -631,7 +682,14 @@ function _readPortalModalConfig() {
     invoice: document.getElementById('portalAcceptInvoice')?.checked !== false
   };
 
-  return { pricing: { mode, percentOff, amountOff, custom, tiers }, allowedProductIds: allowed, multiples, builtinMethods };
+  const termsMode = modal.dataset.termsMode === 'consignment' ? 'consignment' : 'sale';
+  const settlementModes = {
+    payNow:       document.getElementById('portalSettlePayNow')?.checked === true,
+    invoiceAfter: document.getElementById('portalSettleInvoice')?.checked !== false
+  };
+
+  return { pricing: { mode, percentOff, amountOff, custom, tiers }, allowedProductIds: allowed,
+    multiples, builtinMethods, termsMode, settlementModes };
 }
 
 // Returns an error message if any product's volume-pricing rows are
@@ -708,7 +766,8 @@ function saveClientPortalConfig(silent = false) {
   clients[idx] = {
     ...clients[idx],
     portal: { ...prev, pricing: read.pricing, allowedProductIds: read.allowedProductIds,
-      multiples: read.multiples, builtinMethods: read.builtinMethods }
+      multiples: read.multiples, builtinMethods: read.builtinMethods,
+      termsMode: read.termsMode, settlementModes: read.settlementModes }
   };
   updateState('supplierClients', () => clients);
   if (!silent) showNotification('Client pricing saved', 'success');
@@ -812,9 +871,11 @@ async function _publishClientPortal(client) {
     currency:        APP_STATE.settings?.currency  || 'PHP',
     currency_symbol: typeof getCurrencySymbol === 'function' ? getCurrencySymbol() : '₱',
     catalog,
-    payment_methods: paymentMethods,
-    revoked:         false,
-    updated_at:      new Date().toISOString()
+    payment_methods:  paymentMethods,
+    terms_mode:       cfg.termsMode,
+    settlement_modes: cfg.settlementModes,
+    revoked:          false,
+    updated_at:       new Date().toISOString()
   };
 
   const res = await _sbFetch('order_portals?on_conflict=tenant_id,client_id', {
@@ -1007,6 +1068,10 @@ function _convertPortalOrder(row) {
   const subtotal  = round2(items.reduce((s, i) => s + i.total, 0));
   const timestamp = new Date().toISOString();
 
+  const sourceClient = (Array.isArray(APP_STATE.supplierClients) ? APP_STATE.supplierClients : [])
+    .find(c => String(c.id) === String(row.client_id));
+  const terms = sourceClient?.portal?.termsMode === 'consignment' ? 'consignment' : 'sale';
+
   const noteParts = ['Received via client order portal'];
   if (row.requested_date)    noteParts.push(`Requested delivery: ${row.requested_date}`);
   if (row.payment_method)    noteParts.push(`Client will pay by: ${row.payment_method}`
@@ -1038,6 +1103,7 @@ function _convertPortalOrder(row) {
     discountType:  'percent',
     grandTotal:    subtotal,
     status:        'DRAFTED',
+    terms,
     reservedStock: false,
     stockDeducted: false,
     statusHistory: [{ status: 'DRAFTED', changedAt: timestamp,
@@ -1369,11 +1435,16 @@ function saveSupplyOrder() {
     updateState('supplyOrders', () => orders);
   } else {
     const timestamp = new Date().toISOString();
+    // New orders inherit this client's current terms (sale/consignment) at
+    // creation time — later changes to the client's portal don't retroactively
+    // change existing orders.
+    const terms = client?.portal?.termsMode === 'consignment' ? 'consignment' : 'sale';
     orders.push({
       id, invoiceNumber, clientId,
       clientName: client?.name || '',
       orderDate, notes, items, subtotal, discount, discountType, grandTotal,
       status: 'DRAFTED',
+      terms,
       reservedStock: false,
       stockDeducted: false,
       statusHistory: [{ status: 'DRAFTED', changedAt: timestamp, note: 'Order created' }],
@@ -1389,13 +1460,14 @@ function saveSupplyOrder() {
   showNotification('Supply order saved', 'success');
 }
 
-function deleteSupplyOrder(orderId) {
+async function deleteSupplyOrder(orderId) {
   if (!confirm('Delete this supply order?')) return;
   const order = getSupplyOrderById(orderId);
   // Release any reservation and restore stock before deleting
   if (order?.stockDeducted) {
     _restoreSupplyStock(order);
     order.stockDeducted = false;
+    if (order.terms === 'consignment') await _adjustConsignmentStock(order, -1);
   }
   _releaseSupplyReservation(order);
   // Also release FG reservations if applicable
@@ -1555,6 +1627,65 @@ function _deductSupplyStock(order) {
   if (typeof refreshDashboard      === 'function') refreshDashboard();
 }
 
+/* ── Consignment on-hand balance (server-authoritative, see migration 006) ──
+   Adjusts every line of this order against the client's consignment_stock
+   row (upserted directly — this call is made by the cafe app with its
+   tenant header, the same RLS-protected table-write pattern used by
+   _publishClientPortal, not the public token RPCs).
+     delta = +1  → DELIVERED: stock now leaves the cafe (already handled by
+                   _deductSupplyStock) AND becomes stock the client holds —
+                   on_hand increases, unit_price refreshes to this order's price.
+     delta = -1  → a delivery is reversed (status moved back, cancelled, or
+                   the order is deleted) — on_hand decreases by the same
+                   qty, floored at 0, unit_price left untouched. */
+async function _adjustConsignmentStock(order, delta) {
+  const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
+  if (!tenantId) {
+    if (delta > 0) showNotification('Could not sync consignment stock — activate your license first', 'error');
+    return;
+  }
+  const clientId = String(order.clientId || '');
+  const products  = Array.isArray(APP_STATE.products) ? APP_STATE.products : [];
+
+  for (const item of (order.items || [])) {
+    const productId = String(item.productId || '');
+    const qty = Number(item.qty || 0);
+    if (!productId || qty <= 0) continue;
+
+    const existing = await _sbFetch(
+      `consignment_stock?tenant_id=eq.${encodeURIComponent(tenantId)}` +
+      `&client_id=eq.${encodeURIComponent(clientId)}` +
+      `&product_id=eq.${encodeURIComponent(productId)}&select=on_hand,product_name,category,unit_price`,
+      { headers: { 'x-tenant-id': tenantId } }
+    );
+    const row = (existing.ok && Array.isArray(existing.data)) ? existing.data[0] : null;
+    if (delta < 0 && !row) continue; // nothing on hand to restore
+
+    const priorOnHand = row ? Number(row.on_hand || 0) : 0;
+    const product = products.find(p => String(p.id) === productId);
+
+    const res = await _sbFetch('consignment_stock?on_conflict=tenant_id,client_id,product_id', {
+      method: 'POST',
+      headers: { 'x-tenant-id': tenantId, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        tenant_id:    tenantId,
+        client_id:    clientId,
+        product_id:   productId,
+        product_name: item.productName || row?.product_name || product?.name || '',
+        category:     row?.category || product?.category || '',
+        on_hand:      Math.max(0, priorOnHand + delta * qty),
+        unit_price:   delta > 0 ? Number(item.unitPrice || 0) : Number(row?.unit_price || item.unitPrice || 0),
+        updated_at:   new Date().toISOString()
+      })
+    });
+    if (!res.ok) {
+      console.error('Consignment stock sync failed', res.status, res.data);
+      showNotification('Consignment balance sync failed for ' +
+        (item.productName || productId) + ' — check your connection', 'error');
+    }
+  }
+}
+
 function _logInventoryMovements(order, type, qty, reason) {
   const movements = Array.isArray(APP_STATE.inventoryMovements)
     ? APP_STATE.inventoryMovements : [];
@@ -1681,6 +1812,9 @@ async function setSupplyStatus(orderId, newStatus, paymentInfo) {
     order.stockDeducted = true;
     order.reservedStock = false;
     _auditSupplyEvent('SUPPLY_STOCK_DEDUCTED', order);
+    // Consignment: the stock also becomes what the client is holding on
+    // the cafe's behalf, tracked separately from the cafe's own inventory.
+    if (order.terms === 'consignment') await _adjustConsignmentStock(order, 1);
   }
 
   // Moving AWAY from ORDERED back to DRAFTED — release the reservation (no real stock was touched)
@@ -1698,6 +1832,7 @@ async function setSupplyStatus(orderId, newStatus, paymentInfo) {
     _restoreSupplyStock(order);
     order.stockDeducted = false;
     _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);
+    if (order.terms === 'consignment') await _adjustConsignmentStock(order, -1);
   }
 
   // Moving to CANCELLED or VOIDED — release reservation and/or restore hard-deducted stock
@@ -1707,6 +1842,7 @@ async function setSupplyStatus(orderId, newStatus, paymentInfo) {
       _restoreSupplyStock(order);
       order.stockDeducted = false;
       _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);
+      if (order.terms === 'consignment') await _adjustConsignmentStock(order, -1);
     } else if (order.reservedStock) {
       _releaseSupplyReservation(order);
       order.reservedStock = false;
