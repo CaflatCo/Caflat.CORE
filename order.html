@@ -74,6 +74,10 @@ input, textarea { font-family: inherit; }
 /* ── Form screen ── */
 #form { max-width: 560px; margin: 0 auto; padding: 12px 16px 140px; }
 
+/* Consignment screen shares #form's mobile-width column — without this it
+   stretches edge-to-edge on wide viewports (iPad Safari, desktop). */
+#consign { max-width: 560px; margin: 0 auto; padding: 12px 16px 140px; }
+
 /* Hero: dark panel with soft drifting color blobs */
 .hero {
   position: relative; overflow: hidden;
@@ -1884,7 +1888,10 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     renderOnHandList();
     renderReportList();
     renderRestockCatalog();
-    switchConsignTab('onhand');
+    // Land on Restock (the product catalog) when there's nothing on hand yet —
+    // a brand-new consignment client with no delivery yet would otherwise see
+    // an empty "no stock" screen with nothing to do.
+    switchConsignTab(onHand.length ? 'onhand' : 'restock');
   }
 
   function byCategory(list) {
