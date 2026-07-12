@@ -188,10 +188,10 @@ input, textarea { font-family: inherit; }
   border: 1.5px solid var(--gray-200); border-radius: 10px; background: var(--white); color: var(--black);
   outline: none; transition: border-color .2s; }
 .rep-field input:focus { border-color: var(--black); }
-#reportBar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+#reportBar, #restockBar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
   animation: rise .5s var(--ease) both; }
-#reportBar .submit-err { margin-top: 8px; text-align: center; }
+#reportBar .submit-err, #restockBar .submit-err { margin-top: 8px; text-align: center; }
 
 /* Sticky summary bar */
 #summaryBar {
@@ -744,6 +744,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   <div class="seg" id="consignTabs" style="margin:16px 4px 4px;">
     <button type="button" class="sel" data-tab="onhand">On Hand</button>
     <button type="button" data-tab="report">Report Sales</button>
+    <button type="button" data-tab="restock">Restock</button>
   </div>
 
   <div id="tabOnHand" class="consign-tab">
@@ -804,9 +805,29 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       placeholder="Anything your supplier should know…" style="margin-bottom:120px;"></textarea>
   </div>
 
+  <div id="tabRestock" class="consign-tab" style="display:none;">
+    <div id="restockCatalog"></div>
+    <div class="f-label" style="margin:16px 4px 8px;">Notes <span style="opacity:.5;">(optional)</span></div>
+    <textarea class="f-area" id="restockNotes" maxlength="2000"
+      placeholder="Anything your supplier should know…" style="margin-bottom:120px;"></textarea>
+  </div>
+
   <a class="powered" href="https://caflatcore.com?ref=orderform" target="_blank" rel="noopener">
     Powered by <b>Caflat.CORE</b>
   </a>
+</div>
+
+<div id="restockBar">
+  <div class="bar-inner">
+    <div class="bar-main">
+      <div>
+        <div class="bar-count" id="rkCount"></div>
+        <div class="bar-total" id="rkTotal"></div>
+      </div>
+      <button class="bar-review" id="restockSubmitBtn">Request restock</button>
+    </div>
+  </div>
+  <div class="submit-err" id="restockSubmitErr" style="display:none;"></div>
 </div>
 
 <div id="reportBar">
@@ -848,6 +869,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   var reportChosenSettle = '';  // 'pay_now' | 'invoice'
   var reportProofData = '';
   var reportSubmitting = false;
+  var restockQtys = {};       // productId → qty requested (separate cart from the sell-through report)
+  var restockSubmitting = false;
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -1860,6 +1883,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     $('cClientName').textContent = portal.client_name || 'you';
     renderOnHandList();
     renderReportList();
+    renderRestockCatalog();
     switchConsignTab('onhand');
   }
 
@@ -1998,9 +2022,11 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     document.querySelectorAll('#consignTabs button').forEach(function (b) {
       b.classList.toggle('sel', b.getAttribute('data-tab') === tab);
     });
-    $('tabOnHand').style.display = tab === 'onhand' ? 'block' : 'none';
-    $('tabReport').style.display = tab === 'report' ? 'block' : 'none';
-    $('reportBar').style.display = (tab === 'report' && onHand.length) ? 'block' : 'none';
+    $('tabOnHand').style.display  = tab === 'onhand'  ? 'block' : 'none';
+    $('tabReport').style.display  = tab === 'report'  ? 'block' : 'none';
+    $('tabRestock').style.display = tab === 'restock' ? 'block' : 'none';
+    $('reportBar').style.display  = (tab === 'report' && onHand.length) ? 'block' : 'none';
+    updateRestockBar();
   }
   $('consignTabs').addEventListener('click', function (e) {
     var btn = e.target.closest('[data-tab]');
@@ -2222,6 +2248,177 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
     $('invoiceToggle').style.display = 'none';
     $('reportBar').style.display = 'none';
+    show('success');
+    window.scrollTo(0, 0);
+    burstConfetti();
+  }
+
+  /* ── Restock — a payment-less request for more consignment stock.
+     Reuses the same catalog/pricing data (portal.catalog) and pure helpers
+     (priceFor/unitOf/findProduct) as the sale flow, but with its own cart
+     state/ids so it can never collide with the sale flow's #catalog/#sheet
+     or the Report Sales tab's state. Submits through the existing
+     submit_portal_order RPC with empty payment fields — the cafe's
+     _convertPortalOrder already tags the resulting DRAFTED supply order
+     terms:'consignment' from the client's own portal config. ── */
+  function renderRestockCatalog() {
+    var grouped = byCategory(portal.catalog || []);
+    var html = '';
+    grouped.order.forEach(function (cat) {
+      var col = catColor(cat);
+      var vars = '--cat:' + col.c + ';--cat-t:' + col.t + ';';
+      html += '<div class="cat-label" style="' + vars + '"><span class="cat-chip">' + esc(cat) + '</span></div>';
+      grouped.byCat[cat].forEach(function (p) {
+        var unit = unitOf(p);
+        var art = (window.getProductArt && window.getProductArt(p.name)) || '';
+        html +=
+          '<div class="card" data-pid="' + esc(p.productId) + '" style="' + vars + '">' +
+            '<div class="medallion' + (art ? ' has-art' : '') + '">' + (art || esc(initials(p.name))) + '</div>' +
+            '<div class="card-info">' +
+              '<div class="card-name">' + esc(p.name) + '</div>' +
+              '<div class="card-price" data-price>' + money(priceFor(p, restockQtys[p.productId] || 0)) + '</div>' +
+              '<div class="card-line-total" data-line></div>' +
+            '</div>' +
+            '<div class="stepper-col">' +
+              '<div class="stepper">' +
+                '<button class="step-btn step-minus" data-minus aria-label="Less" disabled>−</button>' +
+                '<input class="qty-input" data-qty type="text" inputmode="decimal" value="0" aria-label="Quantity">' +
+                '<button class="step-btn step-plus" data-plus aria-label="More">+</button>' +
+              '</div>' +
+              (unit > 1 ? '<div class="mult-tag">×' + unit + '</div>' : '') +
+            '</div>' +
+          '</div>';
+      });
+    });
+    $('restockCatalog').innerHTML = html || ('<div style="padding:20px 4px;color:var(--gray-400);' +
+      'font-size:13px;">No products are available to restock right now.</div>');
+  }
+
+  function setRestockQty(pid, q, card) {
+    var product = findProduct(pid);
+    var unit = unitOf(product);
+
+    q = Math.max(0, Math.round(q * 100) / 100);
+    if (unit > 1 && q > 0) q = Math.max(unit, Math.round(q / unit) * unit);
+    q = Math.min(q, unit > 1 ? Math.floor(9999 / unit) * unit : 9999);
+    if (q > 0) restockQtys[pid] = q; else delete restockQtys[pid];
+
+    var input   = card.querySelector('[data-qty]');
+    var minus   = card.querySelector('[data-minus]');
+    var line    = card.querySelector('[data-line]');
+    var priceEl = card.querySelector('[data-price]');
+
+    input.value = q;
+    input.classList.remove('qty-pop');
+    void input.offsetWidth;
+    input.classList.add('qty-pop');
+
+    var medallion = card.querySelector('.medallion');
+    if (medallion) {
+      medallion.classList.remove('qty-pop');
+      void medallion.offsetWidth;
+      medallion.classList.add('qty-pop');
+    }
+
+    minus.disabled = q <= 0;
+    card.classList.toggle('picked', q > 0);
+    if (product) {
+      var unitPrice = priceFor(product, q);
+      if (line) line.textContent = q > 0 ? money(unitPrice * q) : '';
+      if (priceEl) priceEl.textContent = money(unitPrice);
+    }
+    updateRestockBar();
+  }
+
+  $('restockCatalog').addEventListener('click', function (e) {
+    var card = e.target.closest('.card');
+    if (!card) return;
+    var pid  = card.getAttribute('data-pid');
+    var unit = unitOf(findProduct(pid));
+    if (e.target.closest('[data-plus]'))  setRestockQty(pid, (restockQtys[pid] || 0) + unit, card);
+    if (e.target.closest('[data-minus]')) setRestockQty(pid, (restockQtys[pid] || 0) - unit, card);
+  });
+  function onRestockQtyTyped(e) {
+    if (!e.target.hasAttribute('data-qty')) return;
+    var card = e.target.closest('.card');
+    var v = parseFloat(String(e.target.value).replace(/[^0-9.]/g, ''));
+    setRestockQty(card.getAttribute('data-pid'), isFinite(v) ? v : 0, card);
+  }
+  $('restockCatalog').addEventListener('input', onRestockQtyTyped);
+  $('restockCatalog').addEventListener('change', onRestockQtyTyped);
+  $('restockCatalog').addEventListener('focusin', function (e) {
+    if (e.target.hasAttribute('data-qty')) e.target.select();
+  });
+
+  function restockTotal() {
+    var t = 0;
+    Object.keys(restockQtys).forEach(function (pid) {
+      var p = findProduct(pid);
+      if (p) t += priceFor(p, restockQtys[pid]) * restockQtys[pid];
+    });
+    return Math.round(t * 100) / 100;
+  }
+  function updateRestockBar() {
+    var count = Object.keys(restockQtys).reduce(function (s, pid) { return s + restockQtys[pid]; }, 0);
+    $('rkCount').textContent = count + (count === 1 ? ' item requested' : ' items requested');
+    $('rkTotal').textContent = money(restockTotal());
+    var restockTabActive = document.querySelector('#consignTabs [data-tab="restock"]').classList.contains('sel');
+    $('restockBar').style.display = (restockTabActive && count > 0) ? 'block' : 'none';
+  }
+
+  $('restockSubmitBtn').addEventListener('click', function () {
+    if (restockSubmitting) return;
+    var items = Object.keys(restockQtys).map(function (pid) {
+      return { productId: pid, qty: restockQtys[pid] };
+    });
+    if (!items.length) return;
+
+    restockSubmitting = true;
+    var btn = $('restockSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    $('restockSubmitErr').style.display = 'none';
+
+    rpc('submit_portal_order', {
+      p_token: token,
+      p_items: items,
+      p_notes: $('restockNotes').value || '',
+      p_requested_date: null,
+      p_payment_method: '',
+      p_payment_reference: '',
+      p_payment_split: 'full',
+      p_payment_proof: ''
+    }).then(function (res) {
+      if (!res.ok || !res.data || !res.data.reference) {
+        var msg = (res.data && res.data.message) ? res.data.message
+          : "Couldn't send your restock request. Check your connection and try again.";
+        $('restockSubmitErr').textContent = msg;
+        $('restockSubmitErr').style.display = 'block';
+        restockSubmitting = false;
+        btn.disabled = false;
+        btn.textContent = 'Request restock';
+        return;
+      }
+      showRestockSuccess(res.data);
+    }).catch(function () {
+      $('restockSubmitErr').textContent = "Couldn't send your restock request. Check your connection and try again.";
+      $('restockSubmitErr').style.display = 'block';
+      restockSubmitting = false;
+      btn.disabled = false;
+      btn.textContent = 'Request restock';
+    });
+  });
+
+  function showRestockSuccess(result) {
+    $('doneTitle').textContent = 'Restock requested';
+    $('doneSub').textContent = 'Your restock request has been sent to ' +
+      (portal.brand_name || 'your supplier') + '. They will confirm delivery timing.';
+    $('doneRef').textContent = 'REF ' + result.reference;
+    $('donePay').style.display = 'none';
+    $('invoiceToggle').style.display = 'none';
+    restockQtys = {};
+    restockSubmitting = false;
+    $('restockBar').style.display = 'none';
     show('success');
     window.scrollTo(0, 0);
     burstConfetti();
