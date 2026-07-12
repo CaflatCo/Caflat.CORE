@@ -277,6 +277,22 @@ input, textarea { font-family: inherit; }
   box-shadow: var(--shadow-lg);
 }
 #sheet.show { transform: none; }
+/* Consignment's Restock/Report review sheet — same box/backdrop rules as
+   #sheet/#sheetBackdrop (mutually exclusive per portal terms_mode, so an
+   identical z-index never actually stacks); everything else (.sheet-handle,
+   .sheet-scroll, .sec, .cart-row, etc.) is reused verbatim. */
+#cSheetBackdrop { position: fixed; inset: 0; background: rgba(10,10,10,.45); z-index: 50;
+  opacity: 0; pointer-events: none; transition: opacity .3s var(--ease);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+#cSheetBackdrop.show { opacity: 1; pointer-events: auto; }
+#cSheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 51;
+  max-height: 88dvh; display: flex; flex-direction: column;
+  background: var(--white); border-radius: 24px 24px 0 0;
+  transform: translateY(105%); transition: transform .45s var(--spring);
+  box-shadow: var(--shadow-lg);
+}
+#cSheet.show { transform: none; }
 .sheet-handle { width: 40px; height: 4px; border-radius: 99px; background: var(--gray-200);
   margin: 12px auto 4px; flex-shrink: 0; }
 .sheet-scroll { overflow-y: auto; min-height: 0; padding: 8px 20px 20px;
@@ -761,6 +777,46 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   </div>
 </div>
 
+<!-- Consignment review sheet — shared by Restock and Report Sales, matching
+     #sheet's structure/feel (swipe-to-dismiss, live-editable rows, animated
+     totals) instead of the small read-only confirm card. #cSheetMode
+     (restock|report) is set by openXSheet() and drives which sections show
+     and what the submit button does. -->
+<div id="cSheetBackdrop"></div>
+<div id="cSheet" role="dialog" aria-modal="true" aria-label="Review">
+  <div class="sheet-handle"></div>
+  <div class="sheet-scroll">
+    <div class="sheet-title" id="cSheetTitle">Review</div>
+
+    <section class="sec">
+      <div class="sec-head"><span class="sec-num">1</span> Items
+        <span class="sec-count" id="cSheetItemCount"></span></div>
+      <div id="cSheetLines"></div>
+      <div class="review-total">
+        <span class="lbl" id="cSheetTotalLabel">Total</span>
+        <span class="val" id="cSheetTotal"></span>
+      </div>
+    </section>
+
+    <section class="sec" id="cSheetDateSection">
+      <div class="sec-head"><span class="sec-num">2</span> Delivery &amp; notes</div>
+      <div class="f-label">Preferred delivery date <span style="color:var(--danger);">(required)</span></div>
+      <input class="f-input" id="cSheetDate" type="date">
+      <div class="rush-notice" id="cSheetRushNotice" style="display:none;"></div>
+      <div class="f-label">Notes <span style="opacity:.5;">(optional)</span></div>
+      <textarea class="f-area" id="cSheetNotes" maxlength="2000"
+        placeholder="Anything your supplier should know…"></textarea>
+    </section>
+  </div>
+
+  <div class="sheet-footer">
+    <div class="submit-err" id="cSheetSubmitErr" style="display:none;"></div>
+    <button class="submit-btn" id="cSheetSubmitBtn">
+      <span class="cta-txt" id="cSheetCtaTxt">Send</span><span class="cta-amt" id="cSheetCtaAmt"></span>
+    </button>
+  </div>
+</div>
+
 <!-- Remove-item confirm — small centered card, not a full sheet, since
      it's a quick yes/no rather than another whole screen of content. -->
 <div id="confirmOverlay" class="confirm-overlay">
@@ -883,13 +939,6 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
   <div id="tabRestock" class="consign-tab" style="display:none;">
     <div id="restockCatalog"></div>
-    <div class="f-label" style="margin:16px 4px 8px;">Preferred delivery date
-      <span style="color:var(--danger);">(required)</span></div>
-    <input class="f-input" id="restockDate" type="date">
-    <div class="rush-notice" id="restockRushNotice" style="display:none;"></div>
-    <div class="f-label">Notes <span style="opacity:.5;">(optional)</span></div>
-    <textarea class="f-area" id="restockNotes" maxlength="2000"
-      placeholder="Anything your supplier should know…"></textarea>
   </div>
 
   <a class="powered" href="https://caflatcore.com?ref=orderform" target="_blank" rel="noopener">
@@ -919,7 +968,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
         <div class="bar-count" id="rkCount"></div>
         <div class="bar-total" id="rkTotal"></div>
       </div>
-      <button class="bar-review" id="restockSubmitBtn">Request restock</button>
+      <button class="bar-review" id="restockSubmitBtn">Review request</button>
     </div>
   </div>
   <div class="submit-err" id="restockSubmitErr" style="display:none;"></div>
@@ -932,7 +981,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
         <div class="bar-count">AMOUNT DUE</div>
         <div class="bar-total" id="rbTotal"></div>
       </div>
-      <button class="bar-review" id="reportSubmitBtn">Submit report</button>
+      <button class="bar-review" id="reportSubmitBtn">Review report</button>
     </div>
   </div>
   <div class="submit-err" id="repSubmitErr" style="display:none;"></div>
@@ -969,6 +1018,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   var restockLastTotal = 0;
   var reportLastDue = 0;
   var onHandLastTotal = 0;
+  var cSheetMode = '';        // 'restock' | 'report' — which flow #cSheet is currently reviewing
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -1476,35 +1526,6 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     return new Promise(function (resolve) { _confirmResolve = resolve; });
   }
 
-  /* Structured itemized review — product rows + total, with an optional
-     highlighted meta row (e.g. requested delivery date) up top. Used for
-     the restock/report-sales review confirms so an important client sees
-     a proper order summary rather than a wall of plain text. */
-  var REVIEW_META_ICONS = {
-    calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>' +
-      '<line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
-    info: '<circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="1" fill="currentColor" stroke="none"/>'
-  };
-  function buildReviewHtml(rows, total, meta) {
-    var html = '';
-    if (meta) {
-      html += '<div class="review-meta">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
-          'stroke-linecap="round" stroke-linejoin="round">' + REVIEW_META_ICONS[meta.icon || 'calendar'] + '</svg>' +
-        '<div class="review-meta-text"><span class="sub">' + esc(meta.label) + '</span>' + esc(meta.value) + '</div>' +
-      '</div>';
-    }
-    html += '<div class="review-items">' + rows.map(function (r) {
-      return '<div class="review-item-row">' +
-        '<span class="review-item-name">' + esc(r.name) +
-          (r.qty ? '<span class="qty">× ' + r.qty + '</span>' : '') + '</span>' +
-        '<span class="review-item-amt">' + money(r.amount) + '</span>' +
-      '</div>';
-    }).join('') + '</div>';
-    html += '<div class="review-total-row"><span class="lbl">' + esc(total.label) + '</span>' +
-      '<span class="val">' + money(total.value) + '</span></div>';
-    return html;
-  }
   function closeConfirm(result) {
     $('confirmOverlay').classList.remove('show');
     var resolve = _confirmResolve;
@@ -1520,14 +1541,16 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   /* ── Swipe down to dismiss ──
      Drag-to-close only takes over once the sheet's own content is
      scrolled to the top and the finger is moving downward — otherwise
-     a drag inside the sheet just scrolls its contents like normal. */
-  (function () {
-    var sheet    = $('sheet');
-    var scroller = document.querySelector('.sheet-scroll');
+     a drag inside the sheet just scrolls its contents like normal.
+     Shared by #sheet and #cSheet — each call scopes its own scroller via
+     sheetEl.querySelector so two same-class .sheet-scroll elements in the
+     DOM (one per sheet) never cross-wire. */
+  function attachSwipeToDismiss(sheetEl, closeFn) {
+    var scroller = sheetEl.querySelector('.sheet-scroll');
     var dragging = false, closing = false, startY = 0, dy = 0;
 
     function down(e) {
-      if (!sheet.classList.contains('show')) return;
+      if (!sheetEl.classList.contains('show')) return;
       dragging = true;
       closing  = false;
       startY   = (e.touches ? e.touches[0] : e).clientY;
@@ -1540,30 +1563,31 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       if (!closing) {
         if (delta <= 0 || scroller.scrollTop > 0) return;   // scrolling up/within content — ignore
         closing = true;
-        sheet.style.transition = 'none';
+        sheetEl.style.transition = 'none';
       }
       dy = delta;
       if (e.cancelable) e.preventDefault();
-      sheet.style.transform = 'translateY(' + dy + 'px)';
+      sheetEl.style.transform = 'translateY(' + dy + 'px)';
     }
     function up() {
       if (!dragging) return;
       dragging = false;
       if (!closing) return;
       closing = false;
-      sheet.style.transition = '';
-      if (dy > 110) { closeSheet(); return; }
-      sheet.style.transform = '';
+      sheetEl.style.transition = '';
+      if (dy > 110) { closeFn(); return; }
+      sheetEl.style.transform = '';
     }
 
-    sheet.addEventListener('touchstart', down, { passive: true });
-    sheet.addEventListener('touchmove',  move, { passive: false });
-    sheet.addEventListener('touchend',   up);
-    sheet.addEventListener('touchcancel', up);
-    sheet.addEventListener('mousedown', down);
+    sheetEl.addEventListener('touchstart', down, { passive: true });
+    sheetEl.addEventListener('touchmove',  move, { passive: false });
+    sheetEl.addEventListener('touchend',   up);
+    sheetEl.addEventListener('touchcancel', up);
+    sheetEl.addEventListener('mousedown', down);
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
-  })();
+  }
+  attachSwipeToDismiss($('sheet'), closeSheet);
 
   /* ── Payment methods ── */
   function payMethods() {
@@ -2142,52 +2166,74 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     return Math.max(0, p.onHand - repClampedRemaining(p) - repClampedDamaged(p));
   }
 
-  function renderReportList() {
+  /* Shared by the Report Sales tab (#reportList) and the report-mode review
+     sheet (#cSheetLines) — same markup, same data-remaining/data-damaged
+     attributes, so a single delegated handler (handleRepFieldInput below)
+     can drive both without knowing which container it lives in. */
+  function reportRowHtml(p) {
+    var art = (window.getProductArt && window.getProductArt(p.name)) || '';
+    var col = catColor(p.category || 'Products');
+    var vars = '--cat:' + col.c + ';--cat-t:' + col.t + ';';
+    var remaining = repRemaining[p.productId];
+    var damaged   = repDamaged[p.productId];
+    return (
+      '<div class="card rep-row" data-pid="' + esc(p.productId) + '" style="' + vars + '">' +
+        '<div class="medallion' + (art ? ' has-art' : '') + '">' + (art || esc(initials(p.name))) + '</div>' +
+        '<div class="card-info">' +
+          '<div class="card-name">' + esc(p.name) + '</div>' +
+          '<div class="card-price">' + p.onHand + ' on hand · ' + money(p.unitPrice) + ' each</div>' +
+          '<div class="card-line-total" data-due></div>' +
+        '</div>' +
+        '<div class="rep-fields">' +
+          '<div class="rep-field"><label>Left</label>' +
+            '<input type="text" inputmode="numeric" data-remaining ' +
+              'value="' + (remaining !== undefined ? esc(remaining) : '') + '" placeholder="' + p.onHand + '"></div>' +
+          '<div class="rep-field"><label>Damaged</label>' +
+            '<input type="text" inputmode="numeric" data-damaged ' +
+              'value="' + (damaged !== undefined ? esc(damaged) : '') + '" placeholder="0"></div>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function reportListHtml() {
     var grouped = byCategory(onHand);
     var html = '';
     grouped.order.forEach(function (cat) {
       var col = catColor(cat);
       var vars = '--cat:' + col.c + ';--cat-t:' + col.t + ';';
       html += '<div class="cat-label" style="' + vars + '"><span class="cat-chip">' + esc(cat) + '</span></div>';
-      grouped.byCat[cat].forEach(function (p) {
-        var art = (window.getProductArt && window.getProductArt(p.name)) || '';
-        var remaining = repRemaining[p.productId];
-        var damaged   = repDamaged[p.productId];
-        html +=
-          '<div class="card rep-row" data-pid="' + esc(p.productId) + '" style="' + vars + '">' +
-            '<div class="medallion' + (art ? ' has-art' : '') + '">' + (art || esc(initials(p.name))) + '</div>' +
-            '<div class="card-info">' +
-              '<div class="card-name">' + esc(p.name) + '</div>' +
-              '<div class="card-price">' + p.onHand + ' on hand · ' + money(p.unitPrice) + ' each</div>' +
-              '<div class="card-line-total" data-due></div>' +
-            '</div>' +
-            '<div class="rep-fields">' +
-              '<div class="rep-field"><label>Left</label>' +
-                '<input type="text" inputmode="numeric" data-remaining ' +
-                  'value="' + (remaining !== undefined ? esc(remaining) : '') + '" placeholder="' + p.onHand + '"></div>' +
-              '<div class="rep-field"><label>Damaged</label>' +
-                '<input type="text" inputmode="numeric" data-damaged ' +
-                  'value="' + (damaged !== undefined ? esc(damaged) : '') + '" placeholder="0"></div>' +
-            '</div>' +
-          '</div>';
-      });
+      grouped.byCat[cat].forEach(function (p) { html += reportRowHtml(p); });
     });
-    $('reportList').innerHTML = html || ('<div style="padding:20px 4px;color:var(--gray-400);' +
+    return html || ('<div style="padding:20px 4px;color:var(--gray-400);' +
       'font-size:13px;">Nothing to report — you have no consignment stock on hand.</div>');
+  }
+
+  function renderReportList() {
+    $('reportList').innerHTML = reportListHtml();
     updateReportTotals();
   }
 
+  /* Iterates onHand (not a single container's DOM) so it stays correct
+     whether only the tab is rendered, only the sheet is rendered, or both
+     are (the sheet's #cSheetLines rows are just a second copy of the same
+     .rep-row markup — every consumer that has a live copy gets updated). */
   function updateReportTotals() {
     var totalSold = 0, totalDue = 0;
-    document.querySelectorAll('#reportList .rep-row').forEach(function (row) {
+    var soldByPid = {};
+    onHand.forEach(function (p) {
+      var sold = repSold(p);
+      soldByPid[p.productId] = sold;
+      totalSold += sold;
+      totalDue  += sold * p.unitPrice;
+    });
+    document.querySelectorAll('.rep-row').forEach(function (row) {
       var pid = row.getAttribute('data-pid');
       var p = null;
       onHand.forEach(function (x) { if (x.productId === pid) p = x; });
       if (!p) return;
-      var sold = repSold(p);
+      var sold = soldByPid[pid];
       var due  = sold * p.unitPrice;
-      totalSold += sold;
-      totalDue  += due;
       var dueEl = row.querySelector('[data-due]');
       if (dueEl) dueEl.textContent = sold > 0 ? (sold + ' sold · ' + money(due)) : '';
       row.classList.toggle('picked', sold > 0);
@@ -2195,6 +2241,12 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     $('repSoldUnits').textContent = totalSold + (totalSold === 1 ? ' unit' : ' units');
     animateTotal($('repDueAmt'), reportLastDue, totalDue);
     animateTotal($('rbTotal'), reportLastDue, totalDue);
+    if (cSheetMode === 'report') {
+      var cEl = $('cSheetTotal');
+      animateTotal(cEl, Number(cEl.dataset.prev || reportLastDue), totalDue);
+      cEl.dataset.prev = totalDue;
+      $('cSheetCtaAmt').textContent = money(totalDue);
+    }
     if (totalDue !== reportLastDue) {
       [$('repDueCard'), document.querySelector('#reportBar .bar-inner')].forEach(function (el) {
         el.classList.remove('bar-bump');
@@ -2206,18 +2258,40 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     return totalDue;
   }
 
-  $('reportList').addEventListener('input', function (e) {
+  /* Shared by both #reportList and #cSheetLines — keeps the tab and the
+     sheet's report-mode rows perfectly in sync since they edit the SAME
+     repRemaining/repDamaged state, and this also mirrors the raw typed
+     value into the other container's matching input (skipping it if that
+     input is currently focused, so an in-progress keystroke there is
+     never clobbered). */
+  function handleRepFieldInput(e) {
     var row = e.target.closest('.rep-row');
     if (!row) return;
     var pid = row.getAttribute('data-pid');
-    if (e.target.hasAttribute('data-remaining'))      repRemaining[pid] = e.target.value;
-    else if (e.target.hasAttribute('data-damaged'))   repDamaged[pid]   = e.target.value;
+    var field;
+    if (e.target.hasAttribute('data-remaining'))      field = 'remaining';
+    else if (e.target.hasAttribute('data-damaged'))   field = 'damaged';
     else return;
+    if (field === 'remaining') repRemaining[pid] = e.target.value;
+    else repDamaged[pid] = e.target.value;
+
     e.target.classList.remove('qty-pop');
     void e.target.offsetWidth;
     e.target.classList.add('qty-pop');
+
+    var otherContainer = row.closest('#reportList') ? $('cSheetLines') : $('reportList');
+    var otherRows = otherContainer.querySelectorAll('.rep-row');
+    for (var i = 0; i < otherRows.length; i++) {
+      if (otherRows[i].getAttribute('data-pid') === pid) {
+        var otherInput = otherRows[i].querySelector(field === 'remaining' ? '[data-remaining]' : '[data-damaged]');
+        if (otherInput && otherInput !== document.activeElement) otherInput.value = e.target.value;
+        break;
+      }
+    }
     updateReportTotals();
-  });
+  }
+  $('reportList').addEventListener('input', handleRepFieldInput);
+  $('cSheetLines').addEventListener('input', handleRepFieldInput);
 
   function switchConsignTab(tab) {
     document.querySelectorAll('#consignTabs button').forEach(function (b) {
@@ -2385,21 +2459,39 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       return;
     }
 
-    var soldRows = onHand.map(function (p) {
-      var sold = repSold(p);
-      return sold > 0 ? { name: p.name, qty: sold, amount: sold * p.unitPrice } : null;
-    }).filter(Boolean);
-    var due = updateReportTotals();
-    var settleMeta = due > 0
-      ? { label: 'Settlement', icon: 'info', value: reportChosenSettle === 'pay_now' ? 'Paying now' : 'To be invoiced' }
-      : null;
-    var reviewBody = soldRows.length
-      ? buildReviewHtml(soldRows, { label: 'Amount due', value: due }, settleMeta)
-      : '<div class="review-meta"><div class="review-meta-text">Nothing sold this period</div></div>';
+    openXSheet('report');
+  });
 
-    askConfirm('Send this sales report?', reviewBody, 'Send report', 'positive', true).then(function (ok) {
-      if (ok) _submitReport();
-    });
+  /* Mode-aware submit for #cSheet — one button, driven by cSheetMode. */
+  $('cSheetSubmitBtn').addEventListener('click', function () {
+    if (cSheetMode === 'restock') {
+      if (restockSubmitting || !Object.keys(restockQtys).length) return;
+      var deliveryDate = $('cSheetDate').value;
+      if (!deliveryDate) {
+        $('cSheetSubmitErr').textContent = 'Pick a preferred delivery date to continue.';
+        $('cSheetSubmitErr').style.display = 'block';
+        $('cSheetDate').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      var items = Object.keys(restockQtys).map(function (pid) {
+        return { productId: pid, qty: restockQtys[pid] };
+      });
+      _submitRestock(items, deliveryDate);
+    } else if (cSheetMode === 'report') {
+      if (reportSubmitting || !onHand.length) return;
+      // Defense against a stale sheet state (e.g. proof removed after the
+      // sheet was opened) — re-run the same guard the tab's button ran.
+      if (reportChosenSettle === 'pay_now' && reportProofRequired() && !reportProofData) {
+        closeXSheet();
+        $('repSubmitErr').textContent = 'Attach your payment screenshot to submit this report.';
+        $('repSubmitErr').style.display = 'block';
+        $('repProofBox').style.borderColor = 'var(--danger)';
+        $('repProofBox').style.color = 'var(--danger)';
+        $('repProofWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      _submitReport();
+    }
   });
 
   function _submitReport() {
@@ -2408,10 +2500,10 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     });
 
     reportSubmitting = true;
-    var btn = $('reportSubmitBtn');
+    var btn = $('cSheetSubmitBtn');
     btn.disabled = true;
-    btn.textContent = 'Sending…';
-    $('repSubmitErr').style.display = 'none';
+    setCSheetCtaSending(true);
+    $('cSheetSubmitErr').style.display = 'none';
 
     var payload = {
       p_token: token,
@@ -2427,24 +2519,25 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       if (!res.ok || !res.data || !res.data.reference) {
         var msg = (res.data && res.data.message) ? res.data.message
           : "Couldn't send your report. Check your connection and try again.";
-        $('repSubmitErr').textContent = msg;
-        $('repSubmitErr').style.display = 'block';
+        $('cSheetSubmitErr').textContent = msg;
+        $('cSheetSubmitErr').style.display = 'block';
         reportSubmitting = false;
         btn.disabled = false;
-        btn.textContent = 'Submit report';
+        setCSheetCtaSending(false, 'Send report');
         return;
       }
       showReportSuccess(res.data);
     }).catch(function () {
-      $('repSubmitErr').textContent = "Couldn't send your report. Check your connection and try again.";
-      $('repSubmitErr').style.display = 'block';
+      $('cSheetSubmitErr').textContent = "Couldn't send your report. Check your connection and try again.";
+      $('cSheetSubmitErr').style.display = 'block';
       reportSubmitting = false;
       btn.disabled = false;
-      btn.textContent = 'Submit report';
+      setCSheetCtaSending(false, 'Send report');
     });
   }
 
   function showReportSuccess(result) {
+    closeXSheet();
     $('doneTitle').textContent = 'Report sent';
     var due = Number(result.subtotal || 0);
     $('doneSub').textContent = reportChosenSettle === 'pay_now'
@@ -2524,6 +2617,205 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       'font-size:13px;">No products are available to restock right now.</div>');
   }
 
+  function restockCardFor(pid) {
+    var cards = document.querySelectorAll('#restockCatalog .card');
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].getAttribute('data-pid') === String(pid)) return cards[i];
+    }
+    return null;
+  }
+
+  /* Sheet-row edits route through setRestockQty so the catalog card, picked
+     state, and sticky bar stay in sync for free (mirrors setCartQty for
+     sale-mode); then refresh just the sheet's own row. */
+  function setXRestockQty(pid, q) {
+    var card = restockCardFor(pid);
+    if (card) setRestockQty(pid, q, card);
+    refreshXSheetLine(pid);
+  }
+
+  function xRestockRowHtml(pid) {
+    var p = findProduct(pid);
+    if (!p) return '';
+    var unit = unitOf(p);
+    var col  = catColor(p.category || 'Products');
+    var art  = (window.getProductArt && window.getProductArt(p.name)) || '';
+    var unitPrice = priceFor(p, restockQtys[pid]);
+    var amt  = unitPrice * restockQtys[pid];
+    return '<div class="cart-row" data-pid="' + esc(pid) + '" data-amt="' + amt + '"' +
+        ' style="--cat:' + col.c + ';--cat-t:' + col.t + ';">' +
+      '<div class="cart-thumb' + (art ? ' has-art' : '') + '">' +
+        (art || esc(initials(p.name))) + '</div>' +
+      '<div class="cart-info">' +
+        '<div class="cart-name">' + esc(p.name) + '</div>' +
+        '<div class="cart-unit" data-unit>' + money(unitPrice) + ' each</div>' +
+      '</div>' +
+      '<div class="cart-right">' +
+        '<div class="cart-amt" data-amt-el>' + money(amt) + '</div>' +
+        '<div class="cart-step">' +
+          '<button type="button" data-cminus aria-label="Less">−</button>' +
+          '<span class="cart-q" data-cq>' + restockQtys[pid] + '</span>' +
+          '<button type="button" data-cplus aria-label="More">+</button>' +
+        '</div>' +
+        (unit > 1 ? '<div class="mult-tag">×' + unit + '</div>' : '') +
+      '</div>' +
+      '<button type="button" class="cart-delete-btn" data-cart-delete aria-label="Remove ' + esc(p.name) + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+          'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M6 8h12l-1 12.5a2 2 0 0 1-2 1.5H9a2 2 0 0 1-2-1.5L6 8Z"/>' +
+          '<path d="M9 8V6a3 3 0 0 1 6 0v2"/>' +
+        '</svg>' +
+      '</button>' +
+    '</div>';
+  }
+
+  /* Renders #cSheetLines for whichever flow is currently open — restock's
+     own cart-row markup (shared with #sheet/#reviewLines) or the report
+     flow's rep-row markup (shared with #reportList via reportRowHtml). */
+  function renderXSheetLines(mode) {
+    if (mode === 'restock') {
+      $('cSheetLines').innerHTML = Object.keys(restockQtys).map(xRestockRowHtml).join('');
+    } else {
+      $('cSheetLines').innerHTML = reportListHtml();
+    }
+  }
+
+  /* Mirrors refreshSheetLine() (~1392) but scoped to #cSheetLines/restockQtys;
+     inert (falls through to a totals refresh only) when the sheet isn't
+     currently in restock mode. */
+  function refreshXSheetLine(pid) {
+    if (cSheetMode !== 'restock') { updateXSheetTotals(); return; }
+    var rows = $('cSheetLines').querySelectorAll('.cart-row');
+    var row = null;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].getAttribute('data-pid') === String(pid)) { row = rows[i]; break; }
+    }
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (restockQtys[pid]) {
+      if (!row) { renderXSheetLines('restock'); }
+      else {
+        var p = findProduct(pid);
+        var q = row.querySelector('[data-cq]');
+        q.textContent = restockQtys[pid];
+        q.classList.remove('qty-pop');
+        void q.offsetWidth;
+        q.classList.add('qty-pop');
+        var amtEl = row.querySelector('[data-amt-el]');
+        var prev  = Number(row.dataset.amt || 0);
+        var unitPrice = p ? priceFor(p, restockQtys[pid]) : 0;
+        var next  = unitPrice * restockQtys[pid];
+        animateTotal(amtEl, prev, next);
+        row.dataset.amt = next;
+        var unitEl = row.querySelector('[data-unit]');
+        if (unitEl) unitEl.textContent = money(unitPrice) + ' each';
+      }
+    } else if (row) {
+      if (reduce) { row.remove(); }
+      else {
+        row.style.height = row.offsetHeight + 'px';
+        void row.offsetWidth;
+        row.classList.add('out');
+        row.style.height = '0';
+        row.style.paddingTop = '0';
+        row.style.paddingBottom = '0';
+        setTimeout(function () { row.remove(); }, 320);
+      }
+      if (!Object.keys(restockQtys).length) {
+        setTimeout(closeXSheet, reduce ? 0 : 340);
+      }
+    }
+    updateXSheetTotals();
+  }
+
+  function updateXSheetTotals() {
+    var total = cSheetMode === 'restock' ? restockTotal() : updateReportTotals();
+    var el = $('cSheetTotal');
+    animateTotal(el, Number(el.dataset.prev || 0), total);
+    el.dataset.prev = total;
+    if (cSheetMode === 'restock') {
+      var n = Object.keys(restockQtys).length;
+      $('cSheetItemCount').textContent = n ? '· ' + n + (n === 1 ? ' item' : ' items') : '';
+    }
+    $('cSheetCtaAmt').textContent = money(total);
+  }
+
+  function openXSheet(mode) {
+    cSheetMode = mode;
+    $('cSheetSubmitErr').style.display = 'none';
+    if (mode === 'restock') {
+      $('cSheetTitle').textContent = 'Review request';
+      $('cSheetTotalLabel').textContent = 'Total';
+      $('cSheetDateSection').style.display = 'block';
+      renderXSheetLines('restock');
+      var total = restockTotal();
+      $('cSheetTotal').textContent = money(total);
+      $('cSheetTotal').dataset.prev = total;
+      var n = Object.keys(restockQtys).length;
+      $('cSheetItemCount').textContent = n ? '· ' + n + (n === 1 ? ' item' : ' items') : '';
+      $('cSheetCtaAmt').textContent = money(total);
+      renderRushNotice($('cSheetRushNotice'), $('cSheetDate').value);
+      setCSheetCtaSending(false, 'Send request');
+    } else {
+      $('cSheetTitle').textContent = 'Review report';
+      $('cSheetTotalLabel').textContent = 'Amount due';
+      $('cSheetDateSection').style.display = 'none';
+      $('cSheetItemCount').textContent = '';
+      renderXSheetLines('report');
+      var due = updateReportTotals();
+      $('cSheetTotal').textContent = money(due);
+      $('cSheetTotal').dataset.prev = due;
+      $('cSheetCtaAmt').textContent = money(due);
+      setCSheetCtaSending(false, 'Send report');
+    }
+    $('cSheetBackdrop').classList.add('show');
+    $('cSheet').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeXSheet() {
+    $('cSheetBackdrop').classList.remove('show');
+    $('cSheet').classList.remove('show');
+    $('cSheet').style.transition = '';
+    $('cSheet').style.transform = '';
+    document.body.style.overflow = '';
+  }
+  attachSwipeToDismiss($('cSheet'), closeXSheet);
+  $('cSheetBackdrop').addEventListener('click', closeXSheet);
+
+  /* Swap the two-span CTA for a plain "Sending…" label and back — mirrors
+     setCtaSending() (~1940) for the sale-mode sheet. */
+  function setCSheetCtaSending(sending, label) {
+    $('cSheetSubmitBtn').innerHTML = sending
+      ? '<span class="cta-txt">Sending…</span>'
+      : '<span class="cta-txt" id="cSheetCtaTxt">' + esc(label) + '</span><span class="cta-amt" id="cSheetCtaAmt"></span>';
+    if (!sending) {
+      $('cSheetCtaAmt').textContent = money(cSheetMode === 'restock' ? restockTotal() : reportLastDue);
+    }
+  }
+
+  /* Restock cart-row steppers/delete inside the sheet — mirrors the
+     #reviewLines click handler (~1493), scoped so it only reacts when the
+     sheet is actually in restock mode (report-mode rows use .rep-row, not
+     .cart-row, so this is already naturally inert for those, but the
+     explicit guard also protects against a stray in-flight submit). */
+  $('cSheetLines').addEventListener('click', function (e) {
+    if (cSheetMode !== 'restock' || restockSubmitting) return;
+    var row = e.target.closest('.cart-row');
+    if (!row) return;
+    var pid = row.getAttribute('data-pid');
+
+    if (e.target.closest('[data-cart-delete]')) {
+      var product = findProduct(pid);
+      askConfirm('Remove item?', 'Remove ' + (product ? product.name : 'this item') + ' from your order?')
+        .then(function (ok) { if (ok) setXRestockQty(pid, 0); });
+      return;
+    }
+
+    var unit = unitOf(findProduct(pid));
+    if (e.target.closest('[data-cplus]'))  setXRestockQty(pid, (restockQtys[pid] || 0) + unit);
+    if (e.target.closest('[data-cminus]')) setXRestockQty(pid, (restockQtys[pid] || 0) - unit);
+  });
+
   function setRestockQty(pid, q, card) {
     var product = findProduct(pid);
     var unit = unitOf(product);
@@ -2587,7 +2879,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       if (p) t += priceFor(p, restockQtys[pid]) * restockQtys[pid];
     });
     t = Math.round(t * 100) / 100;
-    return Math.round((t + rushFeeAmount(t, $('restockDate').value)) * 100) / 100;
+    return Math.round((t + rushFeeAmount(t, $('cSheetDate').value)) * 100) / 100;
   }
   function updateRestockBar() {
     var count = Object.keys(restockQtys).reduce(function (s, pid) { return s + restockQtys[pid]; }, 0);
@@ -2612,52 +2904,21 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   }
 
   $('restockSubmitBtn').addEventListener('click', function () {
-    if (restockSubmitting) return;
-    var items = Object.keys(restockQtys).map(function (pid) {
-      return { productId: pid, qty: restockQtys[pid] };
-    });
-    if (!items.length) return;
-
-    var deliveryDate = $('restockDate').value;
-    if (!deliveryDate) {
-      $('restockSubmitErr').textContent = 'Choose your preferred delivery date to continue.';
-      $('restockSubmitErr').style.display = 'block';
-      $('restockDate').focus();
-      return;
-    }
-    $('restockSubmitErr').style.display = 'none';
-
-    var rows = Object.keys(restockQtys).map(function (pid) {
-      var p = findProduct(pid);
-      var qty = restockQtys[pid];
-      var price = p ? priceFor(p, qty) : 0;
-      return { name: p ? p.name : pid, qty: qty, amount: price * qty };
-    });
-    var rushInfo = rushFeeInfo(deliveryDate);
-    if (rushInfo) {
-      var itemsSubtotal = rows.reduce(function (s, r) { return s + r.amount; }, 0);
-      rows.push({ name: 'Rush fee (+' + rushInfo.percent + '%)', qty: null,
-        amount: rushFeeAmount(Math.round(itemsSubtotal * 100) / 100, deliveryDate) });
-    }
-    var reviewBody = buildReviewHtml(rows, { label: 'Total', value: restockTotal() },
-      { label: 'Preferred delivery date', value: formatDateFriendly(deliveryDate) });
-
-    askConfirm('Send this restock request?', reviewBody, 'Send request', 'positive', true).then(function (ok) {
-      if (ok) _submitRestock(items, deliveryDate);
-    });
+    if (restockSubmitting || !Object.keys(restockQtys).length) return;
+    openXSheet('restock');
   });
 
   function _submitRestock(items, deliveryDate) {
     restockSubmitting = true;
-    var btn = $('restockSubmitBtn');
+    var btn = $('cSheetSubmitBtn');
     btn.disabled = true;
-    btn.textContent = 'Sending…';
-    $('restockSubmitErr').style.display = 'none';
+    setCSheetCtaSending(true);
+    $('cSheetSubmitErr').style.display = 'none';
 
     rpc('submit_portal_order', {
       p_token: token,
       p_items: items,
-      p_notes: $('restockNotes').value || '',
+      p_notes: $('cSheetNotes').value || '',
       p_requested_date: deliveryDate || null,
       p_payment_method: '',
       p_payment_reference: '',
@@ -2667,24 +2928,25 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       if (!res.ok || !res.data || !res.data.reference) {
         var msg = (res.data && res.data.message) ? res.data.message
           : "Couldn't send your restock request. Check your connection and try again.";
-        $('restockSubmitErr').textContent = msg;
-        $('restockSubmitErr').style.display = 'block';
+        $('cSheetSubmitErr').textContent = msg;
+        $('cSheetSubmitErr').style.display = 'block';
         restockSubmitting = false;
         btn.disabled = false;
-        btn.textContent = 'Request restock';
+        setCSheetCtaSending(false, 'Send request');
         return;
       }
       showRestockSuccess(res.data);
     }).catch(function () {
-      $('restockSubmitErr').textContent = "Couldn't send your restock request. Check your connection and try again.";
-      $('restockSubmitErr').style.display = 'block';
+      $('cSheetSubmitErr').textContent = "Couldn't send your restock request. Check your connection and try again.";
+      $('cSheetSubmitErr').style.display = 'block';
       restockSubmitting = false;
       btn.disabled = false;
-      btn.textContent = 'Request restock';
+      setCSheetCtaSending(false, 'Send request');
     });
   }
 
   function showRestockSuccess(result) {
+    closeXSheet();
     $('doneTitle').textContent = 'Restock requested';
     $('doneSub').textContent = 'Your restock request has been sent to ' +
       (portal.brand_name || 'your supplier') + '. They will confirm delivery timing.' +
@@ -2698,10 +2960,10 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     _showConsignmentSuccess();
   }
 
-  $('restockDate').min = new Date().toISOString().slice(0, 10);
-  $('restockDate').addEventListener('change', function () {
-    renderRushNotice($('restockRushNotice'), $('restockDate').value);
-    updateRestockBar();
+  $('cSheetDate').min = new Date().toISOString().slice(0, 10);
+  $('cSheetDate').addEventListener('change', function () {
+    renderRushNotice($('cSheetRushNotice'), $('cSheetDate').value);
+    if (cSheetMode === 'restock') updateXSheetTotals();
   });
 
   load();
