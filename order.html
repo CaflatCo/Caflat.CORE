@@ -453,10 +453,33 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   border-radius: var(--radius); padding: 22px; text-align: center;
   box-shadow: var(--shadow); animation: confirmPop .22s var(--spring) both; }
 @keyframes confirmPop { from { transform: scale(.92); opacity: 0; } }
+/* Rich variant — a proper itemized order-review card (restock/report
+   confirms) instead of the plain yes/no text used for simple actions
+   like removing a cart line. Wider + scrollable so a long product list
+   never gets clipped, but the card/button chrome stays identical. */
+.confirm-card.rich { max-width: 380px; max-height: 82vh; overflow-y: auto; }
 .confirm-title { font-size: 16px; font-weight: 900; margin-bottom: 6px; }
 .confirm-body { font-size: 13.5px; color: var(--gray-500); line-height: 1.5; margin-bottom: 18px;
   white-space: pre-line; }
 .confirm-body.itemized { text-align: left; }
+.review-meta { display: flex; align-items: center; gap: 10px; background: var(--gray-100);
+  border-radius: 14px; padding: 11px 14px; margin-bottom: 14px; }
+.review-meta svg { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
+.review-meta-text { font-size: 13px; font-weight: 800; color: var(--black); line-height: 1.35; }
+.review-meta-text .sub { display: block; font-size: 10px; font-weight: 800; color: var(--gray-400);
+  text-transform: uppercase; letter-spacing: .5px; margin-bottom: 1px; }
+.review-items { border-top: 1px solid var(--gray-200); }
+.review-item-row { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+.review-item-row:last-child { border-bottom: none; }
+.review-item-name { font-size: 13px; font-weight: 700; color: var(--black); }
+.review-item-name .qty { color: var(--gray-400); font-weight: 800; margin-left: 2px; }
+.review-item-amt { font-size: 13px; font-weight: 800; color: var(--black); white-space: nowrap; }
+.review-total-row { display: flex; justify-content: space-between; align-items: baseline;
+  margin-top: 14px; padding-top: 14px; border-top: 1.5px solid var(--black); }
+.review-total-row .lbl { font-size: 11.5px; font-weight: 800; color: var(--gray-500);
+  text-transform: uppercase; letter-spacing: .4px; }
+.review-total-row .val { font-size: 19px; font-weight: 900; color: var(--black); }
 .confirm-actions { display: flex; gap: 10px; }
 .confirm-actions button { flex: 1; padding: 12px; border-radius: 12px;
   font-size: 13.5px; font-weight: 800; transition: transform .15s var(--ease); }
@@ -716,7 +739,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 <!-- Remove-item confirm — small centered card, not a full sheet, since
      it's a quick yes/no rather than another whole screen of content. -->
 <div id="confirmOverlay" class="confirm-overlay">
-  <div class="confirm-card">
+  <div class="confirm-card" id="confirmCard">
     <div class="confirm-title" id="confirmTitle"></div>
     <div class="confirm-body" id="confirmBody"></div>
     <div class="confirm-actions">
@@ -830,7 +853,10 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
   <div id="tabRestock" class="consign-tab" style="display:none;">
     <div id="restockCatalog"></div>
-    <div class="f-label" style="margin:16px 4px 8px;">Notes <span style="opacity:.5;">(optional)</span></div>
+    <div class="f-label" style="margin:16px 4px 8px;">Preferred delivery date
+      <span style="color:var(--danger);">(required)</span></div>
+    <input class="f-input" id="restockDate" type="date">
+    <div class="f-label">Notes <span style="opacity:.5;">(optional)</span></div>
     <textarea class="f-area" id="restockNotes" maxlength="2000"
       placeholder="Anything your supplier should know…"></textarea>
   </div>
@@ -907,6 +933,13 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     var sym = portal && portal.currency_symbol ? portal.currency_symbol : '₱';
     return sym + Number(n || 0).toLocaleString(undefined,
       { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function formatDateFriendly(isoDate) {
+    if (!isoDate) return '';
+    var d = new Date(isoDate + 'T00:00:00');
+    if (isNaN(d.getTime())) return isoDate;
+    return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
   }
 
   function rpc(fn, args) {
@@ -1340,14 +1373,44 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   // removing a cart item) or 'positive' (black OK button — confirming a
   // send/submit action, e.g. reviewing a restock or sell-through report
   // before it goes out).
-  function askConfirm(title, body, okLabel, variant) {
+  function askConfirm(title, body, okLabel, variant, isHtml) {
     $('confirmTitle').textContent = title;
-    $('confirmBody').textContent = body;
-    $('confirmBody').classList.toggle('itemized', body.indexOf('\n') !== -1);
+    if (isHtml) { $('confirmBody').innerHTML = body; } else { $('confirmBody').textContent = body; }
+    $('confirmBody').classList.toggle('itemized', isHtml || body.indexOf('\n') !== -1);
+    $('confirmCard').classList.toggle('rich', !!isHtml);
     $('confirmOkBtn').textContent = okLabel || 'Remove';
     $('confirmOkBtn').classList.toggle('positive', variant === 'positive');
     $('confirmOverlay').classList.add('show');
     return new Promise(function (resolve) { _confirmResolve = resolve; });
+  }
+
+  /* Structured itemized review — product rows + total, with an optional
+     highlighted meta row (e.g. requested delivery date) up top. Used for
+     the restock/report-sales review confirms so an important client sees
+     a proper order summary rather than a wall of plain text. */
+  var REVIEW_META_ICONS = {
+    calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>' +
+      '<line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    info: '<circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="1" fill="currentColor" stroke="none"/>'
+  };
+  function buildReviewHtml(rows, total, meta) {
+    var html = '';
+    if (meta) {
+      html += '<div class="review-meta">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+          'stroke-linecap="round" stroke-linejoin="round">' + REVIEW_META_ICONS[meta.icon || 'calendar'] + '</svg>' +
+        '<div class="review-meta-text"><span class="sub">' + esc(meta.label) + '</span>' + esc(meta.value) + '</div>' +
+      '</div>';
+    }
+    html += '<div class="review-items">' + rows.map(function (r) {
+      return '<div class="review-item-row">' +
+        '<span class="review-item-name">' + esc(r.name) + '<span class="qty">× ' + r.qty + '</span></span>' +
+        '<span class="review-item-amt">' + money(r.amount) + '</span>' +
+      '</div>';
+    }).join('') + '</div>';
+    html += '<div class="review-total-row"><span class="lbl">' + esc(total.label) + '</span>' +
+      '<span class="val">' + money(total.value) + '</span></div>';
+    return html;
   }
   function closeConfirm(result) {
     $('confirmOverlay').classList.remove('show');
@@ -2216,16 +2279,19 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       return;
     }
 
-    var soldSummary = onHand.map(function (p) {
+    var soldRows = onHand.map(function (p) {
       var sold = repSold(p);
-      return sold > 0 ? (p.name + ' × ' + sold + ' — ' + money(sold * p.unitPrice)) : null;
+      return sold > 0 ? { name: p.name, qty: sold, amount: sold * p.unitPrice } : null;
     }).filter(Boolean);
     var due = updateReportTotals();
-    var reviewBody = (soldSummary.length ? soldSummary.join('\n') : 'Nothing sold this period') +
-      '\n\nAmount due: ' + money(due) +
-      (due > 0 ? (reportChosenSettle === 'pay_now' ? ' (paying now)' : ' (to be invoiced)') : '');
+    var settleMeta = due > 0
+      ? { label: 'Settlement', icon: 'info', value: reportChosenSettle === 'pay_now' ? 'Paying now' : 'To be invoiced' }
+      : null;
+    var reviewBody = soldRows.length
+      ? buildReviewHtml(soldRows, { label: 'Amount due', value: due }, settleMeta)
+      : '<div class="review-meta"><div class="review-meta-text">Nothing sold this period</div></div>';
 
-    askConfirm('Send this sales report?', reviewBody, 'Send report', 'positive').then(function (ok) {
+    askConfirm('Send this sales report?', reviewBody, 'Send report', 'positive', true).then(function (ok) {
       if (ok) _submitReport();
     });
   });
@@ -2431,20 +2497,30 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     });
     if (!items.length) return;
 
-    var lines = Object.keys(restockQtys).map(function (pid) {
+    var deliveryDate = $('restockDate').value;
+    if (!deliveryDate) {
+      $('restockSubmitErr').textContent = 'Choose your preferred delivery date to continue.';
+      $('restockSubmitErr').style.display = 'block';
+      $('restockDate').focus();
+      return;
+    }
+    $('restockSubmitErr').style.display = 'none';
+
+    var rows = Object.keys(restockQtys).map(function (pid) {
       var p = findProduct(pid);
       var qty = restockQtys[pid];
       var price = p ? priceFor(p, qty) : 0;
-      return (p ? p.name : pid) + ' × ' + qty + ' — ' + money(price * qty);
+      return { name: p ? p.name : pid, qty: qty, amount: price * qty };
     });
-    var reviewBody = lines.join('\n') + '\n\nTotal: ' + money(restockTotal());
+    var reviewBody = buildReviewHtml(rows, { label: 'Total', value: restockTotal() },
+      { label: 'Preferred delivery date', value: formatDateFriendly(deliveryDate) });
 
-    askConfirm('Send this restock request?', reviewBody, 'Send request', 'positive').then(function (ok) {
-      if (ok) _submitRestock(items);
+    askConfirm('Send this restock request?', reviewBody, 'Send request', 'positive', true).then(function (ok) {
+      if (ok) _submitRestock(items, deliveryDate);
     });
   });
 
-  function _submitRestock(items) {
+  function _submitRestock(items, deliveryDate) {
     restockSubmitting = true;
     var btn = $('restockSubmitBtn');
     btn.disabled = true;
@@ -2455,7 +2531,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       p_token: token,
       p_items: items,
       p_notes: $('restockNotes').value || '',
-      p_requested_date: null,
+      p_requested_date: deliveryDate || null,
       p_payment_method: '',
       p_payment_reference: '',
       p_payment_split: 'full',
@@ -2493,6 +2569,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     $('restockBar').style.display = 'none';
     _showConsignmentSuccess();
   }
+
+  $('restockDate').min = new Date().toISOString().slice(0, 10);
 
   load();
 })();
