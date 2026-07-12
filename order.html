@@ -75,8 +75,13 @@ input, textarea { font-family: inherit; }
 #form { max-width: 560px; margin: 0 auto; padding: 12px 16px 140px; }
 
 /* Consignment screen shares #form's mobile-width column — without this it
-   stretches edge-to-edge on wide viewports (iPad Safari, desktop). */
-#consign { max-width: 560px; margin: 0 auto; padding: 12px 16px 140px; }
+   stretches edge-to-edge on wide viewports (iPad Safari, desktop). Bottom
+   padding stays small here (just normal breathing room) since only the
+   Report Sales / Restock tabs have a sticky bottom bar to clear — On Hand
+   doesn't, so a flat #form-sized 140px would leave a large dead gap under
+   it. See #tabReport/#tabRestock below for the bar-clearing padding. */
+#consign { max-width: 560px; margin: 0 auto; padding: 12px 16px 24px; }
+#tabReport, #tabRestock { padding-bottom: 120px; }
 
 /* Hero: dark panel with soft drifting color blobs */
 .hero {
@@ -439,13 +444,16 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   box-shadow: var(--shadow); animation: confirmPop .22s var(--spring) both; }
 @keyframes confirmPop { from { transform: scale(.92); opacity: 0; } }
 .confirm-title { font-size: 16px; font-weight: 900; margin-bottom: 6px; }
-.confirm-body { font-size: 13.5px; color: var(--gray-500); line-height: 1.5; margin-bottom: 18px; }
+.confirm-body { font-size: 13.5px; color: var(--gray-500); line-height: 1.5; margin-bottom: 18px;
+  white-space: pre-line; }
+.confirm-body.itemized { text-align: left; }
 .confirm-actions { display: flex; gap: 10px; }
 .confirm-actions button { flex: 1; padding: 12px; border-radius: 12px;
   font-size: 13.5px; font-weight: 800; transition: transform .15s var(--ease); }
 .confirm-actions button:active { transform: scale(.96); }
 .confirm-cancel { background: var(--gray-100); color: var(--black); }
 .confirm-ok { background: var(--danger); color: #fff; }
+.confirm-ok.positive { background: var(--black); }
 
 /* ── Success ── */
 #success { min-height: 100dvh; display: none; flex-direction: column; align-items: center;
@@ -721,6 +729,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     <p style="font-size:12px;color:var(--gray-400);margin-top:6px;">Keep this reference for your records.</p>
     <div class="done-pay" id="donePay" style="display:none;"></div>
     <button type="button" class="invoice-toggle" id="invoiceToggle" style="display:none;">View invoice</button>
+    <button type="button" class="retry-btn" id="backToAccountBtn" style="display:none;">Back to account</button>
   </div>
 
   <div id="invoiceWrap" style="display:none;">
@@ -806,14 +815,14 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
     <div class="f-label">Notes <span style="opacity:.5;">(optional)</span></div>
     <textarea class="f-area" id="repNotes" maxlength="2000"
-      placeholder="Anything your supplier should know…" style="margin-bottom:120px;"></textarea>
+      placeholder="Anything your supplier should know…"></textarea>
   </div>
 
   <div id="tabRestock" class="consign-tab" style="display:none;">
     <div id="restockCatalog"></div>
     <div class="f-label" style="margin:16px 4px 8px;">Notes <span style="opacity:.5;">(optional)</span></div>
     <textarea class="f-area" id="restockNotes" maxlength="2000"
-      placeholder="Anything your supplier should know…" style="margin-bottom:120px;"></textarea>
+      placeholder="Anything your supplier should know…"></textarea>
   </div>
 
   <a class="powered" href="https://caflatcore.com?ref=orderform" target="_blank" rel="noopener">
@@ -1317,10 +1326,16 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
   /* ── Generic confirm card ── returns a Promise<boolean>. */
   var _confirmResolve = null;
-  function askConfirm(title, body, okLabel) {
+  // variant: 'danger' (default, red OK button — destructive actions like
+  // removing a cart item) or 'positive' (black OK button — confirming a
+  // send/submit action, e.g. reviewing a restock or sell-through report
+  // before it goes out).
+  function askConfirm(title, body, okLabel, variant) {
     $('confirmTitle').textContent = title;
     $('confirmBody').textContent = body;
+    $('confirmBody').classList.toggle('itemized', body.indexOf('\n') !== -1);
     $('confirmOkBtn').textContent = okLabel || 'Remove';
+    $('confirmOkBtn').classList.toggle('positive', variant === 'positive');
     $('confirmOverlay').classList.add('show');
     return new Promise(function (resolve) { _confirmResolve = resolve; });
   }
@@ -2190,6 +2205,21 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       return;
     }
 
+    var soldSummary = onHand.map(function (p) {
+      var sold = repSold(p);
+      return sold > 0 ? (p.name + ' × ' + sold + ' — ' + money(sold * p.unitPrice)) : null;
+    }).filter(Boolean);
+    var due = updateReportTotals();
+    var reviewBody = (soldSummary.length ? soldSummary.join('\n') : 'Nothing sold this period') +
+      '\n\nAmount due: ' + money(due) +
+      (due > 0 ? (reportChosenSettle === 'pay_now' ? ' (paying now)' : ' (to be invoiced)') : '');
+
+    askConfirm('Send this sales report?', reviewBody, 'Send report', 'positive').then(function (ok) {
+      if (ok) _submitReport();
+    });
+  });
+
+  function _submitReport() {
     var lines = onHand.map(function (p) {
       return { productId: p.productId, remaining: repClampedRemaining(p), damaged: repClampedDamaged(p) };
     });
@@ -2229,7 +2259,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       btn.disabled = false;
       btn.textContent = 'Submit report';
     });
-  });
+  }
 
   function showReportSuccess(result) {
     $('doneTitle').textContent = 'Report sent';
@@ -2255,6 +2285,16 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
     $('invoiceToggle').style.display = 'none';
     $('reportBar').style.display = 'none';
+    _showConsignmentSuccess();
+  }
+
+  // Shared by every consignment-flow success screen (report, restock): shows
+  // a "Back to account" button that re-fetches the account fresh (on-hand
+  // balances just changed server-side) rather than reusing stale local state.
+  function _showConsignmentSuccess() {
+    var backBtn = $('backToAccountBtn');
+    backBtn.style.display = 'inline-block';
+    backBtn.onclick = function () { loadConsignment(); };
     show('success');
     window.scrollTo(0, 0);
     burstConfetti();
@@ -2380,6 +2420,20 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     });
     if (!items.length) return;
 
+    var lines = Object.keys(restockQtys).map(function (pid) {
+      var p = findProduct(pid);
+      var qty = restockQtys[pid];
+      var price = p ? priceFor(p, qty) : 0;
+      return (p ? p.name : pid) + ' × ' + qty + ' — ' + money(price * qty);
+    });
+    var reviewBody = lines.join('\n') + '\n\nTotal: ' + money(restockTotal());
+
+    askConfirm('Send this restock request?', reviewBody, 'Send request', 'positive').then(function (ok) {
+      if (ok) _submitRestock(items);
+    });
+  });
+
+  function _submitRestock(items) {
     restockSubmitting = true;
     var btn = $('restockSubmitBtn');
     btn.disabled = true;
@@ -2414,7 +2468,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       btn.disabled = false;
       btn.textContent = 'Request restock';
     });
-  });
+  }
 
   function showRestockSuccess(result) {
     $('doneTitle').textContent = 'Restock requested';
@@ -2426,9 +2480,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     restockQtys = {};
     restockSubmitting = false;
     $('restockBar').style.display = 'none';
-    show('success');
-    window.scrollTo(0, 0);
-    burstConfetti();
+    _showConsignmentSuccess();
   }
 
   load();
