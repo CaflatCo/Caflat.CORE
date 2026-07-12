@@ -2880,6 +2880,13 @@ function applySupplierModeToggle() {
   if (navBtn) navBtn.style.display = enabled ? '' : 'none';
   if (typeof updateOpsNavGroup === 'function') updateOpsNavGroup();
   if (typeof applySupplierCartButton === 'function') applySupplierCartButton();
+  // Start the portal/report polling here too, not just on visiting Supply —
+  // otherwise the nav badge and "new order/report" toast stay dormant for
+  // the whole session until the owner happens to click into Supply first.
+  if (enabled) {
+    initPortalInboxPolling();
+    initReportInboxPolling();
+  }
 }
 
 function applySupplierCartButton() {
