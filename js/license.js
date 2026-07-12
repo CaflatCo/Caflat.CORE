@@ -386,6 +386,9 @@ function applyLicenseTier() {
     if (typeof applyCoffeeCartModeToggle  === 'function') applyCoffeeCartModeToggle();
     if (typeof applyShoppingListToggle    === 'function') applyShoppingListToggle();
     if (typeof applyOriginModeToggle      === 'function') applyOriginModeToggle();
+    if (typeof applyProductLabModeToggle  === 'function') applyProductLabModeToggle();
+    if (typeof applyRecipeCatalogToggle   === 'function') applyRecipeCatalogToggle();
+    if (typeof applyTreasuryModeToggle    === 'function') applyTreasuryModeToggle();
     if (typeof updateOpsNavGroup          === 'function') updateOpsNavGroup();
   }
 

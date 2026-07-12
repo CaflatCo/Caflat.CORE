@@ -325,7 +325,12 @@ function _updateNavToolsGroup() {
 }
 
 function applyProductLabModeToggle() {
-  // navLab is always visible in the sidebar; nothing to toggle
+  const enabled = APP_STATE.settings?.productLabModeEnabled === true;
+  const navBtn  = document.getElementById('navLab');
+  if (navBtn) navBtn.style.display = enabled ? '' : 'none';
+  if (!enabled && APP_STATE.ui?.currentView === 'lab') {
+    if (typeof switchPage === 'function') switchPage('pos');
+  }
 }
 
 function escapeHtml(value) {
