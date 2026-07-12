@@ -21,6 +21,7 @@ function getProductFormData() {
     price: safeNumber(getElementValue('productPrice')),
     stock: safeNumber(getElementValue('productStock')),
     reorderLevel: safeNumber(getElementValue('productReorderLevel')),
+    shelfLifeDays: safeNumber(getElementValue('productShelfLifeDays')),
     variantType: getElementValue('variantType') || 'custom',
     variants: collectVariants(),
     recipe: collectRecipeRows(),
@@ -119,7 +120,7 @@ function saveProduct() {
 }
 
 function clearProductForm() {
-  ['productId','productName','productCategory','productPrice','productStock','productReorderLevel','batchYield'].forEach(id => setElementValue(id, ''));
+  ['productId','productName','productCategory','productPrice','productStock','productReorderLevel','productShelfLifeDays','batchYield'].forEach(id => setElementValue(id, ''));
   const vb = document.getElementById('variantBuilder'); if (vb) vb.innerHTML = '';
   const rb = document.getElementById('recipeBuilder'); if (rb) rb.innerHTML = '';
   const pb = document.getElementById('packagingBuilder'); if (pb) pb.innerHTML = '';
@@ -153,6 +154,7 @@ function hydrateProductForm(product) {
   setElementValue('productPrice', product.price);
   setElementValue('productStock', product.stock);
   setElementValue('productReorderLevel', product.reorderLevel);
+  setElementValue('productShelfLifeDays', product.shelfLifeDays);
   setElementValue('variantType', product.variantType || 'custom');
   setElementValue('recipeMode', product.recipeMode || 'unit');
   setElementValue('batchYield', product.batchYield || 1);
@@ -598,6 +600,8 @@ function applyProductTemplate(templateData, category) {
     setElementValue('productStock', templateData.stock);
   if (!document.getElementById('productReorderLevel')?.value)
     setElementValue('productReorderLevel', templateData.reorderLevel);
+  if (!document.getElementById('productShelfLifeDays')?.value)
+    setElementValue('productShelfLifeDays', templateData.shelfLifeDays);
 
   setElementValue('recipeMode',   templateData.recipeMode  || 'unit');
   setElementValue('batchYield',   templateData.batchYield  || 1);
@@ -634,6 +638,7 @@ function cloneProduct(productId) {
   setElementValue('productPrice', product.price);
   setElementValue('productStock', product.stock);
   setElementValue('productReorderLevel', product.reorderLevel);
+  setElementValue('productShelfLifeDays', product.shelfLifeDays);
   setElementValue('recipeMode',  product.recipeMode  || 'unit');
   setElementValue('batchYield',  product.batchYield  || 1);
   setElementValue('variantType', product.variantType || 'custom');
