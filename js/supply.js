@@ -2253,6 +2253,12 @@ async function setSupplyStatus(orderId, newStatus, paymentInfo) {
   renderSupplyKPIs();
   if (typeof refreshDashboard === 'function') refreshDashboard();
   showNotification(`Order status set to ${newLabel}`, 'success');
+
+  // Keep the pipeline stepper live if it's still open — the node advances
+  // and the new stage picks up its just-recorded timestamp. (The PAID path
+  // closes the picker before opening checkout, so this won't re-pop it.)
+  const picker = document.getElementById('statusPickerModal');
+  if (picker && picker.classList.contains('active')) openStatusPickerModal(order.id);
 }
 
 // Keep advanceSupplyStatus as alias for backward compat
@@ -2262,27 +2268,140 @@ async function advanceSupplyStatus(orderId) {
   openStatusPickerModal(orderId);
 }
 
+/* Plain-language description of what setting a given status will DO to this
+   order — mirrors the real stock side effects in setSupplyStatus() so the
+   picker surfaces them up front instead of only in the confirm dialog.
+   Direction-aware: forward transitions describe the action, reversions
+   describe the restore. */
+function _supplyTransitionEffect(order, target) {
+  const curIdx = SUPPLY_STATUSES.indexOf(order.status);
+  const tgtIdx = SUPPLY_STATUSES.indexOf(target);
+  if (target === 'CANCELLED' || target === 'VOIDED') {
+    return order.stockDeducted ? 'Restores all delivered stock, then closes the order'
+         : order.reservedStock ? 'Releases the stock reservation, then closes the order'
+         : 'Closes the order';
+  }
+  if (tgtIdx > curIdx || curIdx === -1) {
+    switch (target) {
+      case 'ORDERED':   return 'Reserves stock for this order';
+      case 'DELIVERED': return order.terms === 'consignment'
+        ? 'Deducts stock and hands it to the client'
+        : 'Deducts stock from inventory';
+      case 'INVOICED':  return 'Marks the order as invoiced';
+      case 'PAID':      return 'Records the sale and captures payment';
+    }
+  }
+  if (tgtIdx < curIdx) {
+    if (order.stockDeducted && curIdx >= SUPPLY_STATUSES.indexOf('DELIVERED'))
+      return 'Restores previously delivered stock';
+    if (order.reservedStock) return 'Releases the stock reservation';
+    return 'Moves the order back to ' + (SUPPLY_STATUS_LABELS[target] || target);
+  }
+  return '';
+}
+
+/* Set Order Status — a vertical pipeline stepper (Draft → Ordered →
+   Delivered → Invoiced → Paid) that doubles as a status timeline. Past
+   stages show when they happened + the note; the current stage is
+   highlighted; the natural next stage is the primary call to action with
+   its effect spelled out; later stages are quiet jump-aheads and past
+   stages are quiet reverts. Cancel/Void live in a separated danger zone.
+   Every actionable element keeps data-action="set-supply-status" +
+   data-status, so the existing uiActions dispatch → setSupplyStatus
+   (with its customConfirm/customPrompt guards) is unchanged. */
 function openStatusPickerModal(orderId) {
   const order = getSupplyOrders().find(o => String(o.id) === String(orderId));
   if (!order) return;
+  const body = document.getElementById('statusPickerBody');
+  const idInput = document.getElementById('statusPickerOrderId');
+  if (idInput) idInput.value = orderId;
+  if (!body) { openModal('statusPickerModal'); return; }
 
-  const el = id => document.getElementById(id);
-  if (el('statusPickerOrderId'))   el('statusPickerOrderId').value      = orderId;
-  if (el('statusPickerCurrent'))   el('statusPickerCurrent').textContent = SUPPLY_STATUS_LABELS[order.status] || order.status;
-  if (el('statusPickerInvoice'))   el('statusPickerInvoice').textContent = order.invoiceNumber || '';
-  if (el('statusPickerClient'))    el('statusPickerClient').textContent  = order.clientName    || '';
+  const history = Array.isArray(order.statusHistory) ? order.statusHistory : [];
+  // Last matching entry — reflects the most recent time a stage was set
+  // (an order can be reverted and re-advanced through the same stage).
+  const lastOf = s => { let e = null; history.forEach(h => { if (h.status === s) e = h; }); return e; };
+  const fmt = iso => {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) + ' · ' +
+      d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
-  // Render status options
-  const container = el('statusPickerOptions');
-  if (container) {
-    const allStatuses = [...SUPPLY_STATUSES, 'CANCELLED', 'VOIDED'];
-    container.innerHTML = allStatuses.map(s => `
-      <button type="button" class="status-picker-btn${order.status === s ? ' active' : ''}"
-        data-action="set-supply-status" data-order-id="${orderId}" data-status="${s}">
-        ${SUPPLY_STATUS_LABELS[s] || s}
-        ${order.status === s ? ' ✓' : ''}
-      </button>`).join('');
+  const curIdx   = SUPPLY_STATUSES.indexOf(order.status);
+  const terminal = curIdx === -1; // CANCELLED / VOIDED
+
+  let html = `
+    <div class="sp-context">
+      <div class="sp-ctx-line">
+        <span><span class="sp-inv">${escapeHtml(order.invoiceNumber || '')}</span>
+          · ${escapeHtml(order.clientName || '')}</span>
+        ${supplyStatusBadge(order.status)}
+      </div>
+    </div>`;
+
+  if (terminal) {
+    html += `<div class="sp-halted">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+      This order was ${escapeHtml(SUPPLY_STATUS_LABELS[order.status] || order.status)} — reopen it by picking a stage below.
+    </div>`;
   }
+
+  html += `<div class="sp-pipeline">`;
+  SUPPLY_STATUSES.forEach((s, i) => {
+    const entry = lastOf(s);
+    const label = SUPPLY_STATUS_LABELS[s] || s;
+
+    let isDone, isCurrent;
+    if (terminal) { isDone = !!entry; isCurrent = false; }
+    else { isDone = i < curIdx; isCurrent = i === curIdx; }
+    const stepClass = isDone ? 'done' : isCurrent ? 'current' : 'future';
+
+    let inner;
+    if (isCurrent) {
+      inner = `<div class="sp-row">
+        <div class="sp-label">${escapeHtml(label)}</div>
+        ${entry ? `<div class="sp-meta">${escapeHtml(fmt(entry.changedAt))}</div>` : ''}
+        <span class="sp-tag">Current</span>
+        ${order.reservedStock && !order.stockDeducted ? `<div class="sp-reserved">Stock reserved</div>` : ''}
+        ${entry && entry.note ? `<div class="sp-note">“${escapeHtml(entry.note)}”</div>` : ''}
+      </div>`;
+    } else if (isDone) {
+      inner = `<button type="button" class="sp-row sp-revert"
+        data-action="set-supply-status" data-order-id="${orderId}" data-status="${s}">
+        <div class="sp-label" style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+          <span>${escapeHtml(label)}</span><span class="sp-revert-hint">${terminal ? 'Reopen' : 'Revert'}</span></div>
+        ${entry ? `<div class="sp-meta">${escapeHtml(fmt(entry.changedAt))}</div>` : ''}
+        ${entry && entry.note ? `<div class="sp-note">“${escapeHtml(entry.note)}”</div>` : ''}
+      </button>`;
+    } else {
+      const isNext = !terminal && i === curIdx + 1;
+      const effect = _supplyTransitionEffect(order, s);
+      inner = `<button type="button" class="sp-row ${isNext ? 'sp-next' : 'sp-jump'}"
+        data-action="set-supply-status" data-order-id="${orderId}" data-status="${s}">
+        <div class="sp-label">${isNext
+          ? `<span>Mark as ${escapeHtml(label)}</span><span class="sp-arrow">→</span>`
+          : escapeHtml(label)}</div>
+        ${effect ? `<div class="sp-meta">${escapeHtml(effect)}</div>` : ''}
+      </button>`;
+    }
+
+    html += `<div class="sp-step ${stepClass}">
+      <div class="sp-step-rail"><div class="sp-node">${isDone ? '✓' : ''}</div></div>
+      <div class="sp-step-body">${inner}</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="sp-danger">
+    <button type="button" class="sp-danger-btn" data-action="set-supply-status"
+      data-order-id="${orderId}" data-status="CANCELLED" ${order.status === 'CANCELLED' ? 'disabled' : ''}>Cancel order</button>
+    <button type="button" class="sp-danger-btn" data-action="set-supply-status"
+      data-order-id="${orderId}" data-status="VOIDED" ${order.status === 'VOIDED' ? 'disabled' : ''}>Void order</button>
+  </div>`;
+
+  body.innerHTML = html;
   openModal('statusPickerModal');
 }
 

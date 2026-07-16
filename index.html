@@ -253,35 +253,89 @@
       border:1px solid var(--border); border-radius:var(--radius-md);
       background:var(--gray-50);
     }
-    /* Status picker buttons */
-    .status-picker-btn {
-      padding:10px 12px; border:1.5px solid var(--border);
-      background:var(--white); border-radius:var(--radius-lg);
-      font-size:11px; font-weight:700; cursor:pointer;
-      transition:all .15s ease; font-family:var(--font-main);
-      text-align:center;
-    }
-    .status-picker-btn:hover {
-      border-color:var(--black); background:var(--black); color:var(--white);
-    }
-    .status-picker-btn.active {
-      background:var(--black); color:var(--white); border-color:var(--black);
-    }
-    .status-picker-btn[data-status="CANCELLED"],
-    .status-picker-btn[data-status="VOIDED"] {
-      border-color:var(--danger-border); color:var(--danger);
-      background:var(--danger-bg);
-    }
-    .status-picker-btn[data-status="CANCELLED"]:hover,
-    .status-picker-btn[data-status="VOIDED"]:hover {
-      background:var(--danger); color:var(--white); border-color:var(--danger);
-    }
-    .status-picker-btn[data-status="PAID"] {
-      border-color:#bbf7d0; color:#15803d; background:#f0fdf4;
-    }
-    .status-picker-btn[data-status="PAID"]:hover {
-      background:#15803d; color:var(--white); border-color:#15803d;
-    }
+    /* ── Status pipeline stepper (Set Order Status modal) ──
+       Monochrome-first so it stays theme-safe: structure uses --black /
+       gray tokens (theme-aware); only the current-status badge (via
+       supplyStatusBadge) and the danger zone (--danger* tokens) carry
+       color. */
+    .sp-context { background:var(--gray-50); border:1px solid var(--border);
+      border-radius:var(--radius-md); padding:12px 14px; margin-bottom:6px; }
+    .sp-context .sp-ctx-line { font-size:11px; color:var(--gray-500);
+      display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .sp-context .sp-inv { font-family:var(--font-mono); font-weight:700; color:var(--gray-700); }
+    .sp-halted { display:flex; align-items:center; gap:8px; margin:12px 0 4px;
+      padding:9px 12px; border-radius:var(--radius-md);
+      background:var(--danger-bg); border:1px solid var(--danger-border);
+      color:var(--danger); font-size:11px; font-weight:800; }
+
+    .sp-pipeline { margin:16px 0 4px; }
+    /* Each step is a grid: [rail | content]. The rail draws the node dot and
+       the connecting line to the next step via a ::before pseudo. */
+    .sp-step { position:relative; display:grid; grid-template-columns:26px 1fr;
+      gap:12px; align-items:start; }
+    .sp-step-rail { position:relative; display:flex; justify-content:center; padding-top:2px; }
+    .sp-step:not(:last-child) .sp-step-rail::before {
+      content:''; position:absolute; top:20px; bottom:-14px; left:50%;
+      width:2px; transform:translateX(-50%); background:var(--gray-200); }
+    .sp-step.done .sp-step-rail::before { background:var(--gray-700); }
+    .sp-node { width:18px; height:18px; border-radius:var(--radius-full);
+      border:2px solid var(--gray-300); background:var(--white); flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:10px; font-weight:900; line-height:1; color:var(--white); }
+    .sp-step.done .sp-node { background:var(--gray-800); border-color:var(--gray-800); }
+    /* --gray-900/--gray-50 (not --black/--white) so the node inverts between
+       light and dark themes — --black stays #000 in dark and would vanish
+       against the dark modal panel. */
+    .sp-step.current .sp-node { border-color:var(--gray-900); background:var(--white);
+      box-shadow:0 0 0 3px var(--gray-200); }
+    .sp-step.current .sp-node::after { content:''; width:8px; height:8px;
+      border-radius:var(--radius-full); background:var(--gray-900); }
+
+    /* Content column: a tappable row for actionable steps, static for done/current. */
+    .sp-step-body { padding-bottom:14px; min-width:0; }
+    .sp-row { width:100%; text-align:left; border:1.5px solid transparent;
+      background:transparent; border-radius:var(--radius-md); padding:2px 0;
+      font-family:var(--font-main); }
+    button.sp-row { cursor:pointer; transition:all .15s ease; padding:8px 12px; }
+    .sp-label { font-size:13px; font-weight:800; color:var(--black); line-height:1.2; }
+    .sp-step.future .sp-label { color:var(--gray-400); }
+    .sp-meta { font-size:11px; color:var(--gray-500); font-weight:600; margin-top:3px; line-height:1.35; }
+    .sp-note { font-size:11px; color:var(--gray-400); font-style:italic; margin-top:2px; }
+    .sp-tag { display:inline-block; font-size:8.5px; font-weight:800; letter-spacing:1px;
+      text-transform:uppercase; color:var(--gray-500); background:var(--gray-100);
+      border-radius:var(--radius-full); padding:2px 8px; margin-top:4px; }
+    .sp-reserved { color:var(--warning); background:transparent; padding:0; margin-top:4px;
+      font-size:9px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; }
+
+    /* The immediate next step — the primary call to action. --gray-900 bg /
+       --gray-50 text invert between themes (dark button + light text in
+       light mode; light button + dark text in dark mode), matching the
+       app's own primary .btn convention, so the CTA always pops off the
+       panel. --black would stay #000 in dark and blend into the panel. */
+    button.sp-row.sp-next { border-color:var(--gray-900); background:var(--gray-900); }
+    button.sp-row.sp-next .sp-label { color:var(--gray-50); display:flex;
+      align-items:center; justify-content:space-between; gap:8px; }
+    button.sp-row.sp-next .sp-meta { color:var(--gray-50); opacity:.72; }
+    button.sp-row.sp-next .sp-arrow { font-size:15px; opacity:.85; }
+    button.sp-row.sp-next:hover { box-shadow:var(--shadow-md); transform:translateY(-1px); }
+
+    /* Jump-ahead / revert steps — quiet, outlined, reveal border on hover. */
+    button.sp-row.sp-jump:hover, button.sp-row.sp-revert:hover {
+      border-color:var(--border); background:var(--gray-50); }
+    .sp-revert-hint { font-size:10px; font-weight:800; letter-spacing:.5px;
+      text-transform:uppercase; color:var(--gray-400); }
+
+    /* Danger zone — Cancel / Void, separated from the pipeline. */
+    .sp-danger { margin-top:14px; padding-top:14px; border-top:1px solid var(--border);
+      display:flex; gap:8px; }
+    .sp-danger-btn { flex:1; padding:9px 12px; border-radius:var(--radius-md);
+      border:1.5px solid var(--danger-border); background:var(--danger-bg);
+      color:var(--danger); font-size:11px; font-weight:800; cursor:pointer;
+      font-family:var(--font-main); transition:all .15s ease; }
+    .sp-danger-btn:hover { background:var(--danger); color:var(--white); border-color:var(--danger); }
+    .sp-danger-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .sp-danger-btn:disabled:hover { background:var(--danger-bg); color:var(--danger);
+      border-color:var(--danger-border); }
   </style>
 </head>
 <body>
@@ -2624,28 +2678,15 @@
       </div>
     </div>
 
-    <!-- Status Picker Modal -->
+    <!-- Status Picker Modal — vertical pipeline stepper (rendered by openStatusPickerModal) -->
     <div class="modal-overlay" id="statusPickerModal">
-      <div class="modal" style="max-width:400px;">
+      <div class="modal" style="max-width:440px;">
         <h3>Set Order Status</h3>
-        <div style="background:var(--gray-50);border:1px solid var(--border);
-          border-radius:var(--radius-md);padding:12px 14px;margin-bottom:16px;">
-          <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px;">
-            <span id="statusPickerInvoice" style="font-family:var(--font-mono);font-weight:700;"></span>
-            · <span id="statusPickerClient"></span>
-          </div>
-          <div style="font-size:11px;color:var(--gray-500);">
-            Current: <span id="statusPickerCurrent" style="font-weight:800;color:var(--black);"></span>
-          </div>
-        </div>
         <input id="statusPickerOrderId" type="hidden" />
-        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;
-          font-weight:800;color:var(--gray-400);margin-bottom:10px;">Select New Status</div>
-        <div id="statusPickerOptions"
-          style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;"></div>
+        <div id="statusPickerBody"></div>
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button"
-            data-close-modal="statusPickerModal">Cancel</button>
+            data-close-modal="statusPickerModal">Close</button>
         </div>
       </div>
     </div>
@@ -3465,7 +3506,7 @@
   <script src="./js/integrity.js"></script>
   <script src="./js/refund.js"></script>
   <script src="./js/void.js"></script>
-  <script src="./js/supply.js?v=20260712h"></script>
+  <script src="./js/supply.js?v=20260717a"></script>
   <script src="./js/endofday.js"></script>
   <script src="./js/production.js?v=20260712d"></script>
   <script src="./js/coffeecart.js"></script>
