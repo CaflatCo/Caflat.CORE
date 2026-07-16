@@ -621,7 +621,16 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .hist-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .hist-type { font-size: 13.5px; font-weight: 900; }
 .hist-date { font-size: 11.5px; color: var(--gray-400); font-weight: 700; margin-top: 2px; }
+.hist-top-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .hist-amt { font-size: 15px; font-weight: 900; white-space: nowrap; }
+/* The expand affordance — a plain chevron would blend into the amount's
+   weight, so it gets its own quiet circular chip and rotates open. */
+.hist-chevron { width: 22px; height: 22px; border-radius: 50%; background: var(--gray-50);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: transform .3s var(--ease), background .3s var(--ease); }
+.hist-chevron svg { width: 12px; height: 12px; color: var(--gray-400); transition: color .3s var(--ease); }
+.hist-card.open .hist-chevron { transform: rotate(180deg); background: var(--gray-100); }
+.hist-card.open .hist-chevron svg { color: var(--black); }
 .hist-meta { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .hist-badge { font-size: 10.5px; font-weight: 800; color: var(--gray-500); background: var(--gray-50);
   padding: 3px 9px; border-radius: 99px; }
@@ -629,9 +638,23 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   text-transform: uppercase; letter-spacing: .3px; }
 .hist-pill.hist-pending { background: #fff7e6; color: #92640a; }
 .hist-pill.hist-done { background: #e8f7ee; color: var(--accent); }
-.hist-detail { max-height: 0; overflow: hidden; transition: max-height .35s var(--ease); }
-.hist-card.open .hist-detail { max-height: 900px; }
-.hist-detail-inner { padding-top: 12px; margin-top: 10px; border-top: 1px solid var(--gray-100); }
+/* grid-template-rows 0fr→1fr animates true content height smoothly no
+   matter how tall the expanded content is — a max-height transition (the
+   previous approach) has to pick some ceiling far above the real content,
+   which makes the reveal race to full height almost instantly and look
+   like a snap rather than a fluid open. */
+.hist-detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s var(--ease); }
+.hist-card.open .hist-detail { grid-template-rows: 1fr; }
+/* min-height:0 overrides the grid item's default automatic minimum size
+   (which would otherwise floor it at the content's min-content height and
+   stop it collapsing to the 0fr track at all). The padding/margin/border
+   that visually separate this from the card above live on the nested
+   .hist-detail-pad, NOT on this element — padding/border can't compress
+   below their own thickness even at height:0, so keeping them off the
+   collapsing element itself is what lets it reach a true 0px collapsed
+   height instead of an ~13px sliver. */
+.hist-detail-inner { overflow: hidden; min-height: 0; }
+.hist-detail-pad { padding-top: 12px; margin-top: 10px; border-top: 1px solid var(--gray-100); }
 .hist-detail .review-items { border-top: none; }
 .hist-detail .review-item-row:first-child { border-top: none; }
 .hist-note { font-size: 12px; color: var(--gray-500); font-weight: 600; margin-top: 10px;
@@ -3134,14 +3157,21 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
               '<div class="hist-type">' + esc(TYPE_LABELS[r.type] || r.type) + '</div>' +
               '<div class="hist-date">' + esc(formatDateTime(r.createdAt)) + '</div>' +
             '</div>' +
-            '<div class="hist-amt">' + money(r.subtotal) + '</div>' +
+            '<div class="hist-top-right">' +
+              '<div class="hist-amt">' + money(r.subtotal) + '</div>' +
+              '<div class="hist-chevron">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ' +
+                  'stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>' +
+              '</div>' +
+            '</div>' +
           '</div>' +
           '<div class="hist-meta">' +
             '<span class="hist-badge">' + (Array.isArray(r.items) ? r.items.length : 0) +
               (Array.isArray(r.items) && r.items.length === 1 ? ' item' : ' items') + '</span>' +
             '<span class="hist-pill ' + (done ? 'hist-done' : 'hist-pending') + '">' + esc(statusLabel) + '</span>' +
           '</div>' +
-          '<div class="hist-detail"><div class="hist-detail-inner">' + historyItemsHtml(r) + '</div></div>' +
+          '<div class="hist-detail"><div class="hist-detail-inner"><div class="hist-detail-pad">' +
+            historyItemsHtml(r) + '</div></div></div>' +
         '</div>'
       );
     }).join('');
