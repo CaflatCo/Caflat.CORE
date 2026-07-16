@@ -117,9 +117,13 @@ input, textarea { font-family: inherit; }
   padding: 3px 12px; border-radius: 99px; margin-left: 2px; }
 /* Higher specificity than ".hero > *:not(.hero-blob) { position: relative }"
    above — otherwise that generic rule wins and the button falls into normal
-   document flow instead of pinning to the corner. */
+   document flow instead of pinning to the corner. z-index is also needed:
+   .eyebrow comes later in the DOM and gets the same "position: relative"
+   from that generic rule, so with both boxes equally stacked (z-index:auto)
+   .eyebrow's full-width box paints over the button's corner and eats its
+   clicks — pin the button above every hero sibling explicitly. */
 .hero > .hero-hist-btn { position: absolute; top: 20px; right: 20px; width: 36px; height: 36px;
-  border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.12);
+  z-index: 1; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.12);
   border: 1px solid rgba(255,255,255,.18); color: #fff; transition: transform .15s var(--ease),
   background .15s var(--ease); }
 .hero-hist-btn svg { width: 17px; height: 17px; }
@@ -600,6 +604,39 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   100% { opacity: .9; transform: translateY(105vh) rotate(var(--spin, 540deg)); }
 }
 
+/* ── History — every past record for this token, expandable to its full
+   itemized breakdown (reuses .review-items/.review-item-row from the
+   review sheet, since it's already the right item-list shape). ── */
+#history { max-width: 560px; margin: 0 auto; padding: 12px 16px 24px; }
+.hist-head { display: flex; align-items: center; gap: 10px; padding: 6px 4px 18px; }
+.hist-back { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; background: var(--gray-50); color: var(--black); flex-shrink: 0;
+  transition: transform .15s var(--ease); }
+.hist-back:active { transform: scale(.9); }
+.hist-back svg { width: 18px; height: 18px; }
+.hist-title { font-size: 19px; font-weight: 900; }
+.hist-empty { padding: 44px 4px; text-align: center; color: var(--gray-400); font-size: 13px; font-weight: 600; }
+.hist-card { background: var(--white); border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+  margin-bottom: 10px; padding: 14px 16px; cursor: pointer; animation: rise .4s var(--ease) both; }
+.hist-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.hist-type { font-size: 13.5px; font-weight: 900; }
+.hist-date { font-size: 11.5px; color: var(--gray-400); font-weight: 700; margin-top: 2px; }
+.hist-amt { font-size: 15px; font-weight: 900; white-space: nowrap; }
+.hist-meta { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.hist-badge { font-size: 10.5px; font-weight: 800; color: var(--gray-500); background: var(--gray-50);
+  padding: 3px 9px; border-radius: 99px; }
+.hist-pill { font-size: 10.5px; font-weight: 800; padding: 3px 9px; border-radius: 99px;
+  text-transform: uppercase; letter-spacing: .3px; }
+.hist-pill.hist-pending { background: #fff7e6; color: #92640a; }
+.hist-pill.hist-done { background: #e8f7ee; color: var(--accent); }
+.hist-detail { max-height: 0; overflow: hidden; transition: max-height .35s var(--ease); }
+.hist-card.open .hist-detail { max-height: 900px; }
+.hist-detail-inner { padding-top: 12px; margin-top: 10px; border-top: 1px solid var(--gray-100); }
+.hist-detail .review-items { border-top: none; }
+.hist-detail .review-item-row:first-child { border-top: none; }
+.hist-note { font-size: 12px; color: var(--gray-500); font-weight: 600; margin-top: 10px;
+  padding-top: 10px; border-top: 1px solid var(--gray-100); }
+
 @media (min-width: 640px) {
   #form { padding-top: 16px; }
   .card:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
@@ -1027,6 +1064,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   var reportLastDue = 0;
   var onHandLastTotal = 0;
   var cSheetMode = '';        // 'restock' | 'report' — which flow #cSheet is currently reviewing
+  var historyOrigin = 'form'; // 'form' | 'consign' — which screen #historyBackBtn returns to
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -1047,6 +1085,15 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     var d = new Date(isoDate + 'T00:00:00');
     if (isNaN(d.getTime())) return isoDate;
     return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  /* A full timestamp (date + time), for history record cards. */
+  function formatDateTime(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' · ' +
+      d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
   /* A picked delivery date within the portal's configured threshold incurs
@@ -1088,7 +1135,7 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
   }
 
   function show(screenId) {
-    ['loading', 'errorState', 'form', 'success', 'consign'].forEach(function (id) {
+    ['loading', 'errorState', 'form', 'success', 'consign', 'history'].forEach(function (id) {
       $(id).classList.toggle('active', id === screenId);
     });
   }
@@ -3039,6 +3086,104 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     renderRushNotice($('cSheetRushNotice'), $('cSheetDate').value);
     if (cSheetMode === 'restock') updateXSheetTotals();
   });
+
+  /* ═══════════════════════════════════════════════════════
+     HISTORY — every past record for this token, itemized.
+     One shared screen for both terms modes; get_portal_history (migration
+     007 + the 010 rush-fee addendum) already scopes everything to the
+     token server-side, so the client just renders what comes back.
+  ═══════════════════════════════════════════════════════ */
+  var TYPE_LABELS = { order: 'Purchase', restock: 'Restock request', report: 'Sales report' };
+  var STATUS_LABELS = {
+    order:   { pending: 'Awaiting confirmation', imported: 'Confirmed' },
+    restock: { pending: 'Awaiting confirmation', imported: 'Confirmed' },
+    report:  { pending: 'Awaiting review', reconciled: 'Reconciled' }
+  };
+
+  function openHistory(from) {
+    historyOrigin = from;
+    show('history');
+    window.scrollTo(0, 0);
+    $('historyList').innerHTML = '<div class="hist-empty">Loading…</div>';
+    rpc('get_portal_history', { p_token: token }).then(function (res) {
+      if (!res.ok || !res.data || !Array.isArray(res.data.records)) {
+        $('historyList').innerHTML = '<div class="hist-empty">Couldn\'t load your history. Check your connection and try again.</div>';
+        return;
+      }
+      renderHistoryList(res.data.records);
+    }).catch(function () {
+      $('historyList').innerHTML = '<div class="hist-empty">Couldn\'t load your history. Check your connection and try again.</div>';
+    });
+  }
+  $('historyBtnForm').addEventListener('click', function () { openHistory('form'); });
+  $('historyBtnConsign').addEventListener('click', function () { openHistory('consign'); });
+  $('historyBackBtn').addEventListener('click', function () { show(historyOrigin); });
+
+  function renderHistoryList(records) {
+    if (!records.length) {
+      $('historyList').innerHTML = '<div class="hist-empty">Nothing here yet — your past orders and reports will show up once you have some.</div>';
+      return;
+    }
+    $('historyList').innerHTML = records.map(function (r, i) {
+      var statusLabel = (STATUS_LABELS[r.type] && STATUS_LABELS[r.type][r.status]) || r.status;
+      var done = r.status === 'imported' || r.status === 'reconciled';
+      return (
+        '<div class="hist-card" data-idx="' + i + '">' +
+          '<div class="hist-card-top">' +
+            '<div>' +
+              '<div class="hist-type">' + esc(TYPE_LABELS[r.type] || r.type) + '</div>' +
+              '<div class="hist-date">' + esc(formatDateTime(r.createdAt)) + '</div>' +
+            '</div>' +
+            '<div class="hist-amt">' + money(r.subtotal) + '</div>' +
+          '</div>' +
+          '<div class="hist-meta">' +
+            '<span class="hist-badge">' + (Array.isArray(r.items) ? r.items.length : 0) +
+              (Array.isArray(r.items) && r.items.length === 1 ? ' item' : ' items') + '</span>' +
+            '<span class="hist-pill ' + (done ? 'hist-done' : 'hist-pending') + '">' + esc(statusLabel) + '</span>' +
+          '</div>' +
+          '<div class="hist-detail"><div class="hist-detail-inner">' + historyItemsHtml(r) + '</div></div>' +
+        '</div>'
+      );
+    }).join('');
+
+    $('historyList').querySelectorAll('.hist-card').forEach(function (card) {
+      card.addEventListener('click', function () { card.classList.toggle('open'); });
+    });
+  }
+
+  /* Item shape varies slightly per record type: order/restock items carry
+     {name, qty, unitPrice, total}; report items carry {name, sold, ...} —
+     sold is the qty that actually gets billed. Reuses .review-items/
+     .review-item-row rather than buildReviewHtml (removed — its shape was
+     built around a single total/meta, not a per-record history card). */
+  function historyItemsHtml(r) {
+    var items = Array.isArray(r.items) ? r.items : [];
+    var rowsHtml = items.map(function (it) {
+      var qty = r.type === 'report' ? it.sold : it.qty;
+      return '<div class="review-item-row">' +
+        '<span class="review-item-name">' + esc(it.name) +
+          (qty ? '<span class="qty">× ' + qty + '</span>' : '') + '</span>' +
+        '<span class="review-item-amt">' + money(it.total) + '</span>' +
+      '</div>';
+    }).join('');
+    var metaHtml = '';
+    if (r.type !== 'report' && r.requestedDate) {
+      metaHtml = '<div class="hist-note">Requested delivery: ' + esc(formatDateFriendly(r.requestedDate)) + '</div>';
+    }
+    if (r.type !== 'report' && Number(r.rushFee || 0) > 0) {
+      metaHtml += '<div class="hist-note">Includes a ' + money(r.rushFee) + ' rush-delivery fee.</div>';
+    }
+    if (r.type === 'report' && r.settlement) {
+      metaHtml += '<div class="hist-note">' +
+        (r.settlement === 'pay_now' ? 'Paid at time of report' : 'Billed via invoice') + '</div>';
+    }
+    if (r.notes) {
+      metaHtml += '<div class="hist-note">' + esc(r.notes) + '</div>';
+    }
+    return '<div class="review-items">' + rowsHtml + '</div>' +
+      '<div class="review-total-row"><span class="lbl">Total</span><span class="val">' + money(r.subtotal) + '</span></div>' +
+      metaHtml;
+  }
 
   load();
 })();
