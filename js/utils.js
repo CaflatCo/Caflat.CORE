@@ -71,6 +71,82 @@ function closeModal(modalId) {
   }
 }
 
+/* On-brand replacement for the native confirm() dialog — same .modal-overlay
+   shell as every other modal in the app instead of the browser's unstyled
+   popup. Returns a Promise<boolean>.
+     title               — modal heading
+     message             — plain-text body paragraph (optional)
+     lines               — optional array of strings rendered as an
+                            itemized list (e.g. per-product stock shortages)
+                            instead of one run-on paragraph
+     okLabel/cancelLabel — button text
+     danger              — true renders the confirm button as .btn-danger */
+function customConfirm(opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    let m = document.getElementById('customConfirmModal');
+    if (!m) {
+      m = document.createElement('div');
+      m.id = 'customConfirmModal';
+      m.className = 'modal-overlay';
+      document.body.appendChild(m);
+    }
+    const linesHtml = Array.isArray(opts.lines) && opts.lines.length
+      ? `<div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius-md);
+           padding:4px 14px;margin-bottom:18px;">` +
+          opts.lines.map((l, i) => `<div style="font-size:12.5px;font-weight:700;color:var(--gray-800);
+            padding:7px 0;${i < opts.lines.length - 1 ? 'border-bottom:1px solid var(--gray-100);' : ''}">${escapeHtml(l)}</div>`)
+            .join('') +
+        `</div>`
+      : '';
+    m.innerHTML = `
+      <div class="modal" style="max-width:420px;">
+        <h3>${escapeHtml(opts.title || 'Confirm')}</h3>
+        ${opts.message ? `<div style="font-size:13.5px;color:var(--gray-600);line-height:1.5;
+          margin-bottom:${linesHtml ? '14px' : '20px'};">${escapeHtml(opts.message)}</div>` : ''}
+        ${linesHtml}
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" id="customConfirmCancelBtn">${escapeHtml(opts.cancelLabel || 'Cancel')}</button>
+          <button class="btn${opts.danger ? ' btn-danger' : ''}" type="button" id="customConfirmOkBtn">${escapeHtml(opts.okLabel || 'Continue')}</button>
+        </div>
+      </div>`;
+    openModal('customConfirmModal');
+    const finish = result => { closeModal('customConfirmModal'); resolve(result); };
+    document.getElementById('customConfirmCancelBtn').onclick = () => finish(false);
+    document.getElementById('customConfirmOkBtn').onclick = () => finish(true);
+  });
+}
+
+/* On-brand replacement for the native prompt() dialog — same shell as
+   customConfirm above. Returns a Promise<string> (empty string if skipped). */
+function customPrompt(opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    let m = document.getElementById('customPromptModal');
+    if (!m) {
+      m = document.createElement('div');
+      m.id = 'customPromptModal';
+      m.className = 'modal-overlay';
+      document.body.appendChild(m);
+    }
+    m.innerHTML = `
+      <div class="modal" style="max-width:420px;">
+        <h3>${escapeHtml(opts.title || 'Add a note')}</h3>
+        ${opts.message ? `<div style="font-size:12.5px;color:var(--gray-500);margin-bottom:10px;">${escapeHtml(opts.message)}</div>` : ''}
+        <textarea id="customPromptInput" class="form-input" rows="3"
+          placeholder="${escapeHtml(opts.placeholder || '')}" style="width:100%;resize:vertical;"></textarea>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" id="customPromptSkipBtn">${escapeHtml(opts.skipLabel || 'Skip')}</button>
+          <button class="btn" type="button" id="customPromptOkBtn">${escapeHtml(opts.okLabel || 'Save note')}</button>
+        </div>
+      </div>`;
+    openModal('customPromptModal');
+    const finish = value => { closeModal('customPromptModal'); resolve(value); };
+    document.getElementById('customPromptSkipBtn').onclick = () => finish('');
+    document.getElementById('customPromptOkBtn').onclick = () => finish(document.getElementById('customPromptInput').value || '');
+  });
+}
+
 function setElementValue(id, value) {
   const el = document.getElementById(id);
   if (el) el.value = value;

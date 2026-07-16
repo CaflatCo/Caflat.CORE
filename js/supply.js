@@ -1402,6 +1402,27 @@ async function acceptPortalReport(reportId) {
     'success');
 }
 
+/* Shows the shelf-life duration (if the product has one configured) and,
+   once a delivery has actually started the countdown, either how long
+   until the client can report it sold or that it's reportable now — the
+   same "reportableAt" the client portal computes, just displayed for the
+   cafe here since it wasn't visible admin-side at all before. */
+function _shelfLifeBadgesHtml(s) {
+  const days = Number(s.shelf_life_days || 0);
+  if (days <= 0) return '';
+  const durationBadge = `<span class="badge-refunded">${days}d shelf life</span>`;
+  if (!s.last_delivered_at) return durationBadge;
+
+  const remainingMs = new Date(s.last_delivered_at).getTime() + days * 86400000 - Date.now();
+  if (remainingMs <= 0) {
+    return durationBadge + ` <span class="badge-completed">Reportable now</span>`;
+  }
+  const totalMin = Math.max(1, Math.ceil(remainingMs / 60000));
+  const d = Math.floor(totalMin / 1440), h = Math.floor((totalMin % 1440) / 60);
+  const label = d > 0 ? `${d}d ${h}h` : `${h}h`;
+  return durationBadge + ` <span class="badge-pending">Reportable in ${label}</span>`;
+}
+
 /* ── Per-client consignment ledger: current on-hand + reconciled history ── */
 async function openConsignmentLedger(clientId) {
   const client = getSupplierClients().find(c => String(c.id) === String(clientId));
@@ -1446,12 +1467,17 @@ async function openConsignmentLedger(clientId) {
   const onHandEl = document.getElementById('ledgerOnHand');
   if (onHandEl) {
     onHandEl.innerHTML = stock.length
-      ? stock.map(s => `
-          <div style="display:flex;justify-content:space-between;padding:6px 0;
-            border-bottom:1px solid var(--gray-100);font-size:13px;">
-            <span>${escapeHtml(s.product_name)}</span>
-            <span style="font-weight:800;">${Number(s.on_hand)} × ${formatCurrency(s.unit_price)}</span>
-          </div>`).join('')
+      ? stock.map(s => {
+          const badges = _shelfLifeBadgesHtml(s);
+          return `
+          <div style="padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:13px;">
+            <div style="display:flex;justify-content:space-between;">
+              <span>${escapeHtml(s.product_name)}</span>
+              <span style="font-weight:800;">${Number(s.on_hand)} × ${formatCurrency(s.unit_price)}</span>
+            </div>
+            ${badges ? `<div style="margin-top:5px;">${badges}</div>` : ''}
+          </div>`;
+        }).join('')
       : `<div class="empty-state">No stock currently on hand</div>`;
   }
 
@@ -2118,7 +2144,11 @@ async function setSupplyStatus(orderId, newStatus, paymentInfo) {
   if (newStatus === 'ORDERED' && !order.reservedStock && !order.stockDeducted) {
     const errors = _checkSupplyStockAvailability(order);
     if (errors.length) {
-      if (!confirm(`Stock warning:\n${errors.join('\n')}\n\nProceed anyway?`)) return;
+      const ok = await customConfirm({
+        title: 'Stock Warning', message: 'Some items don’t have enough stock available:',
+        lines: errors, okLabel: 'Reserve anyway', danger: true
+      });
+      if (!ok) return;
     }
     _reserveSupplyStock(order);
     order.reservedStock = true;
@@ -2129,7 +2159,11 @@ async function setSupplyStatus(orderId, newStatus, paymentInfo) {
   if (newStatus === 'DELIVERED' && !order.stockDeducted) {
     const errors = _checkSupplyStockAvailability(order);
     if (errors.length) {
-      if (!confirm(`Stock warning:\n${errors.join('\n')}\n\nProceed anyway?`)) return;
+      const ok = await customConfirm({
+        title: 'Stock Warning', message: 'Some items don’t have enough stock available:',
+        lines: errors, okLabel: 'Deliver anyway', danger: true
+      });
+      if (!ok) return;
     }
     _deductSupplyStock(order);
     order.stockDeducted = true;
@@ -2142,7 +2176,11 @@ async function setSupplyStatus(orderId, newStatus, paymentInfo) {
 
   // Moving AWAY from ORDERED back to DRAFTED — release the reservation (no real stock was touched)
   if (prevStatus === 'ORDERED' && newStatus === 'DRAFTED' && order.reservedStock) {
-    if (!confirm('Moving back to Draft will release the stock reservation. Continue?')) return;
+    const ok = await customConfirm({
+      title: 'Release Reservation?', message: 'Moving back to Draft will release the stock reservation.',
+      okLabel: 'Release reservation'
+    });
+    if (!ok) return;
     _releaseSupplyReservation(order);
     order.reservedStock = false;
     _auditSupplyEvent('SUPPLY_RESERVATION_RELEASED', order);
@@ -2151,7 +2189,11 @@ async function setSupplyStatus(orderId, newStatus, paymentInfo) {
   // Moving AWAY from DELIVERED-or-later back to an earlier state — restore real stock
   if (['DRAFTED','ORDERED'].includes(newStatus) && order.stockDeducted &&
       ['DELIVERED','INVOICED','PAID'].includes(prevStatus)) {
-    if (!confirm('Moving back will restore previously delivered stock. Continue?')) return;
+    const ok = await customConfirm({
+      title: 'Restore Stock?', message: 'Moving back will restore previously delivered stock.',
+      okLabel: 'Restore stock'
+    });
+    if (!ok) return;
     _restoreSupplyStock(order);
     order.stockDeducted = false;
     _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);
@@ -2161,7 +2203,11 @@ async function setSupplyStatus(orderId, newStatus, paymentInfo) {
   // Moving to CANCELLED or VOIDED — release reservation and/or restore hard-deducted stock
   if (['CANCELLED','VOIDED'].includes(newStatus)) {
     if (order.stockDeducted) {
-      if (!confirm(`Cancelling will restore stock for all line items. Continue?`)) return;
+      const ok = await customConfirm({
+        title: 'Cancel Order?', message: 'Cancelling will restore stock for all line items.',
+        okLabel: 'Cancel order', danger: true
+      });
+      if (!ok) return;
       _restoreSupplyStock(order);
       order.stockDeducted = false;
       _auditSupplyEvent('SUPPLY_STOCK_RESTORED', order);
@@ -2181,10 +2227,17 @@ async function setSupplyStatus(orderId, newStatus, paymentInfo) {
 
   // If un-paying (moving away from PAID) — warn, no automatic reversal
   if (prevStatus === 'PAID' && newStatus !== 'PAID') {
-    if (!confirm('Moving away from Paid will not automatically reverse the sales record. Continue?')) return;
+    const ok = await customConfirm({
+      title: 'Move Away From Paid?', message: 'This will not automatically reverse the sales record.',
+      okLabel: 'Continue'
+    });
+    if (!ok) return;
   }
 
-  const note = window.prompt(`Note for status change to "${newLabel}" (optional):`) || '';
+  const note = await customPrompt({
+    title: `Note for status change to "${newLabel}"`,
+    message: 'Optional — visible in this order’s status history.'
+  });
   const timestamp = new Date().toISOString();
 
   order.status    = newStatus;
