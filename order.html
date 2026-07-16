@@ -1665,6 +1665,27 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
   }
+  /* The sticky Restock/Report bars can grow taller than their usual ~92px
+     (e.g. the "Attach your payment screenshot…" error appearing below the
+     button), which would otherwise overlap the .powered badge sitting
+     right where the tab's static bottom padding assumed a shorter bar.
+     Reserves exactly the bar's ACTUAL height instead of a guessed
+     constant, so it stays correct regardless of error text, font scaling,
+     or line-wrapping. The ResizeObserver below is the general safety net;
+     syncBarClearance() is also called directly (synchronously) at every
+     call site that shows an error AND THEN scrolls to it in the same
+     tick — the observer's callback fires on the next frame, which is too
+     late to affect a scrollIntoView() already running against the old,
+     too-small padding. */
+  function syncBarClearance() {
+    [[$('restockBar'), $('tabRestock')], [$('reportBar'), $('tabReport')]].forEach(function (pair) {
+      var bar = pair[0], tab = pair[1];
+      tab.style.paddingBottom = bar.offsetHeight ? (bar.offsetHeight + 24) + 'px' : '';
+    });
+  }
+  new ResizeObserver(syncBarClearance).observe($('restockBar'));
+  new ResizeObserver(syncBarClearance).observe($('reportBar'));
+
   attachSwipeToDismiss($('sheet'), closeSheet);
 
   /* ── Payment methods ── */
@@ -2599,7 +2620,14 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
       $('repSubmitErr').style.display = 'block';
       $('repProofBox').style.borderColor = 'var(--danger)';
       $('repProofBox').style.color = 'var(--danger)';
-      $('repProofWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      syncBarClearance();
+      // 'nearest' (not 'center') — #repProofWrap sits close to the bottom
+      // of a page that isn't tall enough to fully center it above the
+      // fixed sticky bar; centering forces the scroll to its clamped max,
+      // which drags the .powered badge into the bar's viewport band no
+      // matter how much clearance padding reserves for it. 'nearest'
+      // scrolls only as far as actually needed to reveal the target.
+      $('repProofWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       return;
     }
 
@@ -2631,7 +2659,8 @@ input.f-input[type="date"]::-webkit-date-and-time-value { text-align: left; }
         $('repSubmitErr').style.display = 'block';
         $('repProofBox').style.borderColor = 'var(--danger)';
         $('repProofBox').style.color = 'var(--danger)';
-        $('repProofWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        syncBarClearance();
+        $('repProofWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         return;
       }
       _submitReport();
