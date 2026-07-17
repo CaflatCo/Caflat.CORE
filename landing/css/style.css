@@ -813,11 +813,10 @@ body.has-promo .atelier-sticky { padding-top: calc(clamp(92px, 12vh, 140px) + 44
 .mk-pos-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  align-content: start;
   gap: 8px;
-  align-content: stretch;
   min-height: 0;
 }
-.mk-tile { min-height: 0; justify-content: center; }
 .mk-tile {
   background: rgba(255,255,255,.035);
   border: 1px solid rgba(255,255,255,.05);
@@ -1311,7 +1310,7 @@ body.has-promo .atelier-sticky { padding-top: calc(clamp(92px, 12vh, 140px) + 44
   background: var(--dark-card);
   border: 1px solid var(--dark-border-hi);
   color: var(--text-white);
-  box-shadow: 0 16px 64px rgba(0,0,0,.5);
+  box-shadow: 0 2px 8px rgba(0,0,0,.12), 0 24px 48px -12px rgba(0,0,0,.28);
 }
 
 /* Top bar */
