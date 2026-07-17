@@ -134,7 +134,7 @@ document.querySelectorAll('[data-target]').forEach(el => statsObserver.observe(e
   if (!hero) return;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* Scroll progress — how far the tall section has been scrolled
+  /* Scroll progress: how far the tall section has been scrolled
      through (0 at page top, 1 when its bottom meets the viewport
      bottom), the same window the framer-motion original tracks. */
   if (!reduce) {
@@ -156,7 +156,7 @@ document.querySelectorAll('[data-target]').forEach(el => statsObserver.observe(e
     window.addEventListener('resize', request, { passive: true });
   }
 
-  /* KPI counters inside the device frame — locale-formatted tick-up
+  /* KPI counters inside the device frame: locale-formatted tick-up
      (the shared [data-target] counter is integer+suffix only). */
   document.querySelectorAll('.mk-count[data-count]').forEach(el => {
     const target = parseInt(el.dataset.count, 10) || 0;
@@ -173,7 +173,23 @@ document.querySelectorAll('[data-target]').forEach(el => statsObserver.observe(e
     requestAnimationFrame(step);
   });
 
-  /* Pointer parallax for the dust layers — desktop fine-pointer only */
+  /* Device-frame tabs: the rail icons switch the screen behind the
+     glass (Dashboard / POS / Supply) and retitle the caption. */
+  const tabs = hero.querySelectorAll('.mk-tab');
+  const screens = hero.querySelectorAll('.mk-screen');
+  const caption = document.getElementById('cscrollCaption');
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    if (tab.classList.contains('on')) return;
+    tabs.forEach(t => {
+      const on = t === tab;
+      t.classList.toggle('on', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    screens.forEach(s => s.classList.toggle('on', s.dataset.mkScreen === tab.dataset.mk));
+    if (caption && tab.dataset.caption) caption.textContent = tab.dataset.caption;
+  }));
+
+  /* Pointer parallax for the dust layers: desktop fine-pointer only */
   if (reduce || !window.matchMedia('(pointer: fine) and (min-width: 769px)').matches) return;
   let tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
   const tick = () => {
@@ -188,6 +204,109 @@ document.querySelectorAll('[data-target]').forEach(el => statsObserver.observe(e
     tx = (e.clientX / window.innerWidth  - .5) * 22;
     ty = (e.clientY / window.innerHeight - .5) * 16;
     if (!raf) raf = requestAnimationFrame(tick);
+  });
+})();
+
+/* ─── Mode sliders: swipeable app screens in each showcase ──────
+   Shared driver for every [data-slider]: arrows + dots (generated
+   here), pointer drag with snap, wrap-around, and a gentle auto-
+   advance that stands down permanently once the visitor interacts. */
+(() => {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('[data-slider]').forEach(slider => {
+    const track = slider.querySelector('.mode-slider-track');
+    const slides = Array.from(track.children);
+    if (slides.length < 2) return;
+
+    let index = 0;
+    let auto = null;
+    let interacted = false;
+
+    /* Nav: arrows + one dot per slide, appended after the slider */
+    const nav = document.createElement('div');
+    nav.className = 'mode-slider-nav';
+    const mkArrow = (dir, label) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'mode-arrow';
+      b.setAttribute('aria-label', label);
+      b.innerHTML = dir < 0
+        ? '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 2 3.5 6l4 4"/></svg>'
+        : '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 2l4 4-4 4"/></svg>';
+      b.addEventListener('click', () => { userMove(index + dir); });
+      return b;
+    };
+    const dots = document.createElement('div');
+    dots.className = 'mode-dots';
+    const dotEls = slides.map((_, i) => {
+      const d = document.createElement('button');
+      d.type = 'button';
+      d.className = 'mode-dot' + (i === 0 ? ' on' : '');
+      d.setAttribute('aria-label', `Screen ${i + 1} of ${slides.length}`);
+      d.addEventListener('click', () => { userMove(i); });
+      dots.appendChild(d);
+      return d;
+    });
+    nav.append(mkArrow(-1, 'Previous screen'), dots, mkArrow(1, 'Next screen'));
+    slider.after(nav);
+
+    const goTo = i => {
+      index = ((i % slides.length) + slides.length) % slides.length;
+      track.style.transform = `translateX(${-slides[index].offsetLeft}px)`;
+      dotEls.forEach((d, k) => d.classList.toggle('on', k === index));
+    };
+    const userMove = i => {
+      interacted = true;
+      stopAuto();
+      goTo(i);
+    };
+    const stopAuto = () => { if (auto) { clearInterval(auto); auto = null; } };
+
+    /* Pointer drag with snap; vertical scrolling stays free (pan-y) */
+    let startX = null, delta = 0;
+    track.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      startX = e.clientX;
+      delta = 0;
+      track.classList.add('dragging');
+      track.setPointerCapture(e.pointerId);
+    });
+    track.addEventListener('pointermove', e => {
+      if (startX === null) return;
+      delta = e.clientX - startX;
+      track.style.transform = `translateX(${-slides[index].offsetLeft + delta}px)`;
+    });
+    const endDrag = () => {
+      if (startX === null) return;
+      track.classList.remove('dragging');
+      const moved = Math.abs(delta) > 55;
+      if (moved) userMove(index + (delta < 0 ? 1 : -1));
+      else goTo(index);
+      if (moved || Math.abs(delta) > 6) { interacted = true; stopAuto(); }
+      startX = null;
+      delta = 0;
+    };
+    track.addEventListener('pointerup', endDrag);
+    track.addEventListener('pointercancel', endDrag);
+
+    /* Auto-advance: only until first interaction, paused on hover,
+       skipped entirely under reduced motion or hidden tabs. */
+    if (!reduce) {
+      const startAuto = () => {
+        if (auto || interacted) return;
+        auto = setInterval(() => {
+          if (document.hidden) return;
+          goTo(index + 1);
+        }, 6000);
+      };
+      slider.addEventListener('mouseenter', stopAuto);
+      slider.addEventListener('mouseleave', startAuto);
+      new IntersectionObserver(entries => {
+        entries[0].isIntersecting ? startAuto() : stopAuto();
+      }, { threshold: 0.35 }).observe(slider);
+    }
+
+    window.addEventListener('resize', () => goTo(index), { passive: true });
   });
 })();
 
@@ -239,14 +358,14 @@ form.addEventListener('submit', async (e) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           access_key: WEB3FORMS_KEY,
-          subject:    `New Access Request — ${data.cafe_name || 'Unknown Café'}`,
+          subject:    `New Access Request: ${data.cafe_name || 'Unknown Café'}`,
           from_name:  'Caflat.CORE Landing',
           cafe_name:    data.cafe_name,
           contact_name: data.contact_name,
           email:        data.email,
           phone:        data.phone,
           tier:         data.tier,
-          message:      data.message || '—',
+          message:      data.message || '-',
         }),
       }).catch(err => console.warn('Email notification failed:', err)), // non-fatal
     ]);
@@ -293,7 +412,7 @@ document.querySelectorAll('.mode-how').forEach(details => {
     }
 
     if (!details.open) {
-      // OPEN — reveal content, then grow the body from 0 to its natural height
+      // OPEN: reveal content, then grow the body from 0 to its natural height
       // (offsetHeight = layout height; ignores the steps' translateY overflow)
       details.open = true;
       const h = body.offsetHeight;
@@ -304,7 +423,7 @@ document.querySelectorAll('.mode-how').forEach(details => {
       );
       anim.onfinish = () => { animating = false; };
     } else {
-      // CLOSE — steps cascade out (CSS .closing), body shrinks to 0, then collapse
+      // CLOSE: steps cascade out (CSS .closing), body shrinks to 0, then collapse
       details.classList.add('closing');
       const h = body.offsetHeight;
       animating = true;

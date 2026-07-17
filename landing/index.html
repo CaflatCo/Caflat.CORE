@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Caflat.CORE — Operations System for Specialty Coffee</title>
+  <title>Caflat.CORE | The Operations System for Food and Beverage Businesses</title>
   <link rel="icon" href="./favicon.ico" sizes="32x32" />
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="./favicon.png" type="image/png" sizes="32x32" />
   <link rel="shortcut icon" href="./favicon.ico" />
   <link rel="apple-touch-icon" href="./favicon.png" />
-  <meta name="description" content="The all-in-one operations platform for cafés, bakeries, dessert shops, and food businesses. Inventory, production, origin traceability, events, and more — offline-first.">
+  <meta name="description" content="The all-in-one operations platform for cafés, bakeries, dessert shops, and food businesses. POS, inventory, production, B2B supply, traceability, events, and more. Offline-first.">
   <meta property="og:title" content="Caflat.CORE">
   <meta property="og:description" content="The complete operations platform built for cafés, bakeries, and food businesses.">
   <meta property="og:type" content="website">
@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,900&family=Fraunces:ital,opsz,wght@0,9..144,380;0,9..144,450;0,9..144,530;1,9..144,420;1,9..144,530&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/style.css?v=20260717a">
+  <link rel="stylesheet" href="./css/style.css?v=20260718a">
 </head>
 <body>
 
@@ -29,7 +29,7 @@
   <div class="promo-bar-inner">
     <span class="promo-bar-text">
       <span class="promo-bar-emoji" aria-hidden="true">🎉</span>
-      Limited time — <strong>90 days of PRO, free.</strong>
+      Limited time: <strong>90 days of PRO, free.</strong>
     </span>
     <a href="#access" class="promo-bar-cta">Start Free Trial →</a>
   </div>
@@ -62,18 +62,18 @@
   <a href="#access"   class="nav-drawer-link nav-drawer-cta">Request Early Access</a>
 </div>
 
-<!-- ─── Hero — "The Atelier" ──────────────────────────────────────
+<!-- ─── Hero, "The Atelier" ──────────────────────────────────────
      Cream editorial opening; as you scroll, the room dims to espresso
      while the device frame tilts up from rotateX(20°) and settles flat
-     (vanilla recreation of the ContainerScroll pattern — progress is
+     (vanilla recreation of the ContainerScroll pattern; progress is
      written to --csp by js/main.js, CSS owns every transform). -->
 <section class="hero atelier grain" id="atelierHero">
   <div class="atelier-sticky">
 
-    <!-- Espresso veil — crossfades the cream room to the dark world -->
+    <!-- Espresso veil: crossfades the cream room to the dark world -->
     <div class="atelier-veil" aria-hidden="true"></div>
 
-    <!-- Champagne dust — three bokeh depth layers, pointer + scroll parallax -->
+    <!-- Champagne dust: three bokeh depth layers, pointer + scroll parallax -->
     <div class="atelier-dust" aria-hidden="true">
       <div class="dust-layer dust-far"></div>
       <div class="dust-layer dust-mid"></div>
@@ -83,18 +83,13 @@
     <div class="cscroll-persp">
 
       <header class="cscroll-header">
-        <div class="atelier-eyebrow">
-          <span class="ae-rule" aria-hidden="true"></span>
-          Operations system for specialty coffee
-          <span class="ae-rule" aria-hidden="true"></span>
-        </div>
         <h1 class="atelier-title">
-          <span class="at-line"><span class="at-line-inner">Run your café</span></span>
-          <span class="at-line"><span class="at-line-inner">like a <em class="at-accent">maison</em>.</span></span>
+          <span class="at-line"><span class="at-line-inner">The quiet power</span></span>
+          <span class="at-line"><span class="at-line-inner">behind <em class="at-accent">every great café</em>.</span></span>
         </h1>
         <p class="atelier-body">
-          POS, inventory, production, and B2B supply — one calm,
-          offline-first system, composed for the morning rush.
+          POS, inventory, production, and B2B supply. One calm,
+          offline-first system that never blinks during the morning rush.
         </p>
         <div class="atelier-actions">
           <a href="#access" class="at-btn-primary">Request Early Access<span class="at-btn-arrow" aria-hidden="true">→</span></a>
@@ -102,79 +97,164 @@
         </div>
       </header>
 
-      <!-- The device frame — tilts from 20° to flat as --csp goes 0 → 1 -->
-      <div class="cscroll-card" aria-hidden="true">
+      <!-- The device frame: 4:3 iPad, tilts from 20° to flat as --csp goes 0 → 1.
+           The rail icons are real tabs; each switches the screen inside the glass. -->
+      <div class="cscroll-card">
         <div class="cscroll-screen">
-          <div class="mk-rail">
-            <div class="mk-rail-dot"></div>
-            <svg class="mk-glyph on" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
-            <svg class="mk-glyph" viewBox="0 0 24 24"><path d="M4 19V10M10 19V5M16 19v-8M22 19H2" stroke-width="2" stroke-linecap="round" fill="none" stroke="currentColor"/></svg>
-            <svg class="mk-glyph" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            <svg class="mk-glyph" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          <div class="mk-rail" role="tablist" aria-label="Preview screens">
+            <div class="mk-rail-dot" aria-hidden="true"></div>
+            <button class="mk-tab on" type="button" role="tab" aria-selected="true" data-mk="dash" data-caption="The Command view. Every module, one quiet screen." aria-label="Dashboard preview">
+              <svg class="mk-glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+            </button>
+            <button class="mk-tab" type="button" role="tab" aria-selected="false" data-mk="pos" data-caption="Service mode. Charge a full queue without breaking stride." aria-label="POS preview">
+              <svg class="mk-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 8h6M9 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <button class="mk-tab" type="button" role="tab" aria-selected="false" data-mk="supply" data-caption="The Supply hub. Wholesale orders from draft to paid." aria-label="Supply preview">
+              <svg class="mk-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            </button>
           </div>
           <div class="mk-main">
-            <div class="mk-topbar">
-              <div>
-                <div class="mk-hello">Good morning, Caflat Atelier</div>
-                <div class="mk-date">Thursday · 7:42 AM</div>
+
+            <!-- Screen 1: Command dashboard -->
+            <div class="mk-screen on" data-mk-screen="dash" role="tabpanel">
+              <div class="mk-topbar">
+                <div>
+                  <div class="mk-hello">Good morning, Caflat.CO</div>
+                  <div class="mk-date">Thursday · 7:42 AM</div>
+                </div>
+                <div class="mk-split">POS ₱37,635 · Supply ₱10,615</div>
               </div>
-              <div class="mk-live"><span class="mk-live-dot"></span>Live</div>
+              <div class="mk-kpis">
+                <div class="mk-kpi">
+                  <div class="mk-kpi-label">Total sales</div>
+                  <div class="mk-kpi-val">₱<span class="mk-count" data-count="48250">0</span></div>
+                  <div class="mk-kpi-sub up">▲ 12% vs last Thu</div>
+                </div>
+                <div class="mk-kpi">
+                  <div class="mk-kpi-label">Orders</div>
+                  <div class="mk-kpi-val"><span class="mk-count" data-count="132">0</span></div>
+                  <div class="mk-kpi-sub">9 open tickets</div>
+                </div>
+                <div class="mk-kpi">
+                  <div class="mk-kpi-label">Items sold</div>
+                  <div class="mk-kpi-val"><span class="mk-count" data-count="486">0</span></div>
+                  <div class="mk-kpi-sub up">Croissants lead</div>
+                </div>
+                <div class="mk-kpi">
+                  <div class="mk-kpi-label">Avg order</div>
+                  <div class="mk-kpi-val">₱366</div>
+                  <div class="mk-kpi-sub warn-txt">3 low stock · 2 pending</div>
+                </div>
+              </div>
+              <div class="mk-panels">
+                <div class="mk-chart-panel">
+                  <div class="mk-panel-title">Revenue · this week</div>
+                  <svg class="mk-chart" viewBox="0 0 560 170" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="mkFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%"  stop-color="rgba(216,189,147,.34)"/>
+                        <stop offset="100%" stop-color="rgba(216,189,147,0)"/>
+                      </linearGradient>
+                    </defs>
+                    <path class="mk-area" d="M0,140 C60,132 90,110 140,104 C190,98 210,118 260,96 C310,74 330,84 380,62 C430,40 460,54 510,34 L560,26 L560,170 L0,170 Z" fill="url(#mkFill)"/>
+                    <path class="mk-line" d="M0,140 C60,132 90,110 140,104 C190,98 210,118 260,96 C310,74 330,84 380,62 C430,40 460,54 510,34 L560,26" fill="none"/>
+                    <circle class="mk-line-tip" cx="560" cy="26" r="4"/>
+                  </svg>
+                  <div class="mk-chart-days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+                </div>
+                <div class="mk-side">
+                  <div class="mk-panel-title">Activity</div>
+                  <div class="mk-act"><span class="mk-dot ok"></span><span class="mk-act-txt">Order #131 · ₱650</span><span class="mk-act-time">2m</span></div>
+                  <div class="mk-act"><span class="mk-dot ok"></span><span class="mk-act-txt">Restock confirmed · Buzzd</span><span class="mk-act-time">11m</span></div>
+                  <div class="mk-act"><span class="mk-dot warn"></span><span class="mk-act-txt">Oat milk low · 2L left</span><span class="mk-act-time">24m</span></div>
+                  <div class="mk-act"><span class="mk-dot ok"></span><span class="mk-act-txt">Batch #18 → Finished goods</span><span class="mk-act-time">40m</span></div>
+                  <div class="mk-panel-title mk-tp-title">Top products</div>
+                  <div class="mk-tp"><span>Flat White</span><i></i><span>142</span></div>
+                  <div class="mk-tp"><span>Croissant</span><i></i><span>118</span></div>
+                  <div class="mk-tp"><span>Cold Brew</span><i></i><span>97</span></div>
+                </div>
+              </div>
             </div>
-            <div class="mk-kpis">
-              <div class="mk-kpi">
-                <div class="mk-kpi-label">Revenue today</div>
-                <div class="mk-kpi-val">₱<span class="mk-count" data-count="48250">0</span></div>
-                <div class="mk-kpi-sub up">▲ 12% vs last Thu</div>
+
+            <!-- Screen 2: POS / Service -->
+            <div class="mk-screen" data-mk-screen="pos" role="tabpanel">
+              <div class="mk-topbar">
+                <div>
+                  <div class="mk-hello">Service · Counter 1</div>
+                  <div class="mk-date">Order #133 · Dine-in</div>
+                </div>
+                <div class="mk-split">Shift: Ana · 7:00 AM</div>
               </div>
-              <div class="mk-kpi">
-                <div class="mk-kpi-label">Orders</div>
-                <div class="mk-kpi-val"><span class="mk-count" data-count="132">0</span></div>
-                <div class="mk-kpi-sub">9 open tickets</div>
-              </div>
-              <div class="mk-kpi">
-                <div class="mk-kpi-label">Sell-through</div>
-                <div class="mk-kpi-val"><span class="mk-count" data-count="94">0</span>%</div>
-                <div class="mk-kpi-sub up">Croissants lead</div>
-              </div>
-              <div class="mk-kpi">
-                <div class="mk-kpi-label">Low stock</div>
-                <div class="mk-kpi-val warn">3</div>
-                <div class="mk-kpi-sub">Oat milk · 2 more</div>
-              </div>
-            </div>
-            <div class="mk-panels">
-              <div class="mk-chart-panel">
-                <div class="mk-panel-title">Revenue — this week</div>
-                <svg class="mk-chart" viewBox="0 0 560 170" preserveAspectRatio="none" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="mkFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%"  stop-color="rgba(216,189,147,.34)"/>
-                      <stop offset="100%" stop-color="rgba(216,189,147,0)"/>
-                    </linearGradient>
-                  </defs>
-                  <path class="mk-area" d="M0,140 C60,132 90,110 140,104 C190,98 210,118 260,96 C310,74 330,84 380,62 C430,40 460,54 510,34 L560,26 L560,170 L0,170 Z" fill="url(#mkFill)"/>
-                  <path class="mk-line" d="M0,140 C60,132 90,110 140,104 C190,98 210,118 260,96 C310,74 330,84 380,62 C430,40 460,54 510,34 L560,26" fill="none"/>
-                  <circle class="mk-line-tip" cx="560" cy="26" r="4"/>
-                </svg>
-                <div class="mk-chart-days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
-              </div>
-              <div class="mk-side">
-                <div class="mk-panel-title">Activity</div>
-                <div class="mk-act"><span class="mk-dot ok"></span><span class="mk-act-txt">Order #131 — ₱650</span><span class="mk-act-time">2m</span></div>
-                <div class="mk-act"><span class="mk-dot ok"></span><span class="mk-act-txt">Restock confirmed — Buzzd</span><span class="mk-act-time">11m</span></div>
-                <div class="mk-act"><span class="mk-dot warn"></span><span class="mk-act-txt">Oat milk low — 2L left</span><span class="mk-act-time">24m</span></div>
-                <div class="mk-act"><span class="mk-dot ok"></span><span class="mk-act-txt">Batch #18 → Finished goods</span><span class="mk-act-time">40m</span></div>
-                <div class="mk-panel-title mk-tp-title">Top products</div>
-                <div class="mk-tp"><span>Flat White</span><i></i><span>142</span></div>
-                <div class="mk-tp"><span>Croissant</span><i></i><span>118</span></div>
-                <div class="mk-tp"><span>Cold Brew</span><i></i><span>97</span></div>
+              <div class="mk-pos">
+                <div class="mk-pos-grid">
+                  <div class="mk-tile"><span class="mk-tile-name">Flat White</span><span class="mk-tile-price">₱155</span></div>
+                  <div class="mk-tile"><span class="mk-tile-name">Americano</span><span class="mk-tile-price">₱120</span></div>
+                  <div class="mk-tile"><span class="mk-tile-name">Cold Brew</span><span class="mk-tile-price">₱175</span></div>
+                  <div class="mk-tile"><span class="mk-tile-name">Croissant</span><span class="mk-tile-price">₱95</span></div>
+                  <div class="mk-tile"><span class="mk-tile-name">Matcha Latte</span><span class="mk-tile-price">₱165</span></div>
+                  <div class="mk-tile"><span class="mk-tile-name">Espresso</span><span class="mk-tile-price">₱100</span></div>
+                </div>
+                <div class="mk-cart">
+                  <div class="mk-panel-title">Current order</div>
+                  <div class="mk-cart-line"><span>Flat White ×2</span><span>₱310</span></div>
+                  <div class="mk-cart-line"><span>Croissant</span><span>₱95</span></div>
+                  <div class="mk-cart-line"><span>Cold Brew</span><span>₱175</span></div>
+                  <div class="mk-cart-total"><span>Total</span><span>₱580</span></div>
+                  <div class="mk-cart-pay">Cash · GCash · Card</div>
+                  <div class="mk-cart-btn">Charge ₱580</div>
+                </div>
               </div>
             </div>
+
+            <!-- Screen 3: Supply hub -->
+            <div class="mk-screen" data-mk-screen="supply" role="tabpanel">
+              <div class="mk-topbar">
+                <div>
+                  <div class="mk-hello">Supply · B2B orders</div>
+                  <div class="mk-date">4 clients · 2 open portals</div>
+                </div>
+                <div class="mk-split">Receivable ₱8,794</div>
+              </div>
+              <div class="mk-pipe">
+                <span class="mk-pipe-step done">Draft</span>
+                <span class="mk-pipe-step done">Ordered</span>
+                <span class="mk-pipe-step now">Delivered</span>
+                <span class="mk-pipe-step">Invoiced</span>
+                <span class="mk-pipe-step">Paid</span>
+              </div>
+              <div class="mk-orders">
+                <div class="mk-order">
+                  <div class="mk-order-main"><span class="mk-order-client">Buzzd</span><span class="mk-order-id">SO-0142 · Jul 15</span></div>
+                  <span class="mk-shelf">Reportable in 2d 4h</span>
+                  <span class="mk-order-amt">₱6,010</span>
+                  <span class="mk-badge delivered">Delivered</span>
+                </div>
+                <div class="mk-order">
+                  <div class="mk-order-main"><span class="mk-order-client">Engkape</span><span class="mk-order-id">SO-0141 · Jul 12</span></div>
+                  <span class="mk-shelf dim">Stock reserved</span>
+                  <span class="mk-order-amt">₱720</span>
+                  <span class="mk-badge ordered">Ordered</span>
+                </div>
+                <div class="mk-order">
+                  <div class="mk-order-main"><span class="mk-order-client">Café Rio</span><span class="mk-order-id">SO-0139 · Jul 10</span></div>
+                  <span class="mk-shelf dim">Invoice INV-0088</span>
+                  <span class="mk-order-amt">₱2,064</span>
+                  <span class="mk-badge paid">Paid</span>
+                </div>
+                <div class="mk-order">
+                  <div class="mk-order-main"><span class="mk-order-client">Morning Story</span><span class="mk-order-id">SO-0138 · Jul 9</span></div>
+                  <span class="mk-shelf dim">50% settled · proof on file</span>
+                  <span class="mk-order-amt">₱1,480</span>
+                  <span class="mk-badge invoiced">Invoiced</span>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
 
-      <div class="cscroll-caption">The Command view — every module, one quiet screen.</div>
+      <div class="cscroll-caption" id="cscrollCaption" aria-live="polite">The Command view. Every module, one quiet screen.</div>
     </div>
   </div>
 </section>
@@ -212,7 +292,7 @@
     <div class="section-label">
       <span class="eyebrow">Core Features</span>
       <h2 class="section-heading">Everything your café needs.</h2>
-      <p class="section-subhead">The daily essentials, built to be fast and dependable — from the first sale to the end-of-day report.</p>
+      <p class="section-subhead">The daily essentials, built to be fast and dependable, from the first sale to the end-of-day report.</p>
     </div>
 
     <div class="features-grid stagger">
@@ -227,7 +307,7 @@
         </div>
         <div class="feature-body">
           <h3>Point of Sale</h3>
-          <p>Fast order entry designed for the counter — handle queues, discounts, and payments without missing a beat. Fully offline.</p>
+          <p>Fast order entry designed for the counter. Handle queues, discounts, and payments without missing a beat. Fully offline.</p>
         </div>
       </div>
 
@@ -241,7 +321,7 @@
         </div>
         <div class="feature-body">
           <h3>Inventory</h3>
-          <p>Track every gram and every supply item. Depletion alerts fire before you run out — variance and wastage included.</p>
+          <p>Track every gram and every supply item. Depletion alerts fire before you run out, variance and wastage included.</p>
         </div>
       </div>
 
@@ -255,7 +335,7 @@
         </div>
         <div class="feature-body">
           <h3>Sales & Reports</h3>
-          <p>Revenue totals, product rankings, shift breakdowns — clear data at the end of every day. Exportable on demand.</p>
+          <p>Revenue totals, product rankings, shift breakdowns. Clear data at the end of every day. Exportable on demand.</p>
         </div>
       </div>
 
@@ -270,7 +350,7 @@
         </div>
         <div class="feature-body">
           <h3>Dashboard</h3>
-          <p>A live view of your café — today's revenue, open orders, low stock alerts, and recent activity all in one place.</p>
+          <p>A live view of your café: today's revenue, open orders, low stock alerts, and recent activity all in one place.</p>
         </div>
       </div>
 
@@ -298,7 +378,7 @@
         </div>
         <div class="feature-body">
           <h3>Ingredients</h3>
-          <p>Manage raw materials with unit conversions, reorder thresholds, and cost tracking — the backbone of every product margin.</p>
+          <p>Manage raw materials with unit conversions, reorder thresholds, and cost tracking. The backbone of every product margin.</p>
         </div>
       </div>
 
@@ -315,50 +395,125 @@
   <div class="container showcase-inner">
     <div class="showcase-text reveal">
       <span class="mode-badge">Supplier Mode</span>
-      <h2>Know what's owed.<br>Nothing slips&nbsp;through.</h2>
-      <p>Manage all supplier relationships from one panel — open orders, delivery tracking, outstanding balances, and contact history. No more scattered messages or forgotten invoices.</p>
+      <h2>B2B supply,<br>from draft to&nbsp;paid.</h2>
+      <p>Give every wholesale client a private order portal, then let the pipeline carry the order: stock reserves itself, deliveries deduct, invoices generate, and balances stay honest.</p>
       <ul class="showcase-list">
-        <li>Supplier profiles & contact records</li>
-        <li>Purchase orders & delivery tracking</li>
-        <li>Outstanding balance management</li>
-        <li>One-tap reorder from history</li>
+        <li>Client order portals they open on any phone, no login</li>
+        <li>Consignment with sell-through reports & shelf-life gates</li>
+        <li>Automatic stock moves & invoices at every status</li>
+        <li>Rush fees, 50% or full settlement with payment proof</li>
       </ul>
       <details class="mode-how">
         <summary class="mode-how-toggle"><span class="mode-how-dot" aria-hidden="true"></span>How it works</summary>
         <div class="mode-how-body">
         <ol class="mode-how-steps">
-          <li><span class="how-num">01</span><div><strong>Add your suppliers</strong><p>Names, contacts, and terms — every relationship in one panel.</p></div></li>
-          <li><span class="how-num">02</span><div><strong>Log orders as you place them</strong><p>Every purchase order tracked with its outstanding balance.</p></div></li>
-          <li><span class="how-num">03</span><div><strong>Receive the delivery</strong><p>Stock and amounts owed update themselves.</p></div></li>
+          <li><span class="how-num">01</span><div><strong>Publish a portal link</strong><p>Each client gets their own order page with your prices and terms.</p></div></li>
+          <li><span class="how-num">02</span><div><strong>Orders land as drafts</strong><p>Approve, and the pipeline takes over: stock reserves at Ordered, deducts at Delivered.</p></div></li>
+          <li><span class="how-num">03</span><div><strong>Settle and report</strong><p>Invoices generate themselves. Consignment clients report sales once shelf life clears.</p></div></li>
         </ol>
         </div>
       </details>
     </div>
     <div class="showcase-visual reveal-right">
-      <div class="mock-panel mock-light">
-        <div class="mock-bar">
-          <span class="mock-title">Suppliers</span>
-          <span class="mock-tag">6 active</span>
-        </div>
-        <div class="mock-supplier-card">
-          <div class="mock-supplier-name">Cordillera Coffee Co.</div>
-          <div class="mock-supplier-meta">Last order: Jun 20 &nbsp;·&nbsp; $12,500 outstanding</div>
-          <div class="mock-supplier-status mock-supplier-open">1 open order</div>
-        </div>
-        <div class="mock-supplier-card">
-          <div class="mock-supplier-name">Manila Dairy Supply</div>
-          <div class="mock-supplier-meta">Last order: Jun 24 &nbsp;·&nbsp; $0 outstanding</div>
-          <div class="mock-supplier-status mock-supplier-clear">Settled</div>
-        </div>
-        <div class="mock-supplier-card">
-          <div class="mock-supplier-name">Benguet Highlands Farm</div>
-          <div class="mock-supplier-meta">Last order: Jun 15 &nbsp;·&nbsp; $8,200 outstanding</div>
-          <div class="mock-supplier-status mock-supplier-open">2 open orders</div>
-        </div>
-        <div class="mock-supplier-card">
-          <div class="mock-supplier-name">Sagada Organics</div>
-          <div class="mock-supplier-meta">Last order: Jun 10 &nbsp;·&nbsp; $0 outstanding</div>
-          <div class="mock-supplier-status mock-supplier-clear">Settled</div>
+      <div class="mode-slider" data-slider>
+        <div class="mode-slider-track">
+
+          <div class="mode-slide">
+            <div class="mock-panel mock-light">
+              <div class="mock-bar">
+                <span class="mock-title">Order Portal · Buzzd</span>
+                <span class="mock-tag">No login needed</span>
+              </div>
+              <div class="mock-portal-item">
+                <div class="mock-portal-info">
+                  <div class="mock-portal-name">Choco Chunk Cookies</div>
+                  <div class="mock-portal-price">₱104 · box of 8</div>
+                </div>
+                <div class="mock-qty"><span>−</span><b>24</b><span>+</span></div>
+              </div>
+              <div class="mock-portal-item">
+                <div class="mock-portal-info">
+                  <div class="mock-portal-name">Sea Salt Caramel</div>
+                  <div class="mock-portal-price">₱112 · box of 8</div>
+                </div>
+                <div class="mock-qty"><span>−</span><b>18</b><span>+</span></div>
+              </div>
+              <div class="mock-portal-item">
+                <div class="mock-portal-info">
+                  <div class="mock-portal-name">Matcha White Chip</div>
+                  <div class="mock-portal-price">₱118 · box of 8</div>
+                </div>
+                <div class="mock-qty"><span>−</span><b>12</b><span>+</span></div>
+              </div>
+              <div class="mock-portal-bar">
+                <span>3 items · ₱6,010</span>
+                <span class="mock-portal-btn">Review order</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mode-slide">
+            <div class="mock-panel mock-light">
+              <div class="mock-bar">
+                <span class="mock-title">SO-0142 · Buzzd</span>
+                <span class="mock-tag">₱6,010</span>
+              </div>
+              <div class="mock-steps">
+                <div class="mock-step done">
+                  <span class="mock-step-node">✓</span>
+                  <div class="mock-step-body"><b>Draft</b><i>Jul 10 · arrived from the portal</i></div>
+                </div>
+                <div class="mock-step done">
+                  <span class="mock-step-node">✓</span>
+                  <div class="mock-step-body"><b>Ordered</b><i>Jul 11 · stock reserved</i></div>
+                </div>
+                <div class="mock-step now">
+                  <span class="mock-step-node"></span>
+                  <div class="mock-step-body"><b>Delivered</b><i>Jul 15 · stock deducted</i></div>
+                </div>
+                <div class="mock-step-cta">Mark as Invoiced<i>Generates the invoice</i></div>
+                <div class="mock-step future">
+                  <span class="mock-step-node"></span>
+                  <div class="mock-step-body"><b>Paid</b><i>Records the sale & settles the balance</i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mode-slide">
+            <div class="mock-panel mock-light">
+              <div class="mock-bar">
+                <span class="mock-title">Consignment · Buzzd</span>
+                <span class="mock-tag">Sell-through 75%</span>
+              </div>
+              <div class="mock-ledger-row">
+                <div class="mock-portal-info">
+                  <div class="mock-portal-name">Choco Chunk Cookies</div>
+                  <div class="mock-portal-price">Delivered 24 · Sold 18 · On hand 6</div>
+                </div>
+                <span class="mock-shelf-chip">Reportable in 2d 4h</span>
+              </div>
+              <div class="mock-ledger-row">
+                <div class="mock-portal-info">
+                  <div class="mock-portal-name">Sea Salt Caramel</div>
+                  <div class="mock-portal-price">Delivered 18 · Sold 18 · On hand 0</div>
+                </div>
+                <span class="mock-shelf-chip ok">Sold out</span>
+              </div>
+              <div class="mock-ledger-row">
+                <div class="mock-portal-info">
+                  <div class="mock-portal-name">Matcha White Chip</div>
+                  <div class="mock-portal-price">Delivered 12 · Sold 7 · On hand 5</div>
+                </div>
+                <span class="mock-shelf-chip ok">Reportable now</span>
+              </div>
+              <div class="mock-portal-bar">
+                <span>Client reports sales from their portal</span>
+                <span class="mock-portal-btn ghost">View history</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -372,7 +527,7 @@
     <div class="showcase-text reveal">
       <span class="mode-badge">Production Mode</span>
       <h2>Built to run.<br>Tracked to the&nbsp;batch.</h2>
-      <p>Schedule multi-product production jobs for baking and prep. Assign your team, log waste, and track cost-per-unit — from planning through packing, with nothing slipping through.</p>
+      <p>Schedule multi-product production jobs for baking and prep. Assign your team, log waste, and track cost-per-unit, from planning through packing, with nothing slipping through.</p>
       <ul class="showcase-list">
         <li>Job board: Planned → In Progress → QC → Packed</li>
         <li>Batch tracking with waste & spoilage logs</li>
@@ -391,6 +546,10 @@
       </details>
     </div>
     <div class="showcase-visual reveal-left">
+      <div class="mode-slider" data-slider>
+        <div class="mode-slider-track">
+
+        <div class="mode-slide">
       <div class="mock-panel mock-dark">
         <div class="mock-bar mock-bar-dark">
           <span class="mock-title mock-title-light">Production Jobs</span>
@@ -398,21 +557,21 @@
         </div>
         <div class="mock-job-card">
           <div class="mock-job-info">
-            <div class="mock-job-name">Ube Cheesecake — Batch #12</div>
+            <div class="mock-job-name">Ube Cheesecake · Batch #12</div>
             <div class="mock-job-meta">36 pcs · Retail/Restock · 3 workers</div>
           </div>
           <span class="mock-pill mock-pill-inprog">In Progress</span>
         </div>
         <div class="mock-job-card">
           <div class="mock-job-info">
-            <div class="mock-job-name">Canelés — Client Order #08</div>
+            <div class="mock-job-name">Canelés · Client Order #08</div>
             <div class="mock-job-meta">60 pcs · Client Order · 2 workers</div>
           </div>
           <span class="mock-pill mock-pill-qc">QC</span>
         </div>
         <div class="mock-job-card">
           <div class="mock-job-info">
-            <div class="mock-job-name">Sourdough Loaves — Batch #09</div>
+            <div class="mock-job-name">Sourdough Loaves · Batch #09</div>
             <div class="mock-job-meta">24 pcs · Retail/Restock · 4 workers</div>
           </div>
           <span class="mock-pill mock-pill-planned">Planned</span>
@@ -428,6 +587,41 @@
           </div>
         </div>
       </div>
+        </div>
+
+        <div class="mode-slide">
+          <div class="mock-panel mock-dark">
+            <div class="mock-bar mock-bar-dark">
+              <span class="mock-title mock-title-light">Batch #12 · Ube Cheesecake</span>
+              <span class="mock-pill mock-pill-inprog">In Progress</span>
+            </div>
+            <div class="mock-lot-fields">
+              <div class="mock-field">
+                <span class="mock-field-label">Yield</span>
+                <span class="mock-field-val">36 pcs</span>
+              </div>
+              <div class="mock-field">
+                <span class="mock-field-label">Ingredients deducted</span>
+                <span class="mock-field-val">Ube halaya −4.5 kg</span>
+              </div>
+              <div class="mock-field">
+                <span class="mock-field-label">&nbsp;</span>
+                <span class="mock-field-val">Cream cheese −6.2 kg · Eggs −36</span>
+              </div>
+              <div class="mock-field">
+                <span class="mock-field-label">Cost per unit</span>
+                <span class="mock-field-val">$3.44</span>
+              </div>
+            </div>
+            <div class="mock-portal-bar mock-portal-bar-dark">
+              <span>Done → sellable stock</span>
+              <span class="mock-portal-btn">Transfer to Finished Goods</span>
+            </div>
+          </div>
+        </div>
+
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -439,7 +633,7 @@
     <div class="showcase-text reveal">
       <span class="mode-badge">Events Mode</span>
       <h2>Take your coffee<br>beyond the counter.</h2>
-      <p>Manage coffee cart gigs, weekend markets, and corporate events from lead to payout. Build packages, track your pipeline, and see profitability per event — all in one place.</p>
+      <p>Manage coffee cart gigs, weekend markets, and corporate events from lead to payout. Build packages, track your pipeline, and see profitability per event, all in one place.</p>
       <ul class="showcase-list">
         <li>Coffee cart, pop-up & corporate event management</li>
         <li>Lead pipeline: Inquiry → Quoted → Booked</li>
@@ -451,13 +645,17 @@
         <div class="mode-how-body">
         <ol class="mode-how-steps">
           <li><span class="how-num">01</span><div><strong>Log the inquiry</strong><p>Build a package with per-pax pricing in minutes.</p></div></li>
-          <li><span class="how-num">02</span><div><strong>Work the pipeline</strong><p>Inquiry → Quoted → Booked — nothing forgotten in a chat thread.</p></div></li>
-          <li><span class="how-num">03</span><div><strong>Close the books</strong><p>Expenses in, payout in — profit per event computed for you.</p></div></li>
+          <li><span class="how-num">02</span><div><strong>Work the pipeline</strong><p>Inquiry → Quoted → Booked. Nothing forgotten in a chat thread.</p></div></li>
+          <li><span class="how-num">03</span><div><strong>Close the books</strong><p>Expenses in, payout in. Profit per event computed for you.</p></div></li>
         </ol>
         </div>
       </details>
     </div>
     <div class="showcase-visual reveal-right">
+      <div class="mode-slider" data-slider>
+        <div class="mode-slider-track">
+
+        <div class="mode-slide">
       <div class="mock-panel mock-light">
         <div class="mock-bar">
           <span class="mock-title">Events & Gigs</span>
@@ -480,7 +678,7 @@
             <span class="mock-event-day">20</span>
           </div>
           <div class="mock-event-info">
-            <div class="mock-event-name">Weekend Market — BGC</div>
+            <div class="mock-event-name">Weekend Market · BGC</div>
             <div class="mock-event-meta">Market · Cart setup · $12,000</div>
           </div>
           <span class="mock-pill mock-pill-ok">Booked</span>
@@ -491,10 +689,31 @@
             <span class="mock-event-day">5</span>
           </div>
           <div class="mock-event-info">
-            <div class="mock-event-name">Private Wedding — Tagaytay</div>
+            <div class="mock-event-name">Private Wedding · Tagaytay</div>
             <div class="mock-event-meta">Private · 80 pax · Negotiating</div>
           </div>
           <span class="mock-pill mock-pill-warn">Quoted</span>
+        </div>
+      </div>
+        </div>
+
+        <div class="mode-slide">
+          <div class="mock-panel mock-light">
+            <div class="mock-bar">
+              <span class="mock-title">Event P&L · SM City Pop-up</span>
+              <span class="mock-pill mock-pill-ok">Closed</span>
+            </div>
+            <div class="mock-pnl-row"><span>Package revenue</span><b>$85,000</b></div>
+            <div class="mock-pnl-row"><span>Staff & logistics</span><b class="neg">−$21,400</b></div>
+            <div class="mock-pnl-row"><span>Cups, stock & consumables</span><b class="neg">−$9,800</b></div>
+            <div class="mock-pnl-row total"><span>Event profit</span><b>$53,800</b></div>
+            <div class="mock-pnl-margin">
+              <div class="mock-pnl-margin-bar"><i style="width:63%"></i></div>
+              <span>63% margin</span>
+            </div>
+          </div>
+        </div>
+
         </div>
       </div>
     </div>
@@ -508,7 +727,7 @@
     <div class="showcase-text reveal">
       <span class="mode-badge">Origin Mode</span>
       <h2>Traceability that<br>tells a&nbsp;story.</h2>
-      <p>Track every Coffee, Cacao, and Tea lot from farm to finished batch — origin, farmer, process, and harvest logged in full. Build the wholesale story your B2B buyers want to see.</p>
+      <p>Track every Coffee, Cacao, and Tea lot from farm to finished batch: origin, farmer, process, and harvest logged in full. Build the wholesale story your B2B buyers want to see.</p>
       <ul class="showcase-list">
         <li>Coffee, Cacao & Tea lot management</li>
         <li>Full traceability: farm → batch → wholesale</li>
@@ -519,7 +738,7 @@
         <summary class="mode-how-toggle"><span class="mode-how-dot" aria-hidden="true"></span>How it works</summary>
         <div class="mode-how-body">
         <ol class="mode-how-steps">
-          <li><span class="how-num">01</span><div><strong>Intake the lot</strong><p>Origin, farmer, process, harvest — or scan a QR and it autofills.</p></div></li>
+          <li><span class="how-num">01</span><div><strong>Intake the lot</strong><p>Origin, farmer, process, harvest. Or scan a QR and it autofills.</p></div></li>
           <li><span class="how-num">02</span><div><strong>Process into batches</strong><p>Traceability carries through on its own, lot to batch.</p></div></li>
           <li><span class="how-num">03</span><div><strong>Sell the story</strong><p>Wholesale orders ship with the full farm-to-batch record.</p></div></li>
         </ol>
@@ -527,6 +746,10 @@
       </details>
     </div>
     <div class="showcase-visual reveal-left">
+      <div class="mode-slider" data-slider>
+        <div class="mode-slider-track">
+
+        <div class="mode-slide">
       <div class="mock-panel mock-dark">
         <div class="mock-bar mock-bar-dark">
           <span class="mock-title mock-title-light">LOT-2026-041</span>
@@ -578,6 +801,37 @@
           <span class="mock-qr-label">Scan to trace</span>
         </div>
       </div>
+        </div>
+
+        <div class="mode-slide">
+          <div class="mock-panel mock-dark">
+            <div class="mock-bar mock-bar-dark">
+              <span class="mock-title mock-title-light">Trace · LOT-2026-041</span>
+              <span class="mock-tag mock-tag-dark">Farm → batch</span>
+            </div>
+            <div class="mock-trace">
+              <div class="mock-trace-step">
+                <span class="mock-trace-dot"></span>
+                <div class="mock-trace-body"><b>Farm intake</b><i>Jan 12 · Sagada, Mt. Province · Julio Fang-asan</i></div>
+              </div>
+              <div class="mock-trace-step">
+                <span class="mock-trace-dot"></span>
+                <div class="mock-trace-body"><b>Roasted · Batch #B-88</b><i>Feb 2 · 12.4 kg · light roast</i></div>
+              </div>
+              <div class="mock-trace-step">
+                <span class="mock-trace-dot now"></span>
+                <div class="mock-trace-body"><b>Wholesale order #WO-19</b><i>Feb 6 · Kalsada Coffee Club · 8 kg</i></div>
+              </div>
+            </div>
+            <div class="mock-portal-bar mock-portal-bar-dark">
+              <span>The full record ships with the order</span>
+              <span class="mock-portal-btn">Print trace card</span>
+            </div>
+          </div>
+        </div>
+
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -589,25 +843,29 @@
     <div class="showcase-text reveal">
       <span class="mode-badge">Treasury</span>
       <h2>Every transaction,<br>accounted for.</h2>
-      <p>A manual cash and bank tracker, completely disconnected from inventory and sales. Add money in, deduct money out, and always know exactly what's in the till and the bank — no reconciliation, no guesswork.</p>
+      <p>A manual cash and bank tracker, completely disconnected from inventory and sales. Add money in, deduct money out, and always know exactly what's in the till and the bank. No reconciliation, no guesswork.</p>
       <ul class="showcase-list">
         <li>Cash & bank accounts in one place</li>
         <li>Add / Deduct log with a reason for every entry</li>
-        <li>Balances calculated live — nothing to reconcile</li>
+        <li>Balances calculated live, nothing to reconcile</li>
         <li>Fully manual, fully disconnected from inventory</li>
       </ul>
       <details class="mode-how">
         <summary class="mode-how-toggle"><span class="mode-how-dot" aria-hidden="true"></span>How it works</summary>
         <div class="mode-how-body">
         <ol class="mode-how-steps">
-          <li><span class="how-num">01</span><div><strong>Add your accounts</strong><p>Cash, GCash, bank — whatever you actually use.</p></div></li>
-          <li><span class="how-num">02</span><div><strong>Log every add or deduct</strong><p>Amount, account, and a reason — done in seconds.</p></div></li>
+          <li><span class="how-num">01</span><div><strong>Add your accounts</strong><p>Cash, GCash, bank. Whatever you actually use.</p></div></li>
+          <li><span class="how-num">02</span><div><strong>Log every add or deduct</strong><p>Amount, account, and a reason, done in seconds.</p></div></li>
           <li><span class="how-num">03</span><div><strong>Always know your position</strong><p>Balances update themselves. No manual math, ever.</p></div></li>
         </ol>
         </div>
       </details>
     </div>
     <div class="showcase-visual reveal-right">
+      <div class="mode-slider" data-slider>
+        <div class="mode-slider-track">
+
+        <div class="mode-slide">
       <div class="mock-panel mock-dark">
         <div class="mock-bar mock-bar-dark">
           <span class="mock-title mock-title-light">Treasury</span>
@@ -622,25 +880,60 @@
         <div class="mock-txn-list">
           <div class="mock-txn-row">
             <div>
-              <div class="mock-txn-desc">Rent — Maribank</div>
+              <div class="mock-txn-desc">Rent · Maribank</div>
               <div class="mock-txn-date">Jul 2, 2026</div>
             </div>
             <span class="mock-txn-amt deduct">−$250.00</span>
           </div>
           <div class="mock-txn-row">
             <div>
-              <div class="mock-txn-desc">Owner Deposit — Cash</div>
+              <div class="mock-txn-desc">Owner Deposit · Cash</div>
               <div class="mock-txn-date">Jul 1, 2026</div>
             </div>
             <span class="mock-txn-amt add">+$3,000.00</span>
           </div>
           <div class="mock-txn-row">
             <div>
-              <div class="mock-txn-desc">Sales Deposit — GCash</div>
+              <div class="mock-txn-desc">Sales Deposit · GCash</div>
               <div class="mock-txn-date">Jun 30, 2026</div>
             </div>
             <span class="mock-txn-amt add">+$400.00</span>
           </div>
+        </div>
+      </div>
+        </div>
+
+        <div class="mode-slide">
+          <div class="mock-panel mock-dark">
+            <div class="mock-bar mock-bar-dark">
+              <span class="mock-title mock-title-light">Accounts</span>
+              <span class="mock-tag mock-tag-dark">Live balances</span>
+            </div>
+            <div class="mock-lot-fields">
+              <div class="mock-field">
+                <span class="mock-field-label">Cash on hand</span>
+                <span class="mock-field-val">$2,340.00</span>
+              </div>
+              <div class="mock-field">
+                <span class="mock-field-label">GCash</span>
+                <span class="mock-field-val">$1,820.00</span>
+              </div>
+              <div class="mock-field">
+                <span class="mock-field-label">Maribank</span>
+                <span class="mock-field-val">$3,000.00</span>
+              </div>
+              <div class="mock-field">
+                <span class="mock-field-label">Total position</span>
+                <span class="mock-field-val" style="font-size:1.05rem;font-weight:800;color:#fff;">$7,160.00</span>
+              </div>
+            </div>
+            <div class="mock-portal-bar mock-portal-bar-dark">
+              <span>Nothing to reconcile</span>
+              <span class="mock-portal-btn">Add / Deduct</span>
+            </div>
+          </div>
+        </div>
+
         </div>
       </div>
     </div>
@@ -655,7 +948,7 @@
     <div class="section-label">
       <span class="eyebrow">Built-in Tools</span>
       <h2 class="section-heading">Beyond the&nbsp;daily grind.</h2>
-      <p class="section-subhead">Extra tools that live inside Caflat.CORE — no integrations, no add-ons required. All included in every plan.</p>
+      <p class="section-subhead">Extra tools that live inside Caflat.CORE. No integrations, no add-ons required. All included in every plan.</p>
     </div>
 
     <div class="extras-grid stagger">
@@ -718,7 +1011,7 @@
         <span class="extra-num">04</span>
         <div class="extra-body">
           <h3>Cost Lab</h3>
-          <p>True cost, every time. Break down ingredients, labor, packaging, and overhead — live margin analysis so you price with confidence, not guesswork.</p>
+          <p>True cost, every time. Break down ingredients, labor, packaging, and overhead. Live margin analysis so you price with confidence, not guesswork.</p>
         </div>
       </div>
 
@@ -737,7 +1030,7 @@
     <div class="faq-list">
       <details class="faq-item">
         <summary class="faq-question">Does it work offline?</summary>
-        <p class="faq-answer">Yes — 100% offline-first. No internet connection is required to run daily operations. Data stays on your device and syncs when you're back online (Cloud plan).</p>
+        <p class="faq-answer">Yes, 100% offline-first. No internet connection is required to run daily operations. Data stays on your device and syncs when you're back online (Cloud plan).</p>
       </details>
       <details class="faq-item">
         <summary class="faq-question">What devices does it run on?</summary>
@@ -745,15 +1038,15 @@
       </details>
       <details class="faq-item">
         <summary class="faq-question">Is there a free trial?</summary>
-        <p class="faq-answer">Yes — the Free plan is permanently free, no credit card required. It includes core POS and inventory so you can run real operations before committing to a paid plan.</p>
+        <p class="faq-answer">Yes, two ways. Every new account gets a 90-day free trial of PRO with all modules unlocked, no credit card required. And when the trial ends there is also a Free plan that stays free forever, with core POS and inventory, so you can keep running real operations either way.</p>
       </details>
       <details class="faq-item">
         <summary class="faq-question">Do I need to install anything?</summary>
-        <p class="faq-answer">No installation needed. Open Caflat.CORE in a browser and you're running. Works as a PWA — you can optionally add it to your home screen for an app-like experience.</p>
+        <p class="faq-answer">No installation needed. Open Caflat.CORE in a browser and you're running. Works as a PWA, so you can optionally add it to your home screen for an app-like experience.</p>
       </details>
       <details class="faq-item">
         <summary class="faq-question">What happens to my data if I cancel?</summary>
-        <p class="faq-answer">Your data is yours. You can export everything — products, transactions, inventory — anytime before you leave. We don't hold your data hostage.</p>
+        <p class="faq-answer">Your data is yours. You can export everything (products, transactions, inventory) anytime before you leave. We don't hold your data hostage.</p>
       </details>
       <details class="faq-item">
         <summary class="faq-question">Can I migrate from my existing system?</summary>
@@ -777,7 +1070,7 @@
       <div class="pricing-card">
         <div class="pricing-top">
           <div class="pricing-tier">Free</div>
-          <p class="pricing-desc">Explore the essentials. No credit card, no commitment — just the core tools to get started.</p>
+          <p class="pricing-desc">Explore the essentials. No credit card, no commitment, just the core tools to get started.</p>
         </div>
         <ul class="pricing-features">
           <li>Basic POS & Inventory</li>
@@ -792,7 +1085,8 @@
       <div class="pricing-card">
         <div class="pricing-top">
           <div class="pricing-tier">Pro</div>
-          <p class="pricing-desc">For independent cafés that need a complete operational backbone — all modules, offline-first.</p>
+          <p class="pricing-desc">For independent cafés that need a complete operational backbone: all modules, offline-first.</p>
+          <div class="pricing-trial">Free for your first 90 days</div>
         </div>
         <ul class="pricing-features">
           <li>All 12+ modules</li>
@@ -927,6 +1221,6 @@
   </div>
 </div>
 
-<script src="./js/main.js?v=20260717a"></script>
+<script src="./js/main.js?v=20260718a"></script>
 </body>
 </html>
