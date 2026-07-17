@@ -262,32 +262,83 @@ document.querySelectorAll('[data-target]').forEach(el => statsObserver.observe(e
     };
     const stopAuto = () => { if (auto) { clearInterval(auto); auto = null; } };
 
-    /* Pointer drag with snap; vertical scrolling stays free (pan-y) */
-    let startX = null, delta = 0;
-    track.addEventListener('pointerdown', e => {
+    /* Drag: 1:1 rAF-batched finger follow with a direction lock,
+       rubber-band past the ends, and velocity-aware release. Once a
+       gesture locks horizontal, a non-passive touchmove preventDefault
+       keeps iOS Safari from stealing it mid-drag (which was cancelling
+       swipes, especially back-swipes). Vertical gestures are released
+       to the page untouched. */
+    let startX = null, startY = 0, delta = 0, lock = null, raf = null;
+    let lastX = 0, lastT = 0, vel = 0, justDragged = false;
+
+    const render = () => {
+      raf = null;
+      let d = delta;
+      if ((index === 0 && d > 0) || (index === slides.length - 1 && d < 0)) d *= .35;
+      track.style.transform = `translateX(${-slides[index].offsetLeft + d}px)`;
+    };
+    slider.addEventListener('pointerdown', e => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      startX = e.clientX;
-      delta = 0;
-      track.classList.add('dragging');
-      track.setPointerCapture(e.pointerId);
+      startX = e.clientX; startY = e.clientY;
+      lastX = e.clientX; lastT = performance.now();
+      delta = 0; vel = 0; lock = null; justDragged = false;
+      slider.setPointerCapture(e.pointerId);
     });
-    track.addEventListener('pointermove', e => {
+    slider.addEventListener('pointermove', e => {
       if (startX === null) return;
-      delta = e.clientX - startX;
-      track.style.transform = `translateX(${-slides[index].offsetLeft + delta}px)`;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      if (!lock) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        lock = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+        if (lock === 'x') {
+          track.classList.add('dragging');
+          slider.classList.add('is-dragging');
+        }
+      }
+      if (lock !== 'x') return;
+      justDragged = true;
+      delta = dx;
+      const now = performance.now();
+      if (now - lastT > 12) {
+        vel = (e.clientX - lastX) / (now - lastT);
+        lastX = e.clientX; lastT = now;
+      }
+      if (!raf) raf = requestAnimationFrame(render);
     });
-    const endDrag = () => {
+    const release = () => {
       if (startX === null) return;
+      const wasX = lock === 'x';
+      startX = null; lock = null;
       track.classList.remove('dragging');
-      const moved = Math.abs(delta) > 55;
-      if (moved) userMove(index + (delta < 0 ? 1 : -1));
-      else goTo(index);
-      if (moved || Math.abs(delta) > 6) { interacted = true; stopAuto(); }
-      startX = null;
+      slider.classList.remove('is-dragging');
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      if (!wasX) return;
+      const w = slides[0].offsetWidth;
+      const past = Math.abs(delta) > w * .18;
+      const flick = Math.abs(vel) > .4 && Math.abs(delta) > 24;
+      // Settle time scales with how far the slide still has to travel
+      const remaining = past || flick ? 1 - Math.min(1, Math.abs(delta) / w) : Math.abs(delta) / w;
+      track.style.transitionDuration = `${Math.max(.28, .55 * Math.max(.4, remaining)).toFixed(2)}s`;
+      if (past || flick) {
+        const dir = past ? (delta < 0 ? 1 : -1) : (vel < 0 ? 1 : -1);
+        userMove(index + dir);
+      } else {
+        goTo(index);
+      }
+      if (Math.abs(delta) > 6) { interacted = true; stopAuto(); }
       delta = 0;
     };
-    track.addEventListener('pointerup', endDrag);
-    track.addEventListener('pointercancel', endDrag);
+    slider.addEventListener('pointerup', release);
+    slider.addEventListener('pointercancel', release);
+    track.addEventListener('transitionend', () => { track.style.transitionDuration = ''; });
+    /* While locked horizontal, keep iOS from taking the gesture */
+    slider.addEventListener('touchmove', e => {
+      if (lock === 'x') e.preventDefault();
+    }, { passive: false });
+    /* A real drag must not fire the click that trails it */
+    slider.addEventListener('click', e => {
+      if (justDragged) { e.preventDefault(); e.stopPropagation(); justDragged = false; }
+    }, true);
 
     /* Auto-advance: only until first interaction, paused on hover,
        skipped entirely under reduced motion or hidden tabs. */

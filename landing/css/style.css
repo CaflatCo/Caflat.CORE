@@ -440,6 +440,46 @@ body.has-promo .atelier-sticky { padding-top: calc(clamp(92px, 12vh, 140px) + 44
   filter: blur(4px);
 }
 
+/* Champagne aura: a soft bloom + hairline rings behind the tablet,
+   blooming in (via --csp) as the room dims so the settled dark world
+   isn't a plain void. Sits under .cscroll-persp (z 3). */
+.atelier-aura {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: clamp(0, calc((var(--csp, 0) - .3) * 1.7), 1);
+}
+.aura-bloom {
+  position: absolute;
+  left: 50%; top: 52%;
+  width: min(1500px, 130vw);
+  aspect-ratio: 1.6;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse 50% 50% at center,
+    rgba(216,189,147,.15) 0%,
+    rgba(216,189,147,.05) 45%,
+    transparent 72%);
+  animation: aura-breathe 10s ease-in-out infinite;
+}
+@keyframes aura-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -50%) scale(1.045); }
+}
+.aura-ring {
+  position: absolute;
+  left: 50%; top: 52%;
+  width: min(1060px, 92vw);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(216,189,147,.14);
+  border-radius: 50%;
+}
+.aura-ring-2 {
+  width: min(1420px, 120vw);
+  border-color: rgba(216,189,147,.07);
+}
+
 /* ── ContainerScroll stage ── */
 .cscroll-persp {
   position: relative;
@@ -567,15 +607,15 @@ body.has-promo .atelier-sticky { padding-top: calc(clamp(92px, 12vh, 140px) + 44
   aspect-ratio: 4 / 3;
   width: auto;
   max-width: 100%;
-  height: clamp(380px, 58vh, 600px);
+  height: clamp(420px, 68vh, 720px);
   max-height: calc((100vw - 56px) * .75);
-  margin-top: clamp(24px, 4vh, 44px);
+  margin-top: clamp(20px, 3vh, 36px);
   flex-shrink: 0;
   background: linear-gradient(180deg, #201a15 0%, #171310 55%, #131009 100%);
   border: 1px solid rgba(216,189,147,.24);
   border-radius: 30px;
   padding: clamp(9px, 1.3vw, 14px);
-  transform: translateY(calc(var(--csp, 0) * -1 * min(38vh, 340px)))
+  transform: translateY(calc(var(--csp, 0) * -1 * min(45vh, 400px)))
              rotateX(calc((1 - var(--csp, 0)) * 20deg))
              scale(calc(1.05 - var(--csp, 0) * .05));
   will-change: transform;
@@ -617,7 +657,7 @@ body.has-promo .atelier-sticky { padding-top: calc(clamp(92px, 12vh, 140px) + 44
   text-transform: uppercase;
   color: var(--champagne);
   opacity: clamp(0, calc((var(--csp, 0) - 0.55) * 2.2), 1);
-  transform: translateY(calc(var(--csp, 0) * -1 * min(38vh, 340px)));
+  transform: translateY(calc(var(--csp, 0) * -1 * min(45vh, 400px)));
 }
 
 /* ── The mockup inside the glass. Three screens, one visible at a time;
@@ -774,9 +814,10 @@ body.has-promo .atelier-sticky { padding-top: calc(clamp(92px, 12vh, 140px) + 44
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  align-content: start;
+  align-content: stretch;
   min-height: 0;
 }
+.mk-tile { min-height: 0; justify-content: center; }
 .mk-tile {
   background: rgba(255,255,255,.035);
   border: 1px solid rgba(255,255,255,.05);
@@ -868,6 +909,8 @@ body.has-promo .atelier-sticky { padding-top: calc(clamp(92px, 12vh, 140px) + 44
   overflow: hidden;
 }
 .mk-order {
+  flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1491,13 +1534,16 @@ body.has-promo .atelier-sticky { padding-top: calc(clamp(92px, 12vh, 140px) + 44
   overflow: hidden;
   padding: 20px 20px 48px;
   margin: -20px -20px -48px;
+  touch-action: pan-y;
+  overscroll-behavior-x: contain;
 }
+.mode-slider.is-dragging { user-select: none; -webkit-user-select: none; }
 .mode-slider-track {
   display: flex;
   align-items: stretch;
   gap: 48px;
   transition: transform .55s cubic-bezier(.16,1,.3,1);
-  touch-action: pan-y;
+  will-change: transform;
   cursor: grab;
 }
 .mode-slider-track.dragging { transition: none; cursor: grabbing; }
@@ -1710,6 +1756,29 @@ body.has-promo .atelier-sticky { padding-top: calc(clamp(92px, 12vh, 140px) + 44
 .mock-trace-body b { display: block; font-size: .76rem; font-weight: 700; color: rgba(244,242,238,.85); }
 .mock-trace-body i { font-style: normal; font-size: .64rem; color: var(--text-muted); }
 
+/* Larger hero frames deserve slightly larger type inside the glass */
+@media (min-width: 1200px) {
+  .mk-hello        { font-size: 1.04rem; }
+  .mk-date         { font-size: .72rem; }
+  .mk-split        { font-size: .68rem; }
+  .mk-kpi-label    { font-size: .62rem; }
+  .mk-kpi-val      { font-size: 1.34rem; }
+  .mk-kpi-sub      { font-size: .66rem; }
+  .mk-panel-title  { font-size: .62rem; }
+  .mk-act          { font-size: .74rem; }
+  .mk-tp           { font-size: .74rem; }
+  .mk-tile-name    { font-size: .74rem; }
+  .mk-tile-price   { font-size: .84rem; }
+  .mk-cart-line    { font-size: .74rem; }
+  .mk-cart-total   { font-size: .8rem; }
+  .mk-order-client { font-size: .8rem; }
+  .mk-order-id     { font-size: .62rem; }
+  .mk-order-amt    { font-size: .8rem; }
+  .mk-shelf        { font-size: .62rem; }
+  .mk-badge        { font-size: .56rem; }
+  .mk-pipe-step    { font-size: .58rem; }
+}
+
 /* ─── Extra Features (Built-in Tools) ────────────────────────── */
 .extras-grid {
   display: grid;
@@ -1850,10 +1919,6 @@ body.has-promo .atelier-sticky { padding-top: calc(clamp(92px, 12vh, 140px) + 44
   text-transform: uppercase;
   color: var(--text-white);
   margin-bottom: 16px;
-}
-.pricing-card.featured .pricing-tier {
-  border-color: rgba(200,163,117,.45);
-  color: var(--coffee);
 }
 
 .pricing-desc { font-size: .82rem; color: var(--text-dim); line-height: 1.68; }
@@ -2146,7 +2211,7 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   .mk-screen, .mk-screen.on { transition: none; }
   .cscroll-header { transform: none; opacity: 1; }
   .cscroll-card { animation: none; opacity: 1; translate: none; transform: none; }
-  .atelier-veil, .dust-layer { display: none; }
+  .atelier-veil, .dust-layer, .atelier-aura { display: none; }
   .cscroll-caption { opacity: 1; color: var(--at-ink-dim); transform: none; }
   .mk-line { animation: none; stroke-dashoffset: 0; }
   .mk-area, .mk-line-tip { animation: none; opacity: 1; }
