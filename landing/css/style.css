@@ -2247,14 +2247,19 @@ textarea.form-input { resize: vertical; min-height: 100px; }
    isMobile branch at the same 768px breakpoint. */
 @media (max-width: 768px) {
   .hero.atelier { height: 185vh; }
+  .cscroll-persp { padding: 0 18px; }
   .cscroll-card {
-    /* Width-driven on phones so the 4:3 iPad ratio holds at any width. */
+    /* Width-driven on phones so the 4:3 iPad ratio holds at any width.
+       Scale range raised close to desktop's near-full presence (was
+       .7→.9, read as small/timid on an actual phone) so the frame
+       reads as a real hero image from the first frame, while still
+       keeping a touch of build-in motion as it settles. */
     width: 100%;
     height: auto;
     max-height: none;
     transform: translateY(calc(var(--csp, 0) * -1 * min(30vh, 250px)))
                rotateX(calc((1 - var(--csp, 0)) * 20deg))
-               scale(calc(.7 + var(--csp, 0) * .2));
+               scale(calc(.88 + var(--csp, 0) * .12));
   }
   .cscroll-caption { transform: translateY(calc(var(--csp, 0) * -1 * min(30vh, 250px))); }
   /* The rail stays: it holds the working tabs. Slimmer to save width. */
