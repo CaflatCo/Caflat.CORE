@@ -19,8 +19,8 @@
   <meta property="og:image:height" content="630">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/style.css?v=20260710b">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,900&family=Fraunces:ital,opsz,wght@0,9..144,380;0,9..144,450;0,9..144,530;1,9..144,420;1,9..144,530&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css?v=20260717a">
 </head>
 <body>
 
@@ -62,141 +62,119 @@
   <a href="#access"   class="nav-drawer-link nav-drawer-cta">Request Early Access</a>
 </div>
 
-<!-- ─── Hero ─────────────────────────────────────────────────── -->
-<section class="hero grain">
-  <div class="hero-grid" aria-hidden="true"></div>
+<!-- ─── Hero — "The Atelier" ──────────────────────────────────────
+     Cream editorial opening; as you scroll, the room dims to espresso
+     while the device frame tilts up from rotateX(20°) and settles flat
+     (vanilla recreation of the ContainerScroll pattern — progress is
+     written to --csp by js/main.js, CSS owns every transform). -->
+<section class="hero atelier grain" id="atelierHero">
+  <div class="atelier-sticky">
 
-  <!-- Steam rising off the halo's upper rim -->
-  <div class="hero-steam" aria-hidden="true">
-    <svg class="steam-wisp steam-wisp-1" viewBox="0 0 60 220" fill="none">
-      <path d="M30 210 C14 178 46 150 30 118 C16 90 44 62 30 30" stroke="currentColor" stroke-width="10" stroke-linecap="round"/>
-    </svg>
-    <svg class="steam-wisp steam-wisp-2" viewBox="0 0 60 220" fill="none">
-      <path d="M30 210 C44 176 12 148 28 116 C42 88 16 58 30 26" stroke="currentColor" stroke-width="9" stroke-linecap="round"/>
-    </svg>
-    <svg class="steam-wisp steam-wisp-3" viewBox="0 0 60 220" fill="none">
-      <path d="M30 212 C18 182 42 154 28 122 C16 94 42 64 30 34" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
-    </svg>
-  </div>
+    <!-- Espresso veil — crossfades the cream room to the dark world -->
+    <div class="atelier-veil" aria-hidden="true"></div>
 
-  <div class="container hero-content reveal">
-    <!-- Eclipse halo — glowing ring hovering behind the headline -->
-    <div class="hero-halo" aria-hidden="true">
-      <div class="halo-bloom"></div>
-      <div class="halo-corona"></div>
-      <div class="halo-glint"></div>
-      <div class="halo-disc"></div>
-      <div class="halo-rim"></div>
+    <!-- Champagne dust — three bokeh depth layers, pointer + scroll parallax -->
+    <div class="atelier-dust" aria-hidden="true">
+      <div class="dust-layer dust-far"></div>
+      <div class="dust-layer dust-mid"></div>
+      <div class="dust-layer dust-near"></div>
     </div>
 
-    <h1 class="hero-title">
-      <span class="ht-w" style="--wi:0">The</span>
-      <span class="ht-w" style="--wi:1">quiet</span>
-      <span class="ht-w" style="--wi:2">power</span><br>
-      <span class="ht-w" style="--wi:3">behind</span>
-      <span class="ht-w" style="--wi:4"><span class="hero-warm">every great café.</span></span>
-    </h1>
+    <div class="cscroll-persp">
 
-    <p class="hero-body">
-      POS, inventory, production, and B2B supply — one calm, offline-first
-      system that never blinks during the morning rush.
-    </p>
+      <header class="cscroll-header">
+        <div class="atelier-eyebrow">
+          <span class="ae-rule" aria-hidden="true"></span>
+          Operations system for specialty coffee
+          <span class="ae-rule" aria-hidden="true"></span>
+        </div>
+        <h1 class="atelier-title">
+          <span class="at-line"><span class="at-line-inner">Run your café</span></span>
+          <span class="at-line"><span class="at-line-inner">like a <em class="at-accent">maison</em>.</span></span>
+        </h1>
+        <p class="atelier-body">
+          POS, inventory, production, and B2B supply — one calm,
+          offline-first system, composed for the morning rush.
+        </p>
+        <div class="atelier-actions">
+          <a href="#access" class="at-btn-primary">Request Early Access<span class="at-btn-arrow" aria-hidden="true">→</span></a>
+          <a href="#features" class="at-btn-ghost">Explore the system</a>
+        </div>
+      </header>
 
-    <div class="hero-actions">
-      <a href="#access" class="btn-hero-primary">Request Early Access</a>
-      <a href="#features" class="btn-hero-ghost">See what's inside</a>
-    </div>
-
-    <!-- App screenshot fan — POS / Dashboard / Reports -->
-    <div class="hero-card-fan" aria-hidden="true">
-
-      <!-- Card 1: POS -->
-      <div class="fan-card fan-card-left">
-        <div class="fan-topbar"><span class="fan-logo">Caflat.CORE</span><span class="fan-screen-label">POS</span></div>
-        <div class="fan-body fan-pos">
-          <div class="fan-product-grid">
-            <div class="fan-product"><div class="fan-product-name">Americano</div><div class="fan-product-price">$120</div></div>
-            <div class="fan-product"><div class="fan-product-name">Flat White</div><div class="fan-product-price">$155</div></div>
-            <div class="fan-product"><div class="fan-product-name">Matcha Latte</div><div class="fan-product-price">$165</div></div>
-            <div class="fan-product"><div class="fan-product-name">Cold Brew</div><div class="fan-product-price">$175</div></div>
-            <div class="fan-product"><div class="fan-product-name">Espresso</div><div class="fan-product-price">$100</div></div>
-            <div class="fan-product"><div class="fan-product-name">Cappuccino</div><div class="fan-product-price">$145</div></div>
+      <!-- The device frame — tilts from 20° to flat as --csp goes 0 → 1 -->
+      <div class="cscroll-card" aria-hidden="true">
+        <div class="cscroll-screen">
+          <div class="mk-rail">
+            <div class="mk-rail-dot"></div>
+            <svg class="mk-glyph on" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+            <svg class="mk-glyph" viewBox="0 0 24 24"><path d="M4 19V10M10 19V5M16 19v-8M22 19H2" stroke-width="2" stroke-linecap="round" fill="none" stroke="currentColor"/></svg>
+            <svg class="mk-glyph" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg class="mk-glyph" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
           </div>
-          <div class="fan-cart">
-            <div class="fan-cart-title">Order #42</div>
-            <div class="fan-cart-item"><span>Flat White ×2</span><span>$310</span></div>
-            <div class="fan-cart-item"><span>Matcha Latte</span><span>$165</span></div>
-            <div class="fan-cart-item"><span>Cold Brew</span><span>$175</span></div>
-            <div class="fan-cart-total"><span>Total</span><span>$650</span></div>
-            <div class="fan-cart-btn">Checkout</div>
+          <div class="mk-main">
+            <div class="mk-topbar">
+              <div>
+                <div class="mk-hello">Good morning, Caflat Atelier</div>
+                <div class="mk-date">Thursday · 7:42 AM</div>
+              </div>
+              <div class="mk-live"><span class="mk-live-dot"></span>Live</div>
+            </div>
+            <div class="mk-kpis">
+              <div class="mk-kpi">
+                <div class="mk-kpi-label">Revenue today</div>
+                <div class="mk-kpi-val">₱<span class="mk-count" data-count="48250">0</span></div>
+                <div class="mk-kpi-sub up">▲ 12% vs last Thu</div>
+              </div>
+              <div class="mk-kpi">
+                <div class="mk-kpi-label">Orders</div>
+                <div class="mk-kpi-val"><span class="mk-count" data-count="132">0</span></div>
+                <div class="mk-kpi-sub">9 open tickets</div>
+              </div>
+              <div class="mk-kpi">
+                <div class="mk-kpi-label">Sell-through</div>
+                <div class="mk-kpi-val"><span class="mk-count" data-count="94">0</span>%</div>
+                <div class="mk-kpi-sub up">Croissants lead</div>
+              </div>
+              <div class="mk-kpi">
+                <div class="mk-kpi-label">Low stock</div>
+                <div class="mk-kpi-val warn">3</div>
+                <div class="mk-kpi-sub">Oat milk · 2 more</div>
+              </div>
+            </div>
+            <div class="mk-panels">
+              <div class="mk-chart-panel">
+                <div class="mk-panel-title">Revenue — this week</div>
+                <svg class="mk-chart" viewBox="0 0 560 170" preserveAspectRatio="none" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="mkFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"  stop-color="rgba(216,189,147,.34)"/>
+                      <stop offset="100%" stop-color="rgba(216,189,147,0)"/>
+                    </linearGradient>
+                  </defs>
+                  <path class="mk-area" d="M0,140 C60,132 90,110 140,104 C190,98 210,118 260,96 C310,74 330,84 380,62 C430,40 460,54 510,34 L560,26 L560,170 L0,170 Z" fill="url(#mkFill)"/>
+                  <path class="mk-line" d="M0,140 C60,132 90,110 140,104 C190,98 210,118 260,96 C310,74 330,84 380,62 C430,40 460,54 510,34 L560,26" fill="none"/>
+                  <circle class="mk-line-tip" cx="560" cy="26" r="4"/>
+                </svg>
+                <div class="mk-chart-days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+              </div>
+              <div class="mk-side">
+                <div class="mk-panel-title">Activity</div>
+                <div class="mk-act"><span class="mk-dot ok"></span><span class="mk-act-txt">Order #131 — ₱650</span><span class="mk-act-time">2m</span></div>
+                <div class="mk-act"><span class="mk-dot ok"></span><span class="mk-act-txt">Restock confirmed — Buzzd</span><span class="mk-act-time">11m</span></div>
+                <div class="mk-act"><span class="mk-dot warn"></span><span class="mk-act-txt">Oat milk low — 2L left</span><span class="mk-act-time">24m</span></div>
+                <div class="mk-act"><span class="mk-dot ok"></span><span class="mk-act-txt">Batch #18 → Finished goods</span><span class="mk-act-time">40m</span></div>
+                <div class="mk-panel-title mk-tp-title">Top products</div>
+                <div class="mk-tp"><span>Flat White</span><i></i><span>142</span></div>
+                <div class="mk-tp"><span>Croissant</span><i></i><span>118</span></div>
+                <div class="mk-tp"><span>Cold Brew</span><i></i><span>97</span></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Card 2: Dashboard (center, front) -->
-      <div class="fan-card fan-card-center">
-        <div class="fan-topbar"><span class="fan-logo">Caflat.CORE</span><span class="fan-screen-label">Dashboard</span></div>
-        <div class="fan-body fan-dashboard">
-          <div class="fan-kpi-row">
-            <div class="fan-kpi"><div class="fan-kpi-val">$14,250</div><div class="fan-kpi-label">Revenue Today</div></div>
-            <div class="fan-kpi"><div class="fan-kpi-val">38</div><div class="fan-kpi-label">Orders</div></div>
-            <div class="fan-kpi"><div class="fan-kpi-val">92%</div><div class="fan-kpi-label">Items Sold</div></div>
-            <div class="fan-kpi fan-kpi-warn"><div class="fan-kpi-val">3</div><div class="fan-kpi-label">Low Stock</div></div>
-          </div>
-          <div class="fan-activity">
-            <div class="fan-act-title">Recent Activity</div>
-            <div class="fan-act-row"><span class="fan-act-dot green"></span><span>Order #42 — $650</span><span class="fan-act-time">2m ago</span></div>
-            <div class="fan-act-row"><span class="fan-act-dot green"></span><span>Order #41 — $310</span><span class="fan-act-time">8m ago</span></div>
-            <div class="fan-act-row"><span class="fan-act-dot red"></span><span>Oat Milk — Low Stock</span><span class="fan-act-time">14m ago</span></div>
-            <div class="fan-act-row"><span class="fan-act-dot green"></span><span>Order #40 — $475</span><span class="fan-act-time">22m ago</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 3: Reports -->
-      <div class="fan-card fan-card-right">
-        <div class="fan-topbar"><span class="fan-logo">Caflat.CORE</span><span class="fan-screen-label">Reports</span></div>
-        <div class="fan-body fan-reports">
-          <div class="fan-report-stats">
-            <div class="fan-report-stat"><div class="fan-report-val">$87,400</div><div class="fan-report-label">This Week</div></div>
-            <div class="fan-report-stat"><div class="fan-report-val">+12%</div><div class="fan-report-label">vs Last Week</div></div>
-          </div>
-          <div class="fan-bar-chart">
-            <div class="fan-bar-group"><div class="fan-bar" style="height:45%"></div><div class="fan-bar-label">Mon</div></div>
-            <div class="fan-bar-group"><div class="fan-bar" style="height:72%"></div><div class="fan-bar-label">Tue</div></div>
-            <div class="fan-bar-group"><div class="fan-bar" style="height:58%"></div><div class="fan-bar-label">Wed</div></div>
-            <div class="fan-bar-group"><div class="fan-bar" style="height:88%"></div><div class="fan-bar-label">Thu</div></div>
-            <div class="fan-bar-group"><div class="fan-bar" style="height:100%"></div><div class="fan-bar-label">Fri</div></div>
-            <div class="fan-bar-group"><div class="fan-bar" style="height:78%"></div><div class="fan-bar-label">Sat</div></div>
-            <div class="fan-bar-group"><div class="fan-bar fan-bar-dim" style="height:32%"></div><div class="fan-bar-label">Sun</div></div>
-          </div>
-          <div class="fan-top-products">
-            <div class="fan-tp-row"><span>Flat White</span><span>142 sold</span></div>
-            <div class="fan-tp-row"><span>Americano</span><span>118 sold</span></div>
-            <div class="fan-tp-row"><span>Matcha Latte</span><span>97 sold</span></div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="hero-rule" aria-hidden="true"></div>
-
-    <div class="hero-stats">
-      <div class="hero-stat">
-        <span class="stat-num" data-target="12" data-suffix="+">12+</span>
-        <span class="stat-label">Modules</span>
-      </div>
-      <div class="hero-stat-div" aria-hidden="true"></div>
-      <div class="hero-stat">
-        <span class="stat-num">5</span>
-        <span class="stat-label">Operational Modes</span>
-      </div>
-      <div class="hero-stat-div" aria-hidden="true"></div>
-      <div class="hero-stat">
-        <span class="stat-num">100%</span>
-        <span class="stat-label">Offline-First</span>
-      </div>
+      <div class="cscroll-caption">The Command view — every module, one quiet screen.</div>
     </div>
   </div>
 </section>
@@ -949,98 +927,6 @@
   </div>
 </div>
 
-<script src="./js/main.js?v=20260710a"></script>
-<script>
-(function () {
-  var fan = document.querySelector('.hero-card-fan');
-  if (!fan) return;
-  var cards      = Array.from(fan.querySelectorAll('.fan-card'));
-  var assignment = ['left', 'center', 'right'];
-  var original   = ['left', 'center', 'right'];
-  var locked     = false;
-  var resetTimer = null;
-
-  /* ── Staggered entrance ───────────────────────────────────────
-     Applied via inline style so the keyframe never re-fires when
-     the click handler swaps classes. Cleaned up after first play. */
-  var enterAnim  = { left: 'fan-enter-left', center: 'fan-enter-center', right: 'fan-enter-right' };
-  var enterDelay = { left: 500,  center: 200, right: 720 };
-  var enterDur   = { left: 680,  center: 720, right: 680 };
-  var easing     = 'cubic-bezier(.22,.61,.36,1)';
-
-  cards.forEach(function (card, i) {
-    var pos = assignment[i];
-    card.style.animation =
-      enterAnim[pos] + ' ' + enterDur[pos] + 'ms ' + easing + ' ' + enterDelay[pos] + 'ms both';
-    card.addEventListener('animationend', function () {
-      card.style.animation = '';
-    }, { once: true });
-  });
-
-  /* ── Auto-reset to original positions ────────────────────────
-     Called 2 s after the last swap settles. Skips if already home. */
-  function restoreOriginal() {
-    var alreadyHome = assignment.every(function (pos, i) { return pos === original[i]; });
-    if (alreadyHome || locked) return;
-
-    locked = true;
-
-    // Use smooth ease-out easing for auto-restore (overrides spring bounce)
-    fan.classList.add('fan-restoring');
-
-    // Pin the card flying INTO center (same logic as click handler).
-    // Do NOT pin the outgoing center card — that would keep it on top
-    // of the incoming card the whole way, causing the glitchy overlap.
-    var incomingCenter = cards[original.indexOf('center')];
-    incomingCenter.style.zIndex = '10';
-
-    assignment = original.slice();
-    cards.forEach(function (c, i) {
-      c.classList.remove('fan-card-left', 'fan-card-center', 'fan-card-right');
-      c.classList.add('fan-card-' + assignment[i]);
-    });
-
-    incomingCenter.addEventListener('transitionend', function done(evt) {
-      if (evt.propertyName !== 'transform') return;
-      incomingCenter.style.zIndex = '';
-      fan.classList.remove('fan-restoring');
-      locked = false;
-      incomingCenter.removeEventListener('transitionend', done);
-    });
-  }
-
-  /* ── Click-to-swap ────────────────────────────────────────── */
-  fan.addEventListener('click', function (e) {
-    if (locked) return;
-    var card = e.target.closest('.fan-card');
-    if (!card) return;
-    var clicked = cards.indexOf(card);
-    var center  = assignment.indexOf('center');
-    if (clicked === center) return;
-
-    clearTimeout(resetTimer);
-    locked = true;
-    card.style.zIndex = '10';
-
-    var tmp = assignment[clicked];
-    assignment[clicked] = 'center';
-    assignment[center]  = tmp;
-
-    cards.forEach(function (c, i) {
-      c.classList.remove('fan-card-left', 'fan-card-center', 'fan-card-right');
-      c.classList.add('fan-card-' + assignment[i]);
-    });
-
-    card.addEventListener('transitionend', function done(evt) {
-      if (evt.propertyName !== 'transform') return;
-      card.style.zIndex = '';
-      locked = false;
-      card.removeEventListener('transitionend', done);
-      // Start 2-second countdown once card has settled in place
-      resetTimer = setTimeout(restoreOriginal, 2000);
-    });
-  });
-})();
-</script>
+<script src="./js/main.js?v=20260717a"></script>
 </body>
 </html>
