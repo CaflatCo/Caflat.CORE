@@ -125,50 +125,68 @@ const statsObserver = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('[data-target]').forEach(el => statsObserver.observe(el));
 
-/* ─── Hero halo: pointer parallax + scroll dim ──────────────────
-   Writes only CSS custom properties; CSS keeps ownership of
-   compositing (translate/scale animations are untouched). */
+/* ─── Atelier hero: ContainerScroll ticker + ambience ───────────
+   Writes only CSS custom properties on the hero section; CSS owns
+   every transform via calc() of --csp (0 → 1 scroll progress) and
+   --px/--py (pointer lerp for the champagne-dust parallax). */
 (() => {
-  const halo = document.querySelector('.hero-halo');
-  const hero = document.querySelector('.hero');
-  if (!halo || !hero) return;
+  const hero = document.getElementById('atelierHero');
+  if (!hero) return;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* Scroll: soft dim + upward drift while the hero leaves the viewport */
+  /* Scroll progress — how far the tall section has been scrolled
+     through (0 at page top, 1 when its bottom meets the viewport
+     bottom), the same window the framer-motion original tracks. */
   if (!reduce) {
     let ticking = false;
-    window.addEventListener('scroll', () => {
+    const update = () => {
+      const r = hero.getBoundingClientRect();
+      const total = r.height - window.innerHeight;
+      const p = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 1;
+      hero.style.setProperty('--csp', p.toFixed(4));
+      ticking = false;
+    };
+    const request = () => {
       if (ticking) return;
       ticking = true;
-      requestAnimationFrame(() => {
-        const y = window.scrollY;
-        if (y < window.innerHeight) {
-          halo.style.setProperty('--sy', (y * -0.12).toFixed(1) + 'px');
-          halo.style.setProperty('--halo-o', Math.max(0, 1 - y / 640).toFixed(3));
-        }
-        ticking = false;
-      });
-    }, { passive: true });
+      requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', request, { passive: true });
+    window.addEventListener('resize', request, { passive: true });
   }
 
-  /* Pointer parallax — desktop fine-pointer only, eased via rAF lerp;
-     steam drifts the opposite way for cheap depth */
-  if (reduce || !window.matchMedia('(pointer: fine) and (min-width: 721px)').matches) return;
-  const steam = document.querySelector('.hero-steam');
+  /* KPI counters inside the device frame — locale-formatted tick-up
+     (the shared [data-target] counter is integer+suffix only). */
+  document.querySelectorAll('.mk-count[data-count]').forEach(el => {
+    const target = parseInt(el.dataset.count, 10) || 0;
+    if (reduce) { el.textContent = target.toLocaleString(); return; }
+    let start = null;
+    const dur = 1600, delay = 900;
+    const step = ts => {
+      if (!start) start = ts;
+      const t = Math.min(1, Math.max(0, (ts - start - delay) / dur));
+      const ease = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.floor(ease * target).toLocaleString();
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+
+  /* Pointer parallax for the dust layers — desktop fine-pointer only */
+  if (reduce || !window.matchMedia('(pointer: fine) and (min-width: 769px)').matches) return;
   let tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
   const tick = () => {
     cx += (tx - cx) * 0.06;
     cy += (ty - cy) * 0.06;
-    halo.style.setProperty('--px', cx.toFixed(2) + 'px');
-    halo.style.setProperty('--py', cy.toFixed(2) + 'px');
-    if (steam) steam.style.translate = (cx * -0.5) + 'px ' + (cy * -0.5) + 'px';
+    hero.style.setProperty('--px', cx.toFixed(2) + 'px');
+    hero.style.setProperty('--py', cy.toFixed(2) + 'px');
     raf = (Math.abs(tx - cx) > .05 || Math.abs(ty - cy) > .05)
       ? requestAnimationFrame(tick) : null;
   };
   hero.addEventListener('pointermove', e => {
-    const r = hero.getBoundingClientRect();
-    tx = ((e.clientX - r.left) / r.width  - .5) * 14;
-    ty = ((e.clientY - r.top)  / r.height - .5) * 10;
+    tx = (e.clientX / window.innerWidth  - .5) * 22;
+    ty = (e.clientY / window.innerHeight - .5) * 16;
     if (!raf) raf = requestAnimationFrame(tick);
   });
 })();
