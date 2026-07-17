@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://caflat.co/sitemap.xml
+Sitemap: https://caflatcore.com/sitemap.xml
