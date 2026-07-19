@@ -498,6 +498,14 @@
                 </svg>
                 Reports
               </button>
+              <button data-view="foresight" id="navForesight">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="8" cy="8" r="6.5"/>
+                  <path d="M8 4.5V8l2.5 1.5"/>
+                  <path d="M1.5 8h1.5M13 8h1.5"/>
+                </svg>
+                Foresight
+              </button>
             </div>
           </div>
 
@@ -748,6 +756,8 @@
               <div class="sub">Items at reorder level</div>
             </div>
           </div>
+
+          <div id="foresightTeaser"></div>
 
           <div class="section-title">Sales Trend (last 14 days)</div>
           <div class="chart-container">
@@ -1579,6 +1589,19 @@
             <div id="remoteDashboardBody"></div>
           </div>
 
+        </div>
+      </section>
+
+      <!-- ═══ FORESIGHT VIEW (PRO) ═══ -->
+      <section class="view" id="view-foresight">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Foresight</h2>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span style="font-size:11px;color:var(--gray-400);">Today's demand, forecast from your own sales history</span>
+            </div>
+          </div>
+          <div id="foresightBody"></div>
         </div>
       </section>
 
@@ -3507,7 +3530,7 @@
   <script src="./js/storage.js?v=20260719b"></script>
   <script src="./js/auth.js?v=20260628i"></script>
   <script src="./js/analytics.js"></script>
-  <script src="./js/dashboard.js?v=20260702a"></script>
+  <script src="./js/dashboard.js?v=20260719a"></script>
   <script src="./js/products.js?v=20260719a"></script>
   <script src="./js/ingredients.js"></script>
   <script src="./js/inventory.js"></script>
@@ -3531,10 +3554,11 @@
   <script src="./js/recipecatalog.js?v=20260712e"></script>
   <script src="./js/costlab.js?v=20260702a"></script>
   <script src="./js/shoppinglist.js?v=20260702a"></script>
-  <script src="./js/license.js?v=20260719b"></script>
+  <script src="./js/license.js?v=20260719c"></script>
   <script src="./js/sync.js?v=20260628d"></script>
   <script src="./js/navigation.js?v=20260628d"></script>
-  <script src="./js/app.js?v=20260719b"></script>
+  <script src="./js/foresight.js?v=20260719b"></script>
+  <script src="./js/app.js?v=20260719c"></script>
 
   <!-- ══ SHOPPING LIST FAB ══ -->
   <button id="shoppingWidgetFab" onclick="toggleShoppingWidget();"

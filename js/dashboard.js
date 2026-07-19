@@ -36,6 +36,7 @@ function refreshDashboard() {
   if (ob) ob.textContent = `POS: ${kpi.posOrders} (${kpi.posOrderPercent}%) · Supply: ${kpi.supplyOrders} (${kpi.supplyOrderPercent}%)`;
 
   renderDashboardKPIAlerts(kpi);
+  if (typeof renderForesightTeaser === 'function') renderForesightTeaser();
   renderTopProducts();
   renderLowStockDashboard();
   renderDashboardChart();
