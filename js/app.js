@@ -40,6 +40,11 @@ async function initializeApp() {
     // Network validation (Supabase revalidation) runs in background after app is ready
     if (typeof initializeLicense === 'function') initializeLicense();
 
+    // Cloud niceties: silent daily backup + settings widgets
+    if (typeof initAutoCloudBackup          === 'function') initAutoCloudBackup();
+    if (typeof renderBackupStatusChips      === 'function') renderBackupStatusChips();
+    if (typeof renderRemoteDashboardSection === 'function') renderRemoteDashboardSection();
+
     console.log('Caflat.CORE v1 initialized');
   } catch (error) {
     console.error('Initialization failed', error);

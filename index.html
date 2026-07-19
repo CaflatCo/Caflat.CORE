@@ -708,6 +708,7 @@
           <div class="panel-header">
             <h2>Dashboard</h2>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <span id="dashboardBackupStatus"></span>
               <span style="font-size:11px;color:var(--gray-400);">All-time overview</span>
               <button class="btn btn-secondary" id="endOfDayBtn" type="button">End of Day</button>
             </div>
@@ -1548,20 +1549,34 @@
 
           <!-- Cloud Backup -->
           <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
-            padding:16px 18px;margin-bottom:40px;background:var(--gray-50);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            padding:16px 18px;margin-bottom:24px;background:var(--gray-50);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
               <div>
-                <div style="font-size:12px;font-weight:800;">Cloud Backup</div>
+                <div style="font-size:12px;font-weight:800;">Cloud Backup
+                  <span id="cloudBackupStatus" style="margin-left:8px;"></span>
+                </div>
                 <div style="font-size:11px;color:var(--gray-500);margin-top:2px;">
-                  Saves a full snapshot to Supabase · PRO only · Last 3 kept
+                  Backs up automatically once a day on PRO · Full snapshot to Supabase · Last 3 kept
                 </div>
               </div>
               <button class="btn btn-secondary" id="cloudBackupBtn" type="button"
                 onclick="cloudBackup()">
-                Backup to Cloud
+                Backup Now
               </button>
             </div>
             <div id="cloudBackupList"></div>
+          </div>
+
+          <!-- Remote Dashboard -->
+          <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
+            padding:16px 18px;margin-bottom:40px;background:var(--gray-50);">
+            <div style="margin-bottom:12px;">
+              <div style="font-size:12px;font-weight:800;">Remote Dashboard</div>
+              <div style="font-size:11px;color:var(--gray-500);margin-top:2px;">
+                Today's numbers on your phone, from anywhere · PRO
+              </div>
+            </div>
+            <div id="remoteDashboardBody"></div>
           </div>
 
         </div>
@@ -3489,7 +3504,7 @@
   <script src="./js/utils.js?v=20260702a"></script>
   <script src="./js/currency.js?v=20260702a"></script>
   <script src="./js/state.js"></script>
-  <script src="./js/storage.js?v=20260628j"></script>
+  <script src="./js/storage.js?v=20260719b"></script>
   <script src="./js/auth.js?v=20260628i"></script>
   <script src="./js/analytics.js"></script>
   <script src="./js/dashboard.js?v=20260702a"></script>
@@ -3516,10 +3531,10 @@
   <script src="./js/recipecatalog.js?v=20260712e"></script>
   <script src="./js/costlab.js?v=20260702a"></script>
   <script src="./js/shoppinglist.js?v=20260702a"></script>
-  <script src="./js/license.js?v=20260719a"></script>
+  <script src="./js/license.js?v=20260719b"></script>
   <script src="./js/sync.js?v=20260628d"></script>
   <script src="./js/navigation.js?v=20260628d"></script>
-  <script src="./js/app.js?v=20260719a"></script>
+  <script src="./js/app.js?v=20260719b"></script>
 
   <!-- ══ SHOPPING LIST FAB ══ -->
   <button id="shoppingWidgetFab" onclick="toggleShoppingWidget();"

@@ -69,6 +69,8 @@ function persistState() {
     if (typeof _checkStorageWarning === 'function') _checkStorageWarning();
     // Notify sync engine
     if (typeof onPersistState === 'function') onPersistState();
+    // Keep the remote dashboard's daily KPI row fresh (throttled)
+    if (typeof scheduleKpiSnapshotPush === 'function') scheduleKpiSnapshotPush();
   } catch (error) {
     console.error('Failed to persist state', error);
   }
@@ -422,13 +424,17 @@ window.renderStorageUsage     = renderStorageUsage;
 
 const CLOUD_BACKUP_LIMIT = 3; // keep last 3 cloud backups per tenant
 
-async function cloudBackup() {
+async function cloudBackup(opts = {}) {
+  const silent   = !!opts.silent;
   const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
   const tier     = typeof getLicenseTier === 'function' ? getLicenseTier() : null;
   const eligible = ['pro', 'cloud', 'enterprise', 'god'].includes(tier);
 
   if (!tenantId || !eligible) {
-    showNotification('Cloud backup requires a PRO license or higher', 'error');
+    if (!silent) {
+      if (typeof requireTier === 'function') requireTier('pro', 'Cloud backup');
+      else showNotification('Cloud backup requires a PRO license or higher', 'error');
+    }
     return { success: false, error: 'Upgrade to PRO to use cloud backup.' };
   }
 
@@ -519,17 +525,24 @@ async function cloudBackup() {
       }
     }
 
-    const now = new Date().toLocaleString('en-PH', {
-      month: 'short', day: 'numeric',
-      hour: 'numeric', minute: '2-digit', hour12: true
-    });
-    showNotification(`Backed up to cloud — ${now}`, 'success');
-    renderCloudBackupList();
+    APP_STATE.settings.lastCloudBackupAt = new Date().toISOString();
+    if (typeof persistState === 'function') persistState();
+    renderBackupStatusChips();
+
+    if (!silent) {
+      const now = new Date().toLocaleString('en-PH', {
+        month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true
+      });
+      showNotification(`Backed up to cloud — ${now}`, 'success');
+      renderCloudBackupList();
+    }
     return { success: true };
 
   } catch (e) {
     console.error('Cloud backup failed:', e);
-    showNotification('Cloud backup failed — check connection', 'error');
+    if (!silent) showNotification('Cloud backup failed — check connection', 'error');
+    renderBackupStatusChips(true);
     return { success: false, error: e.message };
   } finally {
     if (btn) { btn.textContent = 'Backup to Cloud'; btn.disabled = false; }
@@ -634,3 +647,254 @@ async function renderCloudBackupList() {
 window.cloudBackup           = cloudBackup;
 window.cloudRestore          = cloudRestore;
 window.renderCloudBackupList = renderCloudBackupList;
+
+/* ═══════════════════════════════════════════════════════
+   AUTO CLOUD BACKUP + KPI SNAPSHOTS + REMOTE DASHBOARD
+   Silent daily backups, tiny per-day KPI rows for the
+   phone-friendly remote page, and revocable share links.
+═══════════════════════════════════════════════════════ */
+
+const AUTO_BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const KPI_PUSH_INTERVAL_MS    = 10 * 60 * 1000;
+let _autoBackupTimer = null;
+let _lastKpiPush     = 0;
+let _kpiPushQueued   = false;
+
+function _cloudEligible() {
+  const tier = typeof getLicenseTier === 'function' ? getLicenseTier() : 'free';
+  return ['pro', 'cloud', 'enterprise', 'god'].includes(tier) &&
+         typeof getTenantId === 'function' && !!getTenantId();
+}
+
+/* ── Status chips (Settings + Dashboard) ───────────── */
+function renderBackupStatusChips(failed) {
+  const chips = [
+    document.getElementById('cloudBackupStatus'),
+    document.getElementById('dashboardBackupStatus'),
+  ].filter(Boolean);
+  if (!chips.length) return;
+
+  let text, color, bg;
+  const last = Date.parse(APP_STATE.settings?.lastCloudBackupAt || '') || 0;
+  if (!_cloudEligible()) {
+    text = 'Cloud backup: PRO feature';
+    color = 'var(--gray-500)'; bg = 'var(--gray-100)';
+  } else if (failed) {
+    text = 'Last backup attempt failed — will retry';
+    color = '#dc2626'; bg = '#fef2f2';
+  } else if (!last) {
+    text = 'No cloud backup yet';
+    color = '#b45309'; bg = '#fffbeb';
+  } else {
+    const ageMs = Date.now() - last;
+    if (ageMs < 26 * 60 * 60 * 1000) {
+      const h = Math.floor(ageMs / 3600000);
+      const ago = h < 1 ? 'under an hour ago' : h === 1 ? '1 hour ago' : `${h} hours ago`;
+      text = `Backed up ${ago} ✓`;
+      color = '#15803d'; bg = '#f0fdf4';
+    } else {
+      text = 'Backup overdue';
+      color = '#b45309'; bg = '#fffbeb';
+    }
+  }
+
+  chips.forEach(el => {
+    el.textContent = text;
+    el.style.cssText += `;display:inline-block;font-size:10px;font-weight:700;
+      padding:3px 10px;border-radius:999px;color:${color};background:${bg};`;
+  });
+}
+
+/* ── Silent daily backup ───────────────────────────── */
+async function maybeAutoCloudBackup() {
+  try {
+    if (!_cloudEligible()) { renderBackupStatusChips(); return; }
+    const last = Date.parse(APP_STATE.settings?.lastCloudBackupAt || '') || 0;
+    if (Date.now() - last < AUTO_BACKUP_INTERVAL_MS) { renderBackupStatusChips(); return; }
+    const res = await cloudBackup({ silent: true });
+    renderBackupStatusChips(!res?.success);
+  } catch (e) {
+    renderBackupStatusChips(true);
+  }
+}
+
+function initAutoCloudBackup() {
+  setTimeout(maybeAutoCloudBackup, 5000);
+  if (!_autoBackupTimer) {
+    _autoBackupTimer = setInterval(maybeAutoCloudBackup, 60 * 60 * 1000);
+  }
+}
+
+/* ── KPI snapshot push (one tiny row per day) ──────── */
+function _todayStart() {
+  const d = new Date(); d.setHours(0, 0, 0, 0); return d;
+}
+function _localDayString() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+async function pushKpiSnapshot() {
+  if (!_cloudEligible()) return { success: false };
+  if (typeof getRevenue !== 'function') return { success: false };
+  const from = _todayStart();
+  const kpi  = typeof getKPISummary === 'function' ? getKPISummary() : {};
+  const top  = (typeof getTopProducts === 'function' ? getTopProducts(1, from) : [])[0];
+
+  const row = {
+    tenant_id:      getTenantId(),
+    day:            _localDayString(),
+    brand:          APP_STATE.settings?.brandName || 'Caflat.CORE',
+    revenue:        Number(getRevenue(from).toFixed(2)),
+    orders:         getOrderCount(from),
+    items:          getItemsSold(from),
+    avg_ticket:     Number((getAverageTicket(from) || 0).toFixed(2)),
+    low_stock:      kpi.lowStockCount || 0,
+    pending_orders: kpi.pendingOrders || 0,
+    top_product:    top?.name || null,
+    updated_at:     new Date().toISOString(),
+  };
+
+  const res = await fetch(
+    `${CAFLAT_SB_URL}/rest/v1/kpi_snapshots?on_conflict=tenant_id,day`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        CAFLAT_SB_ANON,
+        'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+        'Prefer':        'resolution=merge-duplicates,return=minimal',
+      },
+      body: JSON.stringify(row),
+    }
+  );
+  return { success: res.ok };
+}
+
+// Piggybacks on persistState: at most one push per 10 minutes, and only
+// when a remote link exists (no link = nobody is watching).
+function scheduleKpiSnapshotPush() {
+  if (!_cloudEligible()) return;
+  if (!APP_STATE.settings?.remoteDashboard) return;
+  if (_kpiPushQueued) return;
+  if (Date.now() - _lastKpiPush < KPI_PUSH_INTERVAL_MS) return;
+  _kpiPushQueued = true;
+  setTimeout(async () => {
+    _kpiPushQueued = false;
+    _lastKpiPush   = Date.now();
+    try { await pushKpiSnapshot(); } catch (e) { /* silent — next save retries */ }
+  }, 4000);
+}
+
+/* ── Remote dashboard share links ──────────────────── */
+async function _sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function generateRemoteDashboardLink() {
+  if (typeof requireTier === 'function' && !requireTier('pro', 'The Remote Dashboard')) return;
+  const tenantId = getTenantId();
+  if (!tenantId) { showNotification('No tenant on this license', 'error'); return; }
+
+  const token = ((crypto.randomUUID?.() || '') + (crypto.randomUUID?.() || '')).replace(/-/g, '');
+  const hash  = await _sha256Hex(token);
+
+  const res = await fetch(`${CAFLAT_SB_URL}/rest/v1/remote_tokens`, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'apikey':        CAFLAT_SB_ANON,
+      'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+      'Prefer':        'return=minimal',
+    },
+    body: JSON.stringify({ tenant_id: tenantId, token_hash: hash, label: 'Owner link' }),
+  });
+  if (!res.ok) {
+    showNotification('Could not create remote link — run migration 011 in Supabase', 'error');
+    return;
+  }
+
+  APP_STATE.settings.remoteDashboard = { token, hash, createdAt: new Date().toISOString() };
+  persistState();
+  try { await pushKpiSnapshot(); } catch (e) {}
+  renderRemoteDashboardSection();
+  showNotification('Remote Dashboard link created — open it on your phone', 'success');
+}
+
+async function revokeRemoteDashboardLink() {
+  const rd = APP_STATE.settings?.remoteDashboard;
+  if (!rd) return;
+  try {
+    await fetch(`${CAFLAT_SB_URL}/rest/v1/remote_tokens?token_hash=eq.${rd.hash}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        CAFLAT_SB_ANON,
+        'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify({ revoked: true }),
+    });
+  } catch (e) { /* revoke best-effort; local removal below always happens */ }
+  delete APP_STATE.settings.remoteDashboard;
+  persistState();
+  renderRemoteDashboardSection();
+  showNotification('Remote link revoked', 'success');
+}
+
+function getRemoteDashboardUrl() {
+  const rd = APP_STATE.settings?.remoteDashboard;
+  return rd ? `${location.origin}/remote.html#${rd.token}` : null;
+}
+
+function copyRemoteDashboardLink() {
+  const url = getRemoteDashboardUrl();
+  if (!url) return;
+  navigator.clipboard?.writeText(url)
+    .then(() => showNotification('Remote Dashboard link copied', 'success'))
+    .catch(() => showNotification(url, 'info'));
+}
+
+function renderRemoteDashboardSection() {
+  const box = document.getElementById('remoteDashboardBody');
+  if (!box) return;
+  const rd = APP_STATE.settings?.remoteDashboard;
+  if (rd) {
+    const url = getRemoteDashboardUrl();
+    box.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <code style="flex:1;min-width:180px;font-size:11px;background:var(--white);
+          border:1.5px solid var(--border);border-radius:var(--radius-md);
+          padding:8px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${url}</code>
+        <button class="btn btn-secondary btn-sm" type="button" onclick="copyRemoteDashboardLink()">Copy</button>
+        <button class="btn btn-secondary btn-sm" type="button"
+          style="border-color:#fca5a5;color:#dc2626;" onclick="revokeRemoteDashboardLink()">Revoke</button>
+      </div>
+      <div style="font-size:10.5px;color:var(--gray-500);margin-top:8px;">
+        Anyone with this link sees today's numbers (read-only). Revoke it anytime.
+      </div>`;
+  } else {
+    box.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div style="font-size:11px;color:var(--gray-500);max-width:420px;">
+          Check today's revenue, orders, and low stock from your phone — anywhere.
+          Creates a private, revocable link. No login needed on the phone.
+        </div>
+        <button class="btn btn-secondary" type="button" onclick="generateRemoteDashboardLink()">
+          Generate Link
+        </button>
+      </div>`;
+  }
+}
+
+window.maybeAutoCloudBackup        = maybeAutoCloudBackup;
+window.initAutoCloudBackup         = initAutoCloudBackup;
+window.renderBackupStatusChips     = renderBackupStatusChips;
+window.pushKpiSnapshot             = pushKpiSnapshot;
+window.scheduleKpiSnapshotPush     = scheduleKpiSnapshotPush;
+window.generateRemoteDashboardLink = generateRemoteDashboardLink;
+window.revokeRemoteDashboardLink   = revokeRemoteDashboardLink;
+window.copyRemoteDashboardLink     = copyRemoteDashboardLink;
+window.getRemoteDashboardUrl       = getRemoteDashboardUrl;
+window.renderRemoteDashboardSection = renderRemoteDashboardSection;

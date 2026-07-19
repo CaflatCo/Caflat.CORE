@@ -224,12 +224,19 @@ async function _ensureTrial() {
 
   const expires  = new Date(new Date(anchor).getTime() + TRIAL_DAYS * 86400000).toISOString();
   const deviceId = await _generateDeviceId();
+  // Trials get a real tenant id so cloud backup and the remote dashboard
+  // work during the trial — tasting them is the whole point.
+  const trialTenant =
+    localStorage.getItem('caflat_trial_tenant_v1') ||
+    (crypto.randomUUID ? crypto.randomUUID() : null);
+  if (trialTenant) localStorage.setItem('caflat_trial_tenant_v1', trialTenant);
+
   const record = {
     code:           'TRIAL',
     tier:           TIER_PRO,
     trial:          true,
     client_name:    'PRO Trial',
-    tenant_id:      null,
+    tenant_id:      trialTenant,
     expires_at:     expires,
     activated_at:   anchor,
     device_id:      deviceId,
