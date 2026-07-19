@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Caflat.CORE · Remote</title>
+<link rel="icon" href="./favicon.png" type="image/png" sizes="32x32" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0a09; --card: #171412; --border: rgba(255,255,255,.08);
+    --text: #f4f2ee; --dim: rgba(244,242,238,.55); --faint: rgba(244,242,238,.32);
+    --gold: #c8a96e; --green: #3dbd7a; --amber: #e0985c; --red: #e05c5c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: radial-gradient(ellipse 120% 60% at 50% -10%, #1a1512 0%, var(--bg) 60%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: max(20px, env(safe-area-inset-top)) 18px 40px;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  .brandbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+  .brand { font-size: .95rem; font-weight: 800; letter-spacing: -.01em; }
+  .brand span { color: var(--gold); }
+  .live {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: .6rem; font-weight: 800; letter-spacing: .14em;
+    color: var(--dim); border: 1px solid var(--border); border-radius: 999px; padding: 5px 11px;
+  }
+  .live i { width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 6px rgba(61,189,122,.8); animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+  .hello { font-size: .78rem; color: var(--dim); margin-bottom: 4px; }
+  .revenue { font-size: 2.6rem; font-weight: 900; letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums; margin-bottom: 2px; }
+  .revlabel { font-size: .66rem; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 22px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 14px 16px;
+  }
+  .card .k { font-size: .6rem; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 7px; }
+  .card .v { font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .card .v.warn { color: var(--amber); }
+  .card .s { font-size: .64rem; color: var(--dim); margin-top: 4px; }
+
+  .chartcard { margin-bottom: 10px; }
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 110px; margin-top: 10px; }
+  .barcol { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .bar { width: 100%; border-radius: 6px 6px 3px 3px;
+    background: linear-gradient(180deg, var(--gold), rgba(200,169,110,.35)); min-height: 4px; }
+  .bar.today { box-shadow: 0 0 12px rgba(200,169,110,.35); }
+  .barday { font-size: .56rem; color: var(--faint); font-weight: 700; }
+
+  .updated { text-align: center; font-size: .64rem; color: var(--faint); margin-top: 18px; }
+  .foot { text-align: center; font-size: .6rem; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--faint); margin-top: 26px; }
+  .foot b { color: var(--gold); }
+
+  .state { text-align: center; padding: 80px 20px; }
+  .state h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; }
+  .state p { font-size: .82rem; color: var(--dim); line-height: 1.6; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar">
+    <div class="brand" id="brandName">Caflat<span>.CORE</span></div>
+    <div class="live"><i></i>LIVE</div>
+  </div>
+
+  <div id="loading" class="state"><p>Loading today's numbers…</p></div>
+
+  <div id="errorState" class="state hidden">
+    <h2>This link isn't active</h2>
+    <p>It may have been revoked or mistyped. Generate a fresh Remote
+       Dashboard link from Settings on your counter device.</p>
+  </div>
+
+  <div id="dash" class="hidden">
+    <div class="hello" id="helloLine">Today at your café</div>
+    <div class="revenue" id="kRevenue">₱0</div>
+    <div class="revlabel">Revenue today</div>
+
+    <div class="grid">
+      <div class="card"><div class="k">Orders</div><div class="v" id="kOrders">0</div><div class="s" id="kAvg">&nbsp;</div></div>
+      <div class="card"><div class="k">Items sold</div><div class="v" id="kItems">0</div><div class="s" id="kTop">&nbsp;</div></div>
+      <div class="card"><div class="k">Low stock</div><div class="v warn" id="kLow">0</div><div class="s">items under threshold</div></div>
+      <div class="card"><div class="k">Pending</div><div class="v" id="kPending">0</div><div class="s">open orders</div></div>
+    </div>
+
+    <div class="card chartcard">
+      <div class="k">Revenue · last 7 days</div>
+      <div class="bars" id="bars"></div>
+    </div>
+
+    <div class="updated" id="updatedAt"></div>
+  </div>
+
+  <div class="foot">Powered by <b>Caflat.CORE</b></div>
+</div>
+
+<script>
+  const SB_URL  = 'https://tkrsebalgonimmozbgqc.supabase.co';
+  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcnNlYmFsZ29uaW1tb3piZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMjc5NzEsImV4cCI6MjA5NzYwMzk3MX0.OKp5NCLYnL-5CFWnvXpA2E78jNi5r63Jzs2zABAkzsw';
+
+  const token = (location.hash || '').replace(/^#/, '').trim();
+  const peso  = n => '₱' + Number(n || 0).toLocaleString('en-PH', { maximumFractionDigits: 0 });
+  const $     = id => document.getElementById(id);
+
+  function show(which) {
+    ['loading', 'errorState', 'dash'].forEach(id =>
+      $(id).classList.toggle('hidden', id !== which));
+  }
+
+  function render(data) {
+    const t = data.today || {};
+    if (t.brand) {
+      $('helloLine').textContent = `Today at ${t.brand}`;
+      document.title = `${t.brand} · Remote`;
+    }
+    $('kRevenue').textContent = peso(t.revenue);
+    $('kOrders').textContent  = t.orders ?? 0;
+    $('kAvg').textContent     = t.avg_ticket ? `avg ${peso(t.avg_ticket)}` : ' ';
+    $('kItems').textContent   = t.items ?? 0;
+    $('kTop').textContent     = t.top_product ? `top: ${t.top_product}` : ' ';
+    $('kLow').textContent     = t.low_stock ?? 0;
+    $('kPending').textContent = t.pending_orders ?? 0;
+
+    // 7-day bars: fill missing days with zeros so the week always reads
+    const byDay = {};
+    (data.series || []).forEach(r => { byDay[r.day] = Number(r.revenue || 0); });
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      days.push({ key, label: d.toLocaleDateString('en-PH', { weekday: 'short' }), v: byDay[key] || 0, today: i === 0 });
+    }
+    const max = Math.max(1, ...days.map(d => d.v));
+    $('bars').innerHTML = days.map(d => `
+      <div class="barcol">
+        <div class="bar${d.today ? ' today' : ''}" style="height:${Math.max(4, Math.round(d.v / max * 100))}%"></div>
+        <div class="barday">${d.label}</div>
+      </div>`).join('');
+
+    if (t.updated_at) {
+      $('updatedAt').textContent = 'Updated ' + new Date(t.updated_at).toLocaleString('en-PH',
+        { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+    show('dash');
+  }
+
+  async function load() {
+    if (!token) { show('errorState'); return; }
+    try {
+      const res = await fetch(`${SB_URL}/rest/v1/rpc/get_remote_dashboard`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SB_ANON,
+          'Authorization': `Bearer ${SB_ANON}`,
+        },
+        body: JSON.stringify({ p_token: token }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data || data.ok !== true) { show('errorState'); return; }
+      render(data);
+    } catch (e) {
+      // keep last rendered state on transient network errors
+      if ($('dash').classList.contains('hidden')) show('errorState');
+    }
+  }
+
+  load();
+  setInterval(load, 60000);
+  // Token lives in the hash; swapping it must re-evaluate from scratch
+  window.addEventListener('hashchange', () => location.reload());
+</script>
+</body>
+</html>
