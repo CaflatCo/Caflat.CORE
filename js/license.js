@@ -11,6 +11,19 @@ const INTEGRITY_STORAGE_KEY  = '_cflx3';              // intentionally obscured
 const FREE_PRODUCT_LIMIT     = 50;
 const REVALIDATE_INTERVAL_MS = 24 * 60 * 60 * 1000;  // 24 hours (was 7 days)
 
+/* ── 90-day PRO trial ──────────────────────────────── */
+const TRIAL_DAYS       = 90;
+const TRIAL_ANCHOR_KEY = 'caflat_trial_anchor_v1';
+let _trialJustStarted  = false;
+
+// Views that need a paid tier; switchPage consults this so locked nav
+// buttons open the upgrade prompt instead of the screen.
+const TIER_GATED_VIEWS = {
+  supply:     ['pro', 'The Supply hub'],
+  production: ['pro', 'Production'],
+  coffeecart: ['pro', 'Events & Coffee Cart'],
+};
+
 /* ── Tier definitions ──────────────────────────────── */
 const TIER_FREE       = 'free';
 const TIER_PRO        = 'pro';
@@ -69,6 +82,16 @@ async function _loadLicenseFromStorage() {
     if (!raw) return null;
 
     const license = JSON.parse(raw);
+
+    // Trial grants are minted locally, so they ALWAYS carry a hash —
+    // a trial record with a missing or wrong hash is a forgery.
+    // (Non-trial records without a hash are legacy activations from
+    // before hashing existed; keep them rather than strand real keys.)
+    if (license.trial && !hash) {
+      localStorage.removeItem(LICENSE_STORAGE_KEY);
+      localStorage.removeItem(INTEGRITY_STORAGE_KEY);
+      return null;
+    }
 
     if (hash) {
       const expected = await _computeIntegrityHash(license);
@@ -159,6 +182,98 @@ function getTenantId() {
 function getTierLabel() {
   const t = getLicenseTier();
   return { free:'FREE', pro:'PRO', cloud:'CLOUD', enterprise:'ENTERPRISE', god:'GOD' }[t] || 'FREE';
+}
+
+/* ── Trial helpers ─────────────────────────────────── */
+function isTrialRecord()  { return !!_licenseState?.trial; }
+function isTrialActive()  { return isTrialRecord() && getLicenseTier() !== TIER_FREE; }
+function isTrialExpired() { return isTrialRecord() && getLicenseTier() === TIER_FREE; }
+
+function getTrialDaysLeft() {
+  if (!isTrialRecord() || !_licenseState.expires_at) return null;
+  const ms = new Date(_licenseState.expires_at).getTime() - Date.now();
+  return Math.max(0, Math.ceil(ms / 86400000));
+}
+
+// Every fresh install gets 90 days of PRO. The start date is anchored in
+// BOTH a dedicated localStorage key and APP_STATE.settings, and the expiry
+// is bound into the integrity hash — deleting just the license record
+// recreates the same trial window, not a new one.
+async function _ensureTrial() {
+  if (_licenseState) return;
+
+  const anchors = [
+    localStorage.getItem(TRIAL_ANCHOR_KEY),
+    (typeof APP_STATE !== 'undefined' ? APP_STATE?.settings?.trialStartedAt : null),
+  ].filter(a => a && !isNaN(new Date(a).getTime()));
+
+  let anchor;
+  if (anchors.length) {
+    anchor = anchors.sort()[0]; // oldest known start wins
+  } else {
+    anchor = new Date().toISOString();
+    _trialJustStarted = true;
+  }
+
+  localStorage.setItem(TRIAL_ANCHOR_KEY, anchor);
+  if (typeof APP_STATE !== 'undefined' && APP_STATE?.settings &&
+      APP_STATE.settings.trialStartedAt !== anchor) {
+    APP_STATE.settings.trialStartedAt = anchor;
+    if (typeof persistState === 'function') persistState();
+  }
+
+  const expires  = new Date(new Date(anchor).getTime() + TRIAL_DAYS * 86400000).toISOString();
+  const deviceId = await _generateDeviceId();
+  const record = {
+    code:           'TRIAL',
+    tier:           TIER_PRO,
+    trial:          true,
+    client_name:    'PRO Trial',
+    tenant_id:      null,
+    expires_at:     expires,
+    activated_at:   anchor,
+    device_id:      deviceId,
+    last_validated: new Date().toISOString(),
+    nudges:         {},
+  };
+  await _saveLicenseToStorage(record);
+  _licenseState = record;
+}
+
+/* ── Tier gate with upgrade prompt ─────────────────── */
+function requireTier(tierNeeded, featureLabel) {
+  if (TIER_RANK[getLicenseTier()] >= (TIER_RANK[tierNeeded] ?? 99)) return true;
+  const tail = isTrialExpired()
+    ? 'Your PRO trial has ended, but everything you built is safe and waiting. Upgrade to pick up right where you left off.'
+    : 'Upgrade to unlock it. Anything you create is yours and stays saved.';
+  openLicenseModal(`${featureLabel} is a ${String(tierNeeded).toUpperCase()} feature. ${tail}`);
+  return false;
+}
+
+/* ── Trial nudges (once per threshold) ─────────────── */
+async function _maybeShowTrialNudge() {
+  if (!isTrialRecord()) return;
+  const nudges = _licenseState.nudges || (_licenseState.nudges = {});
+
+  if (isTrialExpired()) {
+    if (nudges.ended) return;
+    nudges.ended = true;
+    await _saveLicenseToStorage(_licenseState);
+    openLicenseModal('Your 90-day PRO trial has ended. Everything you built — products, sales, clients — is safe and waiting. Upgrade to keep the full system, or continue on the Free plan.');
+    return;
+  }
+
+  const days = getTrialDaysLeft();
+  const thresholds = [14, 7, 1].filter(t => days <= t);
+  if (!thresholds.length) return;
+  const smallest = Math.min(...thresholds);
+  const flag = 'd' + smallest;
+  if (nudges[flag]) return;
+  thresholds.forEach(t => { nudges['d' + t] = true; });
+  await _saveLicenseToStorage(_licenseState);
+  openLicenseModal(days <= 1
+    ? 'Your PRO trial ends today. Upgrade now so the counter never skips a beat — your data carries over exactly as it is.'
+    : `Your PRO trial ends in ${days} days. Upgrade anytime — your data carries over exactly as it is.`);
 }
 
 /* ── Supabase helpers ──────────────────────────────── */
@@ -252,6 +367,7 @@ async function activateLicenseKey(code) {
 /* ── Periodic revalidation ─────────────────────────── */
 async function revalidateLicense(force = false) {
   if (!_licenseState) return;
+  if (_licenseState.trial) return; // trials are local grants — no server record
 
   const lastCheck = new Date(_licenseState.last_validated || 0);
   if (!force && Date.now() - lastCheck.getTime() < REVALIDATE_INTERVAL_MS) return;
@@ -314,11 +430,18 @@ function applyLicenseTier() {
   const display = TIER_DISPLAY[tier] || TIER_DISPLAY.free;
 
   if (statusLabel) {
-    statusLabel.textContent = display.label;
-    statusLabel.style.color = display.color;
+    if (isTrialActive()) {
+      statusLabel.textContent = '✓ PRO TRIAL';
+      statusLabel.style.color = getTrialDaysLeft() <= 14 ? '#b45309' : '#15803d';
+    } else {
+      statusLabel.textContent = display.label;
+      statusLabel.style.color = display.color;
+    }
   }
   if (statusSub) {
-    if (isPaid) {
+    if (isTrialActive()) {
+      statusSub.textContent = `PRO trial · ${getTrialDaysLeft()} days left · then Free plan (your data stays)`;
+    } else if (isPaid) {
       const expiry = _licenseState?.expires_at
         ? new Date(_licenseState.expires_at).toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'numeric'})
         : 'Lifetime';
@@ -328,7 +451,7 @@ function applyLicenseTier() {
       statusSub.textContent = `Up to ${FREE_PRODUCT_LIMIT} products · Core features only`;
     }
   }
-  if (openBtn) openBtn.textContent = isPaid ? 'Manage License' : 'Enter License Key';
+  if (openBtn) openBtn.textContent = isPaid ? (isTrialActive() ? 'Upgrade Now' : 'Manage License') : 'Enter License Key';
 
   // Update nav badge
   _renderLicenseBadge();
@@ -363,13 +486,31 @@ function applyLicenseTier() {
   });
 
   if (!isPaid) {
-    // Hide nav buttons directly — do NOT mutate APP_STATE.settings so user's toggle choices survive reload
+    // Keep the PRO nav buttons VISIBLE but locked — the click opens the
+    // upgrade prompt via the switchPage gate (see TIER_GATED_VIEWS), which
+    // sells better than features silently vanishing. Do NOT mutate
+    // APP_STATE.settings so the user's toggle choices survive reload.
     ['navSupply','navProduction','navCoffeeCart'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.style.display = 'none';
+      if (!el) return;
+      el.style.display = '';
+      el.style.opacity = '.45';
+      if (!el.querySelector('.pro-lock-badge')) {
+        const chip = document.createElement('span');
+        chip.className = 'pro-lock-badge';
+        chip.textContent = 'PRO';
+        chip.style.cssText = 'font-size:8px;font-weight:900;padding:1px 6px;border-radius:999px;background:#0f0f0f;color:#fff;letter-spacing:1px;margin-left:auto;';
+        el.appendChild(chip);
+      }
     });
     if (typeof updateOpsNavGroup === 'function') updateOpsNavGroup();
   } else {
+    ['navSupply','navProduction','navCoffeeCart'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.opacity = '';
+      el.querySelector('.pro-lock-badge')?.remove();
+    });
     // One-time migration: old code used to write false into APP_STATE.settings for all
     // pro features whenever the free tier ran before the license loaded. Reset them once.
     const MIG_KEY = 'caflat_pro_features_restored_v1';
@@ -427,14 +568,20 @@ function _renderLicenseBadge() {
     enterprise: { text: 'ENTERPRISE', bg: '#7e22ce', color: '#fff' },
     god:        { text: 'GOD',        bg: '#fff',    color: '#0a0a0b' },
   };
-  const style = BADGE_STYLES[getLicenseTier()] || BADGE_STYLES.free;
+  let style = BADGE_STYLES[getLicenseTier()] || BADGE_STYLES.free;
+  if (isTrialActive()) {
+    const days = getTrialDaysLeft();
+    style = days <= 14
+      ? { text: `TRIAL · ${days}d`, bg: '#b45309', color: '#fff' }
+      : { text: `TRIAL · ${days}d`, bg: '#0f0f0f', color: '#c8a96e' };
+  }
   badge.textContent        = style.text;
   badge.style.background   = style.bg;
   badge.style.color        = style.color;
 }
 
 /* ── License modal ─────────────────────────────────── */
-function openLicenseModal() {
+function openLicenseModal(contextMessage) {
   let modal = document.getElementById('licenseModal');
   if (!modal) {
     modal = document.createElement('div');
@@ -517,10 +664,29 @@ function openLicenseModal() {
     </div>`;
 
 
+  const contextHtml = (typeof contextMessage === 'string' && contextMessage) ? `
+    <div style="padding:12px 14px;border-radius:var(--radius-md);margin-bottom:16px;
+      background:#fffbeb;border:1.5px solid #f59e0b;color:#92400e;
+      font-size:12.5px;line-height:1.55;font-weight:600;">
+      ${contextMessage}
+    </div>` : '';
+
+  const trialCardHtml = isTrialActive() ? `
+    <div style="padding:16px;border-radius:var(--radius-lg);background:#0f0f0f;
+      border:1.5px solid #0f0f0f;margin-bottom:16px;text-align:center;">
+      <div style="font-size:20px;font-weight:900;letter-spacing:2px;color:#c8a96e;">PRO TRIAL</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:4px;">
+        ${getTrialDaysLeft()} days left · all PRO features unlocked · then Free plan</div>
+      <div style="margin-top:6px;font-size:10px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.5px;">
+        YOUR DATA STAYS EITHER WAY</div>
+    </div>` : '';
+
   modal.innerHTML = `
     <div class="modal" style="max-width:500px;">
       <h3>License</h3>
-      ${isPaid ? `
+      ${contextHtml}
+      ${trialCardHtml}
+      ${(isPaid && !isTrialActive()) ? `
         <div style="padding:16px;border-radius:var(--radius-lg);background:${tc.bg};
           border:1.5px solid ${tc.border};margin-bottom:20px;text-align:center;">
           <div style="font-size:24px;font-weight:900;letter-spacing:2px;color:${tc.color};">
@@ -559,7 +725,7 @@ function openLicenseModal() {
 
   modal.classList.add('active');
 
-  if (!isPaid) {
+  if (!isPaid || isTrialActive()) {
     document.getElementById('licenseActivateBtn')?.addEventListener('click', _handleActivateClick);
     document.getElementById('licenseKeyInput')?.addEventListener('keydown', e => {
       if (e.key === 'Enter') _handleActivateClick();
@@ -715,37 +881,29 @@ function _showFirstRunOnboarding() {
     <div style="background:#111;border:1.5px solid rgba(255,255,255,.12);border-radius:18px;
       padding:40px 36px;max-width:440px;width:100%;text-align:center;">
       <div style="font-size:2rem;margin-bottom:4px;">☕</div>
-      <h2 style="color:#fff;font-size:1.35rem;font-weight:800;margin-bottom:10px;letter-spacing:-.02em;">
-        Welcome to Caflat.CORE
+      <h2 style="color:#fff;font-size:1.35rem;font-weight:800;margin-bottom:6px;letter-spacing:-.02em;">
+        Your ${TRIAL_DAYS}-day PRO trial has started
       </h2>
-      <p style="color:rgba(255,255,255,.55);font-size:.88rem;line-height:1.65;margin-bottom:28px;">
-        You're running on the free plan. To unlock all features,
-        enter your license key below.
+      <div style="display:inline-block;background:rgba(200,169,110,.14);border:1px solid rgba(200,169,110,.4);
+        color:#c8a96e;font-size:.68rem;font-weight:800;letter-spacing:1.5px;border-radius:999px;
+        padding:5px 14px;margin-bottom:14px;">EVERYTHING UNLOCKED</div>
+      <p style="color:rgba(255,255,255,.55);font-size:.88rem;line-height:1.65;margin-bottom:26px;">
+        POS, inventory, production, the B2B supply hub — the full system is yours
+        for ${TRIAL_DAYS} days. No credit card. When the trial ends, your data stays
+        and you can keep going on the Free plan or upgrade.
       </p>
-      <input id="firstRunKeyInput" type="text" placeholder="CAFL-XXXX-XXXX-XXXX"
-        style="width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);
-          border-radius:10px;padding:13px 16px;color:#fff;font-size:1rem;font-family:monospace;
-          text-align:center;letter-spacing:.06em;text-transform:uppercase;outline:none;
-          margin-bottom:14px;box-sizing:border-box;">
-      <button onclick="(async()=>{
-          const k=document.getElementById('firstRunKeyInput').value.trim();
-          if(!k)return;
-          const r=await activateLicenseKey(k);
-          if(r.success){document.getElementById('firstRunOverlay').remove();}
-          else{showNotification(r.error,'error');}
-        })()"
+      <button onclick="document.getElementById('firstRunOverlay').remove()"
         style="width:100%;background:#fff;color:#000;border:none;border-radius:10px;
           padding:14px;font-size:.95rem;font-weight:800;cursor:pointer;margin-bottom:12px;">
-        Activate License
+        Start Brewing
       </button>
-      <button onclick="document.getElementById('firstRunOverlay').remove()"
+      <button onclick="document.getElementById('firstRunOverlay').remove();openLicenseModal();"
         style="background:none;border:none;color:rgba(255,255,255,.35);font-size:.82rem;
           cursor:pointer;padding:4px;">
-        Continue on free plan
+        I already have a license key
       </button>
     </div>`;
   document.body.appendChild(overlay);
-  setTimeout(() => document.getElementById('firstRunKeyInput')?.focus(), 100);
 }
 
 // Fast path: load from local storage only (no network). Called by initializeApp
@@ -754,6 +912,9 @@ async function initializeLicenseFast() {
   if (!_licenseState) {
     _licenseState = await _loadLicenseFromStorage();
   }
+  // Fresh installs (and tampered/self-deleted records) get the local PRO
+  // trial grant here so the very first render runs at the right tier.
+  await _ensureTrial();
 }
 
 async function initializeLicense() {
@@ -761,13 +922,17 @@ async function initializeLicense() {
   if (!_licenseState) {
     _licenseState = await _loadLicenseFromStorage();
   }
+  await _ensureTrial();
 
   // Apply tier immediately with what local storage gives us
   applyLicenseTier();
 
-  // Show onboarding for first-time users with no license
-  if (!_licenseState) {
+  // First-time users: welcome them into the trial that just started.
+  // Returning trial users: nudge as the clock runs down / runs out.
+  if (_trialJustStarted) {
     setTimeout(_showFirstRunOnboarding, 800);
+  } else {
+    setTimeout(() => { _maybeShowTrialNudge(); }, 1200);
   }
 
   // Always validate against Supabase on every startup (not just every 24h)
@@ -812,5 +977,10 @@ window.updateSyncStatus           = updateSyncStatus;
 window.triggerLicenseRevalidation = triggerLicenseRevalidation;
 window.getTenantId                = getTenantId;
 window._sbFetch                   = _sbFetch;
+window.requireTier                = requireTier;
+window.isTrialActive              = isTrialActive;
+window.isTrialExpired             = isTrialExpired;
+window.getTrialDaysLeft           = getTrialDaysLeft;
+window.TIER_GATED_VIEWS           = TIER_GATED_VIEWS;
 window.CAFLAT_SB_URL_PUBLIC       = CAFLAT_SB_URL;
 window.CAFLAT_SB_ANON_PUBLIC      = CAFLAT_SB_ANON;
