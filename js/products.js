@@ -79,7 +79,11 @@ function saveProduct() {
   // Free tier product limit — only block NEW products, not edits
   if (!existing && typeof isAtProductLimit === 'function' && isAtProductLimit()) {
     showNotification(`Free plan is limited to ${FREE_PRODUCT_LIMIT || 50} products. Upgrade to PRO to add more.`, 'error');
-    if (typeof openLicenseModal === 'function') setTimeout(openLicenseModal, 600);
+    if (typeof openLicenseModal === 'function') {
+      setTimeout(() => openLicenseModal(
+        `The Free plan holds up to ${FREE_PRODUCT_LIMIT || 50} products and you've reached it. Upgrade to PRO for unlimited products — everything you've built is safe.`
+      ), 600);
+    }
     return;
   }
 

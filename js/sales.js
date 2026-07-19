@@ -1263,6 +1263,7 @@ function renderSalesTable() {
 }
 
 function exportSalesReport() {
+  if (typeof requireTier === 'function' && !requireTier('pro', 'Report exports (CSV)')) return;
   const sales = getSales();
   const lines = [['Receipt','Date','Payment','Order Type','Status','Subtotal','Discount','Tax','Total'].join(',')];
   sales.forEach(sale => {

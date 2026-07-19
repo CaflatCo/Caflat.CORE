@@ -200,6 +200,10 @@ function switchPage(target) {
   const cleanTarget = normalizeTarget(target);
   if (!cleanTarget) return;
 
+  // Tier gate: locked views open the upgrade prompt instead of the screen
+  const gate = (typeof TIER_GATED_VIEWS !== 'undefined') ? TIER_GATED_VIEWS[cleanTarget] : null;
+  if (gate && typeof requireTier === 'function' && !requireTier(gate[0], gate[1])) return;
+
   updateState('ui', current => ({ ...current, currentView: cleanTarget }));
 
   document.querySelectorAll('.view, .page').forEach(s => s.classList.remove('active'));
