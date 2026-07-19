@@ -22,6 +22,7 @@ const TIER_GATED_VIEWS = {
   supply:     ['pro', 'The Supply hub'],
   production: ['pro', 'Production'],
   coffeecart: ['pro', 'Events & Coffee Cart'],
+  foresight:  ['pro', 'Foresight forecasting'],
 };
 
 /* ── Tier definitions ──────────────────────────────── */
@@ -497,7 +498,7 @@ function applyLicenseTier() {
     // upgrade prompt via the switchPage gate (see TIER_GATED_VIEWS), which
     // sells better than features silently vanishing. Do NOT mutate
     // APP_STATE.settings so the user's toggle choices survive reload.
-    ['navSupply','navProduction','navCoffeeCart'].forEach(id => {
+    ['navSupply','navProduction','navCoffeeCart','navForesight'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       el.style.display = '';
@@ -512,7 +513,7 @@ function applyLicenseTier() {
     });
     if (typeof updateOpsNavGroup === 'function') updateOpsNavGroup();
   } else {
-    ['navSupply','navProduction','navCoffeeCart'].forEach(id => {
+    ['navSupply','navProduction','navCoffeeCart','navForesight'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       el.style.opacity = '';

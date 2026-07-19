@@ -226,6 +226,7 @@ function switchPage(target) {
 
   // Trigger chart re-render on dashboard/reports switch
   if (cleanTarget === 'dashboard' && typeof refreshDashboard  === 'function') refreshDashboard();
+  if (cleanTarget === 'foresight' && typeof renderForesight   === 'function') renderForesight();
   if (cleanTarget === 'reports'   && typeof renderReports      === 'function') renderReports();
   if (cleanTarget === 'supply'    && typeof renderSupplyView      === 'function') renderSupplyView();
   if (cleanTarget === 'coffeecart' && typeof renderCoffeeCartView === 'function') renderCoffeeCartView();
