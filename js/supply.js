@@ -215,12 +215,21 @@ function renderClientsList() {
     return;
   }
 
-  container.innerHTML = clients.map(c => `
+  container.innerHTML = clients.map(c => {
+    const ar = getClientReceivables(c.id);
+    const ageChip = ar.total > 0
+      ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;
+          padding:2px 8px;border-radius:999px;margin-left:8px;
+          background:${ar.oldestDays > 60 ? 'rgba(220,38,38,.12)' : ar.oldestDays > 30 ? 'rgba(234,88,12,.12)' : 'var(--gray-100)'};
+          color:${ar.oldestDays > 60 ? '#dc2626' : ar.oldestDays > 30 ? '#ea580c' : 'var(--gray-500)'};">
+          ${formatCurrency(ar.total)} due${ar.oldestDays > 0 ? ` · ${ar.oldestDays}d` : ''}</span>`
+      : '';
+    return `
     <div style="display:flex;align-items:center;justify-content:space-between;
       padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-lg);
       margin-bottom:8px;background:var(--white);">
       <div>
-        <div style="font-weight:800;font-size:13px;">${escapeHtml(c.name)}</div>
+        <div style="font-weight:800;font-size:13px;display:flex;align-items:center;">${escapeHtml(c.name)}${ageChip}</div>
         <div style="font-size:11px;color:var(--gray-400);">
           ${[c.contact, c.email].filter(Boolean).map(escapeHtml).join(' · ') || 'No contact info'}
         </div>
@@ -235,13 +244,15 @@ function renderClientsList() {
           </svg>
           Order Portal
         </button>
+        <button class="btn btn-sm btn-secondary" data-action="client-statement" data-id="${c.id}">Statement</button>
         ${c.portal?.termsMode === 'consignment'
           ? `<button class="btn btn-sm btn-secondary" data-action="consignment-ledger" data-id="${c.id}">Ledger</button>`
           : ''}
         <button class="btn btn-sm btn-secondary" data-action="edit-client" data-id="${c.id}">Edit</button>
         <button class="btn btn-sm btn-secondary" data-action="delete-client" data-id="${c.id}">Delete</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function renderClientDropdowns() {
@@ -254,6 +265,303 @@ function renderClientDropdowns() {
         `<option value="${c.id}"${current === c.id ? ' selected' : ''}>${escapeHtml(c.name)}</option>`
       ).join('');
   });
+}
+
+/* ═══════════════════════════════════════════════════════
+   STATEMENT OF ACCOUNT — AR aging + shareable read-only link
+   Balance follows the same convention as Reports' Receivables card
+   (getOutstandingReceivables): DELIVERED/INVOICED orders are fully
+   outstanding at grandTotal — this app has no partial-payment tracking
+   on B2B orders, only a binary paid/unpaid state.
+═══════════════════════════════════════════════════════ */
+
+function getClientReceivables(clientId) {
+  const orders = getSupplyOrders().filter(o =>
+    String(o.clientId) === String(clientId) &&
+    ['DELIVERED', 'INVOICED'].includes(String(o.status || '').toUpperCase()));
+
+  const now = Date.now();
+  const items = orders.map(o => {
+    const history = Array.isArray(o.statusHistory) ? o.statusHistory : [];
+    // Age from the most recent time this order was invoiced (falling back
+    // to delivered, then created) — matches the pipeline stepper's own
+    // "last matching entry" convention for a status that can be re-set.
+    const lastOf = s => { let e = null; history.forEach(h => { if (h.status === s) e = h; }); return e; };
+    const anchor = lastOf('INVOICED') || lastOf('DELIVERED');
+    const invoicedAt = anchor?.changedAt || o.createdAt || new Date().toISOString();
+    const ageDays = Math.max(0, Math.floor((now - new Date(invoicedAt).getTime()) / 86400000));
+    const bucket = ageDays === 0 ? 'current' : ageDays <= 30 ? '1-30' : ageDays <= 60 ? '31-60' : '60+';
+    return {
+      id: o.id, invoiceNumber: o.invoiceNumber || o.id,
+      amount: Number(o.grandTotal || 0), invoicedAt, ageDays, bucket,
+    };
+  }).sort((a, b) => b.ageDays - a.ageDays);
+
+  const buckets = { current: 0, '1-30': 0, '31-60': 0, '60+': 0 };
+  items.forEach(i => { buckets[i.bucket] += i.amount; });
+  const total = items.reduce((s, i) => s + i.amount, 0);
+  const oldestDays = items.length ? items[0].ageDays : 0;
+
+  return { items, buckets, total, oldestDays };
+}
+
+function openClientStatementModal(clientId) {
+  const client = getSupplierClients().find(c => String(c.id) === String(clientId));
+  if (!client) return;
+
+  let m = document.getElementById('clientStatementModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'clientStatementModal';
+    m.className = 'modal-overlay';
+    document.body.appendChild(m);
+  }
+
+  const ar = getClientReceivables(clientId);
+  const hasLink = !!client.statementShare?.token;
+  const bucketCards = [
+    ['Current', ar.buckets.current, ''],
+    ['1–30 Days', ar.buckets['1-30'], ''],
+    ['31–60 Days', ar.buckets['31-60'], '#ea580c'],
+    ['60+ Days', ar.buckets['60+'], '#dc2626'],
+  ];
+
+  m.innerHTML = `
+    <div class="modal" style="max-width:560px;">
+      <h3>Statement of Account</h3>
+      <input type="hidden" id="stmtClientId" value="${clientId}" />
+      <div style="font-size:13px;font-weight:800;margin-bottom:2px;">${escapeHtml(client.name)}</div>
+      <div style="font-size:11px;color:var(--gray-400);margin-bottom:16px;">
+        ${[client.contact, client.email].filter(Boolean).map(escapeHtml).join(' · ') || 'No contact info'}
+      </div>
+
+      <div class="cost-preview-card" style="margin-top:0;margin-bottom:16px;">
+        <div class="cost-preview-grid">
+          ${bucketCards.map(([label, amt, color]) => `
+            <div class="cost-preview-item">
+              <div class="cost-preview-label">${label}</div>
+              <div class="cost-preview-value" style="${color && amt > 0 ? `color:${color};` : ''}">${formatCurrency(amt)}</div>
+            </div>`).join('')}
+        </div>
+        <div style="text-align:right;font-size:12px;color:var(--gray-500);margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
+          Total Outstanding <strong style="color:var(--black);font-size:14px;">${formatCurrency(ar.total)}</strong>
+        </div>
+      </div>
+
+      ${ar.items.length ? `
+      <div class="table-wrapper" style="margin-bottom:16px;">
+        <table>
+          <thead><tr><th>Invoice</th><th>Invoiced</th><th>Age</th><th>Amount</th></tr></thead>
+          <tbody>
+            ${ar.items.map(i => `<tr>
+              <td style="font-weight:700;">${escapeHtml(i.invoiceNumber)}</td>
+              <td>${new Date(i.invoicedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+              <td style="color:${i.ageDays > 60 ? '#dc2626' : i.ageDays > 30 ? '#ea580c' : 'inherit'};">${i.ageDays}d</td>
+              <td style="font-weight:700;">${formatCurrency(i.amount)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>` : `<div class="empty-state" style="margin-bottom:16px;">No outstanding invoices — fully paid up</div>`}
+
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+        color:var(--gray-500);margin-bottom:10px;">Share Link</div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;margin-bottom:10px;">
+        <input type="checkbox" id="stmtIncludePayment" style="width:16px;height:16px;" />
+        Include payment/QR details on the shared page
+      </label>
+      <div id="stmtShareSection" style="display:${hasLink ? 'block' : 'none'};background:var(--gray-50);
+        border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:14px;">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+          <input id="stmtLinkInput" type="text" readonly value="${hasLink ? escapeHtml(getClientStatementUrl(clientId) || '') : ''}"
+            style="flex:1;padding:8px 10px;font-size:11px;border:1.5px solid var(--border);
+              border-radius:8px;font-family:var(--font-mono, monospace);background:var(--white);" />
+          <button class="btn btn-sm btn-secondary" data-action="stmt-copy-link">Copy</button>
+        </div>
+        <div style="font-size:11px;color:var(--gray-500);">
+          Anyone with this link sees a read-only version of this statement.
+          Re-sharing refreshes the same link with today's numbers.<br>
+          <button data-action="stmt-revoke" data-id="${clientId}" style="background:none;border:none;padding:0;margin-top:4px;
+            font-size:11px;font-weight:800;color:var(--danger);cursor:pointer;font-family:inherit;
+            text-decoration:underline;">Revoke this link</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" onclick="closeModal('clientStatementModal')">Close</button>
+        <button class="btn btn-secondary" type="button" data-action="stmt-print" data-id="${clientId}">Print</button>
+        <button class="btn" type="button" data-action="stmt-share" data-id="${clientId}">
+          ${hasLink ? 'Update & Re-share' : 'Share Statement'}
+        </button>
+      </div>
+    </div>`;
+
+  openModal('clientStatementModal');
+}
+
+function _clientStatementPayload(clientId, includePayment) {
+  const client = getSupplierClients().find(c => String(c.id) === String(clientId));
+  const ar = getClientReceivables(clientId);
+  const paymentInfo = includePayment
+    ? (APP_STATE.settings?.paymentMethods || [])
+        .filter(m => m.type === 'qr' && m.qrImage)
+        .map(m => ({ name: m.name, qrImage: m.qrImage }))
+    : [];
+  return {
+    brand:       APP_STATE.settings?.brandName || 'Caflat.CORE',
+    clientName:  client?.name || '',
+    generatedAt: new Date().toISOString(),
+    total:       ar.total,
+    buckets:     ar.buckets,
+    items:       ar.items.map(i => ({ invoiceNumber: i.invoiceNumber, amount: i.amount, invoicedAt: i.invoicedAt, ageDays: i.ageDays })),
+    paymentInfo,
+  };
+}
+
+async function shareClientStatement(clientId) {
+  if (typeof requireTier === 'function' && !requireTier('pro', 'Shareable statements')) return;
+  const tenantId = typeof getTenantId === 'function' ? getTenantId() : null;
+  if (!tenantId) { showNotification('Activate your license first — statement links need your cloud workspace', 'error'); return; }
+
+  const client = getSupplierClients().find(c => String(c.id) === String(clientId));
+  if (!client) return;
+
+  const includePayment = document.getElementById('stmtIncludePayment')?.checked === true;
+  const payload = _clientStatementPayload(clientId, includePayment);
+
+  let token = client.statementShare?.token;
+  let hash  = client.statementShare?.hash;
+  if (!token) {
+    token = ((crypto.randomUUID?.() || '') + (crypto.randomUUID?.() || '')).replace(/-/g, '');
+    hash  = await _sha256Hex(token);
+  }
+
+  const btn = document.querySelector('[data-action="stmt-share"]');
+  if (btn) { btn.textContent = 'Sharing…'; btn.disabled = true; }
+
+  try {
+    const res = await fetch(`${CAFLAT_SB_URL}/rest/v1/client_statements?on_conflict=tenant_id,client_key`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        CAFLAT_SB_ANON,
+        'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+        'Prefer':        'resolution=merge-duplicates,return=minimal',
+      },
+      body: JSON.stringify({ tenant_id: tenantId, client_key: String(clientId), token_hash: hash, payload }),
+    });
+    if (!res.ok) {
+      showNotification('Could not create statement link — run migration 012 in Supabase', 'error');
+      return;
+    }
+
+    const clients = getSupplierClients();
+    const idx = clients.findIndex(c => String(c.id) === String(clientId));
+    if (idx >= 0) clients[idx] = { ...clients[idx], statementShare: { token, hash, updatedAt: new Date().toISOString() } };
+    updateState('supplierClients', () => clients);
+
+    openClientStatementModal(clientId);
+    showNotification('Statement link ready — share it with your client', 'success');
+  } finally {
+    if (btn) { btn.disabled = false; }
+  }
+}
+
+async function revokeClientStatementLink(clientId) {
+  const client = getSupplierClients().find(c => String(c.id) === String(clientId));
+  if (!client?.statementShare) return;
+  if (!confirm(`Revoke ${client.name}'s statement link? It will stop working immediately.`)) return;
+
+  try {
+    await fetch(`${CAFLAT_SB_URL}/rest/v1/client_statements?token_hash=eq.${client.statementShare.hash}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        CAFLAT_SB_ANON,
+        'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify({ revoked: true }),
+    });
+  } catch (e) { /* revoke best-effort; local removal below always happens */ }
+
+  const clients = getSupplierClients();
+  const idx = clients.findIndex(c => String(c.id) === String(clientId));
+  if (idx >= 0) { const c = { ...clients[idx] }; delete c.statementShare; clients[idx] = c; }
+  updateState('supplierClients', () => clients);
+
+  openClientStatementModal(clientId);
+  showNotification('Statement link revoked', 'success');
+}
+
+function getClientStatementUrl(clientId) {
+  const client = getSupplierClients().find(c => String(c.id) === String(clientId));
+  return client?.statementShare?.token ? `${location.origin}/statement.html#${client.statementShare.token}` : null;
+}
+
+function copyClientStatementLink(clientId) {
+  const url = getClientStatementUrl(clientId);
+  if (!url) return;
+  navigator.clipboard?.writeText(url)
+    .then(() => showNotification('Statement link copied', 'success'))
+    .catch(() => showNotification(url, 'info'));
+}
+
+function printClientStatement(clientId) {
+  const client = getSupplierClients().find(c => String(c.id) === String(clientId));
+  if (!client) return;
+  const ar = getClientReceivables(clientId);
+  const brand = APP_STATE.settings?.brandName || 'Caflat.CORE';
+  const today = new Date().toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <title>Statement — ${escapeHtml(client.name)}</title>
+    <style>
+      * { box-sizing:border-box; margin:0; padding:0; }
+      body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; color:#0c0b0a; padding:32px; }
+      .hdr { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #0c0b0a; padding-bottom:16px; margin-bottom:20px; }
+      .brand { font-size:18px; font-weight:900; letter-spacing:-.02em; }
+      .title { font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#666; margin-top:4px; }
+      .meta { text-align:right; font-size:12px; color:#666; }
+      .client { font-size:15px; font-weight:800; margin-bottom:20px; }
+      .buckets { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+      .bucket { border:1px solid #ddd; border-radius:8px; padding:10px 12px; }
+      .bucket .l { font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#999; margin-bottom:4px; }
+      .bucket .v { font-size:15px; font-weight:900; }
+      table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:20px; }
+      th { text-align:left; font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#999; padding:8px 6px; border-bottom:2px solid #0c0b0a; }
+      td { padding:8px 6px; border-bottom:1px solid #eee; }
+      .total { text-align:right; font-size:14px; font-weight:900; padding-top:12px; border-top:2px solid #0c0b0a; }
+      @media print { body { padding:0; } }
+    </style></head><body>
+    <div class="hdr">
+      <div><div class="brand">${escapeHtml(brand)}</div><div class="title">Statement of Account</div></div>
+      <div class="meta">Generated ${today}</div>
+    </div>
+    <div class="client">${escapeHtml(client.name)}</div>
+    <div class="buckets">
+      <div class="bucket"><div class="l">Current</div><div class="v">${formatCurrency(ar.buckets.current)}</div></div>
+      <div class="bucket"><div class="l">1&ndash;30 Days</div><div class="v">${formatCurrency(ar.buckets['1-30'])}</div></div>
+      <div class="bucket"><div class="l">31&ndash;60 Days</div><div class="v">${formatCurrency(ar.buckets['31-60'])}</div></div>
+      <div class="bucket"><div class="l">60+ Days</div><div class="v">${formatCurrency(ar.buckets['60+'])}</div></div>
+    </div>
+    ${ar.items.length ? `
+    <table>
+      <thead><tr><th>Invoice</th><th>Invoiced</th><th>Age</th><th>Amount</th></tr></thead>
+      <tbody>${ar.items.map(i => `<tr>
+        <td>${escapeHtml(i.invoiceNumber)}</td>
+        <td>${new Date(i.invoicedAt).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+        <td>${i.ageDays}d</td>
+        <td>${formatCurrency(i.amount)}</td>
+      </tr>`).join('')}</tbody>
+    </table>` : `<p style="color:#999;margin-bottom:20px;">No outstanding invoices.</p>`}
+    <div class="total">Total Outstanding: ${formatCurrency(ar.total)}</div>
+    <script>window.onload=()=>{window.print();}<\/script>
+    </body></html>`;
+
+  const win = window.open('', '_blank');
+  if (!win) { showNotification('Allow pop-ups to print the statement', 'error'); return; }
+  win.document.write(html);
+  win.document.close();
 }
 
 /* ═══════════════════════════════════════════════════════

@@ -617,6 +617,11 @@ function bindDelegatedActions() {
       case 'edit-client':            openClientModal(actionEl.dataset.id || ''); break;
       case 'delete-client':          deleteSupplierClient(actionEl.dataset.id || ''); break;
       case 'client-portal':          if(typeof openClientPortalModal==='function') openClientPortalModal(actionEl.dataset.id || ''); break;
+      case 'client-statement':       if(typeof openClientStatementModal==='function') openClientStatementModal(actionEl.dataset.id || ''); break;
+      case 'stmt-share':             if(typeof shareClientStatement==='function') shareClientStatement(actionEl.dataset.id || document.getElementById('stmtClientId')?.value || ''); break;
+      case 'stmt-revoke':            if(typeof revokeClientStatementLink==='function') revokeClientStatementLink(actionEl.dataset.id || document.getElementById('stmtClientId')?.value || ''); break;
+      case 'stmt-print':             if(typeof printClientStatement==='function') printClientStatement(actionEl.dataset.id || document.getElementById('stmtClientId')?.value || ''); break;
+      case 'stmt-copy-link':         if(typeof copyClientStatementLink==='function') copyClientStatementLink(document.getElementById('stmtClientId')?.value || ''); break;
       case 'accept-portal-report':   if(typeof acceptPortalReport==='function') acceptPortalReport(actionEl.dataset.id || ''); break;
       case 'consignment-ledger':     if(typeof openConsignmentLedger==='function') openConsignmentLedger(actionEl.dataset.id || ''); break;
       case 'portal-save':            if(typeof saveAndSyncClientPortal==='function') saveAndSyncClientPortal(); break;
