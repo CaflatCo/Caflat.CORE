@@ -2527,9 +2527,11 @@ nav.nav-open ~ .nav-mobile-drawer {
 #features .eyebrow,
 #extras .eyebrow,
 #pricing .eyebrow,
-#faq .eyebrow {
+#faq .eyebrow,
+#modes .eyebrow {
   color: var(--coffee);
 }
+#touchpoints .eyebrow { color: var(--champagne-ink); }
 
 /* ═══════════════════════════════════════════════════════════════
    BELOW-HERO REDESIGN (proof band, bento, explorer, touchpoints,
@@ -3074,10 +3076,15 @@ nav.nav-open ~ .nav-mobile-drawer {
 
 .touch-caption {
   text-align: center;
-  margin-top: 40px;
+  margin-top: 24px;
   font-size: .86rem;
   color: var(--text-gray);
 }
+
+/* Tighter top/bottom rhythm than the global 120px: the hub-and-spoke
+   diagram already reads as a self-contained unit, so the surrounding
+   section padding doesn't need to match denser, copy-heavy sections. */
+#touchpoints { padding: 90px 0 96px; }
 
 @media (max-width: 1000px) {
   .touch-lines { display: none; }
