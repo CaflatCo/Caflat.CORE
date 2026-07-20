@@ -99,6 +99,10 @@ document.querySelectorAll('.stagger').forEach(parent => {
 
 /* ─── Counter animation ─────────────────────────────────────── */
 function animateCount(el, target, suffix = '') {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = target + suffix;
+    return;
+  }
   let start = 0;
   const duration = 1400;
   const step = timestamp => {
@@ -124,6 +128,26 @@ const statsObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.5 });
 
 document.querySelectorAll('[data-target]').forEach(el => statsObserver.observe(el));
+
+/* ─── [data-populate] progressive reveal ────────────────────────
+   Any container marked data-populate gets .populated once it scrolls
+   into view; its CSS then choreographs children via staggered
+   transition-delay (see style.css). One-shot, like revealObserver. */
+(() => {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const populateObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('populated');
+        populateObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.25 });
+  document.querySelectorAll('[data-populate]').forEach(el => {
+    if (reduce) { el.classList.add('populated'); return; }
+    populateObserver.observe(el);
+  });
+})();
 
 /* ─── Atelier hero: ContainerScroll ticker + ambience ───────────
    Writes only CSS custom properties on the hero section; CSS owns
@@ -205,6 +229,125 @@ document.querySelectorAll('[data-target]').forEach(el => statsObserver.observe(e
     ty = (e.clientY / window.innerHeight - .5) * 16;
     if (!raf) raf = requestAnimationFrame(tick);
   });
+})();
+
+/* ─── Mode explorer: ARIA tablist swapping the 5 showcase panels ─
+   Direction-aware WAAPI switch (outgoing panel exits fast, incoming
+   enters slower from the direction of travel), stage height animates
+   between panel heights, keyboard Left/Right/Home/End, and a resize
+   dispatch after unhiding a panel so its [data-slider] (zero-width
+   while hidden) recomputes its position immediately. */
+(() => {
+  const rail = document.querySelector('.mode-rail');
+  const stage = document.querySelector('.mode-stage');
+  if (!rail || !stage) return;
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const HOUSE_EASE = 'cubic-bezier(.22,.61,.36,1)';
+  const EXIT_EASE  = 'cubic-bezier(.4,0,1,1)';
+
+  const tabs = Array.from(rail.querySelectorAll('.mode-tab'));
+  const panels = tabs.map(t => document.getElementById(t.getAttribute('aria-controls')));
+  const underline = rail.querySelector('.mode-rail-underline');
+  let activeIndex = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+  if (activeIndex < 0) activeIndex = 0;
+  let switching = false;
+
+  const moveUnderline = (tab) => {
+    if (!underline) return;
+    underline.style.width = tab.offsetWidth + 'px';
+    underline.style.transform = `translateX(${tab.offsetLeft - 5}px)`;
+  };
+  // Initial placement (post-layout)
+  requestAnimationFrame(() => moveUnderline(tabs[activeIndex]));
+  window.addEventListener('resize', () => moveUnderline(tabs[activeIndex]), { passive: true });
+
+  function switchMode(newIndex, { focusTab = false } = {}) {
+    if (newIndex === activeIndex || switching || newIndex < 0 || newIndex >= panels.length) return;
+    const dir = newIndex > activeIndex ? 1 : -1;
+    const oldTab = tabs[activeIndex], newTab = tabs[newIndex];
+    const oldPanel = panels[activeIndex], newPanel = panels[newIndex];
+    activeIndex = newIndex;
+
+    oldTab.setAttribute('aria-selected', 'false'); oldTab.tabIndex = -1;
+    newTab.setAttribute('aria-selected', 'true');  newTab.tabIndex = 0;
+    moveUnderline(newTab);
+    if (focusTab) newTab.focus();
+
+    if (reduce) {
+      oldPanel.hidden = true;
+      newPanel.hidden = false;
+      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+      return;
+    }
+
+    switching = true;
+    const oldH = stage.offsetHeight;
+
+    // Measure the incoming panel's natural height without showing it yet
+    newPanel.hidden = false;
+    newPanel.style.cssText = 'position:absolute;top:0;left:0;right:0;opacity:0;pointer-events:none;';
+    const newH = newPanel.offsetHeight;
+    newPanel.style.cssText = '';
+    newPanel.hidden = true;
+
+    stage.style.height = oldH + 'px';
+    stage.style.overflow = 'hidden';
+    stage.getBoundingClientRect(); // force reflow before animating
+
+    stage.animate(
+      [{ height: oldH + 'px' }, { height: newH + 'px' }],
+      { duration: 420, easing: HOUSE_EASE }
+    );
+
+    const exitAnim = oldPanel.animate(
+      [{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: `translateX(${-24 * dir}px)` }],
+      { duration: 200, easing: EXIT_EASE, fill: 'forwards' }
+    );
+
+    exitAnim.onfinish = () => {
+      oldPanel.hidden = true;
+      oldPanel.style.opacity = '';
+      oldPanel.style.transform = '';
+      newPanel.hidden = false;
+      window.dispatchEvent(new Event('resize')); // sliders in the newly-shown panel recompute width
+
+      const enterAnim = newPanel.animate(
+        [{ opacity: 0, transform: `translateX(${24 * dir}px)` }, { opacity: 1, transform: 'translateX(0)' }],
+        { duration: 420, easing: HOUSE_EASE }
+      );
+      enterAnim.onfinish = () => {
+        newPanel.style.opacity = '';
+        newPanel.style.transform = '';
+        stage.style.height = '';
+        stage.style.overflow = '';
+        switching = false;
+      };
+    };
+  }
+
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => switchMode(i));
+    tab.addEventListener('keydown', e => {
+      let target = null;
+      if (e.key === 'ArrowRight') target = (i + 1) % tabs.length;
+      else if (e.key === 'ArrowLeft') target = (i - 1 + tabs.length) % tabs.length;
+      else if (e.key === 'Home') target = 0;
+      else if (e.key === 'End') target = tabs.length - 1;
+      if (target === null) return;
+      e.preventDefault();
+      switchMode(target, { focusTab: true });
+    });
+  });
+
+  // Deep-link support: #mode-03 activates the Events tab on load/hashchange
+  const activateFromHash = () => {
+    const id = location.hash.replace('#', '');
+    const idx = panels.findIndex(p => p && p.id === id);
+    if (idx >= 0) switchMode(idx);
+  };
+  if (location.hash) activateFromHash();
+  window.addEventListener('hashchange', activateFromHash);
 })();
 
 /* ─── Mode sliders: swipeable app screens in each showcase ──────
@@ -486,6 +629,48 @@ document.querySelectorAll('.mode-how').forEach(details => {
         details.open = false;
         details.classList.remove('closing');
         anim.cancel(); // release the forwards fill once collapsed
+        animating = false;
+      };
+    }
+  });
+});
+
+/* ─── FAQ smooth open/close (same WAAPI pattern as .mode-how) ─── */
+document.querySelectorAll('.faq-item').forEach(details => {
+  const summary = details.querySelector('.faq-question');
+  const body    = details.querySelector('.faq-answer');
+  if (!summary || !body) return;
+
+  let animating = false;
+
+  summary.addEventListener('click', e => {
+    e.preventDefault();
+    if (animating) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      details.open = !details.open;
+      return;
+    }
+
+    if (!details.open) {
+      details.open = true;
+      const h = body.offsetHeight;
+      animating = true;
+      const anim = body.animate(
+        [{ height: '0px', opacity: 0 }, { height: h + 'px', opacity: 1 }],
+        { duration: 320, easing: HOW_EASE }
+      );
+      anim.onfinish = () => { animating = false; };
+    } else {
+      const h = body.offsetHeight;
+      animating = true;
+      const anim = body.animate(
+        [{ height: h + 'px', opacity: 1 }, { height: '0px', opacity: 0 }],
+        { duration: 260, easing: HOW_EASE, fill: 'forwards' }
+      );
+      anim.onfinish = () => {
+        details.open = false;
+        anim.cancel();
         animating = false;
       };
     }
