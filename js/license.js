@@ -538,6 +538,7 @@ function applyLicenseTier() {
     if (typeof applyProductLabModeToggle  === 'function') applyProductLabModeToggle();
     if (typeof applyRecipeCatalogToggle   === 'function') applyRecipeCatalogToggle();
     if (typeof applyTreasuryModeToggle    === 'function') applyTreasuryModeToggle();
+    if (typeof applyDailyCloseToggle      === 'function') applyDailyCloseToggle();
     if (typeof updateOpsNavGroup          === 'function') updateOpsNavGroup();
   }
 

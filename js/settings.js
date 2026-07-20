@@ -205,6 +205,7 @@ async function saveSettings() {
   const recipeCatalogEnabled   = document.getElementById('settingsRecipeCatalogMode')?.checked === true;
   const shoppingListEnabled    = document.getElementById('settingsShoppingList')?.checked === true;
   const treasuryModeEnabled    = document.getElementById('settingsTreasuryMode')?.checked  === true;
+  const dailyCloseEnabled      = document.getElementById('settingsDailyClose')?.checked    === true;
 
   updateState('settings', current => {
     const next = {
@@ -222,6 +223,7 @@ async function saveSettings() {
       shoppingListEnabled,
       originModeEnabled,
       treasuryModeEnabled,
+      dailyCloseEnabled,
     };
     if (voidPinHash) { next.voidPinHash = voidPinHash; delete next.voidPin; }
     return next;
@@ -239,6 +241,7 @@ async function saveSettings() {
   if (typeof applyShoppingListToggle    === 'function') applyShoppingListToggle();
   if (typeof applyOriginModeToggle      === 'function') applyOriginModeToggle();
   if (typeof applyTreasuryModeToggle    === 'function') applyTreasuryModeToggle();
+  if (typeof applyDailyCloseToggle      === 'function') applyDailyCloseToggle();
   if (typeof applyCurrencyToUI          === 'function') applyCurrencyToUI();
   if (typeof updateCartSummary          === 'function') updateCartSummary();
   showNotification('Settings saved', 'success');
@@ -290,6 +293,9 @@ function renderBranding() {
 
   const shoppingListToggle = document.getElementById('settingsShoppingList');
   if (shoppingListToggle) shoppingListToggle.checked = APP_STATE.settings?.shoppingListEnabled === true;
+
+  const dailyCloseToggle = document.getElementById('settingsDailyClose');
+  if (dailyCloseToggle) dailyCloseToggle.checked = APP_STATE.settings?.dailyCloseEnabled === true;
 
   _renderPaymentQRBoxes();
   renderPaymentMethodsList();

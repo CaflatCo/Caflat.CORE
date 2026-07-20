@@ -6,6 +6,7 @@
 ═══════════════════════════════════════════════════════ */
 
 function openEndOfDaySummary() {
+  _eodEditingDay = null; // always open on the closed/summary view, not mid-edit
   _renderEndOfDayContent();
   openModal('endOfDayModal');
 }
@@ -217,7 +218,391 @@ function _renderEndOfDayContent() {
         <div style="font-size:12px;color:var(--gray-700);padding:3px 0;">
           → ${escapeHtml(s)}
         </div>`).join('')}
-    </div>` : ''}`;
+    </div>` : ''}
+    ${_buildCloseTheDaySection(totalRevenue, paymentBreakdown)}`;
+
+  _updateEODLivePreview();
+}
+
+/* ═══════════════════════════════════════════════════════
+   CLOSE THE DAY — opt-in ritual (Settings → Features → Daily Close).
+   Adds nothing to the modal above when the toggle is off, so the
+   read-only summary stays byte-identical to what shipped before this.
+═══════════════════════════════════════════════════════ */
+
+function _localDayKey(d) {
+  d = d || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function _dayCloses() {
+  if (!Array.isArray(APP_STATE.dayCloses)) APP_STATE.dayCloses = [];
+  return APP_STATE.dayCloses;
+}
+
+function _getDayClose(dayKey) {
+  return _dayCloses().find(c => c.day === dayKey) || null;
+}
+
+// Most recent close strictly before `dayKey` — its cash count becomes
+// today's opening float, so the drawer reconciles day over day.
+function _getPriorClose(dayKey) {
+  return _dayCloses()
+    .filter(c => c.day < dayKey)
+    .sort((a, b) => b.day.localeCompare(a.day))[0] || null;
+}
+
+// Quick expenses need somewhere to post — auto-provision a single "Cash
+// Drawer" account rather than forcing setup of Treasury (a separate,
+// independently-toggled feature) before Daily Close can be used at all.
+function _cashDrawerAccountId() {
+  if (!APP_STATE.treasuryAccounts) APP_STATE.treasuryAccounts = [];
+  let acct = APP_STATE.treasuryAccounts.find(a => a.type === 'cash');
+  if (!acct) {
+    acct = { id: generateId(), name: 'Cash Drawer', type: 'cash', openingBalance: 0,
+      createdAt: new Date().toISOString() };
+    APP_STATE.treasuryAccounts.push(acct);
+  }
+  return acct.id;
+}
+
+function _eodExpenseRowsFromDOM() {
+  return Array.from(document.querySelectorAll('#eodExpenseBuilder .eod-expense-row')).map(row => ({
+    reason:   sanitizeText(row.querySelector('.eod-exp-reason')?.value || ''),
+    amount:   safeNumber(row.querySelector('.eod-exp-amount')?.value),
+    category: row.querySelector('.eod-exp-category')?.value || 'other',
+  })).filter(e => e.reason && e.amount > 0);
+}
+
+const EOD_EXPENSE_CATEGORIES = [
+  ['supplies',  'Supplies'],
+  ['utilities', 'Utilities'],
+  ['wages',     'Wages'],
+  ['other',     'Other'],
+];
+
+function addEODExpenseRow(expense) {
+  const container = document.getElementById('eodExpenseBuilder');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'eod-expense-row';
+  row.innerHTML = `
+    <input type="text" class="eod-exp-reason" placeholder="What was it for?"
+      value="${escapeHtml(expense?.reason || '')}">
+    <input type="number" class="eod-exp-amount" placeholder="Amount" min="0" step="0.01"
+      value="${expense?.amount || ''}">
+    <select class="eod-exp-category">
+      ${EOD_EXPENSE_CATEGORIES.map(([v, l]) =>
+        `<option value="${v}" ${expense?.category === v ? 'selected' : ''}>${l}</option>`).join('')}
+    </select>
+    <button type="button" class="btn btn-sm btn-secondary eod-exp-remove">✕</button>`;
+  row.querySelector('.eod-exp-remove').addEventListener('click', () => { row.remove(); _updateEODLivePreview(); });
+  row.querySelectorAll('input,select').forEach(el => el.addEventListener('input', _updateEODLivePreview));
+  container.appendChild(row);
+}
+
+// Recomputes expected cash / variance / P&L from the live DOM state —
+// same "read the form, don't wait for save" pattern as the product
+// editor's cost preview (js/products.js renderProductCostPreview).
+function _updateEODLivePreview() {
+  const box = document.getElementById('eodPreview');
+  if (!box) return;
+
+  const revenue = safeNumber(box.dataset.revenue);
+  const cashRevenue = safeNumber(box.dataset.cashRevenue);
+  const cogs = safeNumber(box.dataset.cogs);
+  const openingFloat = safeNumber(box.dataset.openingFloat);
+
+  const expenses = _eodExpenseRowsFromDOM();
+  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+  const expectedCash = openingFloat + cashRevenue - totalExpenses;
+
+  const countedInput = document.getElementById('eodCashCounted');
+  const counted = countedInput && countedInput.value !== '' ? safeNumber(countedInput.value) : null;
+  const variance = counted !== null ? counted - expectedCash : null;
+
+  const expectedEl = document.getElementById('eodExpectedCash');
+  if (expectedEl) expectedEl.textContent = formatCurrency(expectedCash);
+
+  const varianceEl = document.getElementById('eodVariance');
+  if (varianceEl) {
+    if (counted === null) {
+      varianceEl.textContent = 'Count the drawer to see variance';
+      varianceEl.style.color = 'var(--gray-400)';
+    } else {
+      const abs = Math.abs(variance);
+      const label = abs < 1 ? 'Matches exactly' :
+        `${variance > 0 ? 'Over' : 'Short'} by ${formatCurrency(abs)}`;
+      varianceEl.textContent = label;
+      varianceEl.style.color = abs < 1 ? '#16a34a' : abs <= 100 ? '#ea580c' : '#dc2626';
+    }
+  }
+
+  const profit = revenue - cogs - totalExpenses;
+  const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+  const profitEl = document.getElementById('eodProfit');
+  if (profitEl) {
+    profitEl.textContent = formatCurrency(profit);
+    profitEl.style.color = profit >= 0 ? '#16a34a' : '#dc2626';
+  }
+  const cogsEl = document.getElementById('eodCogsValue');
+  if (cogsEl) cogsEl.textContent = formatCurrency(cogs);
+  const expensesEl = document.getElementById('eodExpensesValue');
+  if (expensesEl) expensesEl.textContent = formatCurrency(totalExpenses);
+  const marginEl = document.getElementById('eodMargin');
+  if (marginEl) marginEl.textContent = revenue > 0 ? `${margin.toFixed(1)}%` : '—';
+}
+
+function _buildCloseTheDaySection(totalRevenue, paymentBreakdown) {
+  if (!(APP_STATE.settings?.dailyCloseEnabled === true)) return '';
+
+  const now = new Date();
+  const dayKey = _localDayKey(now);
+  const todayStartD = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayEndD   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+  const cogs = typeof getPeriodCOGS === 'function' ? getPeriodCOGS(todayStartD, todayEndD) : 0;
+  const cashRevenue = Number(paymentBreakdown?.cash || 0);
+  const existing = _getDayClose(dayKey);
+
+  const pro = typeof isProTier === 'function' ? isProTier() : false;
+  if (!pro) {
+    return `
+      <div class="section-title" style="margin-top:24px;">Close the Day</div>
+      <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;
+        background:var(--gray-50);display:flex;align-items:center;gap:14px;cursor:pointer;"
+        onclick="if(typeof requireTier==='function')requireTier('pro','Daily Close')">
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:800;">Count the drawer, log expenses, see true profit
+            <span style="font-size:9px;font-weight:900;padding:2px 7px;border-radius:999px;background:#0f0f0f;color:#fff;letter-spacing:1px;margin-left:6px;">PRO</span>
+          </div>
+          <div style="font-size:11px;color:var(--gray-500);margin-top:3px;filter:blur(3px);user-select:none;">
+            Revenue ${formatCurrency(totalRevenue)} · Cost of goods ${formatCurrency(cogs)} · Profit today</div>
+        </div>
+        <span style="font-size:18px;">🔒</span>
+      </div>`;
+  }
+
+  if (existing && dayKey !== _eodEditingDay) {
+    const closedTime = new Date(existing.closedAt).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
+    const varAbs = Math.abs(existing.variance);
+    const varLabel = varAbs < 1 ? 'Matched exactly' : `${existing.variance > 0 ? 'Over' : 'Short'} by ${formatCurrency(varAbs)}`;
+    const varColor = varAbs < 1 ? '#16a34a' : varAbs <= 100 ? '#ea580c' : '#dc2626';
+    return `
+      <div class="section-title" style="margin-top:24px;">Close the Day</div>
+      <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;background:var(--gray-50);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div style="font-size:12px;font-weight:800;color:#16a34a;">✓ Closed at ${closedTime}</div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="_reopenDayClose()">Edit</button>
+        </div>
+        <div class="cost-preview-grid" style="margin-top:12px;">
+          <div class="cost-preview-item"><div class="cost-preview-label">Profit</div>
+            <div class="cost-preview-value" style="color:${existing.profit >= 0 ? '#16a34a' : '#dc2626'};">${formatCurrency(existing.profit)}</div></div>
+          <div class="cost-preview-item"><div class="cost-preview-label">Margin</div>
+            <div class="cost-preview-value">${existing.revenue > 0 ? existing.margin.toFixed(1) + '%' : '—'}</div></div>
+          <div class="cost-preview-item"><div class="cost-preview-label">Expenses</div>
+            <div class="cost-preview-value">${formatCurrency(existing.expenses)}</div></div>
+          <div class="cost-preview-item"><div class="cost-preview-label">Variance</div>
+            <div class="cost-preview-value" style="color:${varColor};font-size:13px;">${varLabel}</div></div>
+        </div>
+      </div>`;
+  }
+
+  const priorClose = _getPriorClose(dayKey);
+  const openingFloat = priorClose ? Number(priorClose.cashCounted || 0) : 0;
+
+  return `
+    <div class="section-title" style="margin-top:24px;">Close the Day</div>
+    <div id="eodPreview" data-revenue="${totalRevenue}" data-cash-revenue="${cashRevenue}"
+      data-cogs="${cogs}" data-opening-float="${openingFloat}">
+
+      <div class="form-group">
+        <label>Cash Counted in Drawer</label>
+        <input type="number" id="eodCashCounted" min="0" step="0.01" placeholder="Count the drawer…"
+          oninput="_updateEODLivePreview()">
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin:-8px 0 14px;">
+        <span>Expected: <strong id="eodExpectedCash" style="color:var(--black);">${formatCurrency(openingFloat + cashRevenue)}</strong>
+          ${openingFloat > 0 ? `<span style="opacity:.7;"> (float ${formatCurrency(openingFloat)} + cash sales ${formatCurrency(cashRevenue)})</span>` : ''}</span>
+        <span id="eodVariance">Count the drawer to see variance</span>
+      </div>
+
+      <div class="pm-subhead">Today's Expenses <span class="pm-hint">optional</span></div>
+      <div id="eodExpenseBuilder"></div>
+      <button class="btn btn-secondary" type="button" onclick="addEODExpenseRow()" style="margin-bottom:14px;">+ Add Expense</button>
+
+      <div class="cost-preview-card">
+        <div class="cost-preview-grid">
+          <div class="cost-preview-item"><div class="cost-preview-label">Revenue</div>
+            <div class="cost-preview-value">${formatCurrency(totalRevenue)}</div></div>
+          <div class="cost-preview-item"><div class="cost-preview-label">Cost of Goods</div>
+            <div class="cost-preview-value" id="eodCogsValue">${formatCurrency(cogs)}</div></div>
+          <div class="cost-preview-item"><div class="cost-preview-label">Expenses</div>
+            <div class="cost-preview-value" id="eodExpensesValue">${formatCurrency(0)}</div></div>
+          <div class="cost-preview-item"><div class="cost-preview-label">True Profit</div>
+            <div class="cost-preview-value" id="eodProfit">${formatCurrency(totalRevenue - cogs)}</div></div>
+        </div>
+        <div style="text-align:right;font-size:11px;color:var(--gray-500);margin-top:8px;">
+          Margin <strong id="eodMargin" style="color:var(--black);">${totalRevenue > 0 ? (((totalRevenue - cogs) / totalRevenue) * 100).toFixed(1) + '%' : '—'}</strong>
+        </div>
+      </div>
+
+      <button class="btn" type="button" onclick="closeTheDay()" style="width:100%;margin-top:14px;">Close the Day</button>
+    </div>`;
+}
+
+// Set while "Edit" is open on an already-closed day. The record itself
+// stays in APP_STATE.dayCloses (closeTheDay() needs its expenseTxnIds to
+// clean up the old transactions before posting the edited ones) — only
+// this flag decides whether _buildCloseTheDaySection renders the closed
+// summary or the editable form for the same day.
+let _eodEditingDay = null;
+
+function _reopenDayClose() {
+  const dayKey = _localDayKey();
+  const existing = _getDayClose(dayKey);
+  if (!existing) return;
+  _eodEditingDay = dayKey;
+  _renderEndOfDayContent();
+  const countedInput = document.getElementById('eodCashCounted');
+  if (countedInput) countedInput.value = existing.cashCounted;
+  (existing.expenseRows || []).forEach(e => addEODExpenseRow(e));
+  _updateEODLivePreview();
+}
+
+function closeTheDay() {
+  if (typeof requireTier === 'function' && !requireTier('pro', 'Daily Close')) return;
+
+  const now = new Date();
+  const dayKey = _localDayKey(now);
+  const todayStartD = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayEndD   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+  const revenue = typeof getRevenue === 'function' ? getRevenue(todayStartD, todayEndD) : 0;
+  const orders  = typeof getOrderCount === 'function' ? getOrderCount(todayStartD, todayEndD) : 0;
+  const cogs    = typeof getPeriodCOGS === 'function' ? getPeriodCOGS(todayStartD, todayEndD) : 0;
+
+  const countedInput = document.getElementById('eodCashCounted');
+  const cashCounted = safeNumber(countedInput?.value);
+  const box = document.getElementById('eodPreview');
+  const cashRevenue = safeNumber(box?.dataset.cashRevenue);
+  const openingFloat = safeNumber(box?.dataset.openingFloat);
+
+  const expenses = _eodExpenseRowsFromDOM();
+  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+  const cashExpected = openingFloat + cashRevenue - totalExpenses;
+  const variance = cashCounted - cashExpected;
+  const profit = revenue - cogs - totalExpenses;
+  const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+
+  // Re-closing the same day: remove the expense transactions this close
+  // posted before, so re-saving never double-counts them.
+  const existing = _getDayClose(dayKey);
+  if (existing && Array.isArray(existing.expenseTxnIds) && existing.expenseTxnIds.length) {
+    APP_STATE.treasuryTransactions = (APP_STATE.treasuryTransactions || [])
+      .filter(t => !existing.expenseTxnIds.includes(t.id));
+  }
+
+  const expenseTxnIds = [];
+  if (totalExpenses > 0) {
+    const accountId = _cashDrawerAccountId();
+    if (!APP_STATE.treasuryTransactions) APP_STATE.treasuryTransactions = [];
+    expenses.forEach(e => {
+      const txn = {
+        id: generateId(), accountId, kind: 'deduct', amount: e.amount,
+        reason: e.reason, category: e.category, date: dayKey,
+        createdAt: new Date().toISOString(),
+      };
+      APP_STATE.treasuryTransactions.push(txn);
+      expenseTxnIds.push(txn.id);
+    });
+  }
+
+  const record = {
+    day: dayKey, revenue, orders, cogs, expenses: totalExpenses,
+    expenseRows: expenses, profit, margin,
+    cashExpected, cashCounted, variance, expenseTxnIds,
+    closedAt: new Date().toISOString(),
+  };
+  APP_STATE.dayCloses = [..._dayCloses().filter(c => c.day !== dayKey), record];
+  _eodEditingDay = null;
+
+  persistState();
+  showNotification('Day closed', 'success');
+  _renderEndOfDayContent();
+  if (typeof _renderDailyCloseChip === 'function') _renderDailyCloseChip();
+  if (typeof renderDayClosesTable === 'function') renderDayClosesTable();
+}
+
+/* ── Dashboard chip ── */
+function _renderDailyCloseChip() {
+  const chip = document.getElementById('dailyCloseChip');
+  if (!chip) return;
+  if (!(APP_STATE.settings?.dailyCloseEnabled === true)) { chip.innerHTML = ''; return; }
+
+  const todayKey = _localDayKey();
+  // Build "yesterday" from a real Date object, not by re-parsing yestKey —
+  // `new Date('YYYY-MM-DD')` parses as UTC midnight, which is exactly the
+  // local/UTC day-boundary bug fixed elsewhere in this app (see foresight.js
+  // and analytics.js getDailySalesTrend).
+  const yest = new Date();
+  yest.setDate(yest.getDate() - 1);
+  const yestKey   = _localDayKey(yest);
+  const yestStart = new Date(yest.getFullYear(), yest.getMonth(), yest.getDate());
+  const yestEnd   = new Date(yest.getFullYear(), yest.getMonth(), yest.getDate(), 23, 59, 59, 999);
+
+  if (_getDayClose(todayKey)) {
+    chip.innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;
+      font-weight:800;padding:4px 10px;border-radius:999px;background:rgba(22,163,74,.12);color:#16a34a;">
+      ✓ Day closed</span>`;
+    return;
+  }
+
+  const yestRevenue = typeof getRevenue === 'function' ? getRevenue(yestStart, yestEnd) : 0;
+  if (yestRevenue > 0 && !_getDayClose(yestKey)) {
+    chip.innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;
+      font-weight:800;padding:4px 10px;border-radius:999px;background:rgba(234,88,12,.12);color:#ea580c;">
+      Yesterday not closed</span>`;
+    return;
+  }
+  chip.innerHTML = '';
+}
+
+function applyDailyCloseToggle() {
+  if (typeof _renderDailyCloseChip === 'function') _renderDailyCloseChip();
+  if (document.getElementById('endOfDayModal')?.classList.contains('active') &&
+      typeof _renderEndOfDayContent === 'function') _renderEndOfDayContent();
+  if (APP_STATE.ui?.currentView === 'reports' && typeof renderDayClosesTable === 'function') renderDayClosesTable();
+}
+
+/* ── Reports history table ── */
+function renderDayClosesTable() {
+  const section = document.getElementById('dayClosesSection');
+  const tbody = document.querySelector('#dayClosesTable tbody');
+  if (!section || !tbody) return;
+
+  const enabled = APP_STATE.settings?.dailyCloseEnabled === true;
+  section.style.display = enabled ? '' : 'none';
+  if (!enabled) return;
+
+  const rows = _dayCloses().slice().sort((a, b) => b.day.localeCompare(a.day));
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No days closed yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(c => {
+    const varAbs = Math.abs(c.variance);
+    const varColor = varAbs < 1 ? '#16a34a' : varAbs <= 100 ? '#ea580c' : '#dc2626';
+    const varLabel = varAbs < 1 ? 'Matched' : `${c.variance > 0 ? '+' : '-'}${formatCurrency(varAbs)}`;
+    const dateLabel = new Date(`${c.day}T00:00:00`).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `<tr>
+      <td>${dateLabel}</td>
+      <td>${formatCurrency(c.revenue)}</td>
+      <td>${formatCurrency(c.cogs)}</td>
+      <td>${formatCurrency(c.expenses)}</td>
+      <td style="font-weight:700;color:${c.profit >= 0 ? '#16a34a' : '#dc2626'};">${formatCurrency(c.profit)}</td>
+      <td style="color:${varColor};">${varLabel}</td>
+    </tr>`;
+  }).join('');
 }
 
 function shareEndOfDay() {
@@ -254,3 +639,10 @@ function shareEndOfDay() {
 
 window.openEndOfDaySummary = openEndOfDaySummary;
 window.shareEndOfDay       = shareEndOfDay;
+window.addEODExpenseRow    = addEODExpenseRow;
+window._updateEODLivePreview = _updateEODLivePreview;
+window.closeTheDay         = closeTheDay;
+window._reopenDayClose     = _reopenDayClose;
+window.applyDailyCloseToggle = applyDailyCloseToggle;
+window.renderDayClosesTable  = renderDayClosesTable;
+window._renderDailyCloseChip = _renderDailyCloseChip;

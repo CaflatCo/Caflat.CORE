@@ -2855,6 +2855,9 @@ html[data-theme="dark"] .recipe-row { background: var(--gray-200); border-color:
 html[data-theme="dark"] .pm-step { background: var(--gray-900); color: #0c0b0a; }
 html[data-theme="dark"] .packaging-row { background: var(--gray-200); border-color: var(--border); }
 html[data-theme="dark"] .packaging-row input { background: var(--white); border-color: var(--border); color: var(--gray-900); }
+html[data-theme="dark"] .eod-expense-row { background: var(--gray-200); border-color: var(--border); }
+html[data-theme="dark"] .eod-expense-row input,
+html[data-theme="dark"] .eod-expense-row select { background: var(--white); border-color: var(--border); color: var(--gray-900); }
 html[data-theme="dark"] .recipe-row select,
 html[data-theme="dark"] .recipe-row input { background: var(--white); border-color: var(--border); color: var(--gray-900); }
 

@@ -253,6 +253,22 @@
       border:1px solid var(--border); border-radius:var(--radius-md);
       background:var(--gray-50);
     }
+    /* Daily Close — quick expense row */
+    .eod-expense-row {
+      display:grid; grid-template-columns:1fr 100px 110px 30px;
+      gap:8px; align-items:center; margin-bottom:8px; padding:8px 12px;
+      border:1px solid var(--border); border-radius:var(--radius-md);
+      background:var(--gray-50);
+    }
+    .eod-expense-row input, .eod-expense-row select {
+      padding:7px 10px; border:1px solid var(--border);
+      border-radius:var(--radius-md); font-family:var(--font-main);
+      font-size:12px; background:var(--white); color:var(--gray-900);
+    }
+    @media (max-width:480px) {
+      .eod-expense-row { grid-template-columns:1fr 1fr; }
+      .eod-expense-row select { grid-column:1 / -1; }
+    }
     /* ── Status pipeline stepper (Set Order Status modal) ──
        Monochrome-first so it stays theme-safe: structure uses --black /
        gray tokens (theme-aware); only the current-status badge (via
@@ -718,6 +734,7 @@
             <h2>Dashboard</h2>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <span id="dashboardBackupStatus"></span>
+              <span id="dailyCloseChip"></span>
               <span style="font-size:11px;color:var(--gray-400);">All-time overview</span>
               <button class="btn btn-secondary" id="endOfDayBtn" type="button">End of Day</button>
             </div>
@@ -1122,6 +1139,17 @@
             </table>
           </div>
 
+          <!-- Day Closes — only shown when Daily Close is enabled (Settings → Features) -->
+          <div id="dayClosesSection" style="display:none;">
+            <div class="section-title">Day Closes</div>
+            <div class="table-wrapper" style="margin-bottom:28px;">
+              <table id="dayClosesTable">
+                <thead><tr><th>Date</th><th>Revenue</th><th>COGS</th><th>Expenses</th><th>Profit</th><th>Cash Variance</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
           <!-- 11. Profitability Toggle Section -->
           <div id="profitabilitySection" style="margin-top:40px;
             padding-top:32px;border-top:2px solid var(--black);">
@@ -1459,6 +1487,16 @@
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="settingsShoppingList" />
+              <div class="toggle-track"></div><div class="toggle-knob"></div>
+            </label>
+          </div>
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-toggle-label">Daily Close</div>
+              <div class="settings-toggle-sub">Count the drawer, log expenses, and see true profit (revenue minus ingredient cost minus expenses) — builds a daily close history in Reports.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingsDailyClose" />
               <div class="toggle-track"></div><div class="toggle-knob"></div>
             </label>
           </div>
@@ -3562,26 +3600,26 @@
 
   <script src="./js/utils.js?v=20260702a"></script>
   <script src="./js/currency.js?v=20260702a"></script>
-  <script src="./js/state.js"></script>
-  <script src="./js/storage.js?v=20260720a"></script>
+  <script src="./js/state.js?v=20260721a"></script>
+  <script src="./js/storage.js?v=20260721a"></script>
   <script src="./js/auth.js?v=20260628i"></script>
-  <script src="./js/analytics.js?v=20260720a"></script>
-  <script src="./js/dashboard.js?v=20260719a"></script>
+  <script src="./js/analytics.js?v=20260721a"></script>
+  <script src="./js/dashboard.js?v=20260721a"></script>
   <script src="./js/products.js?v=20260720a"></script>
   <script src="./js/ingredients.js"></script>
   <script src="./js/inventory.js"></script>
   <script src="./js/finishedgoods.js"></script>
   <script src="./js/lib/qrcode.min.js"></script>
   <script src="./js/sales.js?v=20260719a"></script>
-  <script src="./js/reports.js?v=20260720a"></script>
-  <script src="./js/settings.js?v=20260712e"></script>
+  <script src="./js/reports.js?v=20260721a"></script>
+  <script src="./js/settings.js?v=20260721a"></script>
   <script src="./js/csvimport.js?v=20260705a"></script>
   <script src="./js/uiActions.js?v=20260712e"></script>
   <script src="./js/integrity.js"></script>
   <script src="./js/refund.js"></script>
   <script src="./js/void.js"></script>
   <script src="./js/supply.js?v=20260717a"></script>
-  <script src="./js/endofday.js"></script>
+  <script src="./js/endofday.js?v=20260721c"></script>
   <script src="./js/production.js?v=20260712d"></script>
   <script src="./js/coffeecart.js"></script>
   <script src="./js/origin.js?v=20260705a"></script>
@@ -3590,11 +3628,11 @@
   <script src="./js/recipecatalog.js?v=20260712e"></script>
   <script src="./js/costlab.js?v=20260702a"></script>
   <script src="./js/shoppinglist.js?v=20260702a"></script>
-  <script src="./js/license.js?v=20260719c"></script>
+  <script src="./js/license.js?v=20260721a"></script>
   <script src="./js/sync.js?v=20260628d"></script>
   <script src="./js/navigation.js?v=20260628d"></script>
   <script src="./js/foresight.js?v=20260720a"></script>
-  <script src="./js/app.js?v=20260719c"></script>
+  <script src="./js/app.js?v=20260721a"></script>
 
   <!-- ══ SHOPPING LIST FAB ══ -->
   <button id="shoppingWidgetFab" onclick="toggleShoppingWidget();"
