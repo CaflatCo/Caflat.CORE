@@ -6,6 +6,16 @@
 const CAFLAT_SB_URL  = 'https://tkrsebalgonimmozbgqc.supabase.co';
 const CAFLAT_SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrcnNlYmFsZ29uaW1tb3piZ3FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMjc5NzEsImV4cCI6MjA5NzYwMzk3MX0.OKp5NCLYnL-5CFWnvXpA2E78jNi5r63Jzs2zABAkzsw';
 
+// Caflat's own receiving details for the in-app upgrade checkout — shown to
+// a buyer submitting an upgrade request, not a real payment gateway. Replace
+// gcashNumber/gcashName with the real account, and qrImage with a data-URL
+// of the real GCash QR, before this goes live.
+const CAFLAT_PAYMENT = {
+  gcashNumber: '0917-000-0000',
+  gcashName:   'Caflat.CORE',
+  qrImage:     '',
+};
+
 const LICENSE_STORAGE_KEY    = 'caflat_license_v1';
 const INTEGRITY_STORAGE_KEY  = '_cflx3';              // intentionally obscured
 const FREE_PRODUCT_LIMIT     = 50;
@@ -590,6 +600,27 @@ function _renderLicenseBadge() {
 }
 
 /* ── License modal ─────────────────────────────────── */
+// Shared by the plan grid and the upgrade checkout screen — one source of
+// truth for tier labels/prices/feature lists shown to the buyer.
+const LICENSE_PLANS = [
+  {
+    tier:'FREE', price:'₱0', color:'#555', bg:'#f4f4f4', border:'#e0e0e0',
+    features:['Core POS, inventory & sales','Up to 50 products','Local storage only','—','—'],
+  },
+  {
+    tier:'PRO', price:'₱499/mo', color:'#fff', bg:'#0f0f0f', border:'#0f0f0f',
+    features:['Unlimited products','All optional modes','Supplier, Production, Events','Product Lab & Recipe Catalog','Manual cloud backup'],
+  },
+  {
+    tier:'CLOUD', price:'₱899/mo', color:'#fff', bg:'#2563eb', border:'#2563eb',
+    features:['Everything in PRO','Auto sync after every sale','Multi-device (up to 2)','10 cloud backup snapshots','Restore from cloud anytime'],
+  },
+  {
+    tier:'ENTERPRISE', price:'Custom', color:'#fff', bg:'#7e22ce', border:'#7e22ce',
+    features:['Everything in CLOUD','Unlimited devices','Priority support','Custom onboarding','More features coming'],
+  },
+];
+
 function openLicenseModal(contextMessage) {
   let modal = document.getElementById('licenseModal');
   if (!modal) {
@@ -619,24 +650,7 @@ function openLicenseModal(contextMessage) {
   };
   const tc = TIER_COLORS[tier] || TIER_COLORS.free;
 
-  const plans = [
-    {
-      tier:'FREE', price:'₱0', color:'#555', bg:'#f4f4f4', border:'#e0e0e0',
-      features:['Core POS, inventory & sales','Up to 50 products','Local storage only','—','—'],
-    },
-    {
-      tier:'PRO', price:'₱499/mo', color:'#fff', bg:'#0f0f0f', border:'#0f0f0f',
-      features:['Unlimited products','All optional modes','Supplier, Production, Events','Product Lab & Recipe Catalog','Manual cloud backup'],
-    },
-    {
-      tier:'CLOUD', price:'₱899/mo', color:'#fff', bg:'#2563eb', border:'#2563eb',
-      features:['Everything in PRO','Auto sync after every sale','Multi-device (up to 2)','10 cloud backup snapshots','Restore from cloud anytime'],
-    },
-    {
-      tier:'ENTERPRISE', price:'Custom', color:'#fff', bg:'#7e22ce', border:'#7e22ce',
-      features:['Everything in CLOUD','Unlimited devices','Priority support','Custom onboarding','More features coming'],
-    },
-  ];
+  const plans = LICENSE_PLANS;
 
   const plansHtml = `
     <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
@@ -666,7 +680,14 @@ function openLicenseModal(contextMessage) {
             <div style="padding:6px 12px;text-align:center;font-size:9px;font-weight:900;
               letter-spacing:1px;background:${isCurrent ? p.bg : 'var(--gray-50)'};
               color:${isCurrent ? p.color : 'var(--gray-200)'};">
-              ${isCurrent ? 'CURRENT PLAN' : '&nbsp;'}
+              ${isCurrent
+                ? 'CURRENT PLAN'
+                : (p.tier === 'PRO' || p.tier === 'CLOUD')
+                  ? `<button type="button" onclick="openUpgradeCheckout('${p.tier.toLowerCase()}')"
+                      style="background:none;border:none;padding:0;margin:0;width:100%;
+                        font:inherit;font-weight:900;letter-spacing:1px;color:var(--black);
+                        cursor:pointer;">UPGRADE →</button>`
+                  : '&nbsp;'}
             </div>
           </div>`;
       }).join('')}
@@ -740,6 +761,173 @@ function openLicenseModal(contextMessage) {
       if (e.key === 'Enter') _handleActivateClick();
     });
   }
+}
+
+/* ── Upgrade checkout ──────────────────────────────── */
+// "Upgrade" on a plan card swaps the modal body for a payment screen:
+// pay Caflat directly via GCash, submit the reference + a contact so a real
+// license key can be sent back. No payment gateway — this is an intake form
+// (upgrade_requests table, migration 013) reviewed by the Caflat team.
+function openUpgradeCheckout(planKey) {
+  let modal = document.getElementById('licenseModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'licenseModal';
+    modal.className = 'modal-overlay';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => {
+      if (e.target === modal) modal.classList.remove('active');
+    });
+  }
+  const plan = LICENSE_PLANS.find(p => p.tier.toLowerCase() === planKey);
+  if (!plan) return;
+
+  modal.innerHTML = `
+    <div class="modal" style="max-width:460px;">
+      <h3 style="margin-bottom:2px;">Upgrade to ${plan.tier}</h3>
+      <div style="font-size:12px;color:var(--gray-400);margin-bottom:18px;">
+        Pay Caflat directly, tell us the reference, and we'll email your key within 24 hours.
+      </div>
+
+      <div style="border:2px solid ${plan.border};border-radius:var(--radius-lg);
+        background:${plan.bg};padding:12px 14px;display:flex;justify-content:space-between;
+        align-items:center;margin-bottom:16px;">
+        <span style="font-size:13px;font-weight:900;letter-spacing:1px;color:${plan.color};">${plan.tier}</span>
+        <span style="font-size:13px;font-weight:800;color:${plan.color};">${plan.price}</span>
+      </div>
+
+      <div style="border:1.5px solid var(--border);border-radius:var(--radius-lg);
+        padding:14px 16px;margin-bottom:18px;text-align:center;background:var(--gray-50);">
+        <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+          color:var(--gray-400);margin-bottom:8px;">Send Payment Via GCash</div>
+        <div style="font-size:18px;font-weight:900;letter-spacing:.5px;">${escapeHtml(CAFLAT_PAYMENT.gcashNumber)}</div>
+        <div style="font-size:12px;color:var(--gray-500);margin-top:2px;">${escapeHtml(CAFLAT_PAYMENT.gcashName)}</div>
+        ${CAFLAT_PAYMENT.qrImage ? `<img src="${CAFLAT_PAYMENT.qrImage}" alt="GCash QR"
+          style="max-width:160px;width:100%;margin-top:12px;border-radius:8px;" />` : ''}
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.5px;
+          text-transform:uppercase;color:var(--gray-400);margin-bottom:6px;">Reference / receipt number</label>
+        <input id="upgradeReference" type="text" placeholder="e.g. GC1234567890"
+          style="width:100%;padding:10px 12px;border:1.5px solid var(--border);
+            border-radius:var(--radius-md);font-size:13px;font-family:inherit;box-sizing:border-box;" />
+      </div>
+      <div style="margin-bottom:6px;">
+        <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.5px;
+          text-transform:uppercase;color:var(--gray-400);margin-bottom:6px;">Contact number or email</label>
+        <input id="upgradeContact" type="text" placeholder="So we can send your key"
+          style="width:100%;padding:10px 12px;border:1.5px solid var(--border);
+            border-radius:var(--radius-md);font-size:13px;font-family:inherit;box-sizing:border-box;" />
+      </div>
+      <div id="upgradeCheckoutError"
+        style="display:none;font-size:12px;color:var(--danger);margin-top:8px;font-weight:600;"></div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="openLicenseModal()">Back</button>
+        <button type="button" id="upgradeSubmitBtn" class="btn"
+          onclick="submitUpgradeRequest('${planKey}')">Submit</button>
+      </div>
+    </div>`;
+
+  modal.classList.add('active');
+}
+
+async function submitUpgradeRequest(planKey) {
+  const plan       = LICENSE_PLANS.find(p => p.tier.toLowerCase() === planKey);
+  const refInput   = document.getElementById('upgradeReference');
+  const contactInput = document.getElementById('upgradeContact');
+  const errEl      = document.getElementById('upgradeCheckoutError');
+  const btn        = document.getElementById('upgradeSubmitBtn');
+  if (!plan || !refInput || !contactInput || !btn) return;
+
+  const reference = refInput.value.trim();
+  const contact    = contactInput.value.trim();
+  if (errEl) errEl.style.display = 'none';
+
+  if (!reference || !contact) {
+    if (errEl) { errEl.textContent = 'Please fill in both the reference and a contact so we can reach you.'; errEl.style.display = 'block'; }
+    return;
+  }
+
+  btn.textContent = 'Submitting…';
+  btn.disabled = true;
+
+  try {
+    const deviceId = await _generateDeviceId();
+    const res = await fetch(`${CAFLAT_SB_URL}/rest/v1/upgrade_requests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        CAFLAT_SB_ANON,
+        'Authorization': `Bearer ${CAFLAT_SB_ANON}`,
+        'Prefer':        'return=minimal',
+      },
+      body: JSON.stringify({
+        tenant_id: (typeof getTenantId === 'function' ? getTenantId() : null),
+        device_id: deviceId,
+        brand:     APP_STATE.settings?.brandName || '',
+        plan:      planKey,
+        reference,
+        contact,
+        status:    'new',
+      }),
+    });
+    if (!res.ok) throw new Error('request failed');
+    _renderUpgradeSuccess(plan);
+  } catch (e) {
+    _renderUpgradeOffline(plan);
+  }
+}
+
+function _renderUpgradeSuccess(plan) {
+  const modal = document.getElementById('licenseModal');
+  if (!modal) return;
+  modal.innerHTML = `
+    <div class="modal" style="max-width:420px;text-align:center;">
+      <div style="font-size:2rem;margin-bottom:8px;">✓</div>
+      <h3 style="margin-bottom:8px;">Request received</h3>
+      <p style="font-size:13px;color:var(--gray-500);line-height:1.6;margin-bottom:20px;">
+        Your ${plan.tier} key arrives within 24 hours at the contact you gave us.
+        Once you have it, come back here and enter it below.
+      </p>
+      <div style="margin-bottom:20px;">
+        <div style="display:flex;gap:8px;">
+          <input id="licenseKeyInput" type="text" placeholder="CAFLAT-XXXX-XXXX-XXXX"
+            style="flex:1;padding:10px 12px;border:1.5px solid var(--border);
+              border-radius:var(--radius-md);font-size:13px;font-family:var(--font-main);
+              text-transform:uppercase;letter-spacing:1px;" />
+          <button type="button" id="licenseActivateBtn" class="btn" style="white-space:nowrap;">Activate</button>
+        </div>
+        <div id="licenseActivateError"
+          style="display:none;font-size:12px;color:var(--danger);margin-top:8px;font-weight:600;"></div>
+      </div>
+      <button type="button" class="btn btn-secondary"
+        onclick="document.getElementById('licenseModal').classList.remove('active')">Close</button>
+    </div>`;
+  modal.classList.add('active');
+  document.getElementById('licenseActivateBtn')?.addEventListener('click', _handleActivateClick);
+  document.getElementById('licenseKeyInput')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') _handleActivateClick();
+  });
+}
+
+function _renderUpgradeOffline(plan) {
+  const modal = document.getElementById('licenseModal');
+  if (!modal) return;
+  modal.innerHTML = `
+    <div class="modal" style="max-width:420px;text-align:center;">
+      <h3 style="margin-bottom:8px;">Couldn't reach Caflat right now</h3>
+      <p style="font-size:13px;color:var(--gray-500);line-height:1.6;margin-bottom:20px;">
+        No internet connection. Keep your payment reference for ${plan.tier}
+        handy and message us directly — we'll issue your key the same way.
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="openLicenseModal()">Back</button>
+        <button type="button" class="btn" onclick="openUpgradeCheckout('${plan.tier.toLowerCase()}')">Try Again</button>
+      </div>
+    </div>`;
+  modal.classList.add('active');
 }
 
 
@@ -901,7 +1089,7 @@ function _showFirstRunOnboarding() {
         for ${TRIAL_DAYS} days. No credit card. When the trial ends, your data stays
         and you can keep going on the Free plan or upgrade.
       </p>
-      <button onclick="document.getElementById('firstRunOverlay').remove()"
+      <button onclick="document.getElementById('firstRunOverlay').remove();if(typeof startOnboardingWizard==='function')startOnboardingWizard();"
         style="width:100%;background:#fff;color:#000;border:none;border-radius:10px;
           padding:14px;font-size:.95rem;font-weight:800;cursor:pointer;margin-bottom:12px;">
         Start Brewing
