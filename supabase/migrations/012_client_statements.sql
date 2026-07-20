@@ -58,7 +58,7 @@ CREATE OR REPLACE FUNCTION public.get_client_statement(p_token text)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_row client_statements;
