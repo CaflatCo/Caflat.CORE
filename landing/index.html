@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,900&family=Fraunces:ital,opsz,wght@0,9..144,380;0,9..144,450;0,9..144,530;1,9..144,420;1,9..144,530&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/style.css?v=20260718b">
+  <link rel="stylesheet" href="./css/style.css?v=20260720b">
   <link rel="canonical" href="https://caflatcore.com/">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Caflat.CORE | The Quiet Power Behind Every Great Café">
@@ -397,114 +397,176 @@
   </div>
 </div>
 
+<!-- ─── Proof band: the system at a glance ─────────────────────── -->
+<section class="section-dark grain" id="proof">
+  <div class="container">
+    <div class="proof-row reveal">
+      <div class="proof-item">
+        <span class="proof-num" data-target="9">0</span>
+        <span class="proof-label">optional modes, switch on only what you run</span>
+      </div>
+      <div class="proof-item">
+        <span class="proof-num" data-target="38">0</span>
+        <span class="proof-label">modules working as one offline system</span>
+      </div>
+      <div class="proof-item">
+        <span class="proof-num" data-target="9">0</span>
+        <span class="proof-label">currencies, from PHP to JPY</span>
+      </div>
+      <div class="proof-item">
+        <span class="proof-num" data-target="90">0</span>
+        <span class="proof-label">days of PRO on every new account, free</span>
+      </div>
+      <div class="proof-item">
+        <span class="proof-num" data-target="100" data-suffix="%">0</span>
+        <span class="proof-label">offline-first, the counter never waits for wifi</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ─── Core Features ─────────────────────────────────────────── -->
 <section class="section-dark2 grain" id="features">
   <div class="container">
     <div class="section-label">
-      <span class="eyebrow">Core Features</span>
-      <h2 class="section-heading">Everything your café needs.</h2>
-      <p class="section-subhead">The daily essentials, built to be fast and dependable, from the first sale to the end-of-day report.</p>
+      <span class="eyebrow">Core · Free Plan</span>
+      <h2 class="section-heading">The essentials. Free forever.</h2>
+      <p class="section-subhead">POS, inventory, sales, dashboard, products, and ingredients. The daily backbone costs nothing, runs offline, and never expires.</p>
     </div>
 
-    <div class="features-grid stagger">
+    <div class="bento" data-populate>
 
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="18" height="14" rx="2"/>
-            <path d="M7 17v2M15 17v2M4 17h14"/>
-            <path d="M8 8h6M8 11h4"/>
-          </svg>
+      <div class="bento-tile bento-pos">
+        <span class="bento-num">01</span>
+        <div class="bento-head">
+          <div class="bento-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="18" height="14" rx="2"/>
+              <path d="M7 17v2M15 17v2M4 17h14"/>
+              <path d="M8 8h6M8 11h4"/>
+            </svg>
+          </div>
+          <div>
+            <h3>Point of Sale</h3>
+            <p>Fast order entry built for the counter. Queues, discounts, split payments, and QR pay, fully offline.</p>
+          </div>
         </div>
-        <div class="feature-body">
-          <h3>Point of Sale</h3>
-          <p>Fast order entry designed for the counter. Handle queues, discounts, and payments without missing a beat. Fully offline.</p>
+        <div class="pos-receipt" aria-hidden="true">
+          <div class="pos-line"><span>Flat White ×2</span><i>₱260</i></div>
+          <div class="pos-line"><span>Butter Croissant</span><i>₱95</i></div>
+          <div class="pos-line"><span>Iced Latte</span><i>₱140</i></div>
+          <div class="pos-line"><span>Banana Bread</span><i>₱85</i></div>
+          <div class="pos-line pos-total"><span>Total</span><i>₱580</i></div>
+          <span class="pos-charge">Charge ₱580</span>
         </div>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 6h16M3 10h10M3 14h7"/>
-            <rect x="13" y="10" width="8" height="9" rx="1.5"/>
-            <path d="M16 13v3M17 13v3"/>
-          </svg>
+      <div class="bento-tile bento-inv">
+        <span class="bento-num">02</span>
+        <div class="bento-head">
+          <div class="bento-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h16M3 10h10M3 14h7"/>
+              <rect x="13" y="10" width="8" height="9" rx="1.5"/>
+              <path d="M16 13v3M17 13v3"/>
+            </svg>
+          </div>
+          <div>
+            <h3>Inventory</h3>
+            <p>Every gram tracked. Depletion alerts fire before you run out, not after.</p>
+          </div>
         </div>
-        <div class="feature-body">
-          <h3>Inventory</h3>
-          <p>Track every gram and every supply item. Depletion alerts fire before you run out, variance and wastage included.</p>
+        <div class="inv-stock" aria-hidden="true">
+          <div class="inv-row">
+            <div class="inv-meta"><b>Oat milk</b><span>64% on hand</span></div>
+            <div class="inv-bar"><i style="--fill:64%"></i></div>
+          </div>
+          <div class="inv-row">
+            <div class="inv-meta"><b>Arabica beans</b><span>reorder at 30%</span></div>
+            <div class="inv-bar low"><i style="--fill:82%; --fill-end:24%"></i></div>
+          </div>
+          <span class="inv-chip">Low stock · reorder beans</span>
         </div>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 16l4-4 3 3 5-6 4 3"/>
-            <path d="M3 19h16"/>
-            <rect x="3" y="3" width="4" height="4" rx="1"/>
-          </svg>
+      <div class="bento-ledger">
+        <div class="bento-row">
+          <span class="bento-row-num">03</span>
+          <div class="bento-row-icon">
+            <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 16l4-4 3 3 5-6 4 3"/>
+              <path d="M3 19h16"/>
+              <rect x="3" y="3" width="4" height="4" rx="1"/>
+            </svg>
+          </div>
+          <h3>Sales &amp; Reports</h3>
+          <p>Revenue, product rankings, shift breakdowns. Exportable any day, PDF or CSV.</p>
         </div>
-        <div class="feature-body">
-          <h3>Sales & Reports</h3>
-          <p>Revenue totals, product rankings, shift breakdowns. Clear data at the end of every day. Exportable on demand.</p>
-        </div>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="2" width="8" height="8" rx="1.5"/>
-            <rect x="12" y="2" width="8" height="5" rx="1.5"/>
-            <rect x="12" y="9" width="8" height="11" rx="1.5"/>
-            <rect x="2" y="12" width="8" height="8" rx="1.5"/>
-          </svg>
-        </div>
-        <div class="feature-body">
+        <div class="bento-row">
+          <span class="bento-row-num">04</span>
+          <div class="bento-row-icon">
+            <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="8" height="8" rx="1.5"/>
+              <rect x="12" y="2" width="8" height="5" rx="1.5"/>
+              <rect x="12" y="9" width="8" height="11" rx="1.5"/>
+              <rect x="2" y="12" width="8" height="8" rx="1.5"/>
+            </svg>
+          </div>
           <h3>Dashboard</h3>
-          <p>A live view of your café: today's revenue, open orders, low stock alerts, and recent activity all in one place.</p>
+          <p>Today at a glance: revenue, open orders, low stock, recent activity.</p>
         </div>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 3h7l9 9a2.83 2.83 0 0 1 0 4L15 20a2.83 2.83 0 0 1-4 0L3 11V3z"/>
-            <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
-          </svg>
+        <div class="bento-row">
+          <span class="bento-row-num">05</span>
+          <div class="bento-row-icon">
+            <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3h7l9 9a2.83 2.83 0 0 1 0 4L15 20a2.83 2.83 0 0 1-4 0L3 11V3z"/>
+              <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+          <h3>Products &amp; Variants</h3>
+          <p>Sizes, add-ons, modifiers. Linked to ingredients for automatic depletion.</p>
         </div>
-        <div class="feature-body">
-          <h3>Products & Variants</h3>
-          <p>Build your full menu with size variants, add-ons, and modifiers. Link products to ingredients for automatic depletion.</p>
-        </div>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 2v8l-5 8h14L13 10V2"/>
-            <path d="M9 2h4"/>
-            <circle cx="10.5" cy="15.5" r="1" fill="currentColor" stroke="none"/>
-            <circle cx="13.5" cy="17.5" r="1" fill="currentColor" stroke="none"/>
-          </svg>
-        </div>
-        <div class="feature-body">
+        <div class="bento-row">
+          <span class="bento-row-num">06</span>
+          <div class="bento-row-icon">
+            <svg viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 2v8l-5 8h14L13 10V2"/>
+              <path d="M9 2h4"/>
+              <circle cx="10.5" cy="15.5" r="1" fill="currentColor" stroke="none"/>
+              <circle cx="13.5" cy="17.5" r="1" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
           <h3>Ingredients</h3>
-          <p>Manage raw materials with unit conversions, reorder thresholds, and cost tracking. The backbone of every product margin.</p>
+          <p>Unit conversions, reorder thresholds, true cost per gram behind every margin.</p>
         </div>
       </div>
 
     </div>
   </div>
 </section>
+<!-- ─── Operational Mode Explorer ───────────────────────────────── -->
+<section class="section-dark grain" id="modes">
+  <div class="container">
+    <div class="section-label">
+      <span class="eyebrow">Operational Modes</span>
+      <h2 class="section-heading">Switch on only what you run.</h2>
+      <p class="section-subhead">Nine optional modes extend the core system. Five of the biggest, below, each one living inside the same offline platform.</p>
+    </div>
 
-<!-- ─── Mode Showcases ────────────────────────────────────────── -->
-<div id="modes">
+    <div class="mode-rail-wrap">
+      <div class="mode-rail" role="tablist" aria-label="Operational modes">
+        <button type="button" class="mode-tab" role="tab" id="mode-tab-01" aria-controls="mode-01" aria-selected="true" tabindex="0" data-mode-index="0"><span class="mode-tab-num">01</span> Supplier</button>
+        <button type="button" class="mode-tab" role="tab" id="mode-tab-02" aria-controls="mode-02" aria-selected="false" tabindex="-1" data-mode-index="1"><span class="mode-tab-num">02</span> Production</button>
+        <button type="button" class="mode-tab" role="tab" id="mode-tab-03" aria-controls="mode-03" aria-selected="false" tabindex="-1" data-mode-index="2"><span class="mode-tab-num">03</span> Events</button>
+        <button type="button" class="mode-tab" role="tab" id="mode-tab-04" aria-controls="mode-04" aria-selected="false" tabindex="-1" data-mode-index="3"><span class="mode-tab-num">04</span> Origin</button>
+        <button type="button" class="mode-tab" role="tab" id="mode-tab-05" aria-controls="mode-05" aria-selected="false" tabindex="-1" data-mode-index="4"><span class="mode-tab-num">05</span> Treasury</button>
+        <span class="mode-rail-underline" aria-hidden="true"></span>
+      </div>
+    </div>
 
-<!-- Showcase 01: Supplier Mode -->
-<section class="showcase section-dark grain">
-  <span class="showcase-bg-num" aria-hidden="true">01</span>
-  <div class="container showcase-inner">
-    <div class="showcase-text reveal">
+    <div class="mode-stage reveal">
+      <div class="mode-panel" id="mode-01" role="tabpanel" aria-labelledby="mode-tab-01" tabindex="0">
+    <div class="showcase-text">
       <span class="mode-badge">Supplier Mode</span>
       <h2>B2B supply,<br>from draft to&nbsp;paid.</h2>
       <p>Give every wholesale client a private order portal, then let the pipeline carry the order: stock reserves itself, deliveries deduct, invoices generate, and balances stay honest.</p>
@@ -525,7 +587,7 @@
         </div>
       </details>
     </div>
-    <div class="showcase-visual reveal-right">
+    <div class="showcase-visual">
       <div class="mode-slider" data-slider>
         <div class="mode-slider-track">
 
@@ -628,14 +690,10 @@
         </div>
       </div>
     </div>
-  </div>
-</section>
+      </div>
 
-<!-- Showcase 02: Production Mode -->
-<section class="showcase section-light">
-  <span class="showcase-bg-num" aria-hidden="true">02</span>
-  <div class="container showcase-inner showcase-flip">
-    <div class="showcase-text reveal">
+      <div class="mode-panel showcase-flip" id="mode-02" role="tabpanel" aria-labelledby="mode-tab-02" hidden tabindex="0">
+    <div class="showcase-text">
       <span class="mode-badge">Production Mode</span>
       <h2>Built to run.<br>Tracked to the&nbsp;batch.</h2>
       <p>Schedule multi-product production jobs for baking and prep. Assign your team, log waste, and track cost-per-unit, from planning through packing, with nothing slipping through.</p>
@@ -656,7 +714,7 @@
         </div>
       </details>
     </div>
-    <div class="showcase-visual reveal-left">
+    <div class="showcase-visual">
       <div class="mode-slider" data-slider>
         <div class="mode-slider-track">
 
@@ -734,14 +792,10 @@
         </div>
       </div>
     </div>
-  </div>
-</section>
+      </div>
 
-<!-- Showcase 03: Events Mode -->
-<section class="showcase section-dark grain">
-  <span class="showcase-bg-num" aria-hidden="true">03</span>
-  <div class="container showcase-inner">
-    <div class="showcase-text reveal">
+      <div class="mode-panel" id="mode-03" role="tabpanel" aria-labelledby="mode-tab-03" hidden tabindex="0">
+    <div class="showcase-text">
       <span class="mode-badge">Events Mode</span>
       <h2>Take your coffee<br>beyond the counter.</h2>
       <p>Manage coffee cart gigs, weekend markets, and corporate events from lead to payout. Build packages, track your pipeline, and see profitability per event, all in one place.</p>
@@ -762,7 +816,7 @@
         </div>
       </details>
     </div>
-    <div class="showcase-visual reveal-right">
+    <div class="showcase-visual">
       <div class="mode-slider" data-slider>
         <div class="mode-slider-track">
 
@@ -828,14 +882,10 @@
         </div>
       </div>
     </div>
-  </div>
-</section>
+      </div>
 
-<!-- Showcase 04: Origin Mode -->
-<section class="showcase section-light">
-  <span class="showcase-bg-num" aria-hidden="true">04</span>
-  <div class="container showcase-inner showcase-flip">
-    <div class="showcase-text reveal">
+      <div class="mode-panel showcase-flip" id="mode-04" role="tabpanel" aria-labelledby="mode-tab-04" hidden tabindex="0">
+    <div class="showcase-text">
       <span class="mode-badge">Origin Mode</span>
       <h2>Traceability that<br>tells a&nbsp;story.</h2>
       <p>Track every Coffee, Cacao, and Tea lot from farm to finished batch: origin, farmer, process, and harvest logged in full. Build the wholesale story your B2B buyers want to see.</p>
@@ -856,7 +906,7 @@
         </div>
       </details>
     </div>
-    <div class="showcase-visual reveal-left">
+    <div class="showcase-visual">
       <div class="mode-slider" data-slider>
         <div class="mode-slider-track">
 
@@ -944,14 +994,10 @@
         </div>
       </div>
     </div>
-  </div>
-</section>
+      </div>
 
-<!-- Showcase 05: Treasury -->
-<section class="showcase section-dark grain">
-  <span class="showcase-bg-num" aria-hidden="true">05</span>
-  <div class="container showcase-inner">
-    <div class="showcase-text reveal">
+      <div class="mode-panel" id="mode-05" role="tabpanel" aria-labelledby="mode-tab-05" hidden tabindex="0">
+    <div class="showcase-text">
       <span class="mode-badge">Treasury</span>
       <h2>Every transaction,<br>accounted for.</h2>
       <p>A manual cash and bank tracker, completely disconnected from inventory and sales. Add money in, deduct money out, and always know exactly what's in the till and the bank. No reconciliation, no guesswork.</p>
@@ -972,7 +1018,7 @@
         </div>
       </details>
     </div>
-    <div class="showcase-visual reveal-right">
+    <div class="showcase-visual">
       <div class="mode-slider" data-slider>
         <div class="mode-slider-track">
 
@@ -1048,10 +1094,196 @@
         </div>
       </div>
     </div>
+      </div>
+    </div>
   </div>
 </section>
 
-</div><!-- /modes -->
+<!-- ─── Touchpoints ──────────────────────────────────────────────── -->
+<section class="section-light" id="touchpoints">
+  <div class="container">
+    <div class="section-label">
+      <span class="eyebrow">Client &amp; Owner Surfaces</span>
+      <h2 class="section-heading">Four ways in. Zero apps.</h2>
+      <p class="section-subhead">Every surface is a link, not an install. Share it, and revoke it just as fast.</p>
+    </div>
+
+    <div class="touch-hub reveal">
+      <div class="touch-seal" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="17" cy="17" r="14.5"/>
+          <path d="M11 17.5l4 4 8-9"/>
+        </svg>
+        <span>Caflat.CORE</span>
+      </div>
+
+      <svg class="touch-lines" viewBox="0 0 1200 230" preserveAspectRatio="none" aria-hidden="true">
+        <path class="touch-line" d="M600,0 C600,100 190,90 190,222"/>
+        <path class="touch-line" d="M600,0 C600,100 470,90 470,222"/>
+        <path class="touch-line" d="M600,0 C600,100 730,90 730,222"/>
+        <path class="touch-line" d="M600,0 C600,100 1010,90 1010,222"/>
+      </svg>
+
+      <div class="touch-grid" data-populate>
+
+        <div class="touch-phone">
+          <div class="touch-phone-head"><span>Order Portal</span><span class="touch-phone-tag">No login</span></div>
+          <div class="touch-phone-body">
+            <div class="touch-skel-rows" aria-hidden="true">
+              <div class="touch-skel-row"></div>
+              <div class="touch-skel-row" style="width:70%"></div>
+              <div class="touch-skel-row" style="width:85%"></div>
+            </div>
+            <div class="touch-content">
+              <div class="touch-row"><span>Choco Chunk Cookies</span><span>&times; 24</span></div>
+              <div class="touch-row"><span>Sea Salt Caramel</span><span>&times; 18</span></div>
+              <div class="touch-total">Review order <b>&middot; &#8369;6,010</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="touch-phone">
+          <div class="touch-phone-head"><span>Remote Dashboard</span><span class="touch-live"><i></i>LIVE</span></div>
+          <div class="touch-phone-body">
+            <div class="touch-skel-rows" aria-hidden="true">
+              <div class="touch-skel-row" style="width:60%;height:26px;"></div>
+              <div class="touch-skel-row" style="width:90%"></div>
+            </div>
+            <div class="touch-content">
+              <div class="touch-kpi-big">&#8369;18,420 <span>revenue today</span></div>
+              <div class="touch-row"><span>Orders</span><span>62</span></div>
+              <div class="touch-row"><span>Items sold</span><span>184</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="touch-phone">
+          <div class="touch-phone-head"><span>Client Statement</span></div>
+          <div class="touch-phone-body">
+            <div class="touch-skel-rows" aria-hidden="true">
+              <div class="touch-skel-row"></div>
+              <div class="touch-skel-row" style="width:70%"></div>
+              <div class="touch-skel-row" style="width:85%"></div>
+            </div>
+            <div class="touch-content">
+              <div class="touch-row"><span>Current</span><span>&#8369;4,200</span></div>
+              <div class="touch-row touch-warn"><span>31&ndash;60 Days</span><span>&#8369;1,850</span></div>
+              <div class="touch-total">Balance owed <b>&middot; &#8369;6,050</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="touch-phone">
+          <div class="touch-phone-head"><span>Receipt</span></div>
+          <div class="touch-phone-body">
+            <div class="touch-skel-rows" aria-hidden="true">
+              <div class="touch-skel-row"></div>
+              <div class="touch-skel-row" style="width:70%"></div>
+              <div class="touch-skel-row" style="width:60%"></div>
+            </div>
+            <div class="touch-content">
+              <div class="touch-row"><span>Iced Latte</span><span>&#8369;165</span></div>
+              <div class="touch-row"><span>Croissant</span><span>&#8369;95</span></div>
+              <div class="touch-row"><span>Cold Brew</span><span>&#8369;145</span></div>
+              <div class="touch-total">Total <b>&middot; &#8369;405</b></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <p class="touch-caption">Revocable by design. Kill a link, and the surface goes dark.</p>
+  </div>
+</section>
+
+<!-- ─── Foresight ──────────────────────────────────────────────── -->
+<section class="section-dark grain" id="foresight">
+  <div class="container">
+    <div class="foresight-grid reveal">
+      <div class="foresight-text">
+        <span class="eyebrow">Foresight <span class="pro-chip">PRO</span></span>
+        <h2 class="section-heading">Tomorrow, prepped today.</h2>
+        <p class="section-subhead" style="text-align:left;margin:14px 0 24px;">Reads your own sales history, on-device. No black box, no third-party data leaving the counter. It just tells you what to bake and how much.</p>
+        <ul class="showcase-list">
+          <li>Demand radar: which products spike, and on which weekday</li>
+          <li>Smart prep list, ranked by sellout time</li>
+          <li>Waste guard flags overstock before it becomes a write-off</li>
+        </ul>
+      </div>
+
+      <div class="foresight-viz reveal-right" data-populate>
+        <div class="fs-panel-head">
+          <span>Demand radar &middot; this week</span>
+          <svg class="fs-spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true">
+            <polyline points="0,20 15,16 30,18 45,10 60,13 75,6 90,9 105,4 120,7"/>
+          </svg>
+        </div>
+        <div class="fs-bars">
+          <div class="fs-bar-col"><div class="fs-bar" style="--h:38%"></div><span>Mon</span></div>
+          <div class="fs-bar-col"><div class="fs-bar" style="--h:44%"></div><span>Tue</span></div>
+          <div class="fs-bar-col"><div class="fs-bar" style="--h:41%"></div><span>Wed</span></div>
+          <div class="fs-bar-col"><div class="fs-bar" style="--h:56%"></div><span>Thu</span></div>
+          <div class="fs-bar-col"><div class="fs-bar" style="--h:72%"></div><span>Fri</span></div>
+          <div class="fs-bar-col"><div class="fs-bar" style="--h:100%"></div><span class="fs-today">Sat</span></div>
+          <div class="fs-bar-col"><div class="fs-bar" style="--h:84%"></div><span>Sun</span></div>
+        </div>
+
+        <div class="fs-prep">
+          <div class="fs-prep-head">Prep before the rush</div>
+          <div class="fs-prep-row"><span>Croissants</span><span>bake 48</span></div>
+          <div class="fs-prep-row"><span>Cold brew concentrate</span><span>steep 12L</span></div>
+          <div class="fs-prep-row"><span>Sea salt caramel</span><span>bake 30</span></div>
+          <div class="fs-prep-row"><span>Oat milk</span><span>stock 8</span></div>
+          <div class="fs-prep-row"><span>Iced latte cups</span><span>stock 150</span></div>
+        </div>
+
+        <div class="fs-waste-chip">Waste guard &middot; cut muffins by <span data-target="6">0</span> today</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Integrity strip ────────────────────────────────────────── -->
+<section class="section-dark2 grain" id="integrity">
+  <div class="container">
+    <div class="integrity-row reveal">
+
+      <div class="integrity-item">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 1.5l7 3v5c0 5-3 8.3-7 9-4-.7-7-4-7-9v-5l7-3z" class="integrity-seal"/><path d="M7 10l2 2 4-4.5" class="integrity-check"/></svg>
+        <div>
+          <h3>SHA-256 sealed</h3>
+          <p>Every transaction is hash-chained. Tampering breaks the chain, and breaks visibly.</p>
+        </div>
+      </div>
+
+      <div class="integrity-item">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="15" height="12" rx="1.5"/><path d="M2.5 9h15M7 5V2.5h6V5"/></svg>
+        <div>
+          <h3>Daily Close</h3>
+          <p>Count the drawer, catch the variance, see the true profit and loss for the day.</p>
+        </div>
+      </div>
+
+      <div class="integrity-item">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="12" height="9" rx="1.5"/><path d="M6.5 9V6a3.5 3.5 0 0 1 7 0v3"/><circle cx="10" cy="13" r="1.2"/></svg>
+        <div>
+          <h3>Hardened sign-in</h3>
+          <p>Salted PBKDF2 hashing and lockouts after repeated failed attempts.</p>
+        </div>
+      </div>
+
+      <div class="integrity-item">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="10" cy="4.5" rx="7" ry="2.5"/><path d="M3 4.5v11c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-11"/><path d="M3 10c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5"/></svg>
+        <div>
+          <h3>Local-first</h3>
+          <p>Your data lives on your device first. Export it any time, no lock-in.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
 
 <!-- ─── Built-in Tools ────────────────────────────────────────── -->
 <section class="section-dark2 grain" id="extras">
@@ -1130,6 +1362,94 @@
   </div>
 </section>
 
+<!-- ─── Pricing ───────────────────────────────────────────────── -->
+<section class="section-dark" id="pricing">
+  <div class="container">
+    <div class="section-label">
+      <span class="eyebrow">Pricing</span>
+      <h2 class="section-heading">Simple plans.<br>Serious tools.</h2>
+    </div>
+
+    <div class="trial-banner reveal">
+      <span class="trial-banner-icon" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5V8l2.6 1.6"/></svg>
+      </span>
+      Every new account starts with <span class="trial-banner-highlight">90 days of PRO</span>. All modules, no card.
+    </div>
+
+    <div class="pricing-wrap">
+    <div class="pricing-grid" data-populate>
+
+      <div class="pricing-card">
+        <div class="pricing-top">
+          <div class="pricing-tier"><i class="tier-dot tier-dot-free"></i>Free</div>
+          <p class="pricing-desc">Explore the essentials. No credit card, no commitment, just the core tools to get started.</p>
+        </div>
+        <ul class="pricing-features">
+          <li>Basic POS &amp; Inventory</li>
+          <li>Up to 50 products</li>
+          <li>Single device</li>
+          <li>Daily summary report</li>
+          <li>Community support</li>
+        </ul>
+        <a href="#access" class="pricing-cta">Get Started</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-top">
+          <div class="pricing-tier"><i class="tier-dot tier-dot-pro"></i>Pro</div>
+          <p class="pricing-desc">For independent cafés that need a complete operational backbone: all modules, offline-first.</p>
+          <div class="pricing-trial">Free for your first 90 days</div>
+        </div>
+        <ul class="pricing-features">
+          <li>All 12+ modules</li>
+          <li>Unlimited products</li>
+          <li>Unlimited transactions</li>
+          <li>All 5 operational modes</li>
+          <li>Export reports (PDF/CSV)</li>
+          <li>Single location</li>
+        </ul>
+        <a href="#access" class="pricing-cta">Apply for Access</a>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="pricing-badge">Most Popular</div>
+        <div class="pricing-top">
+          <div class="pricing-tier"><i class="tier-dot tier-dot-cloud"></i>Cloud</div>
+          <p class="pricing-desc">Multi-branch operations with cloud sync, remote reporting, and real-time visibility across locations.</p>
+        </div>
+        <ul class="pricing-features">
+          <li>Everything in Pro</li>
+          <li>Cloud sync across branches</li>
+          <li>Remote dashboard access</li>
+          <li>Multi-branch reporting</li>
+          <li>Automatic backups</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#access" class="pricing-cta pricing-cta-featured">Apply for Access</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-top">
+          <div class="pricing-tier"><i class="tier-dot tier-dot-ent"></i>Enterprise</div>
+          <p class="pricing-desc">For roastery groups and multi-location brands that need tailored configuration and direct support.</p>
+        </div>
+        <ul class="pricing-features">
+          <li>Everything in Cloud</li>
+          <li>Custom module setup</li>
+          <li>Dedicated onboarding</li>
+          <li>SLA-backed uptime</li>
+          <li>White-label options</li>
+          <li>Direct engineering access</li>
+        </ul>
+        <a href="#access" class="pricing-cta">Talk to Us</a>
+      </div>
+
+    </div>
+    </div><!-- /pricing-wrap -->
+  </div>
+</section>
+
 <!-- ─── FAQ ───────────────────────────────────────────────────── -->
 <section class="section-dark2 grain" id="faq">
   <div class="container">
@@ -1167,94 +1487,30 @@
   </div>
 </section>
 
-<!-- ─── Pricing ───────────────────────────────────────────────── -->
-<section class="section-dark" id="pricing">
-  <div class="container">
-    <div class="section-label">
-      <span class="eyebrow">Pricing</span>
-      <h2 class="section-heading">Simple plans.<br>Serious tools.</h2>
-    </div>
-
-    <div class="pricing-wrap">
-    <div class="pricing-grid stagger">
-
-      <div class="pricing-card">
-        <div class="pricing-top">
-          <div class="pricing-tier">Free</div>
-          <p class="pricing-desc">Explore the essentials. No credit card, no commitment, just the core tools to get started.</p>
-        </div>
-        <ul class="pricing-features">
-          <li>Basic POS & Inventory</li>
-          <li>Up to 50 products</li>
-          <li>Single device</li>
-          <li>Daily summary report</li>
-          <li>Community support</li>
-        </ul>
-        <a href="#access" class="pricing-cta">Get Started</a>
-      </div>
-
-      <div class="pricing-card">
-        <div class="pricing-top">
-          <div class="pricing-tier">Pro</div>
-          <p class="pricing-desc">For independent cafés that need a complete operational backbone: all modules, offline-first.</p>
-          <div class="pricing-trial">Free for your first 90 days</div>
-        </div>
-        <ul class="pricing-features">
-          <li>All 12+ modules</li>
-          <li>Unlimited products</li>
-          <li>Unlimited transactions</li>
-          <li>All 5 operational modes</li>
-          <li>Export reports (PDF/CSV)</li>
-          <li>Single location</li>
-        </ul>
-        <a href="#access" class="pricing-cta">Apply for Access</a>
-      </div>
-
-      <div class="pricing-card featured">
-        <div class="pricing-badge">Most Popular</div>
-        <div class="pricing-top">
-          <div class="pricing-tier">Cloud</div>
-          <p class="pricing-desc">Multi-branch operations with cloud sync, remote reporting, and real-time visibility across locations.</p>
-        </div>
-        <ul class="pricing-features">
-          <li>Everything in Pro</li>
-          <li>Cloud sync across branches</li>
-          <li>Remote dashboard access</li>
-          <li>Multi-branch reporting</li>
-          <li>Automatic backups</li>
-          <li>Priority support</li>
-        </ul>
-        <a href="#access" class="pricing-cta pricing-cta-featured">Apply for Access</a>
-      </div>
-
-      <div class="pricing-card">
-        <div class="pricing-top">
-          <div class="pricing-tier">Enterprise</div>
-          <p class="pricing-desc">For roastery groups and multi-location brands that need tailored configuration and direct support.</p>
-        </div>
-        <ul class="pricing-features">
-          <li>Everything in Cloud</li>
-          <li>Custom module setup</li>
-          <li>Dedicated onboarding</li>
-          <li>SLA-backed uptime</li>
-          <li>White-label options</li>
-          <li>Direct engineering access</li>
-        </ul>
-        <a href="#access" class="pricing-cta">Talk to Us</a>
-      </div>
-
-    </div>
-    </div><!-- /pricing-wrap -->
-  </div>
-</section>
-
 <!-- ─── Request Access ─────────────────────────────────────────── -->
 <section class="section-form grain" id="access">
   <div class="container form-container reveal">
     <div class="form-intro">
       <span class="eyebrow">Early Access</span>
       <h2>Ready to run a&nbsp;tighter café?</h2>
-      <p>Caflat.CORE is invite-only while we onboard our first partner cafés. Fill in your details and we'll reach out within 24–48 hours.</p>
+      <p>Caflat.CORE is invite-only while we onboard our first partner cafés. Fill in your details and we'll reach out within 24&ndash;48 hours.</p>
+
+      <div class="access-steps">
+        <div class="access-step">
+          <span class="access-step-num">1</span>
+          <span class="access-step-label">Apply</span>
+        </div>
+        <div class="access-step-line" aria-hidden="true"></div>
+        <div class="access-step">
+          <span class="access-step-num">2</span>
+          <span class="access-step-label">We reach out in 24&ndash;48h</span>
+        </div>
+        <div class="access-step-line" aria-hidden="true"></div>
+        <div class="access-step">
+          <span class="access-step-num">3</span>
+          <span class="access-step-label">90-day PRO starts</span>
+        </div>
+      </div>
     </div>
     <form id="accessForm" class="access-form">
       <div class="form-row">
@@ -1299,6 +1555,7 @@
 
 <!-- ─── Footer ────────────────────────────────────────────────── -->
 <footer class="footer">
+  <span class="footer-watermark" aria-hidden="true">Caflat.CORE</span>
   <div class="container footer-grid">
     <div class="footer-brand">
       <span class="footer-logo">Caflat.CORE</span>
@@ -1311,6 +1568,12 @@
       <a href="#pricing">Pricing</a>
       <a href="#access">Request Access</a>
       <a href="user-manual.pdf" target="_blank" rel="noopener">User Manual</a>
+    </div>
+    <div class="footer-nav">
+      <span class="footer-col-label">Surfaces</span>
+      <a href="order.html" target="_blank" rel="noopener">Order Portal</a>
+      <a href="remote.html" target="_blank" rel="noopener">Remote Dashboard</a>
+      <a href="statement.html" target="_blank" rel="noopener">Client Statement</a>
     </div>
     <div class="footer-contact-col">
       <span class="footer-col-label">Contact</span>
@@ -1332,6 +1595,6 @@
   </div>
 </div>
 
-<script src="./js/main.js?v=20260718b"></script>
+<script src="./js/main.js?v=20260720b"></script>
 </body>
 </html>
