@@ -875,6 +875,7 @@ function renderRemoteDashboardSection() {
         Anyone with this link sees today's numbers (read-only). Revoke it anytime.
       </div>`;
   } else {
+    const locked = typeof isProTier === 'function' && !isProTier();
     box.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
         <div style="font-size:11px;color:var(--gray-500);max-width:420px;">
@@ -882,7 +883,7 @@ function renderRemoteDashboardSection() {
           Creates a private, revocable link. No login needed on the phone.
         </div>
         <button class="btn btn-secondary" type="button" onclick="generateRemoteDashboardLink()">
-          Generate Link
+          Generate Link${locked ? ' <span style="font-size:8px;font-weight:900;padding:1px 6px;border-radius:999px;background:var(--black);color:#fff;letter-spacing:1px;vertical-align:middle;">PRO</span>' : ''}
         </button>
       </div>`;
   }

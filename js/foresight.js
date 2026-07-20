@@ -13,7 +13,12 @@ const FORESIGHT = (() => {
   const allProds   = () => g(() => (typeof getProducts === 'function' ? getProducts() : APP_STATE.products) || [], []);
   const isDone     = s => String(s.status || '').toUpperCase() === 'COMPLETED';
   const saleTime   = s => new Date(s.audit?.completedAt || s.completedAt || s.createdAt || s.audit?.createdAt || Date.now());
-  const dayKey     = d => d.toISOString().slice(0, 10);
+  // LOCAL calendar day, not UTC: the café's business day must match the
+  // weekday/hour buckets (also local), or early-morning sales in UTC+n
+  // timezones split one business day across two keys.
+  const dayKey     = d => d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
 
   function coverage() {
     const done = allSales().filter(isDone);
