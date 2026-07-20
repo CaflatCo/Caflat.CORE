@@ -49,6 +49,9 @@ const APP_STATE = {
   treasuryAccounts: [],         // { id, name, type: 'cash'|'bank', openingBalance, createdAt }
   treasuryTransactions: [],     // { id, accountId, kind: 'add'|'deduct', amount, reason, date, createdAt }
 
+  // Daily Close — opt-in (Settings → Features), one record per closed local day
+  dayCloses: [],                 // { day, revenue, orders, cogs, expenses, expenseRows, profit, margin, cashExpected, cashCounted, variance, expenseTxnIds, closedAt }
+
   costLabSettings: {
     targetMargin: 60,
     laborCostPerUnit: 0,
@@ -98,6 +101,7 @@ function resetState() {
   APP_STATE.originOrderCounter = 0;
   APP_STATE.treasuryAccounts = [];
   APP_STATE.treasuryTransactions = [];
+  APP_STATE.dayCloses = [];
   persistState();
 }
 

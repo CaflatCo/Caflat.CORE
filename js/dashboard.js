@@ -37,6 +37,7 @@ function refreshDashboard() {
 
   renderDashboardKPIAlerts(kpi);
   if (typeof renderForesightTeaser === 'function') renderForesightTeaser();
+  if (typeof _renderDailyCloseChip === 'function') _renderDailyCloseChip();
   renderTopProducts();
   renderLowStockDashboard();
   renderDashboardChart();

@@ -69,6 +69,7 @@ function renderReports() {
   renderReportInsightsTable(fromDate, toDate);
   renderChannelBreakdownReport(fromDate, toDate);
   renderAllProfitability(fromDate, toDate);
+  if (typeof renderDayClosesTable === 'function') renderDayClosesTable();
   _animateReportSections();
 }
 

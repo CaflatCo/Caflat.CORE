@@ -64,7 +64,8 @@ function persistState() {
       costLabOverrides:         APP_STATE.costLabOverrides,
       costHistory:              APP_STATE.costHistory,
       treasuryAccounts:         APP_STATE.treasuryAccounts,
-      treasuryTransactions:     APP_STATE.treasuryTransactions
+      treasuryTransactions:     APP_STATE.treasuryTransactions,
+      dayCloses:                APP_STATE.dayCloses
     }));
     if (typeof _checkStorageWarning === 'function') _checkStorageWarning();
     // Notify sync engine
@@ -145,6 +146,7 @@ function restorePersistedState() {
   APP_STATE.originOrderCounter       = Number(persisted.originOrderCounter || 0);
   APP_STATE.treasuryAccounts         = Array.isArray(persisted.treasuryAccounts)         ? persisted.treasuryAccounts         : [];
   APP_STATE.treasuryTransactions     = Array.isArray(persisted.treasuryTransactions)     ? persisted.treasuryTransactions     : [];
+  APP_STATE.dayCloses                = Array.isArray(persisted.dayCloses)                ? persisted.dayCloses                : [];
   APP_STATE.costLabSettings  = Object.assign(
     { targetMargin: 60, laborCostPerUnit: 0, overheadCostPerUnit: 0 },
     persisted.costLabSettings || {}
@@ -192,7 +194,8 @@ function exportAllData() {
     originClients:            APP_STATE.originClients,
     originOrderCounter:       APP_STATE.originOrderCounter,
     treasuryAccounts:         APP_STATE.treasuryAccounts,
-    treasuryTransactions:     APP_STATE.treasuryTransactions
+    treasuryTransactions:     APP_STATE.treasuryTransactions,
+    dayCloses:                APP_STATE.dayCloses
   };
   downloadTextFile(`caflat-backup-${Date.now()}.json`, JSON.stringify(data, null, 2));
   showNotification('Backup exported', 'success');
@@ -278,6 +281,7 @@ function importAllData(file) {
       APP_STATE.originOrderCounter       = Number(data.originOrderCounter || 0);
       APP_STATE.treasuryAccounts         = Array.isArray(data.treasuryAccounts)         ? data.treasuryAccounts         : [];
       APP_STATE.treasuryTransactions     = Array.isArray(data.treasuryTransactions)     ? data.treasuryTransactions     : [];
+      APP_STATE.dayCloses                = Array.isArray(data.dayCloses)                ? data.dayCloses                : [];
 
       persistState();
       if (typeof renderEverything === 'function') renderEverything();

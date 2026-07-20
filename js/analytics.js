@@ -468,6 +468,34 @@ function calculateBreakEvenFromForm() {
   };
 }
 
+/* ── True cost of goods sold for a period (Daily Close) ──
+   Sums soldQty × calculateProductCost per product — the same per-unit
+   cost math the product editor's live preview and break-even analysis
+   use, so "true profit" always agrees with what the owner sees elsewhere. */
+function getPeriodCOGS(fromDate, toDate) {
+  const products = APP_STATE.products || [];
+  const sales    = typeof getCompletedSales === 'function'
+    ? getCompletedSales(fromDate, toDate) : [];
+
+  const soldMap = {};
+  sales.forEach(sale => {
+    (sale.items || []).forEach(item => {
+      const qty = Number(item.quantity || 0) * Number(item.multiplier || 1);
+      soldMap[item.productId] = (soldMap[item.productId] || 0) + qty;
+    });
+  });
+
+  return products.reduce((sum, p) => {
+    const qty = soldMap[p.id] || 0;
+    if (!qty) return sum;
+    const costPerUnit = typeof calculateProductCost === 'function'
+      ? calculateProductCost(p.recipe || [], p.recipeMode || 'unit',
+          Math.max(1, Number(p.batchYield || 1)), p.packagingItems || [])
+      : 0;
+    return sum + qty * costPerUnit;
+  }, 0);
+}
+
 /* ── Break-even analysis for all products (Reports) ── */
 function getBreakEvenAnalysis(fromDate, toDate) {
   const products = APP_STATE.products || [];
@@ -522,6 +550,7 @@ function getBreakEvenAnalysis(fromDate, toDate) {
 window.calculateBreakEven          = calculateBreakEven;
 window.calculateBreakEvenFromForm  = calculateBreakEvenFromForm;
 window.getBreakEvenAnalysis        = getBreakEvenAnalysis;
+window.getPeriodCOGS                = getPeriodCOGS;
 window.getSupplyRevenue_            = getSupplyRevenue_;
 window.getSupplyOrderCount_         = getSupplyOrderCount_;
 window.getOutstandingReceivables    = getOutstandingReceivables;
