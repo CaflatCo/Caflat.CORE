@@ -2207,93 +2207,128 @@
     <!-- Product modal -->
     <div class="modal-overlay" id="productModal">
       <div class="modal">
-        <h3>Product</h3>
+        <h3 id="productModalTitle">New Product</h3>
         <input id="productId" type="hidden" />
-        <div class="form-row">
-          <div class="form-group">
-            <label>Name</label>
-            <input id="productName" type="text" />
+
+        <!-- 1 · The basics -->
+        <div class="pm-section">
+          <div class="pm-section-head">
+            <span class="pm-step">1</span>
+            <div>
+              <div class="pm-section-title">The Basics</div>
+              <div class="pm-hint">What it's called and where it lives on the menu.</div>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Category</label>
-            <select id="productCategory"></select>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Name <span class="pm-req">*</span></label>
+              <input id="productName" type="text" placeholder="e.g. Choc Chip Cookie" />
+            </div>
+            <div class="form-group">
+              <label>Category <span class="pm-req">*</span></label>
+              <select id="productCategory"></select>
+            </div>
           </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Price (<span data-curr-sym>₱</span>)</label>
-            <input id="productPrice" type="number" min="0" step="0.01" />
-          </div>
-          <div class="form-group">
-            <label>Stock</label>
-            <input id="productStock" type="number" min="0" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Reorder Level</label>
-            <input id="productReorderLevel" type="number" min="0" />
-          </div>
-          <div class="form-group">
-            <label>Variant Type</label>
-            <select id="variantType">
-              <option value="quantity">Quantity</option>
-              <option value="size">Size</option>
-              <option value="custom">Custom</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Shelf Life (days)</label>
-            <input id="productShelfLifeDays" type="number" min="0" placeholder="0 = no limit" />
+          <!-- Product Templates — shown based on selected category -->
+          <div id="productTemplateRow" style="display:none;">
+            <div class="pm-subhead">Start from a template <span class="pm-hint">tap one to prefill everything below</span></div>
+            <div id="productTemplateList" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
           </div>
         </div>
 
-        <div class="section-title">Variants</div>
-        <div id="variantBuilder"></div>
-        <button class="btn btn-secondary" id="addVariantBtn" type="button" style="margin-bottom:16px;">+ Add Variant</button>
-
-        <div class="section-title">Recipe (Ingredients)</div>
-        <div class="form-row" style="margin-bottom:10px;">
-          <div class="form-group" style="margin-bottom:0;">
-            <label>Recipe Mode</label>
-            <select id="recipeMode">
-              <option value="unit">Per Unit</option>
-              <option value="batch">Per Batch</option>
-            </select>
+        <!-- 2 · Pricing & variants -->
+        <div class="pm-section">
+          <div class="pm-section-head">
+            <span class="pm-step">2</span>
+            <div>
+              <div class="pm-section-title">Pricing &amp; Variants</div>
+              <div class="pm-hint">The base price, plus optional sizes or bundles like "Box of 6".</div>
+            </div>
           </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label>Batch Yield</label>
-            <input id="batchYield" type="number" min="1" value="1" placeholder="Units per batch" />
+          <div class="form-row">
+            <div class="form-group">
+              <label>Price (<span data-curr-sym>₱</span>) <span class="pm-req">*</span></label>
+              <input id="productPrice" type="number" min="0" step="0.01" />
+            </div>
+            <div class="form-group">
+              <label>Variant Type</label>
+              <select id="variantType">
+                <option value="quantity">Quantity</option>
+                <option value="size">Size</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+          </div>
+          <div class="pm-subhead">Variants <span class="pm-hint">optional</span></div>
+          <div class="pm-cols pm-cols-variant"><span>Variant name</span><span>Price (<span data-curr-sym>₱</span>)</span><span>Units</span><span></span></div>
+          <div id="variantBuilder" class="pm-builder"></div>
+          <button class="btn btn-secondary" id="addVariantBtn" type="button">+ Add Variant</button>
+        </div>
+
+        <!-- 3 · Inventory -->
+        <div class="pm-section">
+          <div class="pm-section-head">
+            <span class="pm-step">3</span>
+            <div>
+              <div class="pm-section-title">Inventory</div>
+              <div class="pm-hint">How much is on hand, and when to warn you it's running low.</div>
+            </div>
+          </div>
+          <div class="form-row form-row-3">
+            <div class="form-group">
+              <label>Stock</label>
+              <input id="productStock" type="number" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Reorder Level</label>
+              <input id="productReorderLevel" type="number" min="0" placeholder="Low-stock alert" />
+            </div>
+            <div class="form-group">
+              <label>Shelf Life (days)</label>
+              <input id="productShelfLifeDays" type="number" min="0" placeholder="0 = no limit" />
+            </div>
           </div>
         </div>
-        <div id="recipeBuilder"></div>
-        <button class="btn btn-secondary" id="addRecipeBtn" type="button" style="margin-bottom:12px;">+ Add Ingredient</button>
 
-        <div class="section-title" style="margin-top:16px;">Packaging Costs</div>
-        <div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;">
-          Add packaging items (boxes, stickers, bags) included per unit sold.
-        </div>
-        <div id="packagingBuilder"></div>
-        <button class="btn btn-secondary" id="addPackagingBtn" type="button"
-          style="margin-bottom:12px;">+ Add Packaging Item</button>
-
-        <!-- Cost Preview Card — live via analytics.js -->
-        <div id="productCostPreview" class="cost-preview-card">
-          <div class="cost-preview-empty">Add ingredients or packaging to see cost breakdown</div>
-        </div>
-
-        <!-- Product Templates — shown based on selected category -->
-        <div id="productTemplateRow" style="display:none;margin-top:16px;">
-          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;
-            font-weight:800;color:var(--gray-400);margin-bottom:8px;">
-            Quick Templates
+        <!-- 4 · Recipe & true cost -->
+        <div class="pm-section">
+          <div class="pm-section-head">
+            <span class="pm-step">4</span>
+            <div>
+              <div class="pm-section-title">Recipe &amp; True Cost</div>
+              <div class="pm-hint">Link ingredients and packaging; cost and margin update live below.</div>
+            </div>
           </div>
-          <div id="productTemplateList" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Recipe Mode</label>
+              <select id="recipeMode">
+                <option value="unit">Per Unit</option>
+                <option value="batch">Per Batch</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Batch Yield</label>
+              <input id="batchYield" type="number" min="1" value="1" placeholder="Units per batch" />
+            </div>
+          </div>
+          <div class="pm-subhead">Ingredients</div>
+          <div class="pm-cols pm-cols-recipe"><span>Ingredient</span><span>Amount</span><span></span></div>
+          <div id="recipeBuilder" class="pm-builder"></div>
+          <button class="btn btn-secondary" id="addRecipeBtn" type="button">+ Add Ingredient</button>
+
+          <div class="pm-subhead">Packaging <span class="pm-hint">boxes, stickers, bags included per unit sold</span></div>
+          <div class="pm-cols pm-cols-pkg"><span>Item</span><span>Cost (<span data-curr-sym>₱</span>)</span><span></span></div>
+          <div id="packagingBuilder" class="pm-builder"></div>
+          <button class="btn btn-secondary" id="addPackagingBtn" type="button">+ Add Packaging Item</button>
+
+          <!-- Cost Preview Card — live via analytics.js -->
+          <div id="productCostPreview" class="cost-preview-card">
+            <div class="cost-preview-empty">Add ingredients or packaging to see cost breakdown</div>
+          </div>
         </div>
 
-        <div class="modal-actions">
+        <div class="modal-actions pm-actions">
           <button class="btn btn-secondary" type="button" data-close-modal="productModal">Cancel</button>
           <button class="btn" id="saveProductBtn" type="button">Save Product</button>
         </div>
@@ -3531,7 +3566,7 @@
   <script src="./js/auth.js?v=20260628i"></script>
   <script src="./js/analytics.js"></script>
   <script src="./js/dashboard.js?v=20260719a"></script>
-  <script src="./js/products.js?v=20260719a"></script>
+  <script src="./js/products.js?v=20260720a"></script>
   <script src="./js/ingredients.js"></script>
   <script src="./js/inventory.js"></script>
   <script src="./js/finishedgoods.js"></script>

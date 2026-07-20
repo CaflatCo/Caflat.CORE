@@ -132,10 +132,13 @@ function clearProductForm() {
 
 function openProductModal(productId = null) {
   clearProductForm();
+  let editing = null;
   if (productId) {
-    const product = getProducts().find(p => String(p.id) === String(productId));
-    if (product) hydrateProductForm(product);
+    editing = getProducts().find(p => String(p.id) === String(productId));
+    if (editing) hydrateProductForm(editing);
   }
+  const titleEl = document.getElementById('productModalTitle');
+  if (titleEl) titleEl.textContent = editing ? `Edit · ${editing.name}` : 'New Product';
   if (typeof renderIngredientDropdowns === 'function') {
     renderIngredientDropdowns();
     document.querySelectorAll('#recipeBuilder .recipe-ingredient[data-wanted-ingredient]').forEach(el => {
@@ -432,6 +435,7 @@ function renderProductCostPreview() {
       <div style="font-size:11px;color:var(--gray-500);">
         Packaging: <span style="font-weight:700;">${formatCurrency(packagingCost)}</span>
       </div>
+    </div>
 
     ${(() => {
       const be = typeof calculateBreakEvenFromForm === 'function' ? calculateBreakEvenFromForm() : null;
@@ -444,20 +448,20 @@ function renderProductCostPreview() {
       const profitBarPct    = 100 - costBarPct;
 
       const _s  = function(css){ return 'style="'+css+'"'; };
-      const sec = _s('margin-top:14px;padding:14px 16px;border-radius:12px;background:#f9fafb;border:1.5px solid #e5e7eb;');
-      const ttl = _s('font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:#9ca3af;margin-bottom:12px;');
+      const sec = _s('margin-top:14px;padding:14px 16px;border-radius:12px;background:var(--gray-50);border:1.5px solid var(--border);');
+      const ttl = _s('font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--gray-400);margin-bottom:12px;');
       const grd = _s('display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;');
-      const crd = _s('background:white;border-radius:8px;padding:12px 14px;border:1px solid #e5e7eb;text-align:center;');
-      const lbl = _s('font-size:10px;color:#9ca3af;margin-bottom:4px;');
+      const crd = _s('background:var(--white);border-radius:8px;padding:12px 14px;border:1px solid var(--border);text-align:center;');
+      const lbl = _s('font-size:10px;color:var(--gray-400);margin-bottom:4px;');
       const big = _s('font-size:28px;font-weight:900;line-height:1;');
       const grn = _s('font-size:28px;font-weight:900;line-height:1;color:#16a34a;');
-      const sub = _s('font-size:11px;color:#9ca3af;margin-top:2px;');
+      const sub = _s('font-size:11px;color:var(--gray-500);margin-top:2px;');
       const sg  = _s('font-size:11px;color:#16a34a;margin-top:2px;');
 
       if (!be.hasBatchContext) {
         return '<div '+sec+'>'
           + '<div '+ttl+'>Break-Even</div>'
-          + '<div '+_s('font-size:12px;color:#6b7280;')+'>Set <strong>Batch Yield &gt; 1</strong> in the recipe section to see break-even per production run.</div>'
+          + '<div '+_s('font-size:12px;color:var(--gray-500);')+'>Set <strong>Batch Yield &gt; 1</strong> in the recipe section to see break-even per production run.</div>'
           + '</div>';
       }
 
@@ -484,8 +488,7 @@ function renderProductCostPreview() {
           + '<span '+_s('color:#16a34a;')+'>'+pureProfitUnits+' pure profit</span>'
         + '</div>'
         + '</div>';
-    })()}
-    </div>` : ''}`;
+    })()}` : ''}`;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -571,7 +574,10 @@ function renderProductTemplates() {
   const category  = document.getElementById('productCategory')?.value || '';
   const templates = getTemplatesForCategory(category);
 
-  if (!templates.length) {
+  // Templates prefill the whole form — only offer them for NEW products,
+  // never while editing (one tap would overwrite the product being edited).
+  const isEditing = !!document.getElementById('productId')?.value;
+  if (!templates.length || isEditing) {
     container.style.display = 'none';
     return;
   }
