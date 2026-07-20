@@ -668,7 +668,13 @@ document.querySelectorAll('.mode-how').forEach(details => {
 });
 
 /* ─── Generalized smooth open/close accordion (same WAAPI pattern
-   as .mode-how, minus its step-cascade). Used by FAQ and feature cards. ─── */
+   as .mode-how, minus its step-cascade). Used by FAQ and feature cards.
+   Padding on the body is animated to 0 alongside height: with the
+   page's global box-sizing:border-box, a body with vertical padding
+   (e.g. .feat-detail's 26px bottom padding) can never render below
+   that padding sum from height alone, so an animation that only
+   touches height stalls at the padding floor and then snaps shut
+   once <details> finishes closing natively. ─── */
 function initSimpleAccordion(containerSelector, summarySelector, bodySelector) {
   document.querySelectorAll(containerSelector).forEach(details => {
     const summary = details.querySelector(summarySelector);
@@ -686,12 +692,19 @@ function initSimpleAccordion(containerSelector, summarySelector, bodySelector) {
         return;
       }
 
+      const cs = getComputedStyle(body);
+      const padTop = cs.paddingTop;
+      const padBottom = cs.paddingBottom;
+
       if (!details.open) {
         details.open = true;
         const h = body.offsetHeight;
         animating = true;
         const anim = body.animate(
-          [{ height: '0px', opacity: 0 }, { height: h + 'px', opacity: 1 }],
+          [
+            { height: '0px', paddingTop: '0px', paddingBottom: '0px', opacity: 0 },
+            { height: h + 'px', paddingTop: padTop, paddingBottom: padBottom, opacity: 1 },
+          ],
           { duration: 320, easing: HOW_EASE }
         );
         anim.onfinish = () => { animating = false; };
@@ -699,7 +712,10 @@ function initSimpleAccordion(containerSelector, summarySelector, bodySelector) {
         const h = body.offsetHeight;
         animating = true;
         const anim = body.animate(
-          [{ height: h + 'px', opacity: 1 }, { height: '0px', opacity: 0 }],
+          [
+            { height: h + 'px', paddingTop: padTop, paddingBottom: padBottom, opacity: 1 },
+            { height: '0px', paddingTop: '0px', paddingBottom: '0px', opacity: 0 },
+          ],
           { duration: 260, easing: HOW_EASE, fill: 'forwards' }
         );
         anim.onfinish = () => {
