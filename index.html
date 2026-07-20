@@ -272,8 +272,9 @@
     /* Each step is a grid: [rail | content]. The rail draws the node dot and
        the connecting line to the next step via a ::before pseudo. */
     .sp-step { position:relative; display:grid; grid-template-columns:26px 1fr;
-      gap:12px; align-items:start; }
-    .sp-step-rail { position:relative; display:flex; justify-content:center; padding-top:2px; }
+      gap:12px; }
+    .sp-step-rail { position:relative; display:flex; justify-content:center;
+      align-items:flex-start; padding-top:2px; }
     .sp-step:not(:last-child) .sp-step-rail::before {
       content:''; position:absolute; top:20px; bottom:-14px; left:50%;
       width:2px; transform:translateX(-50%); background:var(--gray-200); }
