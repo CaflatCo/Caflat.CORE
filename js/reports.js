@@ -640,7 +640,7 @@ function renderBreakEvenReport(fromDate, toDate) {
 
 function renderCumulativePureProfitChart(fromDate, toDate) {
   const canvas = document.getElementById('pureProfitCumulativeChart');
-  if (!canvas) return;
+  if (!canvas || typeof Chart === 'undefined') return;
   const sales = getCompletedSales(fromDate, toDate);
   const products = APP_STATE.products||[];
   const soldMap={}, dailyMap={};
@@ -711,7 +711,7 @@ function renderBestMarginProducts(fromDate, toDate) {
 
 function renderPureProfitByCategory(fromDate, toDate) {
   const canvas=document.getElementById('pureProfitByCategoryChart');
-  if(!canvas) return;
+  if(!canvas || typeof Chart === 'undefined') return;
   const analysis=typeof getBreakEvenAnalysis==='function'?getBreakEvenAnalysis(fromDate,toDate):[];
   const catMap={};
   analysis.forEach(p=>{const cat=p.category||'Uncategorised';catMap[cat]=(catMap[cat]||0)+p.actualPureProfit;});
@@ -738,7 +738,7 @@ function renderPureProfitByCategory(fromDate, toDate) {
 
 function renderRevenueVsCostChart(fromDate, toDate) {
   const canvas=document.getElementById('revenueVsCostChart');
-  if(!canvas) return;
+  if(!canvas || typeof Chart === 'undefined') return;
   const analysis=typeof getBreakEvenAnalysis==='function'?getBreakEvenAnalysis(fromDate,toDate):[];
   const top=analysis.filter(p=>p.soldQty>0).sort((a,b)=>(b.soldQty*b.price)-(a.soldQty*a.price)).slice(0,8);
   if(!top.length){

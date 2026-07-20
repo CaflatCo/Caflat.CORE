@@ -115,7 +115,11 @@ function getDailySalesTrend(fromDate, toDate) {
   const daily = new Map();
   getCompletedSales(fromDate, toDate).forEach(sale => {
     const date = new Date(sale.audit?.completedAt || sale.completedAt || sale.createdAt || Date.now());
-    const key = date.toISOString().slice(0, 10);
+    // Local day, not UTC — evening/early-morning sales must land on the
+    // café's own calendar day (matches foresight.js and _localDayString).
+    const key = date.getFullYear() + '-' +
+      String(date.getMonth() + 1).padStart(2, '0') + '-' +
+      String(date.getDate()).padStart(2, '0');
     daily.set(key, (daily.get(key) || 0) + Number(sale.total ?? sale.totals?.total ?? 0));
   });
   const labels = Array.from(daily.keys()).sort();
