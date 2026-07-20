@@ -62,7 +62,7 @@ CREATE OR REPLACE FUNCTION public.get_remote_dashboard(p_token text)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_tenant uuid;
