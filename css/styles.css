@@ -1262,6 +1262,112 @@ tbody tr:hover td { background: var(--gray-50); }
   background: var(--gray-100);
 }
 
+/* ═══ PRODUCT MODAL — sectioned editor ═══ */
+#productModal .modal { max-width: 720px; padding-bottom: 0; }
+
+.pm-section {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  background: var(--white);
+}
+
+.pm-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.pm-step {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--black);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.pm-section-title {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+.pm-hint {
+  font-size: 11px;
+  color: var(--gray-400);
+  margin-top: 2px;
+  line-height: 1.5;
+}
+
+.pm-subhead {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin: 16px 0 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.pm-subhead .pm-hint {
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+.pm-req { color: #dc2626; }
+
+/* Column headers above the variant / recipe / packaging builders.
+   Grids mirror .variant-row (1fr 1fr 80px auto) and .recipe-row
+   (1fr 100px auto) including their 12px row padding + 1px border. */
+.pm-cols {
+  display: grid;
+  gap: 8px;
+  padding: 0 13px;
+  margin-bottom: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gray-400);
+}
+.pm-cols-variant { grid-template-columns: 1fr 1fr 80px 30px; }
+.pm-cols-recipe  { grid-template-columns: 1fr 100px 30px; }
+.pm-cols-pkg     { display: flex; }
+.pm-cols-pkg span:nth-child(1) { flex: 2; }
+.pm-cols-pkg span:nth-child(2) { width: 110px; }
+.pm-cols-pkg span:nth-child(3) { width: 30px; }
+.pm-cols:has(+ .pm-builder:empty) { display: none; }
+
+#productModal .pm-builder + .btn-secondary { margin-bottom: 4px; }
+
+.form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* Save bar stays reachable however long the form gets */
+.pm-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--white);
+  margin: 16px -28px 0;
+  padding: 14px 28px 18px;
+  border-top: 1.5px solid var(--border);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
 /* Top products dashboard widget */
 .top-product-row {
   display: flex;
@@ -2055,6 +2161,12 @@ canvas { width: 100% !important; max-width: 100%; }
   .modal { padding: 18px; max-height: 88vh; }
   .variant-row { grid-template-columns: 1fr 1fr; }
   .recipe-row { grid-template-columns: 1fr 80px auto; }
+  #productModal .modal { padding-bottom: 0; }
+  .pm-section { padding: 12px 14px; }
+  .form-row-3 { grid-template-columns: 1fr; }
+  .pm-cols-variant { display: none; } /* rows wrap to 2 cols here */
+  .pm-cols-recipe { grid-template-columns: 1fr 80px auto; }
+  .pm-actions { margin: 12px -18px 0; padding: 12px 18px 14px; }
 }
 
 @media (max-width: 480px) {
@@ -2740,6 +2852,9 @@ html[data-theme="dark"] .variant-option { background: var(--gray-200); border-co
 html[data-theme="dark"] .variant-option:hover { background: #f4f2ee; color: #0c0b0a; border-color: #f4f2ee; }
 html[data-theme="dark"] .variant-option:hover .variant-option-price { color: rgba(12,11,10,.6); }
 html[data-theme="dark"] .recipe-row { background: var(--gray-200); border-color: var(--border); }
+html[data-theme="dark"] .pm-step { background: var(--gray-900); color: #0c0b0a; }
+html[data-theme="dark"] .packaging-row { background: var(--gray-200); border-color: var(--border); }
+html[data-theme="dark"] .packaging-row input { background: var(--white); border-color: var(--border); color: var(--gray-900); }
 html[data-theme="dark"] .recipe-row select,
 html[data-theme="dark"] .recipe-row input { background: var(--white); border-color: var(--border); color: var(--gray-900); }
 
