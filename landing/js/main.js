@@ -85,6 +85,38 @@ document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => 
   revealObserver.observe(el);
 });
 
+/* Defense-in-depth: IntersectionObserver can silently fail to fire on some
+   devices/browsers (WebKit has known misses around scroll-behavior:smooth,
+   which is exactly what the nav's anchor links use), leaving content
+   permanently at opacity:0 (seen on real iPad Safari). Two independent
+   fallbacks guarantee reveal still happens even if the observer never
+   fires: a throttled scroll listener for the common case, plus a low-
+   frequency poll that needs no event at all, so it also covers scroll
+   paths that never dispatch a 'scroll' event. Both re-query live so they
+   also cover .reveal targets added later (e.g. by .stagger below). */
+function revealFallbackCheck() {
+  const vh = window.innerHeight;
+  document.querySelectorAll('.reveal:not(.visible), .reveal-left:not(.visible), .reveal-right:not(.visible)').forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (r.top < vh && r.bottom > 0) {
+      el.classList.add('visible');
+      revealObserver.unobserve(el);
+    }
+  });
+  return document.querySelectorAll('.reveal:not(.visible), .reveal-left:not(.visible), .reveal-right:not(.visible)').length;
+}
+let revealFallbackTicking = false;
+window.addEventListener('scroll', () => {
+  if (!revealFallbackTicking) {
+    revealFallbackTicking = true;
+    requestAnimationFrame(() => { revealFallbackTicking = false; revealFallbackCheck(); });
+  }
+}, { passive: true });
+window.addEventListener('load', revealFallbackCheck);
+const revealPoll = setInterval(() => {
+  if (revealFallbackCheck() === 0) clearInterval(revealPoll);
+}, 400);
+
 /* ─── Stagger grid children ─────────────────────────────────── */
 // .stagger containers: each child gets .reveal + a staggered delay
 document.querySelectorAll('.stagger').forEach(parent => {
@@ -635,44 +667,50 @@ document.querySelectorAll('.mode-how').forEach(details => {
   });
 });
 
-/* ─── FAQ smooth open/close (same WAAPI pattern as .mode-how) ─── */
-document.querySelectorAll('.faq-item').forEach(details => {
-  const summary = details.querySelector('.faq-question');
-  const body    = details.querySelector('.faq-answer');
-  if (!summary || !body) return;
+/* ─── Generalized smooth open/close accordion (same WAAPI pattern
+   as .mode-how, minus its step-cascade). Used by FAQ and feature cards. ─── */
+function initSimpleAccordion(containerSelector, summarySelector, bodySelector) {
+  document.querySelectorAll(containerSelector).forEach(details => {
+    const summary = details.querySelector(summarySelector);
+    const body    = details.querySelector(bodySelector);
+    if (!summary || !body) return;
 
-  let animating = false;
+    let animating = false;
 
-  summary.addEventListener('click', e => {
-    e.preventDefault();
-    if (animating) return;
+    summary.addEventListener('click', e => {
+      e.preventDefault();
+      if (animating) return;
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      details.open = !details.open;
-      return;
-    }
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        details.open = !details.open;
+        return;
+      }
 
-    if (!details.open) {
-      details.open = true;
-      const h = body.offsetHeight;
-      animating = true;
-      const anim = body.animate(
-        [{ height: '0px', opacity: 0 }, { height: h + 'px', opacity: 1 }],
-        { duration: 320, easing: HOW_EASE }
-      );
-      anim.onfinish = () => { animating = false; };
-    } else {
-      const h = body.offsetHeight;
-      animating = true;
-      const anim = body.animate(
-        [{ height: h + 'px', opacity: 1 }, { height: '0px', opacity: 0 }],
-        { duration: 260, easing: HOW_EASE, fill: 'forwards' }
-      );
-      anim.onfinish = () => {
-        details.open = false;
-        anim.cancel();
-        animating = false;
-      };
-    }
+      if (!details.open) {
+        details.open = true;
+        const h = body.offsetHeight;
+        animating = true;
+        const anim = body.animate(
+          [{ height: '0px', opacity: 0 }, { height: h + 'px', opacity: 1 }],
+          { duration: 320, easing: HOW_EASE }
+        );
+        anim.onfinish = () => { animating = false; };
+      } else {
+        const h = body.offsetHeight;
+        animating = true;
+        const anim = body.animate(
+          [{ height: h + 'px', opacity: 1 }, { height: '0px', opacity: 0 }],
+          { duration: 260, easing: HOW_EASE, fill: 'forwards' }
+        );
+        anim.onfinish = () => {
+          details.open = false;
+          anim.cancel();
+          animating = false;
+        };
+      }
+    });
   });
-});
+}
+
+initSimpleAccordion('.faq-item', '.faq-question', '.faq-answer');
+initSimpleAccordion('.feat-card', '.feat-summary', '.feat-detail');
